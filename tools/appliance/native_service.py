@@ -19,7 +19,7 @@ import sys
 import threading
 import types
 
-from native_pool import NativePool, NativeProvider, NativeLimits, NativePoolError
+from native_pool import NativePool, NativeProvider, NativeLimits, NativePoolError, SolverResource
 from native_worker import decode
 from native_runtime import RuntimeProfile
 from operations import Operations, OperationError
@@ -33,6 +33,7 @@ from oracle_components.native_bio import NativeBioOperations
 from oracle_components.native_statistics import NativeStatisticsOperations
 from oracle_components.native_runtime_adapter import NativeRuntimeOperations
 from oracle_components.reasoning import create_reasoning_operations
+from oracle_components.logic import NativeLogicOperations
 
 _CONTEXT = ContextVar("native_service_request", default=None)
 
@@ -78,6 +79,8 @@ class NativeService:
                     adapter = NativeBioOperations(catalog, call, identity)
                 elif provider.profile == "statistics":
                     adapter = NativeStatisticsOperations(catalog, call, identity)
+                elif provider.profile == "logic":
+                    adapter = NativeLogicOperations(catalog, self._tenant_scoped(call), identity, provider.solver.sha256)
                 elif provider.profile == "runtime":
                     adapter = NativeRuntimeOperations(catalog, call, identity)
                 else:
@@ -118,6 +121,18 @@ class NativeService:
             context["receipts"].append({"admission": result.admission, "containment": result.containment})
             return result.reply
         return call
+
+    @staticmethod
+    def _tenant_scoped(call):
+        """A logic program's scope.tenant must be the host-assigned tenant."""
+        def scoped(request):
+            context = _CONTEXT.get()
+            if context is None:
+                raise RuntimeError("host request context required")
+            if request["arguments"]["scope"]["tenant"] != context["tenant"]:
+                raise OperationError("tenant_scope_mismatch", 403)
+            return call(request)
+        return scoped
 
     @staticmethod
     def _tenant(tenant):
@@ -207,7 +222,7 @@ class NativeService:
                             "reason": "native_request_refused"}
                 if error.detail is not None:
                     withheld["detail"] = error.detail
-                if request["operation_id"].startswith(("science.", "incremental.", "bio.", "statistics.")):
+                if request["operation_id"].startswith(("science.", "incremental.", "bio.", "statistics.", "logic.")):
                     withheld["authority"] = "computation_only"
                 return 200, {"outcome": "completed", "operation_id": request["operation_id"],
                              "reply": withheld, "durable_replay": False}
@@ -243,15 +258,25 @@ def read_config(path):
     providers = []
     for row in rows:
         required = {"id", "extension", "sha256", "profile"}
-        if (not isinstance(row, dict) or set(row) not in (required, required | {"runtime"})
+        if (not isinstance(row, dict) or set(row) not in (required, required | {"runtime"}, required | {"solver"})
                 or any(not isinstance(row[k], str) for k in required)):
             raise ValueError("invalid provider declaration")
+        if (row["profile"] == "logic") != ("solver" in row):
+            raise ValueError("logic provider requires exactly one operator solver resource")
+        solver = None
+        if "solver" in row:
+            entry = row["solver"]
+            if (not isinstance(entry, dict) or set(entry) != {"path", "sha256"}
+                    or any(not isinstance(entry[k], str) for k in entry) or not Path(entry["path"]).is_absolute()):
+                raise ValueError("logic solver requires an absolute path and SHA-256")
+            # NativePool hashes and snapshots these bytes at startup; mismatch fails startup.
+            solver = SolverResource(Path(entry["path"]), entry["sha256"])
         if not Path(row["extension"]).is_absolute():
             raise ValueError("operator extension path must be absolute")
         if (row["profile"] == "runtime") != ("runtime" in row):
             raise ValueError("runtime provider requires operator runtime configuration")
         runtime = RuntimeProfile.from_dict(row["runtime"]) if "runtime" in row else None
-        providers.append(NativeProvider(**{**row, "extension": Path(row["extension"]), "runtime": runtime}))
+        providers.append(NativeProvider(**{**row, "extension": Path(row["extension"]), "runtime": runtime, "solver": solver}))
     options = document.get("limits", {})
     if not isinstance(options, dict):
         raise ValueError("invalid limits")

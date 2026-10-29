@@ -2,6 +2,7 @@
 //! Clingo proposes models; a separate GL reduct checker validates each witness.
 //! Completeness and inconsistency remain solver-trusted claims.
 #![forbid(unsafe_code)]
+pub mod hosted;
 pub mod process;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;

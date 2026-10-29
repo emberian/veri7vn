@@ -14,6 +14,7 @@ A listed Rust library is not automatically an HTTP operation.
 | `incremental` | `incremental.dependencies`, `incremental.rooted_dependencies` | Versioned finite dependency batches, insertions/retractions and settled changes; rooted queries restrict the requested view. Arrangements are discarded after the call; no hosted subscription. |
 | `bio` | `bio.align_pairwise` | Supplied-sequence alignment. See [DNA and statistics](BIO-STATISTICS.md) for scoring and limits. |
 | `statistics` | `statistics.linear_regression` | Conditional inference over a supplied linear model and noise assumptions. See [DNA and statistics](BIO-STATISTICS.md). |
+| `logic` | `logic.query`, `logic.enumerate` | Stable models of one supplied, complete, finite, grounded normal logic program (no variables, disjunction or aggregates), using an operator-admitted clingo executable. `query` answers skeptical and credulous truth per atom; `enumerate` lists all models up to 256. Every returned model is independently checked; "no model", "true in all models" and inconsistency trust the solver without a certificate. Timeouts, caps and solver failures give `inconclusive`, never `inconsistent`. `scope.tenant` must be the host tenant; `scope.complete_program` is the caller's unverified claim. Replies carry a content hash of the program. Nothing is stored; results authorize no action. See its [README](../oracle-logic/README.md). |
 | `runtime` | `graph.query`, `graph.execute` | Query DAGs over an admitted KQA-shaped image. These IDs refer to data queries, not the supplied-graph optimizer above. `execute` journals a versioned session turn. |
 | `runtime` | `kqa.query`, `kqa.execute` | The pinned 27-operation KQA program vocabulary. Typed values retain exact decimals, unit and date distinctions; ambiguous cases can refuse. |
 | `runtime` | `reader.whole`, `reader.execute` | Learned whole templates, exact fragment/outer composition, 2–4-segment chains and one nested fragment pass. Successful readings must agree. `execute` journals the language turn; `whole` is pure. Requires admitted in-image reader tables. |
@@ -38,10 +39,11 @@ Rust hosts can atomically commit authorized effect intents with state and reply,
 then claim and settle them through `HostEffects`. No teaching, filesystem,
 network or other external executor is supplied by that outbox.
 
-`oracle-logic` is a standalone stable-model prototype with 18 centrally passing
-tests, including real clingo. It is outside the main workspace and has no PyO3, HTTP or package consumer.
-Its model checks and solver-trusted absence claims are distinct; see its
-[README](../oracle-logic/README.md) and [receipt](../evidence/2026-10-29-logic-validation.json).
+`oracle-logic` is now hosted as the optional `logic` profile above; it is not
+yet in the release package. Its model checks and solver-trusted absence claims
+are distinct; see its [README](../oracle-logic/README.md), the core
+[receipt](../evidence/2026-10-29-logic-validation.json) and the macOS
+[hosting receipt](../evidence/2026-10-29-logic-hosted.json).
 
 The [design experiments](../experiments/README.md) explore streaming queries,
 maintained views, conditional formulas and evidence revisions. Their new code

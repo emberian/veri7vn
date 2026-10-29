@@ -1,6 +1,8 @@
 #![forbid(unsafe_code)]
 use oracle_runtime_core as core;
 mod kernel;
+#[cfg(feature = "logic")]
+mod logic;
 #[cfg(any(
     feature = "science",
     feature = "incremental",
@@ -26,7 +28,8 @@ pyo3::create_exception!(oracle_native, BudgetError, PyRuntimeError);
     feature = "reasoning",
     feature = "science",
     feature = "bio",
-    feature = "statistics"
+    feature = "statistics",
+    feature = "logic"
 ))]
 pyo3::create_exception!(oracle_native, NativeRequestError, PyValueError);
 
@@ -339,7 +342,8 @@ fn oracle_native(py: Python<'_>, module: &Bound<'_, PyModule>) -> PyResult<()> {
         feature = "reasoning",
         feature = "science",
         feature = "bio",
-        feature = "statistics"
+        feature = "statistics",
+        feature = "logic"
     ))]
     module.add(
         "NativeRequestError",
@@ -354,6 +358,8 @@ fn oracle_native(py: Python<'_>, module: &Bound<'_, PyModule>) -> PyResult<()> {
     providers::register(module)?;
     #[cfg(feature = "reasoning")]
     reasoning::register(module)?;
+    #[cfg(feature = "logic")]
+    logic::register(module)?;
     kernel::register(module)?;
     module.add_class::<Runtime>()?;
     module.add_class::<Cancellation>()?;

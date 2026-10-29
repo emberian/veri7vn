@@ -1,8 +1,13 @@
 # A reasoning laboratory, before choosing an integration
 
 New exploratory code. It compiles, passes `clippy -D warnings`, and its default
-mode runs on macOS ([receipt](../evidence/2026-10-29-experiments-execution.json)); it is **not solver-checked**: no clingo was
-executed, and there are no panel numbers or service registration.
+mode runs on macOS ([receipt](../evidence/2026-10-29-experiments-execution.json)). Lane O3 then ran
+`--solver` with a locally built clingo 5.8.2 on macOS: all thirteen actual
+replies agree with the handwritten status and skeptical/credulous answers, and
+a separate full enumeration of each request gives exactly the handwritten
+stable models ([hosting receipt](../evidence/2026-10-29-logic-hosted.json)).
+There are no panel numbers. The demos are not registered in the service; the
+core provider is, as the `logic` profile.
 The earlier 18-test receipt qualifies the frozen provider core, not these demos.
 Only `examples/**` and this document changed in this sprint. No new dependency,
 PyO3/HTTP integration, host registration or action execution.

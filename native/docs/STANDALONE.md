@@ -43,10 +43,20 @@ SHA-256. Each profile below may reference the same combined artifact:
   "providers": [
     {"id": "reasoning", "profile": "reasoning", "extension": "/operator/liboracle_native.so", "sha256": "ACTUAL_SHA256"},
     {"id": "science", "profile": "science", "extension": "/operator/liboracle_native.so", "sha256": "ACTUAL_SHA256"},
-    {"id": "incremental", "profile": "incremental", "extension": "/operator/liboracle_native.so", "sha256": "ACTUAL_SHA256"}
+    {"id": "incremental", "profile": "incremental", "extension": "/operator/liboracle_native.so", "sha256": "ACTUAL_SHA256"},
+    {"id": "logic", "profile": "logic", "extension": "/operator/liboracle_native.so", "sha256": "ACTUAL_SHA256",
+     "solver": {"path": "/operator/clingo", "sha256": "ACTUAL_CLINGO_SHA256"}}
   ]
 }
 ```
+
+The `logic` profile needs the `logic` build feature and exactly one `solver`
+entry: an absolute path to a native clingo executable and the SHA-256 of its
+bytes. At startup the service copies those bytes into its private snapshot
+directory and refuses to start if the hash differs or the file is missing.
+Workers re-hash the copy and pass only its path to the extension. A request can
+never name an executable or solver flags. The hash pins the executable bytes,
+not its dynamic libraries. A `solver` entry on any other profile is rejected.
 
 From the repository root:
 

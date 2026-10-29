@@ -46,6 +46,13 @@ class NativePoolError(Exception):
 
 
 @dataclass(frozen=True)
+class SolverResource:
+    """Operator-admitted solver executable for the logic profile; never request data."""
+    path: Path
+    sha256: str
+
+
+@dataclass(frozen=True)
 class NativeProvider:
     """Operator configuration only; never construct from an operation request."""
     id: str
@@ -53,6 +60,7 @@ class NativeProvider:
     sha256: str
     profile: str
     runtime: RuntimeProfile | None = None
+    solver: SolverResource | None = None
 
 
 @dataclass(frozen=True)
@@ -96,7 +104,9 @@ class _Worker:
         settings = {key: getattr(self.limits, key) for key in
                     ("request_bytes", "reply_bytes", "cpu_seconds", "memory_bytes", "file_descriptors")}
         runtime = self.admitted.get("runtime")
-        self.profiles = [p for p in self.admitted["artifact"]["profiles"] if p != "runtime" or runtime is not None]
+        solver = self.admitted.get("solver_sha256")
+        self.profiles = [p for p in self.admitted["artifact"]["profiles"]
+                         if (p != "runtime" or runtime is not None) and (p != "logic" or solver is not None)]
         settings["file_size_bytes"] = 0 if runtime is None else runtime.state_file_bytes
         command = [sys.executable, "-I", "-B", str(Path(__file__).with_name("native_worker.py")),
                 "--extension", str(self.admitted["snapshot"]), "--sha256", self.admitted["sha256"],
@@ -104,6 +114,9 @@ class _Worker:
                 "--limits", json.dumps(settings, separators=(",", ":"))]
         if runtime is not None:
             command.extend(["--runtime-config", str(self.admitted["runtime_snapshot"])])
+        if solver is not None:
+            command.extend(["--solver-config", json.dumps({"path": str(self.admitted["solver_snapshot"]),
+                                                           "sha256": solver}, separators=(",", ":"))])
         return command
 
     def start(self, checkpoint, deadline):
@@ -124,10 +137,13 @@ class _Worker:
         expected_keys = {"ready", "profiles", "extension_sha256", "containment"}
         if self.admitted.get("runtime") is not None:
             expected_keys.add("resource_identity")
+        if self.admitted.get("solver_sha256") is not None:
+            expected_keys.add("solver_sha256")
         if (not isinstance(ready, dict) or ready.get("ready") is not True
                 or set(ready) != expected_keys
                 or ready["profiles"] != getattr(self, "profiles", self.admitted["artifact"]["profiles"])
                 or ready.get("resource_identity") != self.admitted.get("resource_identity")
+                or ready.get("solver_sha256") != self.admitted.get("solver_sha256")
                 or ready["extension_sha256"] != self.admitted["sha256"]
                 or not isinstance(ready["containment"], dict)):
             raise NativePoolError("native_start_failed")
@@ -285,7 +301,12 @@ class NativePool:
                     raise ValueError("runtime resources require runtime profile")
                 else:
                     runtime = None
+                if (provider.profile == "logic") != isinstance(provider.solver, SolverResource):
+                    raise ValueError("logic profile requires exactly one operator-admitted solver resource")
                 admitted = self._admit(provider)
+                if provider.solver is not None:
+                    admitted["solver_sha256"] = provider.solver.sha256
+                    admitted["solver_snapshot"] = self._admit_solver(provider.solver)
                 if runtime is not None:
                     admitted["runtime"] = runtime
                     admitted["resource_identity"] = runtime.identity
@@ -337,6 +358,37 @@ class NativePool:
         self.artifacts[provider.sha256] = artifact
         return {"id": provider.id, "profile": provider.profile, "sha256": provider.sha256,
                 "extension_bytes": count, "snapshot": snapshot, "artifact": artifact}
+
+    def _admit_solver(self, solver):
+        """Snapshot the admitted solver bytes privately; the worker re-hashes them."""
+        path = Path(solver.path)
+        if (not path.is_absolute() or not isinstance(solver.sha256, str)
+                or not re.fullmatch(r"[0-9a-f]{64}", solver.sha256)):
+            raise ValueError("logic solver requires an absolute executable path and lowercase SHA-256")
+        snapshot = Path(self.snapshots.name) / ("solver-" + solver.sha256) / "solver"
+        # Every configured path is hashed, even when its bytes are already held.
+        existing = snapshot.exists()
+        if not existing:
+            snapshot.parent.mkdir(mode=0o700)
+        digest, count = hashlib.sha256(), 0
+        fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW)
+        with os.fdopen(fd, "rb") as source, open(os.devnull if existing else snapshot, "ab" if existing else "xb") as target:
+            if not stat.S_ISREG(os.fstat(source.fileno()).st_mode):
+                raise ValueError("logic solver is not a regular file")
+            while True:
+                block = source.read(65536)
+                if not block:
+                    break
+                count += len(block)
+                if count > self.limits.extension_bytes:
+                    raise ValueError("logic solver exceeds byte limit")
+                digest.update(block)
+                target.write(block)
+        if count == 0 or digest.hexdigest() != solver.sha256:
+            raise ValueError("logic solver hash mismatch or empty file")
+        if not existing:
+            snapshot.chmod(0o500)
+        return snapshot
 
     def _checkpoint(self, deadline, cancellation):
         if self.stopping.is_set():
@@ -470,11 +522,13 @@ class NativePool:
     def _compatible(resident, requested):
         return (resident["sha256"] == requested["sha256"]
                 and (requested.get("runtime") is None
-                     or resident.get("resource_identity") == requested.get("resource_identity")))
+                     or resident.get("resource_identity") == requested.get("resource_identity"))
+                and (requested.get("solver_sha256") is None
+                     or resident.get("solver_sha256") == requested.get("solver_sha256")))
 
     @staticmethod
     def _receipt(admitted):
-        return {key: value for key, value in admitted.items() if key not in ("snapshot", "artifact", "runtime", "runtime_snapshot")}
+        return {key: value for key, value in admitted.items() if key not in ("snapshot", "artifact", "runtime", "runtime_snapshot", "solver_snapshot")}
 
     def admissions(self):
         return [self._receipt(value) for value in self.registry.values()]

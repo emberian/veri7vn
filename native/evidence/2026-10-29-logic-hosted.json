@@ -1,0 +1,1032 @@
+{
+ "schema": "oracle-native-evidence-v1",
+ "date": "2026-10-29",
+ "lane": "O3-LOGIC-HOSTED",
+ "platform": "Darwin nextop.local 27.0.0 Darwin Kernel Version 27.0.0: Tue Aug 11 21:20:40 PDT 2026; root:xnu-13432.1.9~1/RELEASE_ARM64_T6020 arm64",
+ "claim": "The oracle-logic core is hosted as the optional logic profile: PyO3 exports, two service operations, operator-admitted solver hashing at startup, tenant-scoped requests and content identities. Checked on macOS arm64 only.",
+ "not_claimed": [
+  "Linux hosting receipt",
+  "release-package inclusion",
+  "specialist panel numbers",
+  "Isabelle theorem",
+  "hard memory containment on macOS (RLIMIT_AS not applied)",
+  "attestation of the solver's dynamic libraries",
+  "verified complete_program coverage",
+  "action authority from any answer"
+ ],
+ "solver": {
+  "source_tarball": "clingo-a99ffb2a58293c68b28fcc283a1d1c9ccad900fe.tar.gz",
+  "source_sha256": "bfa8836098ca6cfe8e2b6663117f745c2489ca05cf6e017f8aca7509e54930df",
+  "source_origin": "copied from hbox logic-20261029 (same bytes as the Linux build receipt)",
+  "recipe": "hbox build-clingo.sh flags, built locally under var/o3-logic (Release, apps on, Python/Lua off, static internal libraries)",
+  "version": "clingo version 5.8.2",
+  "executable_bytes": 4754136,
+  "executable_sha256": "c30e55ebf01cdb4b986bb8be337d48beb98c0d06ec9d260864dac4010e909bb7",
+  "dynamic_dependencies": [
+   "/usr/lib/libc++.1.dylib (compatibility version 1.0.0, current version 2200.27.0)",
+   "/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1359.0.0)"
+  ],
+  "compiler": "Apple clang version 21.0.0 (clang-2100.3.34.2)",
+  "cmake": "cmake version 4.4.3",
+  "pypi_wheel_finding": "pip install clingo (5.8.2, cffi wheel) in var/o3-logic/venv installs no clingo console executable, only the Python module; it was not used."
+ },
+ "extension": {
+  "build": "cargo build -p oracle-runtime-python --features logic (debug, shared native/target)",
+  "sha256": "d02fc424ffb177576bf5d953a4b2c92de24ada6d976e61345e2dd8e144fd496f"
+ },
+ "checks": {
+  "cargo_test_p_oracle_logic": {
+   "command": "cargo test --locked -p oracle-logic",
+   "result": "22 passed, 0 failed, 3 ignored: semantics 10, solver_boundary 6, hosted 3, demo_consistency 3"
+  },
+  "cargo_test_p_oracle_logic_ignored_with_clingo": {
+   "command": "CLINGO_EXECUTABLE=<local clingo> cargo test --locked -p oracle-logic -- --ignored",
+   "result": "3 passed, 0 failed: clingo_matches_independent_oracle, sixty_irrelevant_default_choices_do_not_force_enumeration, hosted_examples_with_actual_clingo"
+  },
+  "python_logic_contract": {
+   "command": "PYTHONPATH=var/o3-logic/binding ORACLE_LOGIC_CLINGO=<local clingo> python native/tests/test_python_logic.py",
+   "result": "10 tests, OK"
+  },
+  "http_end_to_end": {
+   "service": "tools/appliance/native_service.py on 127.0.0.1:7391, started with nohup, stopped by its recorded PID (SIGTERM)",
+   "wrong_solver_hash_startup": {
+    "exit_code": 1,
+    "last_line": "ValueError: logic solver hash mismatch or empty file"
+   },
+   "admission_receipt": {
+    "id": "logic",
+    "profile": "logic",
+    "sha256": "d02fc424ffb177576bf5d953a4b2c92de24ada6d976e61345e2dd8e144fd496f",
+    "extension_bytes": 15739000,
+    "solver_sha256": "c30e55ebf01cdb4b986bb8be337d48beb98c0d06ec9d260864dac4010e909bb7"
+   },
+   "containment_reported": {
+    "rlimits": {
+     "RLIMIT_CORE": {
+      "soft": 0,
+      "hard": 0
+     },
+     "RLIMIT_FSIZE": {
+      "soft": 0,
+      "hard": 0
+     },
+     "RLIMIT_NOFILE": {
+      "soft": 64,
+      "hard": 64
+     },
+     "RLIMIT_CPU": {
+      "soft": 30,
+      "hard": 30
+     }
+    },
+    "memory_limit": "unsupported_not_applied",
+    "cpu_scope": "whole_worker_lifetime",
+    "rss_limit": false,
+    "filesystem_network_sandbox": false
+   },
+   "invocations": [
+    {
+     "label": "alternative-plans/query",
+     "operation": "logic.query",
+     "http_status": 200,
+     "error": null,
+     "reply_status": "answered",
+     "classification": "checked_witnesses_solver_trusted_absence",
+     "reason": null,
+     "native_status": "consistent",
+     "models": [
+      [
+       1,
+       2
+      ],
+      [
+       0,
+       2
+      ]
+     ],
+     "answers": [
+      [
+       0,
+       false,
+       true
+      ],
+      [
+       1,
+       false,
+       true
+      ],
+      [
+       2,
+       true,
+       true
+      ]
+     ],
+     "program_identity": "30056068c23ecfe05a4e8597161e0ecf91df74f6b734737136320edfec988b95"
+    },
+    {
+     "label": "alternative-plans/enumerate",
+     "operation": "logic.enumerate",
+     "http_status": 200,
+     "error": null,
+     "reply_status": "answered",
+     "classification": "enumerated_checked_models_solver_trusted_completeness",
+     "reason": null,
+     "native_status": "consistent",
+     "models": [
+      [
+       1,
+       2
+      ],
+      [
+       0,
+       2
+      ]
+     ],
+     "answers": [
+      [
+       0,
+       false,
+       true
+      ],
+      [
+       1,
+       false,
+       true
+      ],
+      [
+       2,
+       true,
+       true
+      ]
+     ],
+     "program_identity": "30056068c23ecfe05a4e8597161e0ecf91df74f6b734737136320edfec988b95"
+    },
+    {
+     "label": "default-flight/query",
+     "operation": "logic.query",
+     "http_status": 200,
+     "error": null,
+     "reply_status": "answered",
+     "classification": "checked_witnesses_solver_trusted_absence",
+     "reason": null,
+     "native_status": "consistent",
+     "models": [
+      [
+       0,
+       3
+      ]
+     ],
+     "answers": [
+      [
+       1,
+       false,
+       false
+      ],
+      [
+       3,
+       true,
+       true
+      ]
+     ],
+     "program_identity": "09444405468ff0df7ff5ed483bb68f0c1134c5b235674c42bddb02e91e706725"
+    },
+    {
+     "label": "default-flight/enumerate",
+     "operation": "logic.enumerate",
+     "http_status": 200,
+     "error": null,
+     "reply_status": "answered",
+     "classification": "enumerated_checked_models_solver_trusted_completeness",
+     "reason": null,
+     "native_status": "consistent",
+     "models": [
+      [
+       0,
+       3
+      ]
+     ],
+     "answers": [
+      [
+       1,
+       false,
+       false
+      ],
+      [
+       3,
+       true,
+       true
+      ]
+     ],
+     "program_identity": "09444405468ff0df7ff5ed483bb68f0c1134c5b235674c42bddb02e91e706725"
+    },
+    {
+     "label": "exception-flight/query",
+     "operation": "logic.query",
+     "http_status": 200,
+     "error": null,
+     "reply_status": "answered",
+     "classification": "checked_witnesses_solver_trusted_absence",
+     "reason": null,
+     "native_status": "consistent",
+     "models": [
+      [
+       0,
+       1,
+       2
+      ]
+     ],
+     "answers": [
+      [
+       1,
+       true,
+       true
+      ],
+      [
+       3,
+       false,
+       false
+      ]
+     ],
+     "program_identity": "e831ea31c78f7052b40a112bc69408fda0aa24f6646afcf45d719533429c3307"
+    },
+    {
+     "label": "exception-flight/enumerate",
+     "operation": "logic.enumerate",
+     "http_status": 200,
+     "error": null,
+     "reply_status": "answered",
+     "classification": "enumerated_checked_models_solver_trusted_completeness",
+     "reason": null,
+     "native_status": "consistent",
+     "models": [
+      [
+       0,
+       1,
+       2
+      ]
+     ],
+     "answers": [
+      [
+       1,
+       true,
+       true
+      ],
+      [
+       3,
+       false,
+       false
+      ]
+     ],
+     "program_identity": "e831ea31c78f7052b40a112bc69408fda0aa24f6646afcf45d719533429c3307"
+    },
+    {
+     "label": "recursive-policy/query",
+     "operation": "logic.query",
+     "http_status": 200,
+     "error": null,
+     "reply_status": "answered",
+     "classification": "checked_witnesses_solver_trusted_absence",
+     "reason": null,
+     "native_status": "consistent",
+     "models": [
+      [
+       0,
+       1,
+       2,
+       3,
+       4,
+       5,
+       7
+      ]
+     ],
+     "answers": [
+      [
+       5,
+       true,
+       true
+      ],
+      [
+       7,
+       true,
+       true
+      ]
+     ],
+     "program_identity": "f9ab43ba3037075487bf8efc74e6b3203907e27e8a036d73308e74283109bd39"
+    },
+    {
+     "label": "recursive-policy/enumerate",
+     "operation": "logic.enumerate",
+     "http_status": 200,
+     "error": null,
+     "reply_status": "answered",
+     "classification": "enumerated_checked_models_solver_trusted_completeness",
+     "reason": null,
+     "native_status": "consistent",
+     "models": [
+      [
+       0,
+       1,
+       2,
+       3,
+       4,
+       5,
+       7
+      ]
+     ],
+     "answers": [
+      [
+       5,
+       true,
+       true
+      ],
+      [
+       7,
+       true,
+       true
+      ]
+     ],
+     "program_identity": "f9ab43ba3037075487bf8efc74e6b3203907e27e8a036d73308e74283109bd39"
+    },
+    {
+     "label": "inconsistent/query",
+     "operation": "logic.query",
+     "http_status": 200,
+     "error": null,
+     "reply_status": "answered",
+     "classification": "inconsistent_solver_trusted_absence_of_stable_models",
+     "reason": null,
+     "native_status": "inconsistent",
+     "models": [],
+     "answers": [
+      [
+       0,
+       null,
+       null
+      ]
+     ],
+     "program_identity": "1be724a3978d1d14539dbb1eae2be81d088aa38b827c2ae96adba4de63224b25"
+    },
+    {
+     "label": "inconsistent/enumerate",
+     "operation": "logic.enumerate",
+     "http_status": 200,
+     "error": null,
+     "reply_status": "answered",
+     "classification": "inconsistent_solver_trusted_absence_of_stable_models",
+     "reason": null,
+     "native_status": "inconsistent",
+     "models": [],
+     "answers": [
+      [
+       0,
+       null,
+       null
+      ]
+     ],
+     "program_identity": "1be724a3978d1d14539dbb1eae2be81d088aa38b827c2ae96adba4de63224b25"
+    },
+    {
+     "label": "solver-in-request",
+     "operation": "logic.query",
+     "http_status": 400,
+     "error": "invalid_arguments",
+     "reply_status": null,
+     "classification": null,
+     "reason": null,
+     "native_status": null,
+     "models": null,
+     "answers": [],
+     "program_identity": null
+    },
+    {
+     "label": "other-tenant-scope",
+     "operation": "logic.query",
+     "http_status": 403,
+     "error": "tenant_scope_mismatch",
+     "reply_status": null,
+     "classification": null,
+     "reason": null,
+     "native_status": null,
+     "models": null,
+     "answers": [],
+     "program_identity": null
+    }
+   ],
+   "service_exit_code": 0
+  },
+  "shared_artifact_reuse": {
+   "what": "one worker slot, reasoning and logic providers on one all-features extension, alternating calls",
+   "result": [
+    {
+     "operation": "logic.query",
+     "http_status": 200,
+     "error": null,
+     "reply_status": "answered",
+     "reason": null
+    },
+    {
+     "operation": "graph.shortest_path",
+     "http_status": 200,
+     "error": null,
+     "reply_status": "answered",
+     "reason": null
+    },
+    {
+     "operation": "logic.query",
+     "http_status": 200,
+     "error": null,
+     "reply_status": "answered",
+     "reason": null
+    },
+    {
+     "operation": "graph.shortest_path",
+     "http_status": 200,
+     "error": null,
+     "reply_status": "answered",
+     "reason": null
+    }
+   ]
+  },
+  "reasoning_lab_vs_handwritten": {
+   "command": "cargo run --example reasoning_lab -- --solver <local clingo>; plus logic.enumerate of each emitted request",
+   "scenarios": 13,
+   "status_agree": 13,
+   "answers_agree": 13,
+   "enumerated_models_agree": 13,
+   "rows": [
+    {
+     "scenario": "default applies",
+     "expected_status": "consistent",
+     "actual_status": "consistent",
+     "expected_answers": {
+      "bird": [
+       true,
+       true
+      ],
+      "flies": [
+       true,
+       true
+      ]
+     },
+     "actual_answers": {
+      "bird": [
+       true,
+       true
+      ],
+      "flies": [
+       true,
+       true
+      ]
+     },
+     "expected_models": [
+      [
+       "bird",
+       "flies"
+      ]
+     ],
+     "actual_models_enumerated": [
+      [
+       "bird",
+       "flies"
+      ]
+     ]
+    },
+    {
+     "scenario": "new exception retracts derived flight",
+     "expected_status": "consistent",
+     "actual_status": "consistent",
+     "expected_answers": {
+      "flies": [
+       false,
+       false
+      ],
+      "flight-exception": [
+       true,
+       true
+      ]
+     },
+     "actual_answers": {
+      "flies": [
+       false,
+       false
+      ],
+      "flight-exception": [
+       true,
+       true
+      ]
+     },
+     "expected_models": [
+      [
+       "bird",
+       "flight-exception",
+       "penguin"
+      ]
+     ],
+     "actual_models_enumerated": [
+      [
+       "bird",
+       "flight-exception",
+       "penguin"
+      ]
+     ]
+    },
+    {
+     "scenario": "withdrawal restores default; independent support survives",
+     "expected_status": "consistent",
+     "actual_status": "consistent",
+     "expected_answers": {
+      "bird": [
+       true,
+       true
+      ],
+      "flies": [
+       true,
+       true
+      ]
+     },
+     "actual_answers": {
+      "bird": [
+       true,
+       true
+      ],
+      "flies": [
+       true,
+       true
+      ]
+     },
+     "expected_models": [
+      [
+       "bird",
+       "flies"
+      ]
+     ],
+     "actual_models_enumerated": [
+      [
+       "bird",
+       "flies"
+      ]
+     ]
+    },
+    {
+     "scenario": "last support disappears",
+     "expected_status": "consistent",
+     "actual_status": "consistent",
+     "expected_answers": {
+      "bird": [
+       false,
+       false
+      ],
+      "flies": [
+       false,
+       false
+      ]
+     },
+     "actual_answers": {
+      "bird": [
+       false,
+       false
+      ],
+      "flies": [
+       false,
+       false
+      ]
+     },
+     "expected_models": [
+      []
+     ],
+     "actual_models_enumerated": [
+      []
+     ]
+    },
+    {
+     "scenario": "two viable proposed plans",
+     "expected_status": "consistent",
+     "actual_status": "consistent",
+     "expected_answers": {
+      "local-run": [
+       false,
+       true
+      ],
+      "remote-run": [
+       false,
+       true
+      ],
+      "planned": [
+       true,
+       true
+      ],
+      "ask-operator": [
+       false,
+       false
+      ]
+     },
+     "actual_answers": {
+      "local-run": [
+       false,
+       true
+      ],
+      "remote-run": [
+       false,
+       true
+      ],
+      "planned": [
+       true,
+       true
+      ],
+      "ask-operator": [
+       false,
+       false
+      ]
+     },
+     "expected_models": [
+      [
+       "job",
+       "local-ready",
+       "local-run",
+       "planned",
+       "remote-ready"
+      ],
+      [
+       "job",
+       "local-ready",
+       "planned",
+       "remote-ready",
+       "remote-run"
+      ]
+     ],
+     "actual_models_enumerated": [
+      [
+       "job",
+       "local-ready",
+       "local-run",
+       "planned",
+       "remote-ready"
+      ],
+      [
+       "job",
+       "local-ready",
+       "planned",
+       "remote-ready",
+       "remote-run"
+      ]
+     ]
+    },
+    {
+     "scenario": "privacy observation removes remote option",
+     "expected_status": "consistent",
+     "actual_status": "consistent",
+     "expected_answers": {
+      "local-run": [
+       true,
+       true
+      ],
+      "remote-run": [
+       false,
+       false
+      ],
+      "planned": [
+       true,
+       true
+      ]
+     },
+     "actual_answers": {
+      "local-run": [
+       true,
+       true
+      ],
+      "remote-run": [
+       false,
+       false
+      ],
+      "planned": [
+       true,
+       true
+      ]
+     },
+     "expected_models": [
+      [
+       "confidential",
+       "job",
+       "local-ready",
+       "local-run",
+       "planned",
+       "remote-ready"
+      ]
+     ],
+     "actual_models_enumerated": [
+      [
+       "confidential",
+       "job",
+       "local-ready",
+       "local-run",
+       "planned",
+       "remote-ready"
+      ]
+     ]
+    },
+    {
+     "scenario": "no available permissible action: explicit escalation",
+     "expected_status": "consistent",
+     "actual_status": "consistent",
+     "expected_answers": {
+      "planned": [
+       false,
+       false
+      ],
+      "ask-operator": [
+       true,
+       true
+      ]
+     },
+     "actual_answers": {
+      "planned": [
+       false,
+       false
+      ],
+      "ask-operator": [
+       true,
+       true
+      ]
+     },
+     "expected_models": [
+      [
+       "ask-operator",
+       "confidential",
+       "job",
+       "remote-ready"
+      ]
+     ],
+     "actual_models_enumerated": [
+      [
+       "ask-operator",
+       "confidential",
+       "job",
+       "remote-ready"
+      ]
+     ]
+    },
+    {
+     "scenario": "replan after scoped input revision",
+     "expected_status": "consistent",
+     "actual_status": "consistent",
+     "expected_answers": {
+      "remote-run": [
+       true,
+       true
+      ],
+      "ask-operator": [
+       false,
+       false
+      ]
+     },
+     "actual_answers": {
+      "remote-run": [
+       true,
+       true
+      ],
+      "ask-operator": [
+       false,
+       false
+      ]
+     },
+     "expected_models": [
+      [
+       "job",
+       "planned",
+       "remote-ready",
+       "remote-run"
+      ]
+     ],
+     "actual_models_enumerated": [
+      [
+       "job",
+       "planned",
+       "remote-ready",
+       "remote-run"
+      ]
+     ]
+    },
+    {
+     "scenario": "ambiguous explanation suggests a discriminating measurement",
+     "expected_status": "consistent",
+     "actual_status": "consistent",
+     "expected_answers": {
+      "sensor-fault": [
+       false,
+       true
+      ],
+      "real-event": [
+       false,
+       true
+      ],
+      "explained": [
+       true,
+       true
+      ],
+      "request-selftest": [
+       true,
+       true
+      ]
+     },
+     "actual_answers": {
+      "sensor-fault": [
+       false,
+       true
+      ],
+      "real-event": [
+       false,
+       true
+      ],
+      "explained": [
+       true,
+       true
+      ],
+      "request-selftest": [
+       true,
+       true
+      ]
+     },
+     "expected_models": [
+      [
+       "alert",
+       "explained",
+       "real-event",
+       "request-selftest"
+      ],
+      [
+       "alert",
+       "explained",
+       "request-selftest",
+       "sensor-fault"
+      ]
+     ],
+     "actual_models_enumerated": [
+      [
+       "alert",
+       "explained",
+       "real-event",
+       "request-selftest"
+      ],
+      [
+       "alert",
+       "explained",
+       "request-selftest",
+       "sensor-fault"
+      ]
+     ]
+    },
+    {
+     "scenario": "measurement filters explanations",
+     "expected_status": "consistent",
+     "actual_status": "consistent",
+     "expected_answers": {
+      "sensor-fault": [
+       true,
+       true
+      ],
+      "real-event": [
+       false,
+       false
+      ],
+      "request-selftest": [
+       false,
+       false
+      ]
+     },
+     "actual_answers": {
+      "sensor-fault": [
+       true,
+       true
+      ],
+      "real-event": [
+       false,
+       false
+      ],
+      "request-selftest": [
+       false,
+       false
+      ]
+     },
+     "expected_models": [
+      [
+       "alert",
+       "explained",
+       "selftest-failed",
+       "sensor-fault"
+      ]
+     ],
+     "actual_models_enumerated": [
+      [
+       "alert",
+       "explained",
+       "selftest-failed",
+       "sensor-fault"
+      ]
+     ]
+    },
+    {
+     "scenario": "incompatible observations require reconciliation",
+     "expected_status": "inconsistent",
+     "actual_status": "inconsistent",
+     "expected_answers": {
+      "sensor-fault": [
+       null,
+       null
+      ],
+      "real-event": [
+       null,
+       null
+      ]
+     },
+     "actual_answers": {
+      "sensor-fault": [
+       null,
+       null
+      ],
+      "real-event": [
+       null,
+       null
+      ]
+     },
+     "expected_models": [],
+     "actual_models_enumerated": []
+    },
+    {
+     "scenario": "explicit evidence repair restores a different diagnosis",
+     "expected_status": "consistent",
+     "actual_status": "consistent",
+     "expected_answers": {
+      "sensor-fault": [
+       false,
+       false
+      ],
+      "real-event": [
+       true,
+       true
+      ]
+     },
+     "actual_answers": {
+      "sensor-fault": [
+       false,
+       false
+      ],
+      "real-event": [
+       true,
+       true
+      ]
+     },
+     "expected_models": [
+      [
+       "alert",
+       "explained",
+       "real-event",
+       "selftest-passed"
+      ]
+     ],
+     "actual_models_enumerated": [
+      [
+       "alert",
+       "explained",
+       "real-event",
+       "selftest-passed"
+      ]
+     ]
+    },
+    {
+     "scenario": "inconsistent obligations do not authorize either action",
+     "expected_status": "inconsistent",
+     "actual_status": "inconsistent",
+     "expected_answers": {
+      "release": [
+       null,
+       null
+      ],
+      "hold": [
+       null,
+       null
+      ]
+     },
+     "actual_answers": {
+      "release": [
+       null,
+       null
+      ],
+      "hold": [
+       null,
+       null
+      ]
+     },
+     "expected_models": [],
+     "actual_models_enumerated": []
+    }
+   ]
+  },
+  "builds_locked": [
+   "cargo build --locked -p oracle-runtime-python",
+   "cargo build --locked -p oracle-runtime-python --features reasoning,science,incremental,bio,statistics",
+   "cargo build --locked -p oracle-runtime-python --features reasoning,science,incremental,bio,statistics,logic"
+  ],
+  "clippy": "cargo clippy -p oracle-logic -p oracle-runtime-python --features logic --all-targets -- -D warnings: clean",
+  "fmt": "cargo fmt --check: clean for every file this lane touched; remaining diffs are in oracle-core files owned by another lane"
+ }
+}

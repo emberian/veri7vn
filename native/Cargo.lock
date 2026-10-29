@@ -1164,6 +1164,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "oracle-logic"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "sha2",
+]
+
+[[package]]
 name = "oracle-reasoning"
 version = "0.2.0"
 dependencies = [
@@ -1200,6 +1209,7 @@ version = "0.2.0"
 dependencies = [
  "oracle-bio",
  "oracle-incremental",
+ "oracle-logic",
  "oracle-reasoning",
  "oracle-runtime-core",
  "oracle-science",

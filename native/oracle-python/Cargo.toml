@@ -14,6 +14,7 @@ science = ["dep:oracle-science"]
 incremental = ["dep:oracle-incremental"]
 bio = ["dep:oracle-bio"]
 statistics = ["dep:oracle-statistics"]
+logic = ["dep:oracle-logic"]
 
 [dependencies]
 oracle-runtime-core = { path = "../oracle-core" }
@@ -22,5 +23,6 @@ oracle-science = { path = "../oracle-science", optional = true }
 oracle-incremental = { path = "../oracle-incremental", optional = true }
 oracle-bio = { path = "../oracle-bio", optional = true }
 oracle-statistics = { path = "../oracle-statistics", optional = true }
+oracle-logic = { path = "../oracle-logic", optional = true }
 pyo3 = { version = "0.27.2", features = ["extension-module", "abi3-py312"] }
 serde_json.workspace = true

@@ -1,11 +1,14 @@
 # Defaults and alternative consistent plans
 
-Staged native provider, **not yet connected to Python or the shared host**.
-No specialist panel numbers yet. No Isabelle proof claim. The central runner owns all builds and tests. Its pinned Linux qualification
-passed 18 tests: 10 semantic tests, six subprocess boundary tests, and two
-actual-clingo tests. Format and all-target clippy with warnings denied also
-passed. See [qualification receipt](../evidence/2026-10-29-logic-validation.json).
-No tests were run by this lane.
+Native provider, now a workspace member and hosted as the optional `logic`
+profile of the standalone service (operations `logic.query` and
+`logic.enumerate`). It is not yet in the release package and has no Linux
+hosting receipt. No specialist panel numbers yet. No Isabelle proof claim.
+The central runner's pinned Linux qualification of the core passed 18 tests:
+10 semantic tests, six subprocess boundary tests, and two actual-clingo tests
+([receipt](../evidence/2026-10-29-logic-validation.json)). On macOS the hosted
+path, the same 18 core tests and the hosted additions passed against a locally
+built clingo 5.8.2 ([hosting receipt](../evidence/2026-10-29-logic-hosted.json)).
 
 This provider answers questions about an explicitly complete, finite, grounded
 normal logic program. Its rules can have one head atom or no head (a constraint),
@@ -178,7 +181,37 @@ behavior. An absolute path alone does not establish that identity. This crate
 is a proposed adapter and does not implement the operator admission policy.
 The adapter expects the pinned native binary not to launch descendants.
 
-The planned integration after the current reader/graph/refusal checkpoint is:
+## Hosted path
+
+`hosted::call` takes `{"operation": "logic.query"|"logic.enumerate",
+"arguments": <request without operation>}` plus operator host JSON
+`{"solver": "/absolute/path"}`. The operation ID chooses query or enumeration;
+the request may not contain `operation`, and its strict field list rejects any
+solver path or flag. The PyO3 exports are `logic_call(request, host_json)` and
+`logic_catalog()` behind the `logic` feature. In the service, the operator's
+provider entry carries `"solver": {"path", "sha256"}`; the pool copies and
+hashes those bytes at startup (a mismatch fails startup), and each worker
+re-hashes its copy before passing only that path to Rust. `process.rs` is
+unchanged: the same deadline, pipe caps, child kill/reap and inconclusive
+replies apply. The pool's per-call deadline additionally kills the worker's
+whole process group, which contains the solver child.
+
+Each hosted reply adds `program_identity`, the SHA-256 of the exact
+`encode(request)` ASP text. That text is the numeric rule list, so it determines
+the set of stable models; it omits labels, queries and scope. `request_identity`
+hashes the compact serde JSON of the whole validated request, including
+labels, scope, queries and operation. Any future cache should key models on
+`program_identity` and audit replay on `request_identity`, never on the
+caller's `scope.snapshot` label. `scope.complete_program=true` remains a
+caller coverage assertion, not a verified property. The service also requires
+`scope.tenant` to equal the host-assigned tenant. Nothing is persisted.
+
+Integration status against the plan below: steps 1 and 2 are done; step 3 is
+done for registration and tenant scope (as `logic.query`/`logic.enumerate`,
+not `logic.stable_models`), but packaged-executable qualification on Linux and
+release-package inclusion remain open. Step 4 has not started.
+
+The planned integration after the current reader/graph/refusal checkpoint was:
 
 1. Root adds this crate to the native workspace, removes its staging `[workspace]`
    stanza, switches serde dependencies to workspace entries, and resolves the

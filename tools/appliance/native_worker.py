@@ -21,12 +21,13 @@ PROFILES = {"reasoning": ("reasoning_call", "reasoning_catalog"),
             "bio": ("bio_call", "bio_catalog"),
             "statistics": ("statistics_call", "statistics_catalog"),
             "incremental": ("incremental_call", "incremental_catalog"),
+            "logic": ("logic_call", "logic_catalog"),
             "runtime": ("Runtime", "Image")}
 
 # Host policy, never supplied in a request or by the extension's catalog. Other
 # profiles retain the conservative fault boundary until explicitly reviewed.
 SAFE_REQUEST_FAILURES = {profile: frozenset(("invalid_input", "resource_limit"))
-                         for profile in ("reasoning", "science", "bio", "statistics")}
+                         for profile in ("reasoning", "science", "bio", "statistics", "logic")}
 REQUEST_ERROR_EXPORT = "NativeRequestError"
 REQUEST_ERROR_DETAIL_BYTES = 512
 
@@ -133,6 +134,7 @@ def main():
     parser.add_argument("--profiles", required=True)
     parser.add_argument("--limits", required=True)
     parser.add_argument("--runtime-config")
+    parser.add_argument("--solver-config")
     args = parser.parse_args()
     settings = decode(args.limits)
     maximum = settings["reply_bytes"]
@@ -173,6 +175,27 @@ def main():
             runtime = RuntimeOperations(module, RuntimeProfile.from_dict(decode(raw_config)), args.sha256)
         elif args.runtime_config is not None:
             raise ValueError("runtime configuration without runtime profile")
+        solver_host, solver_sha256 = None, None
+        if "logic" in profiles:
+            # The host-admitted solver snapshot is passed to Rust as host JSON;
+            # requests never carry it. Re-hash binds the bytes this worker uses.
+            if args.solver_config is None:
+                raise ValueError("logic solver configuration absent")
+            solver = decode(args.solver_config)
+            if (not isinstance(solver, dict) or set(solver) != {"path", "sha256"}
+                    or not isinstance(solver["path"], str) or not Path(solver["path"]).is_absolute()
+                    or not isinstance(solver["sha256"], str)):
+                raise ValueError("invalid logic solver configuration")
+            digest = hashlib.sha256()
+            with Path(solver["path"]).open("rb") as stream:
+                for block in iter(lambda: stream.read(65536), b""):
+                    digest.update(block)
+            if digest.hexdigest() != solver["sha256"]:
+                raise ValueError("logic solver hash mismatch")
+            solver_host = json.dumps({"solver": solver["path"]}, separators=(",", ":"))
+            solver_sha256 = solver["sha256"]
+        elif args.solver_config is not None:
+            raise ValueError("solver configuration without logic profile")
         if not all(callable(fn) for pair in functions.values() for fn in pair):
             raise ImportError("native profile feature absent")
         request_error_type = getattr(module, REQUEST_ERROR_EXPORT, None)
@@ -184,6 +207,8 @@ def main():
                  "containment": containment}
         if runtime is not None:
             ready["resource_identity"] = runtime.resource_identity
+        if solver_sha256 is not None:
+            ready["solver_sha256"] = solver_sha256
         _write(ready, maximum)
     except BaseException as error:
         _write({"ready": False, "error": "native_start_failed", "error_type": type(error).__name__}, maximum)
@@ -215,6 +240,8 @@ def main():
                     result = (runtime.call(request["payload"], request["host_context"])
                               if request["action"] == "call" else runtime.catalog())
                     result = encode(result, maximum + 1)[:-1].decode("utf-8")
+                elif request["profile"] == "logic" and request["action"] == "call":
+                    result = pair[0](payload, solver_host)
                 else:
                     result = pair[0](payload) if request["action"] == "call" else pair[1]()
             except ValueError as error:
