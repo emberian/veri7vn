@@ -1,0 +1,144 @@
+{
+  "schema": "oracle-native-qualification-v1",
+  "scope": "KQA data access, not full Oracle or specialist panels",
+  "extension_sha256": "dee4e348bb50eae5f199eb43d246e02e0b05298d29f42697178827d69ffce661",
+  "cases_sha256": "29e06a4e33713f3d4bf56ee16c5c2df9a010257e04d8802e0e34c91ef4a609a9",
+  "python": "3.12.7 (main, Jun 18 2025, 13:16:51) [GCC 14.2.0]",
+  "platform": "Linux-6.11.0-29-generic-x86_64-with-glibc2.40",
+  "load_average": [
+    2.93115234375,
+    2.68359375,
+    2.1806640625
+  ],
+  "steps_sha256": "455fa3c7df1348914b37e15365670ff4130f99e15ee0625a88e5fe69a1e916e3",
+  "preparation": {
+    "cases": 288,
+    "entities": 16960,
+    "concepts": 794
+  },
+  "image": {
+    "schema": "oracle-image-v2",
+    "image_sha256": "6058c5ef6a2ef73c3d7bd94adc097c8655580d94e2f0f4572896f1d0546806aa",
+    "source_sha256": "04da7408320c5cb7023c44372cce32846d56d369d8865d2e61a18c3956661a7c",
+    "nodes": 17754,
+    "edges": 435900,
+    "bytes": 156901376,
+    "build_seconds": 50.861494056880474,
+    "reused_image": true
+  },
+  "results": [
+    {
+      "mode": "reference",
+      "cases": 288,
+      "wrong": 0,
+      "failure_indices": [],
+      "ready_seconds": 2.9281931649893522,
+      "query_seconds_p50": 9.267590939998627e-06,
+      "query_seconds_p95": 0.004425505176186562,
+      "before_memory_kib": {
+        "Pss": 12099,
+        "Private_Clean": 80,
+        "Private_Dirty": 8880,
+        "VmHWM": 19512,
+        "VmRSS": 19512,
+        "Threads": 1
+      },
+      "ready_memory_kib": {
+        "Pss": 557015,
+        "Private_Clean": 208,
+        "Private_Dirty": 553636,
+        "VmHWM": 580716,
+        "VmRSS": 564376,
+        "Threads": 1
+      },
+      "after_memory_kib": {
+        "Pss": 558179,
+        "Private_Clean": 208,
+        "Private_Dirty": 554800,
+        "VmHWM": 580716,
+        "VmRSS": 565528,
+        "Threads": 1
+      },
+      "tenant_samples": []
+    },
+    {
+      "mode": "native",
+      "cases": 288,
+      "wrong": 0,
+      "failure_indices": [],
+      "ready_seconds": 0.1691637486219406,
+      "query_seconds_p50": 7.664691656827927e-05,
+      "query_seconds_p95": 0.0001184605062007904,
+      "before_memory_kib": {
+        "Pss": 12085,
+        "Private_Clean": 72,
+        "Private_Dirty": 8880,
+        "VmHWM": 19648,
+        "VmRSS": 19648,
+        "Threads": 1
+      },
+      "ready_memory_kib": {
+        "Pss": 14385,
+        "Private_Clean": 1872,
+        "Private_Dirty": 9376,
+        "VmHWM": 21660,
+        "VmRSS": 21660,
+        "Threads": 1
+      },
+      "after_memory_kib": {
+        "Pss": 18645,
+        "Private_Clean": 5268,
+        "Private_Dirty": 10208,
+        "VmHWM": 26220,
+        "VmRSS": 26220,
+        "Threads": 1
+      },
+      "tenant_samples": [
+        {
+          "tenants": 1,
+          "memory_kib": {
+            "Pss": 18645,
+            "Private_Clean": 5268,
+            "Private_Dirty": 10208,
+            "VmHWM": 26220,
+            "VmRSS": 26220,
+            "Threads": 1
+          }
+        },
+        {
+          "tenants": 16,
+          "memory_kib": {
+            "Pss": 18645,
+            "Private_Clean": 5268,
+            "Private_Dirty": 10208,
+            "VmHWM": 26220,
+            "VmRSS": 26220,
+            "Threads": 1
+          }
+        },
+        {
+          "tenants": 64,
+          "memory_kib": {
+            "Pss": 18645,
+            "Private_Clean": 5268,
+            "Private_Dirty": 10208,
+            "VmHWM": 26220,
+            "VmRSS": 26220,
+            "Threads": 1
+          }
+        },
+        {
+          "tenants": 256,
+          "memory_kib": {
+            "Pss": 18645,
+            "Private_Clean": 5268,
+            "Private_Dirty": 10208,
+            "VmHWM": 26220,
+            "VmRSS": 26220,
+            "Threads": 1
+          }
+        }
+      ]
+    }
+  ]
+}

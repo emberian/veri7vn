@@ -1,0 +1,35 @@
+{
+  "date": "2026-10-28",
+  "platform": "hbox Linux x86_64, CPython 3.12.7",
+  "source_digest_scheme": "sha256(sorted relative path + NUL + bytes + NUL), Rust/Python/TOML/Cargo.lock under native",
+  "source_sha256": "d3a9dd3eeb9529d0dc2225d072bc36c8be1daaa5bcff307eaea1fce067ed9251",
+  "wheel_filename": "oracle_native_runtime-0.1.0-cp312-abi3-linux_x86_64.whl",
+  "wheel_sha256": "a3a57b4358a5348d8db017f5d0a2212cbe2f695a0e6661d0dc9d6b49cf011d11",
+  "checks": [
+    {
+      "command": "cargo test --locked -p oracle-runtime-core --test runtime_contract",
+      "passed": 14,
+      "failed": 0
+    },
+    {
+      "command": "cargo clippy --locked --workspace --all-targets -- -D warnings",
+      "exit_code": 0
+    },
+    {
+      "command": "maturin build --release --locked --compatibility linux",
+      "exit_code": 0
+    },
+    {
+      "command": "test_python_contract.py against the installed wheel",
+      "passed": 6,
+      "failed": 0
+    },
+    {
+      "command": "qualify.py against the installed wheel",
+      "comparisons": 288,
+      "mismatches": 0,
+      "logical_tenants": 256
+    }
+  ],
+  "limits": "Data-access and native-state qualification. No full Engine, specialist-panel, manylinux, Mini deployment, or formal-proof claim."
+}

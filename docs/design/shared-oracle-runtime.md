@@ -1,5 +1,11 @@
 # An Oracle runtime whose cost follows the work
 
+Implementation update: the [Rust/PyO3 foundation](../../native/README.md) now
+implements indexed release data, bounded query graphs and transactional native
+session state. Its [migration tracker](../../project/lanes/NATIVE-FOUNDATION-2026-10-28.md)
+separates measured progress from the full-runtime work still required. The
+investigation below records the design's starting evidence.
+
 28 October 2026. Architecture proposal, not a deployed replacement. The current
 appliance remains the signed 4.9-based v7 composition. This investigation reads
 upstream 10.1 at `c473d28914e480425adb29b4f7f42485b8cfb4e3`.
@@ -218,7 +224,7 @@ All three scoped inventory checks passed: source is not executed, a diamond is
 visited once, missing bases are reported, and method-local imports cannot supply
 module inheritance bindings. The pinned inventory reproduced the counts above.
 
-The source tool never imports Oracle. No full 10.1 Engine benchmark, Rust port,
-shared-session runtime or appliance upgrade has been completed in this work.
-Next implementation work is the release-table ownership split and comparative
-index experiment, with session extraction alongside it before shared serving.
+The source tool never imports Oracle. At this proposal's checkpoint, no full
+10.1 Engine benchmark, Rust implementation or appliance upgrade had been
+completed. The implementation update at the top links subsequent native work;
+the migration tracker is now the current record of what remains.

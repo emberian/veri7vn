@@ -59,6 +59,13 @@ Earlier signed-package tests answered through Mini in two
 independent grains. The newer agent lifecycle and complete restart/recovery
 journey remain unfinished; this is not a public Dreggnet deployment.
 
+The next shared runtime now has a [Rust and PyO3 foundation](native/README.md):
+one indexed release image, bounded native query execution, and transactional
+tenant state and retries. It is a working library with real-data comparisons,
+not yet a replacement for the full Engine or the signed appliance. The
+[native migration tracker](project/lanes/NATIVE-FOUNDATION-2026-10-28.md) records
+the remaining reader, specialist, effect and Mini integration work.
+
 Start with the [shared-hosting checkpoint](project/HOSTED-2026-10-27.md),
 the [Mini appliance overview](https://github.com/emberian/minidregg/blob/main/docs/oracle-appliance.md),
 the [materialization tools](deploy/appliance/README.md), and the
