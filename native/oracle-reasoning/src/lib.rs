@@ -5,6 +5,7 @@
 pub mod algebra;
 pub mod dimensions;
 pub mod graph;
+pub mod stoichiometry;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, thiserror::Error)]
@@ -62,6 +63,8 @@ enum Request {
     Polynomial(algebra::PolynomialInput),
     #[serde(rename = "algebra.optimize_dimensional_polynomial")]
     Dimensional(dimensions::DimensionalInput),
+    #[serde(rename = "chemistry.balance_reaction")]
+    Reaction(stoichiometry::ReactionInput),
 }
 
 pub fn call(request: &str, limits: &Limits) -> Result<String> {
@@ -69,6 +72,10 @@ pub fn call(request: &str, limits: &Limits) -> Result<String> {
         return Err(Error::Limit("request bytes"));
     }
     let reply = match serde_json::from_str(request)? {
+        Request::Reaction(input) => serde_json::to_value(stoichiometry::balance_reaction(
+            &input,
+            &stoichiometry::ChemistryLimits::default(),
+        )?)?,
         Request::Dimensional(input) => serde_json::to_value(dimensions::optimize(&input, limits)?)?,
         Request::Forest(input) => {
             serde_json::to_value(graph::minimum_spanning_forest(&input, limits)?)?
@@ -85,6 +92,7 @@ pub fn catalog() -> serde_json::Value {
         "hosting": "pure library/CLI; no Mini registration or hard containment",
         "limits": Limits::default(),
         "operations": [
+            {"id": "chemistry.balance_reaction", "domain": "exact element/isotope and charge conservation for supplied species; not reaction feasibility", "chemistry_limits": stoichiometry::ChemistryLimits::default(), "arguments": {"species": "list of {name, side: reactant|product, composition: {element_or_isotope: positive_u64}, charge: i64}; empty composition with charge -1 represents an explicit electron"}},
             {"id": "graph.minimum_spanning_forest", "domain": "supplied undirected multigraph, exact i64 edge weights", "arguments": {"vertices": "nonnegative integer; vertex IDs are 0..vertices-1", "edges": "list of [source, target, weight]; edge ID is list position"}},
             {"id": "algebra.optimize_polynomial", "domain": "dimensionless commutative polynomials with integer coefficients", "arguments": {"expression": "prefix expression: i64 literals, ASCII variables, binary + - *; no division or floating-point semantics"}},
             {"id": "algebra.optimize_dimensional_polynomial", "domain": "exact polynomials over normalized linear SI quantities; dimensions checked, physical law not established", "dimension_order": dimensions::DIMENSION_ORDER, "max_exponent": dimensions::MAX_EXPONENT, "arguments": {"expression": "prefix expression", "variables": "list of {name, dimension: seven SI integer exponents, kind?: linear|affine}; affine refused", "output_dimension": "optional seven SI integer exponents"}}

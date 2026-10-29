@@ -1,0 +1,89 @@
+{
+  "schema": "oracle-chemistry-validation-v1",
+  "date": "2026-10-29",
+  "scope": "Exact supplied-species conservation and pure standalone operation; no shipped specialist-panel, full reader/Engine, durable language or signed Mini qualification.",
+  "source_manifest": "2026-10-29-chemistry-sources.json",
+  "extension": {
+    "path": "/tank/lanes/o7-native-20261028/binding-composition4/oracle_native.so",
+    "sha256": "495f67dd6207cb23b11ccd98540acf89c74a726131cbe13ea7658e76f56e5d79",
+    "reuse": true,
+    "features": [
+      "reasoning",
+      "science",
+      "incremental"
+    ],
+    "boundary": "Combined binary includes unfinished dirty core changes. Only scoped chemistry/pure-service behavior is qualified here; no final reader or transactional-runtime claim."
+  },
+  "execution": {
+    "host": "hbox",
+    "python": "/tank/lanes/o7-native-20261028/wheel-env/bin/python",
+    "cargo": "/home/hbox/.cargo/bin/cargo",
+    "CARGO_BUILD_JOBS": 2,
+    "CARGO_TARGET_DIR": "/tank/lanes/o7-native-20261028/target",
+    "minidregg_required": false,
+    "upstream_dataset_required": false
+  },
+  "results": [
+    {
+      "command": "cargo test --locked -p oracle-reasoning --test stoichiometry_contract",
+      "exit_code": 0,
+      "passed": 10,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "command": "cargo clippy --locked -p oracle-reasoning --all-targets -- -D warnings",
+      "exit_code": 0,
+      "status": "passed"
+    },
+    {
+      "command": "python -B -m unittest discover -s tools/oracle_components -p test_reasoning.py",
+      "exit_code": 0,
+      "passed": 24,
+      "failed": 0,
+      "scope": "fake module adapter contracts; no native math claim"
+    },
+    {
+      "command": "ORACLE_NATIVE_TEST_EXTENSION=/tank/lanes/o7-native-20261028/binding-composition4/oracle_native.so python -B -m unittest discover -s tests/appliance -p test_native_service.py",
+      "exit_code": 0,
+      "passed": 10,
+      "failed": 0,
+      "skipped": 0,
+      "actual_journey": "CLI launch, admitted combined catalog, supplied Fe(II) -> Fe(III) + electron chemistry call returning primitive coefficients [1,1,1], plus existing graph/science/incremental controls; shutdown and repeat after fresh process start."
+    }
+  ],
+  "logs": {
+    "service-tests.log": {
+      "path": "var/checkpoint-20261029/chemistry/service-tests.log",
+      "sha256": "71c6d32b94159de461e9a9bab10de1141c958de011a21f79ec7259f380469344",
+      "text": "..........\n----------------------------------------------------------------------\nRan 10 tests in 1.123s\n\nOK\n"
+    },
+    "adapter-tests.log": {
+      "path": "var/checkpoint-20261029/chemistry/adapter-tests.log",
+      "sha256": "20ddb70b5f6e3eef886c3895a30080fa9fcd7f46c0dac98016ff7020799e6149",
+      "text": "........................\n----------------------------------------------------------------------\nRan 24 tests in 0.021s\n\nOK\n"
+    },
+    "clippy.log": {
+      "path": "var/checkpoint-20261029/chemistry/clippy.log",
+      "sha256": "80f52e08ed06708dc15c9ee226f7b8c4969f9590998c6a8848eb022a88589c13",
+      "text": "    Checking bitflags v2.13.2\n    Checking thiserror v1.0.69\n    Checking raw-cpuid v11.6.0\n    Checking quanta v0.12.6\n    Checking egg v0.11.0\n    Checking oracle-reasoning v0.2.0 (/tank/lanes/o7-native-20261028/native/oracle-reasoning)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 5.00s\n"
+    },
+    "rust-tests.log": {
+      "path": "var/checkpoint-20261029/chemistry/rust-tests.log",
+      "sha256": "0aa5ad3dedd07abb36a1f9fccd4a54619b54d8e43e445a9afe142b1bb2a5590d",
+      "text": "   Compiling oracle-reasoning v0.2.0 (/tank/lanes/o7-native-20261028/native/oracle-reasoning)\n\nrunning 10 tests\ntest json_inventory_duplicates_are_rejected_before_map_construction ... ok\ntest isotope_inventory_is_not_silently_interchangeable ... ok\ntest zero_required_species_cannot_be_removed_silently ... ok\ntest candidate_replay_shares_solver_work_budget ... ok\ntest underdetermined_search_and_no_false_impossibility ... ok\ntest blank_names_and_large_unsigned_counts ... ok\ntest public_json_dispatch_preserves_counts_and_rejects_duplicate_inventories ... ok\ntest bad_input_and_budgets ... ok\ntest combustion_and_metal_oxidation ... ok\ntest charge_and_supplied_electrons ... ok\n\ntest result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 17.13s\n     Running tests/stoichiometry_contract.rs (/tank/lanes/o7-native-20261028/target/debug/build/oracle-reasoning/7facfbccae1c8c3d/out/stoichiometry_contract-7facfbccae1c8c3d)\n"
+    }
+  },
+  "assurance": {
+    "new_theorem_statements": [],
+    "new_specialist_panel_scores": null,
+    "positive_check": "Candidate coefficients replayed over original element/isotope inventories and charge independently of the elimination matrix.",
+    "limitations": [
+      "Conservation of supplied declarations does not establish chemical identity, feasibility or conditions.",
+      "Exact rank and complete rational basis are computed without an independent rank certificate.",
+      "Multidimensional positive search is bounded; no candidate found is inconclusive, and a found primitive candidate need not minimize coefficients.",
+      "Standalone service request/conversation IDs remain correlation labels, without durable reply replay.",
+      "The immutable extension hash does not attest Python or native dynamic dependencies."
+    ]
+  }
+}

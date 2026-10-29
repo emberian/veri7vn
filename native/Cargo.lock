@@ -869,6 +869,8 @@ version = "0.2.0"
 dependencies = [
  "egg",
  "num-bigint",
+ "num-integer",
+ "num-rational",
  "num-traits",
  "petgraph",
  "serde",

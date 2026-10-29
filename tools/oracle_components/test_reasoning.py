@@ -31,7 +31,11 @@ def native_catalog():
                        "iterations": 3, "search_ms": 5},
             "operations": [{"id": op_id,
                             **({"dimension_order": list(ADAPTER.DIMENSION_ORDER), "max_exponent": 5}
-                               if op_id == ADAPTER.DIMENSIONAL else {})}
+                               if op_id == ADAPTER.DIMENSIONAL else {}),
+                            **({"chemistry_limits": {"species": 6, "conserved_rows": 5,
+                                                      "coefficient_bits": 96, "work": 700,
+                                                      "free_coefficient_bound": 3, "search_candidates": 11}}
+                               if op_id == ADAPTER.CHEMISTRY else {})}
                            for op_id in ADAPTER.OPERATION_IDS]}
 
 
@@ -58,6 +62,25 @@ def dimensional_reply():
                   dimension_check="contract fixture", unit_convention="contract fixture",
                   selection_fallback=None)
     return result
+
+
+def chemistry_arguments():
+    return {"species": [
+        {"name": "H2", "side": "reactant", "composition": {"H": 2}, "charge": 0},
+        {"name": "O2", "side": "reactant", "composition": {"O": 2}, "charge": 0},
+        {"name": "H2O", "side": "product", "composition": {"H": 2, "O": 1}, "charge": 0}]}
+
+
+def chemistry_reply():
+    return {"schema": "oracle-stoichiometry-v1", "operation": ADAPTER.CHEMISTRY,
+            "status": "unique_positive", "rank": 2, "nullity": 1,
+            "nullspace_basis": [["1", "1/2", "1"]], "free_species_indices": [2],
+            "coefficients": ["2", "1", "2"], "conservation": [
+                {"inventory": "H", "reactant": "4", "product": "4"},
+                {"inventory": "O", "reactant": "2", "product": "2"},
+                {"inventory": "charge", "reactant": "0", "product": "0"}],
+            "searched_candidates": 0, "free_coefficient_bound": 3,
+            "assurance": "fake contract result; no native mathematical evidence"}
 
 
 def known_module(declaration=None, reply=None):
@@ -275,6 +298,127 @@ class ReasoningContract(unittest.TestCase):
         invalid = graph_reply()
         invalid["total_weight"] = ADAPTER.I64_MAX
         self.assertEqual(self.bind(known_module(reply=invalid)).invoke(ADAPTER.GRAPH, {"vertices": 2, "edges": [[0, 1, 1]]})["reason"], "native_reply_invalid")
+
+    def test_chemistry_discovery_uses_bound_catalog_and_preserves_exact_full_result(self):
+        module = known_module(reply=chemistry_reply())
+        provider = self.bind(module)
+        catalog = {row["id"]: row for row in provider.catalog()}
+        item = catalog[ADAPTER.CHEMISTRY]
+        self.assertEqual(item["availability"], "live_direct")
+        self.assertEqual(item["input_schema"]["properties"]["species"]["maxItems"], 6)
+        self.assertEqual(item["chemistry_limits"]["conserved_rows"], 5)
+        arguments = chemistry_arguments()
+        reply = provider.invoke(ADAPTER.CHEMISTRY, arguments)
+        self.assertEqual(reply["status"], "answered")
+        self.assertEqual(reply["answer_kind"], "positive_balance")
+        self.assertEqual(reply["result"], chemistry_reply())
+        self.assertIn("no reaction feasibility", reply["scope"])
+        self.assertEqual(json.loads(module.reasoning_call.call_args.args[0]),
+                         {"operation": ADAPTER.CHEMISTRY, "arguments": arguments})
+        HOST.validate(arguments, item["input_schema"])
+        HOST.validate(reply, item["output_schema"])
+
+    def test_chemistry_mathematical_negatives_are_answers_scoped_to_supplied_inventory(self):
+        for status, rank, basis, free in (("no_nonzero_balance", 3, [], []),
+                                        ("no_strictly_positive_balance", 2, [["1", "0", "1"]], [2])):
+            fixture = chemistry_reply()
+            fixture.update(status=status, rank=rank, nullity=len(basis), nullspace_basis=basis,
+                           free_species_indices=free, coefficients=None, conservation=[])
+            provider = self.bind(known_module(reply=fixture))
+            reply = provider.invoke(ADAPTER.CHEMISTRY, chemistry_arguments())
+            self.assertEqual(reply["status"], "answered")
+            self.assertEqual(reply["answer_kind"], "mathematical_negative")
+            self.assertEqual(reply["result"], fixture)
+            self.assertEqual(reply["scope"], ADAPTER.CHEMISTRY_SCOPE)
+            HOST.validate(reply, provider.catalog()[3]["output_schema"])
+
+    def test_chemistry_inconclusive_search_withholds_and_keeps_basis_diagnostics(self):
+        fixture = chemistry_reply()
+        fixture.update(status="multiple_search_inconclusive", rank=1, nullity=2,
+                       nullspace_basis=[["1", "1", "0"], ["1", "0", "1"]],
+                       free_species_indices=[1, 2], coefficients=None, conservation=[], searched_candidates=11)
+        provider = self.bind(known_module(reply=fixture))
+        reply = provider.invoke(ADAPTER.CHEMISTRY, chemistry_arguments())
+        self.assertEqual(reply["status"], "withheld")
+        self.assertEqual(reply["reason"], "positive_balance_search_inconclusive")
+        self.assertEqual(reply["answer_kind"], "search_inconclusive")
+        self.assertEqual(reply["result"], fixture)
+        HOST.validate(reply, provider.catalog()[3]["output_schema"])
+
+    def test_chemistry_multiple_candidate_is_an_answer_without_optimality_claim(self):
+        fixture = chemistry_reply()
+        fixture.update(status="multiple_with_positive_candidate", rank=1, nullity=2,
+                       nullspace_basis=[["1", "1", "0"], ["1", "0", "1"]],
+                       free_species_indices=[1, 2], searched_candidates=1)
+        reply = self.bind(known_module(reply=fixture)).invoke(ADAPTER.CHEMISTRY, chemistry_arguments())
+        self.assertEqual(reply["status"], "answered")
+        self.assertEqual(reply["answer_kind"], "positive_balance")
+        self.assertEqual(reply["result"], fixture)
+
+    def test_chemistry_bad_metadata_withholds_only_that_operation(self):
+        for field, value in (("species", True), ("species", 1), ("conserved_rows", 0),
+                             ("free_coefficient_bound", 2**32), ("search_candidates", -1)):
+            declaration = native_catalog()
+            declaration["operations"][3]["chemistry_limits"][field] = value
+            catalog = {row["id"]: row for row in self.bind(known_module(declaration)).catalog()}
+            self.assertEqual(catalog[ADAPTER.CHEMISTRY]["unavailable_reason"], "native_operation_schema_unsupported")
+            self.assertEqual(catalog[ADAPTER.GRAPH]["availability"], "live_direct")
+        declaration = native_catalog()
+        del declaration["operations"][3]["chemistry_limits"]
+        self.assertEqual(self.bind(known_module(declaration)).catalog()[3]["availability"], "unavailable")
+
+    def test_chemistry_invalid_structured_arguments_never_enter_native(self):
+        module = known_module(reply=chemistry_reply())
+        provider = self.bind(module)
+        for field, value in (("charge", 0.0), ("charge", True), ("charge", ADAPTER.I64_MAX + 1),
+                             ("side", "unknown"), ("name", ""), ("composition", {"H": 0}),
+                             ("composition", {"H": 1.0}), ("composition", {"H": 2**64}),
+                             ("composition", {"C-013": 1}), ("composition", {})):
+            arguments = chemistry_arguments()
+            arguments["species"][0][field] = value
+            with self.assertRaises(ValueError):
+                provider.invoke(ADAPTER.CHEMISTRY, arguments)
+        for mutation in ("too_many", "duplicate_name", "one_side", "inventory_union"):
+            arguments = chemistry_arguments()
+            if mutation == "too_many":
+                arguments["species"] *= 3
+            elif mutation == "duplicate_name":
+                arguments["species"][1]["name"] = "H2"
+            elif mutation == "one_side":
+                arguments["species"][2]["side"] = "reactant"
+            else:
+                arguments["species"][0]["composition"] = {"H": 1, "C": 1, "C-13": 1, "Fe": 1}
+            with self.assertRaises(ValueError):
+                provider.invoke(ADAPTER.CHEMISTRY, arguments)
+        module.reasoning_call.assert_not_called()
+
+    def test_chemistry_exact_u64_counts_and_explicit_electrons_reach_native(self):
+        module = known_module()
+        module.reasoning_call.side_effect = ValueError("fixture refusal after observing arguments")
+        provider = self.bind(module)
+        arguments = {"species": [
+            {"name": "supplied-ion", "side": "reactant", "composition": {"Fe": 2**64 - 1}, "charge": -2},
+            {"name": "supplied-electron", "side": "product", "composition": {}, "charge": -1}]}
+        reply = provider.invoke(ADAPTER.CHEMISTRY, arguments)
+        self.assertEqual(reply["reason"], "native_request_refused")
+        self.assertEqual(json.loads(module.reasoning_call.call_args.args[0])["arguments"], arguments)
+
+    def test_chemistry_bad_result_shapes_do_not_become_mathematical_claims(self):
+        for mutation in ("float_coefficient", "missing_charge", "mismatched_totals", "wrong_basis_size", "unknown_status"):
+            fixture = chemistry_reply()
+            if mutation == "float_coefficient":
+                fixture["coefficients"][0] = 2.0
+            elif mutation == "missing_charge":
+                fixture["conservation"].pop()
+            elif mutation == "mismatched_totals":
+                fixture["conservation"][0]["reactant"] = "5"
+            elif mutation == "wrong_basis_size":
+                fixture["nullspace_basis"][0].pop()
+            else:
+                fixture["status"] = "reaction_impossible"
+            reply = self.bind(known_module(reply=fixture)).invoke(ADAPTER.CHEMISTRY, chemistry_arguments())
+            self.assertEqual(reply["status"], "withheld")
+            self.assertEqual(reply["reason"], "native_reply_invalid")
 
 
 if __name__ == "__main__":

@@ -285,6 +285,10 @@ class ActualNativeStandaloneJourney(unittest.TestCase):
                                       {'id': 'sink', 'applied_heat_w': 0, 'fixed_temperature_k': 300}],
                             'links': [{'from': 'heated', 'to': 'sink', 'conductance_w_per_k': 10}]}),
                         ('graph.minimum_spanning_forest', {'vertices': 3, 'edges': [[0, 1, 2], [1, 2, 1], [0, 2, 7]]}),
+                        ('chemistry.balance_reaction', {'species': [
+                            {'name': 'iron ion II', 'side': 'reactant', 'composition': {'Fe': 1}, 'charge': 2},
+                            {'name': 'iron ion III', 'side': 'product', 'composition': {'Fe': 1}, 'charge': 3},
+                            {'name': 'electron', 'side': 'product', 'composition': {}, 'charge': -1}]}),
                         ('incremental.dependencies', GRAPH),
                         ('incremental.rooted_dependencies', {'roots': {'downstream': [0], 'upstream': []}, 'graph': GRAPH})]:
                         status, result = http(port, '/invoke', envelope(operation, arguments))
@@ -292,6 +296,9 @@ class ActualNativeStandaloneJourney(unittest.TestCase):
                         self.assertEqual(result['reply']['status'], 'answered', result)
                         if operation == 'science.solve_linear':
                             self.assertAlmostEqual(result['reply']['result']['candidate'][0], 3)
+                        if operation == 'chemistry.balance_reaction':
+                            self.assertEqual(result['reply']['answer_kind'], 'positive_balance')
+                            self.assertEqual(result['reply']['result']['coefficients'], ['1', '1', '1'])
                         if operation == 'incremental.dependencies':
                             epochs = result['reply']['result']['epochs']
                             self.assertTrue(epochs[0]['answers'][0]['reachable'])
