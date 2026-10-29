@@ -1,0 +1,236 @@
+{
+  "receipt": "rational-formulas",
+  "date": "2026-10-29",
+  "lane": "O4-RATIONAL-FORMULAS",
+  "platform": {
+    "os": "macOS 27.0.1",
+    "arch": "arm64"
+  },
+  "toolchain": {
+    "rustc": "rustc 1.98.0-nightly (91fe22da8 2026-06-21)",
+    "cargo": "cargo 1.98.0-nightly (a595d0da2 2026-06-20)",
+    "clippy": "clippy 0.1.98 (91fe22da80 2026-06-21)",
+    "python": ".venv/bin/python (CPython 3.12.14)"
+  },
+  "operation": "algebra.simplify_rational",
+  "panel_numbers": "none; the consumer table below is a three-item agreement check against shipped densities panel answers, not a panel score",
+  "commands": [
+    {
+      "cmd": "cargo fmt -p oracle-reasoning --check",
+      "cwd": "native",
+      "exit": 0
+    },
+    {
+      "cmd": "cargo clippy -p oracle-reasoning --all-targets -- -D warnings",
+      "cwd": "native",
+      "exit": 0
+    },
+    {
+      "cmd": "cargo test -p oracle-reasoning --test formula_contract",
+      "cwd": "native",
+      "exit": 0,
+      "tests": {
+        "passed": 12,
+        "failed": 0,
+        "ignored": 0
+      }
+    },
+    {
+      "cmd": "cargo test -p oracle-reasoning --test contracts",
+      "cwd": "native",
+      "exit": 0,
+      "tests": {
+        "passed": 8,
+        "failed": 0,
+        "ignored": 0
+      }
+    },
+    {
+      "cmd": "cargo test -p oracle-reasoning --test dimensions_contract",
+      "cwd": "native",
+      "exit": 0,
+      "tests": {
+        "passed": 14,
+        "failed": 0,
+        "ignored": 0
+      }
+    },
+    {
+      "cmd": "cargo test -p oracle-reasoning --test stoichiometry_contract",
+      "cwd": "native",
+      "exit": 0,
+      "tests": {
+        "passed": 10,
+        "failed": 0,
+        "ignored": 0
+      }
+    },
+    {
+      "cmd": "cargo test -p oracle-reasoning --test shortest_path_contract",
+      "cwd": "native",
+      "exit": 0,
+      "tests": {
+        "passed": 7,
+        "failed": 0,
+        "ignored": 0
+      }
+    },
+    {
+      "cmd": "cargo build -p oracle-runtime-python --features reasoning",
+      "cwd": "native",
+      "exit": 0,
+      "artifact": "target/debug/liboracle_native.dylib copied to var/o4-rational/binding/oracle_native.so",
+      "artifact_sha256": "c407b879d36cd90a2e3359871fc1efe336a8c8ff15096c9ffb50e94fbb9583d8",
+      "note": "built against the shared tree, which held other lanes' uncommitted edits to oracle-core and oracle-python at the time"
+    },
+    {
+      "cmd": "python -B -m unittest test_python_domains.RationalFormulas -v",
+      "cwd": "native/tests",
+      "env": {
+        "PYTHONPATH": "var/o4-rational/binding"
+      },
+      "exit": 0,
+      "tests": {
+        "passed": 3,
+        "failed": 0,
+        "ignored": 0
+      },
+      "note": "test_python_domains.py had no reasoning cases before this lane; this class is the new one. The file's bio/statistics classes were not run (this build has only the reasoning feature)."
+    },
+    {
+      "cmd": "python -I -B -m unittest discover -s tools/oracle_components -p test_reasoning.py",
+      "cwd": ".",
+      "exit": 0,
+      "tests": {
+        "passed": 27,
+        "failed": 0,
+        "ignored": 0
+      },
+      "note": "adapter contract with a fake module; the rational row is marked unavailable there because the fake catalog has no rational_limits"
+    }
+  ],
+  "consumer_check": {
+    "specialist": "densities",
+    "source_formula": "src/extract/quantity/Quantity.thy: qval (VolumeOf m (Some M) u) = siq M / density m / scale u",
+    "request_formula": "(/ (/ M rho) u)",
+    "bounds": {
+      "M": [
+        "0",
+        "1000000"
+      ],
+      "rho": [
+        "1",
+        "25000"
+      ],
+      "u": [
+        "1/1000000",
+        "1"
+      ]
+    },
+    "panel_file": "upstream/root/specialists/densities/densities_panel_v1.json (read only)",
+    "tolerance": "relative |exact - shipped| / exact <= 1e-15, compared exactly with Fraction(shipped float); the panel scorer itself accepts 0.5%",
+    "items": [
+      {
+        "question": "What volume in litres does 1 kg of mercury take up?",
+        "mass_kg": "1",
+        "density_kg_per_m3": "135336/10",
+        "unit_m3": "1/1000",
+        "selected": "(/ M (* rho u))",
+        "obligations": [
+          {
+            "denominator": "rho",
+            "status": "nonzero_within_bounds"
+          },
+          {
+            "denominator": "u",
+            "status": "nonzero_within_bounds"
+          }
+        ],
+        "rules_used": [
+          {
+            "rule": "divide-divide",
+            "count": 1
+          }
+        ],
+        "certificate_steps": 8,
+        "exact": "1250/16917",
+        "exact_as_float": 0.07389016965182953,
+        "shipped": 0.07389016965182951,
+        "float_equal": false,
+        "relative_difference": 1.0860201626883281e-16,
+        "agrees_within_1e-15": true
+      },
+      {
+        "question": "What is the volume of 1200 kg of silver in cubic metres?",
+        "mass_kg": "1200",
+        "density_kg_per_m3": "10501",
+        "unit_m3": "1",
+        "selected": "(/ M (* rho u))",
+        "obligations": [
+          {
+            "denominator": "rho",
+            "status": "nonzero_within_bounds"
+          },
+          {
+            "denominator": "u",
+            "status": "nonzero_within_bounds"
+          }
+        ],
+        "rules_used": [
+          {
+            "rule": "divide-divide",
+            "count": 1
+          }
+        ],
+        "certificate_steps": 8,
+        "exact": "1200/10501",
+        "exact_as_float": 0.1142748309684792,
+        "shipped": 0.1142748309684792,
+        "float_equal": true,
+        "relative_difference": 9.35594194710158e-18,
+        "agrees_within_1e-15": true
+      },
+      {
+        "question": "What volume in litres does 20 kg of concrete take up?",
+        "mass_kg": "20",
+        "density_kg_per_m3": "2400",
+        "unit_m3": "1/1000",
+        "selected": "(/ M (* rho u))",
+        "obligations": [
+          {
+            "denominator": "rho",
+            "status": "nonzero_within_bounds"
+          },
+          {
+            "denominator": "u",
+            "status": "nonzero_within_bounds"
+          }
+        ],
+        "rules_used": [
+          {
+            "rule": "divide-divide",
+            "count": 1
+          }
+        ],
+        "certificate_steps": 8,
+        "exact": "25/3",
+        "exact_as_float": 8.333333333333334,
+        "shipped": 8.333333333333334,
+        "float_equal": true,
+        "relative_difference": 7.105427357601002e-17,
+        "agrees_within_1e-15": true
+      }
+    ],
+    "agreement": "3 of 3"
+  },
+  "sources": {
+    "oracle-reasoning/src/formula.rs": "7413144ba721d583762b883ed51fb9b8138f1a9399c4db4c0bb19c6025b43cdd",
+    "oracle-reasoning/src/formula_search.rs": "5a99e3f5bac6fb1fd53285089925400e04602ca9b84586fba39b843c3e9e4206",
+    "oracle-reasoning/tests/formula_contract.rs": "bd44cd5c4f20270a310288097b41ee22d085f224bb614f95b9a99c64875d020e",
+    "oracle-reasoning/src/lib.rs": "f36bc235999680abeb27228eb358084ff71849b02aae0c4dd23e7607bac776ed",
+    "oracle-reasoning/src/algebra.rs": "6457982ea83b3680dd9ca9d9d2382b50f887b8b5a6b7480515294abb679c97d6",
+    "oracle-reasoning/src/dimensions.rs": "1ee30e5c65547d02e6dff9c4c394d572d00375dab06ec7a499d1fb8f5c98eeb4",
+    "oracle-reasoning/src/stoichiometry.rs": "ebc91ea14bb64146ada172e86bba59ed1de071998f08cbd571ac8638398634ee"
+  },
+  "assurance": "Identities are checked by an independent Rust replay of a certificate translated from egg's explanation. Not proved in Isabelle. No Linux receipt."
+}

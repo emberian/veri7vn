@@ -83,7 +83,15 @@ impl CostFunction<Expression> for Cost {
     }
 }
 
-pub(crate) fn parse(source: &str, limits: &Limits) -> Result<RecExpr<Expression>> {
+/// Shared bounded pre-parse for prefix expressions: whole-source bytes,
+/// parenthesis nesting and token count are checked before any AST is built,
+/// so parser work and stack use are bounded by the caller's limits.
+pub(crate) fn check_source_bounds(
+    source: &str,
+    limits: &Limits,
+    max_depth: usize,
+    depth_name: &'static str,
+) -> Result<()> {
     if source.len() > limits.request_bytes {
         return Err(Error::Limit("expression bytes"));
     }
@@ -91,8 +99,8 @@ pub(crate) fn parse(source: &str, limits: &Limits) -> Result<RecExpr<Expression>
     for c in source.chars() {
         if c == '(' {
             depth += 1;
-            if depth > limits.expression_depth {
-                return Err(Error::Limit("expression depth"));
+            if depth > max_depth {
+                return Err(Error::Limit(depth_name));
             }
         } else if c == ')' {
             depth = depth
@@ -103,7 +111,6 @@ pub(crate) fn parse(source: &str, limits: &Limits) -> Result<RecExpr<Expression>
     if depth != 0 {
         return Err(Error::Invalid("unbalanced expression".into()));
     }
-    // Bound parser work before allocating its AST, not only afterward.
     if source
         .split(|c: char| c.is_whitespace() || c == '(' || c == ')')
         .filter(|s| !s.is_empty())
@@ -112,6 +119,11 @@ pub(crate) fn parse(source: &str, limits: &Limits) -> Result<RecExpr<Expression>
     {
         return Err(Error::Limit("expression nodes"));
     }
+    Ok(())
+}
+
+pub(crate) fn parse(source: &str, limits: &Limits) -> Result<RecExpr<Expression>> {
+    check_source_bounds(source, limits, limits.expression_depth, "expression depth")?;
     let expression: RecExpr<Expression> = source
         .parse()
         .map_err(|e| Error::Invalid(format!("expression: {e}")))?;

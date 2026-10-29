@@ -27,7 +27,7 @@ pub const DIMENSION_ORDER: [&str; 7] = [
 
 /// Exact SI exponents in DIMENSION_ORDER; private storage prevents unchecked
 /// construction through the Rust API. Fractional exponents are unsupported.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(try_from = "[i16; 7]", into = "[i16; 7]")]
 pub struct Dimension([i16; 7]);
 
@@ -50,11 +50,20 @@ impl Dimension {
         self.0
     }
 
-    fn product(self, rhs: Self) -> Result<Self> {
+    /// Dimension of a product; each exponent must stay within MAX_EXPONENT.
+    pub fn product(self, rhs: Self) -> Result<Self> {
+        self.combine(rhs, i16::checked_add)
+    }
+
+    /// Dimension of a quotient; each exponent must stay within MAX_EXPONENT.
+    pub fn quotient(self, rhs: Self) -> Result<Self> {
+        self.combine(rhs, i16::checked_sub)
+    }
+
+    fn combine(self, rhs: Self, op: fn(i16, i16) -> Option<i16>) -> Result<Self> {
         let mut result = [0; 7];
         for (i, exponent) in result.iter_mut().enumerate() {
-            *exponent = self.0[i]
-                .checked_add(rhs.0[i])
+            *exponent = op(self.0[i], rhs.0[i])
                 .filter(|e| (-MAX_EXPONENT..=MAX_EXPONENT).contains(e))
                 .ok_or(Error::Limit("SI dimension exponent"))?;
         }

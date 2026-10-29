@@ -338,12 +338,19 @@ pub fn balance_reaction(input: &ReactionInput, limits: &ChemistryLimits) -> Resu
                 continue;
             }
             let factor = a[r][col].clone();
-            for j in 0..n {
+            let (pivot_row, row) = if r < rank {
+                let (head, tail) = a.split_at_mut(rank);
+                (&tail[0], &mut head[r])
+            } else {
+                let (head, tail) = a.split_at_mut(r);
+                (&head[rank], &mut tail[0])
+            };
+            for (value, pivot) in row.iter_mut().zip(pivot_row.iter()).take(n) {
                 budget.step()?;
-                let term = &factor * &a[rank][j];
+                let term = &factor * pivot;
                 budget.rational(&term)?;
-                a[r][j] -= term;
-                budget.rational(&a[r][j])?;
+                *value -= term;
+                budget.rational(value)?;
             }
         }
         pivots.push(col);

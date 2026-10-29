@@ -114,5 +114,74 @@ class ActualDomains(unittest.TestCase):
                 call("statistics", "statistics.linear_regression", {**REGRESSION, **change})
 
 
+
+# Rational formulas (algebra.simplify_rational). Consumer check against three
+# shipped densities panel items, not a panel score. Densities and unit scales
+# are the exact table values of src/extract/quantity/Quantity.thy; the formula
+# is its qval (VolumeOf m (Some M) u) = siq M / density m / scale u.
+DENSITY_ITEMS = (("1", "135336/10", "1/1000", 0.07389016965182951),
+                 ("1200", "10501", "1", 0.1142748309684792),
+                 ("20", "2400", "1/1000", 8.333333333333334))
+VOLUME_ARGUMENTS = {"expression": "(/ (/ M rho) u)", "variables": [
+    {"name": "M", "dimension": [0, 1, 0, 0, 0, 0, 0]},
+    {"name": "rho", "dimension": [-3, 1, 0, 0, 0, 0, 0]},
+    {"name": "u", "dimension": [3, 0, 0, 0, 0, 0, 0]}],
+    "bounds": [{"name": "M", "low": "0", "high": "1000000"}, {"name": "rho", "low": "1", "high": "25000"},
+               {"name": "u", "low": "1/1000000", "high": "1"}]}
+
+
+@unittest.skipUnless(callable(getattr(native, "reasoning_call", None)), "reasoning feature absent")
+class RationalFormulas(unittest.TestCase):
+    def volume(self, mass, density, unit):
+        point = [{"name": "M", "value": mass}, {"name": "rho", "value": density}, {"name": "u", "value": unit}]
+        return dict(VOLUME_ARGUMENTS, point=point)
+
+    def test_densities_volume_items_agree_with_shipped_floats(self):
+        from fractions import Fraction
+        for mass, density, unit, shipped in DENSITY_ITEMS:
+            with self.subTest(mass=mass, density=density):
+                result = call("reasoning", "algebra.simplify_rational", self.volume(mass, density, unit))
+                self.assertEqual(result["expression"], "(/ M (* rho u))")
+                self.assertIsNone(result["selection_fallback"])
+                self.assertEqual([o["status"] for o in result["domain_obligations"]], ["nonzero_within_bounds"] * 2)
+                exact = Fraction(result["evaluation"]["value"])
+                self.assertEqual(exact, Fraction(mass) / Fraction(density) / Fraction(unit))
+                self.assertLessEqual(abs(exact - Fraction(shipped)) / exact, Fraction(1, 10**15))
+
+    def test_singular_point_and_limits_are_refusals(self):
+        arguments = {"expression": "(+ (/ K m) (/ S m))", "variables": [
+            {"name": name, "dimension": dimension} for name, dimension in
+            (("K", [2, 1, -2, 0, 0, 0, 0]), ("S", [2, 1, -2, 0, 0, 0, 0]), ("m", [0, 1, 0, 0, 0, 0, 0]))],
+            "point": [{"name": "K", "value": "12"}, {"name": "S", "value": "6"}, {"name": "m", "value": "0"}]}
+        result = call("reasoning", "algebra.simplify_rational", arguments)
+        self.assertEqual(result["evaluation"]["status"], "undefined")
+        nested = "y"
+        for _ in range(200):
+            nested = f"(/ {nested} (+ x 1))"
+        with self.assertRaises(ValueError):
+            call("reasoning", "algebra.simplify_rational", {"expression": nested, "variables": [
+                {"name": "x", "dimension": [0] * 7}, {"name": "y", "dimension": [0] * 7}]})
+
+    def test_adapter_admits_and_validates_the_actual_reply(self):
+        import importlib.util
+        from pathlib import Path
+        path = Path(__file__).resolve().parents[2] / "tools" / "oracle_components" / "reasoning.py"
+        spec = importlib.util.spec_from_file_location("reasoning_adapter_native_case", path)
+        adapter = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(adapter)
+        provider = adapter.create_reasoning_operations(None, None, native_module=native,
+                                                       runtime_identity="test-native-build", enabled=True)
+        row = {item["id"]: item for item in provider.catalog()}[adapter.RATIONAL]
+        self.assertEqual(row["availability"], "live_direct")
+        self.assertEqual(set(row["rational_limits"]), set(adapter.RATIONAL_LIMIT_NAMES))
+        reply = provider.invoke(adapter.RATIONAL, self.volume(*DENSITY_ITEMS[2][:3]))
+        self.assertEqual(reply["status"], "answered")
+        self.assertEqual(reply["result"]["evaluation"]["value"], "25/3")
+        self.assertTrue(adapter._valid(reply, row["output_schema"]))
+        refused = provider.invoke(adapter.RATIONAL, dict(VOLUME_ARGUMENTS, expression="(+ M 0)"))
+        self.assertEqual((refused["status"], refused["reason"]), ("withheld", "native_request_refused"))
+        with self.assertRaises(ValueError):
+            provider.invoke(adapter.RATIONAL, dict(VOLUME_ARGUMENTS, bounds=[{"name": "u", "low": "0.5", "high": "1"}]))
+
 if __name__ == "__main__":
     unittest.main()

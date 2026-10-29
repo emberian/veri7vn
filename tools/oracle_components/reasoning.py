@@ -22,6 +22,11 @@ SHORTEST = "graph.shortest_path"
 ALGEBRA = "algebra.optimize_polynomial"
 DIMENSIONAL = "algebra.optimize_dimensional_polynomial"
 CHEMISTRY = "chemistry.balance_reaction"
+RATIONAL = "algebra.simplify_rational"
+RATIONAL_LIMIT_NAMES = ("rational_bits", "rational_work", "formula_depth", "proof_steps",
+                        "formula_reply_bytes")
+RATIONAL_PATTERN = r"^-?(0|[1-9][0-9]*)(/[1-9][0-9]*)?$"
+RATIONAL_STATUSES = ("value", "outside_bounds", "undefined")
 CHEMISTRY_LIMIT_NAMES = ("species", "conserved_rows", "coefficient_bits", "work",
                          "free_coefficient_bound", "search_candidates")
 CHEMISTRY_STATUSES = ("unique_positive", "no_nonzero_balance", "no_strictly_positive_balance",
@@ -94,7 +99,73 @@ def _chemistry_result(limits):
     })
 
 
-def _inputs(limits, max_exponent=None, chemistry_limits=None):
+def _rational_text(rational_limits):
+    """Exact rational text; length follows the native per-part digit ceiling."""
+    if rational_limits is None:
+        return _string(MAX_REPLY_BYTES, pattern=RATIONAL_PATTERN)
+    digits = rational_limits["rational_bits"] // 3 + 4
+    return _string(min(MAX_REPLY_BYTES, 2 * digits + 2), pattern=RATIONAL_PATTERN)
+
+
+def _rational_input(limits, max_exponent, rational_limits, annotations):
+    expression = {"type": "string", "minLength": 1,
+                  "description": "Prefix formula with binary +, -, *, /; exact rational literals n, -n, n/d or -n/d (no units: a zero that keeps units is written (* 0 x)) and ASCII identifiers [A-Za-z_][A-Za-z0-9_]{0,63}. Variables denote coherent linear SI quantities."}
+    if limits is not None:
+        expression["maxLength"] = limits["request_bytes"]
+        expression["description"] += f" At most {limits['expression_nodes']} tokens."
+    if rational_limits is not None:
+        expression["description"] += f" At most {rational_limits['formula_depth']} parenthesis levels."
+    rational = _rational_text(rational_limits)
+    rows = {"type": "array", "items": _object({
+        "name": _string(64, pattern=r"^[A-Za-z_][A-Za-z0-9_]*$"), "low": rational, "high": rational}),
+        "description": "Closed exact bounds low <= value <= high, at most one per annotated variable, in coherent SI units. Caller premises, not physical facts. Unbounded variables range over all rationals."}
+    point = {"type": "array", "items": _object({
+        "name": _string(64, pattern=r"^[A-Za-z_][A-Za-z0-9_]*$"), "value": rational}),
+        "description": "Optional evaluation point assigning every annotated variable exactly once, in coherent SI units."}
+    if limits is not None:
+        rows["maxItems"] = point["maxItems"] = limits["expression_nodes"]
+    return _object({"expression": expression, "variables": copy.deepcopy(annotations),
+                    "bounds": rows, "output_dimension": {"anyOf": [_dimension(max_exponent), {"type": "null"}]},
+                    "point": {"anyOf": [point, {"type": "null"}]}},
+                   required=["expression", "variables"])
+
+
+def _rational_result(limits, max_exponent, rational_limits):
+    count = lambda name: limits[name] if limits is not None else 2**64 - 1
+    budget = lambda name: rational_limits[name] if rational_limits is not None else 2**64 - 1
+    text = lambda: _string(MAX_REPLY_BYTES)
+    optional = lambda schema: {"anyOf": [schema, {"type": "null"}]}
+    result = _object({
+        "schema": {"const": "oracle-rational-formula-v1"},
+        "expression": text(),
+        "original_cost": _integer(1, 2**128 - 1), "selected_cost": _integer(1, 2**128 - 1),
+        "cost_model": _string(512),
+        "output_dimension": _dimension(max_exponent),
+        "dimension_order": {"const": list(DIMENSION_ORDER)},
+        "domain_obligations": {"type": "array", "maxItems": count("expression_nodes"), "items": _object({
+            "denominator": text(),
+            "status": {"type": "string", "enum": ["nonzero_within_bounds", "not_established"],
+                       "minLength": 1, "maxLength": 32}})},
+        "certificate_steps": _integer(0, budget("proof_steps")),
+        "rules_used": {"type": "array", "maxItems": 64, "items": _object({
+            "rule": _string(64, pattern=r"^[a-z]+(-[a-z]+)*$"),
+            "count": _integer(1, budget("proof_steps"))})},
+        "selection_fallback": optional(text()),
+        "search_stop": _string(512), "iterations": _integer(0, 2**64 - 1),
+        "egraph_nodes": _integer(0, 2**64 - 1),
+        "evaluation": optional(_object({
+            "status": {"type": "string", "enum": list(RATIONAL_STATUSES), "minLength": 1, "maxLength": 32},
+            "value": optional(_string(MAX_REPLY_BYTES, pattern=RATIONAL_PATTERN)),
+            "detail": optional(_string(1024))})),
+        "check": _string(1024),
+    })
+    for name in ("search_us", "check_us"):
+        result["properties"][name] = dict(
+            _integer(0, 2**128 - 1), description="Native measured phase time in microseconds; telemetry, not a hard limit.")
+    return result
+
+
+def _inputs(limits, max_exponent=None, chemistry_limits=None, rational_limits=None):
     endpoint = {"type": "integer", "minimum": 0}
     vertices = {"type": "integer", "minimum": 0}
     if limits is not None:
@@ -131,10 +202,11 @@ def _inputs(limits, max_exponent=None, chemistry_limits=None):
             DIMENSIONAL: _object({"expression": dimensional_expression, "variables": annotations,
                                   "output_dimension": {"anyOf": [_dimension(max_exponent), {"type": "null"}]}},
                                  required=["expression", "variables"]),
-            CHEMISTRY: _chemistry_input(chemistry_limits)}
+            CHEMISTRY: _chemistry_input(chemistry_limits),
+            RATIONAL: _rational_input(limits, max_exponent, rational_limits, annotations)}
 
 
-def _results(limits, max_exponent=None, chemistry_limits=None):
+def _results(limits, max_exponent=None, chemistry_limits=None, rational_limits=None):
     # Output schemas also describe unavailable operations, whose actual native
     # ceilings are not known. Bounds then state only the stable u64 contract.
     count = lambda name: limits[name] if limits is not None else 2**64 - 1
@@ -164,6 +236,7 @@ def _results(limits, max_exponent=None, chemistry_limits=None):
                         "selection_fallback": {"anyOf": [_string(MAX_REPLY_BYTES), {"type": "null"}]}})
     results[DIMENSIONAL] = _object(dimensional)
     results[CHEMISTRY] = _chemistry_result(chemistry_limits)
+    results[RATIONAL] = _rational_result(limits, max_exponent, rational_limits)
     decimal = _string(40, pattern=r"^(0|-[1-9][0-9]*|[1-9][0-9]*)$")
     path = {"type": "array", "maxItems": count("vertices"), "items": _integer(0, count("edges") - 1)}
     labels = {"type": "array", "maxItems": count("vertices"),
@@ -186,7 +259,7 @@ def _results(limits, max_exponent=None, chemistry_limits=None):
     return results
 
 
-OPERATION_IDS = (GRAPH, ALGEBRA, DIMENSIONAL, CHEMISTRY, SHORTEST)
+OPERATION_IDS = (GRAPH, ALGEBRA, DIMENSIONAL, CHEMISTRY, SHORTEST, RATIONAL)
 LIMITATIONS = [
     "Experimental computation only. No specialist panel numbers, release admission, Isabelle proof or Mini capability authority.",
     "The host must enable this provider explicitly and supply its runtime identity. Identity is a host assertion, not an independent attestation.",
@@ -256,6 +329,7 @@ class ReasoningOperations:
         self._limits = None
         self._chemistry_limits = None
         self._path_limits = None
+        self._rational_limits = None
         self._available_ids = set()
         self._operation_unavailable = {}
         self._inputs, self._results = _inputs(None), _results(None)
@@ -305,6 +379,21 @@ class ReasoningOperations:
                 self._operation_unavailable[DIMENSIONAL] = "native_operation_schema_unsupported"
             else:
                 max_exponent = maximum
+        if RATIONAL in self._available_ids:
+            row = next(row for row in rows if row["id"] == RATIONAL)
+            budgets = row.get("rational_limits")
+            if (row.get("dimension_order") != list(DIMENSION_ORDER)
+                    or type(row.get("max_exponent")) is not int
+                    or (max_exponent is not None and row["max_exponent"] != max_exponent)
+                    or not 1 <= row["max_exponent"] <= 32767
+                    or not isinstance(budgets, dict) or not set(RATIONAL_LIMIT_NAMES) <= set(budgets)
+                    or any(type(budgets[k]) is not int or not 1 <= budgets[k] <= 2**64 - 1
+                           for k in RATIONAL_LIMIT_NAMES)):
+                self._available_ids.remove(RATIONAL)
+                self._operation_unavailable[RATIONAL] = "native_operation_schema_unsupported"
+            else:
+                self._rational_limits = {key: budgets[key] for key in RATIONAL_LIMIT_NAMES}
+                max_exponent = row["max_exponent"] if max_exponent is None else max_exponent
         if CHEMISTRY in self._available_ids:
             chemistry = next(row for row in rows if row["id"] == CHEMISTRY).get("chemistry_limits")
             if (not isinstance(chemistry, dict) or not set(CHEMISTRY_LIMIT_NAMES) <= set(chemistry)
@@ -331,8 +420,8 @@ class ReasoningOperations:
             else:
                 self._path_limits = {key: path[key] for key in keys}
                 self._limits.update(graph_work=path["work"], graph_reply_bytes=path["reply_bytes"])
-        self._inputs = _inputs(self._limits, max_exponent, self._chemistry_limits)
-        self._results = _results(self._limits, max_exponent, self._chemistry_limits)
+        self._inputs = _inputs(self._limits, max_exponent, self._chemistry_limits, self._rational_limits)
+        self._results = _results(self._limits, max_exponent, self._chemistry_limits, self._rational_limits)
         self._call = call
         self.unavailable_reason = None
 
@@ -365,6 +454,15 @@ class ReasoningOperations:
              "Return an exact finite minimum, unreachable, or unbounded-below result with a checked graph-local certificate.",
              {"vertices": 3, "edges": [[0, 1, 4], [1, 2, -2], [0, 2, 9]], "source": 0, "target": 2},
              "The graph is the complete supplied input, not the world. A negative cycle matters only when source-reachable and able to reach target. Distances and labels are exact decimal strings. Finite paths attain feasible-label lower bounds; unreachable sets are closed; unbounded witnesses connect source, negative cycle and target. Rust checks are not Isabelle proofs. Search, checking and capped serialization share cooperative budgets."),
+            (RATIONAL, "Simplify an exact rational formula with SI dimensions under supplied bounds",
+             "Search equivalent rational formulas with an untrusted e-graph and replay its explanation in an independent Rust checker: on the supplied closed bounds the selected and original formulas are defined at the same points and agree there. Report each original denominator as nonzero within the bounds or not established, and optionally evaluate exactly at one point after checking the bounds and the unestablished denominators.",
+             {"expression": "(/ (/ M rho) u)", "variables": [
+                 {"name": "M", "dimension": [0, 1, 0, 0, 0, 0, 0]},
+                 {"name": "rho", "dimension": [-3, 1, 0, 0, 0, 0, 0]},
+                 {"name": "u", "dimension": [3, 0, 0, 0, 0, 0, 0]}],
+              "bounds": [{"name": "rho", "low": "1", "high": "25000"}, {"name": "u", "low": "1/1000000", "high": "1"}],
+              "point": [{"name": "M", "value": "1"}, {"name": "rho", "value": "67668/5"}, {"name": "u", "value": "1/1000"}]},
+             "Bounds are caller premises, not physical facts; only closed intervals on single variables, no open intervals or disjunctions. No transcendental functions, powers or roots. Literals have no units. The identity is checked by replay in Rust, not proved in Isabelle. Interval reasoning is conservative: a denominator may be nonzero yet reported not established. Tree cost is not measured speed or global optimality; search ceilings are cooperative and a certificate that does not replay retains the original formula."),
         ):
             item = {"id": op_id, "name": name, "description": description,
                     "availability": "live_direct" if self._call is not None and op_id in self._available_ids else "unavailable",
@@ -372,7 +470,7 @@ class ReasoningOperations:
                     "output_schema": self._output_schema(op_id),
                     "units": ({"input": "caller-defined consistent edge weight units", "output": "same weight units"}
                               if op_id in (GRAPH, SHORTEST) else {"input": "coherent linear SI quantities", "output": "declared SI exponents; tree cost is an abstract count"}
-                              if op_id == DIMENSIONAL else {"input": "exact atom/isotope counts and signed elementary-charge counts", "output": "dimensionless stoichiometric coefficients; exact inventory totals"}
+                              if op_id in (DIMENSIONAL, RATIONAL) else {"input": "exact atom/isotope counts and signed elementary-charge counts", "output": "dimensionless stoichiometric coefficients; exact inventory totals"}
                               if op_id == CHEMISTRY else {"input": "dimensionless", "output": "dimensionless; tree cost is an abstract count"}),
                     "sources": [], "examples": [{"arguments": example, "source": "usage example; not a panel result"}],
                     "implementation": {"backend": "oracle_native", "feature": "reasoning", "entrypoint": "reasoning_call",
@@ -386,6 +484,8 @@ class ReasoningOperations:
                 item["chemistry_limits"] = copy.deepcopy(self._chemistry_limits)
             if op_id == SHORTEST:
                 item["path_limits"] = copy.deepcopy(self._path_limits)
+            if op_id == RATIONAL:
+                item["rational_limits"] = copy.deepcopy(self._rational_limits)
             if item["availability"] == "unavailable":
                 item["unavailable_reason"] = self.unavailable_reason or self._operation_unavailable.get(op_id, "native_operation_absent")
             rows.append(item)
@@ -431,7 +531,9 @@ class ReasoningOperations:
         except Exception:
             return self._withheld(operation_id, "native_execution_failed")
         try:
-            maximum = min(MAX_REPLY_BYTES, self._path_limits["reply_bytes"]) if operation_id == SHORTEST else MAX_REPLY_BYTES
+            maximum = (min(MAX_REPLY_BYTES, self._path_limits["reply_bytes"]) if operation_id == SHORTEST
+                       else min(MAX_REPLY_BYTES, self._rational_limits["formula_reply_bytes"]) if operation_id == RATIONAL
+                       else MAX_REPLY_BYTES)
             result = _json(raw, maximum)
             if not _valid(result, self._results[operation_id]):
                 raise ValueError("native result schema differs")
@@ -439,6 +541,8 @@ class ReasoningOperations:
                 self._check_path_reply(arguments, result)
             if operation_id == CHEMISTRY:
                 self._check_chemistry_reply(arguments, result)
+            if operation_id == RATIONAL:
+                self._check_rational_reply(arguments, result)
         except Exception:
             return self._withheld(operation_id, "native_reply_invalid")
         reply = {"status": "answered", "operation_id": operation_id, "result": result,
@@ -486,6 +590,20 @@ class ReasoningOperations:
             end, weight = walk(result["cycle"], anchor)
             if end != anchor or weight >= 0 or walk(result["suffix"], anchor)[0] != arguments["target"]:
                 raise ValueError("negative-cycle witness differs from input")
+
+    @staticmethod
+    def _check_rational_reply(arguments, result):
+        """Check transport consistency only; the identity was replayed natively."""
+        requested = arguments.get("output_dimension")
+        if requested is not None and result["output_dimension"] != requested:
+            raise ValueError("native output dimension differs from the requested one")
+        if (arguments.get("point") is None) != (result["evaluation"] is None):
+            raise ValueError("evaluation present without a point, or missing for one")
+        evaluation = result["evaluation"]
+        if evaluation is not None and (evaluation["status"] == "value") != (evaluation["value"] is not None):
+            raise ValueError("evaluation value disagrees with its status")
+        if result["selection_fallback"] is not None and result["selected_cost"] != result["original_cost"]:
+            raise ValueError("fallback reply must retain the original cost")
 
     @staticmethod
     def _check_chemistry_reply(arguments, result):
@@ -553,11 +671,20 @@ class ReasoningOperations:
             if sides != {"reactant", "product"}:
                 raise ValueError("both reaction sides are required")
             return
-        if op_id in (ALGEBRA, DIMENSIONAL):
+        if op_id in (ALGEBRA, DIMENSIONAL, RATIONAL):
             expression = arguments["expression"]
             if not isinstance(expression, str) or not 1 <= len(expression) <= self._limits["request_bytes"]:
                 raise ValueError("expression must be a bounded nonempty string")
-            if op_id == DIMENSIONAL:
+            if op_id == RATIONAL:
+                properties = schema["properties"]
+                for key in ("bounds", "point"):
+                    rows = arguments.get(key)
+                    if rows is None and (key == "point" or key not in arguments):
+                        continue
+                    shape = properties[key] if key == "bounds" else properties[key]["anyOf"][0]
+                    if not _valid(rows, shape) or len({row["name"] for row in rows}) != len(rows):
+                        raise ValueError(f"{key} must be a bounded list of unique exact rational rows")
+            if op_id in (DIMENSIONAL, RATIONAL):
                 annotations = arguments["variables"]
                 if not isinstance(annotations, list) or len(annotations) > self._limits["expression_nodes"]:
                     raise ValueError("variables must be a bounded list of annotations")

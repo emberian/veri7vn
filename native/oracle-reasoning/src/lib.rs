@@ -4,6 +4,8 @@
 
 pub mod algebra;
 pub mod dimensions;
+pub mod formula;
+pub mod formula_search;
 pub mod graph;
 pub mod shortest_path;
 pub mod stoichiometry;
@@ -39,6 +41,17 @@ pub struct Limits {
     pub egraph_nodes: usize,
     pub iterations: usize,
     pub search_ms: u64,
+    /// Maximum bits of any exact rational (numerator or denominator) in a
+    /// rational-formula request: literals, bounds, intervals, evaluation.
+    pub rational_bits: u64,
+    /// Exact rational operations per checker or evaluation pass.
+    pub rational_work: usize,
+    /// Maximum nesting of a rational formula, including intermediate terms.
+    pub formula_depth: usize,
+    /// Maximum certificate steps (and explanation size) per request.
+    pub proof_steps: usize,
+    /// Maximum serialized rational-formula reply bytes.
+    pub formula_reply_bytes: usize,
 }
 impl Default for Limits {
     fn default() -> Self {
@@ -56,6 +69,11 @@ impl Default for Limits {
             egraph_nodes: 10_000,
             iterations: 12,
             search_ms: 50,
+            rational_bits: 4096,
+            rational_work: 1_000_000,
+            formula_depth: 64,
+            proof_steps: 20_000,
+            formula_reply_bytes: 64 * 1024,
         }
     }
 }
@@ -71,6 +89,8 @@ enum Request {
     Polynomial(algebra::PolynomialInput),
     #[serde(rename = "algebra.optimize_dimensional_polynomial")]
     Dimensional(dimensions::DimensionalInput),
+    #[serde(rename = "algebra.simplify_rational")]
+    Rational(formula_search::RationalInput),
     #[serde(rename = "chemistry.balance_reaction")]
     Reaction(stoichiometry::ReactionInput),
 }
@@ -89,6 +109,7 @@ pub fn call(request: &str, limits: &Limits) -> Result<String> {
                 &std::sync::atomic::AtomicBool::new(false),
             )
         }
+        Request::Rational(input) => return formula_search::simplify_json(&input, limits),
         Request::Reaction(input) => serde_json::to_value(stoichiometry::balance_reaction(
             &input,
             &stoichiometry::ChemistryLimits::default(),
@@ -112,6 +133,17 @@ pub fn shortest_path_limits(limits: &Limits) -> shortest_path::PathLimits {
     }
 }
 
+/// Rational-formula budgets, repeated in that operation's catalog row.
+pub fn rational_limits(limits: &Limits) -> serde_json::Value {
+    serde_json::json!({
+        "rational_bits": limits.rational_bits,
+        "rational_work": limits.rational_work,
+        "formula_depth": limits.formula_depth,
+        "proof_steps": limits.proof_steps,
+        "formula_reply_bytes": limits.formula_reply_bytes,
+    })
+}
+
 pub fn catalog() -> serde_json::Value {
     serde_json::json!({
         "schema": "oracle-reasoning-experimental-v1",
@@ -123,7 +155,8 @@ pub fn catalog() -> serde_json::Value {
             {"id": "chemistry.balance_reaction", "domain": "exact element/isotope and charge conservation for supplied species; not reaction feasibility", "chemistry_limits": stoichiometry::ChemistryLimits::default(), "arguments": {"species": "list of {name, side: reactant|product, composition: {element_or_isotope: positive_u64}, charge: i64}; empty composition with charge -1 represents an explicit electron"}},
             {"id": "graph.minimum_spanning_forest", "domain": "supplied undirected multigraph, exact i64 edge weights", "arguments": {"vertices": "nonnegative integer; vertex IDs are 0..vertices-1", "edges": "list of [source, target, weight]; edge ID is list position"}},
             {"id": "algebra.optimize_polynomial", "domain": "dimensionless commutative polynomials with integer coefficients", "arguments": {"expression": "prefix expression: i64 literals, ASCII variables, binary + - *; no division or floating-point semantics"}},
-            {"id": "algebra.optimize_dimensional_polynomial", "domain": "exact polynomials over normalized linear SI quantities; dimensions checked, physical law not established", "dimension_order": dimensions::DIMENSION_ORDER, "max_exponent": dimensions::MAX_EXPONENT, "arguments": {"expression": "prefix expression", "variables": "list of {name, dimension: seven SI integer exponents, kind?: linear|affine}; affine refused", "output_dimension": "optional seven SI integer exponents"}}
+            {"id": "algebra.optimize_dimensional_polynomial", "domain": "exact polynomials over normalized linear SI quantities; dimensions checked, physical law not established", "dimension_order": dimensions::DIMENSION_ORDER, "max_exponent": dimensions::MAX_EXPONENT, "arguments": {"expression": "prefix expression", "variables": "list of {name, dimension: seven SI integer exponents, kind?: linear|affine}; affine refused", "output_dimension": "optional seven SI integer exponents"}},
+            {"id": "algebra.simplify_rational", "domain": "exact rational formulas (+ - * /) over linear SI quantities under supplied closed bounds; rewrites replayed as same-domain equalities on those bounds", "dimension_order": dimensions::DIMENSION_ORDER, "max_exponent": dimensions::MAX_EXPONENT, "rational_limits": rational_limits(&Limits::default()), "assurance": "egg proposer; independent Rust certificate replay; not Isabelle-verified", "arguments": {"expression": "prefix formula: exact rationals -?n or -?n/d, ASCII variables, binary + - * /; literals have no units, so a zero with units is (* 0 x)", "variables": "list of {name, dimension, kind?: linear}", "bounds": "optional list of {name, low, high} exact rational closed bounds", "output_dimension": "optional seven SI integer exponents", "point": "optional list of {name, value} assigning every variable"}}
         ]
     })
 }
