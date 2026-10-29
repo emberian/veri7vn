@@ -445,3 +445,61 @@ fn irrelevant_local_bindings_never_spend_the_complete_composition_bound() {
     );
     assert_eq!(answer[0].program.last().unwrap().function, "What");
 }
+
+/// Measurement only, run by hand against the pinned reader image:
+/// `O1_IMAGE=<image> O1_COHORT=<cohort json> O1_PROBE_OUT=<json>
+/// cargo test --release -p oracle-runtime-core --test composition_contract
+/// -- --ignored composition_byte_peaks_on_frozen_cases`.
+/// It records the composition ledger's peak and owners for each named case;
+/// it asserts only that the probe saw every case.
+#[test]
+#[ignore]
+fn composition_byte_peaks_on_frozen_cases() {
+    use oracle_runtime_core::composition::probe;
+    let image_path = std::env::var("O1_IMAGE").expect("O1_IMAGE");
+    let cohort: Value = serde_json::from_str(
+        &std::fs::read_to_string(std::env::var("O1_COHORT").unwrap()).unwrap(),
+    )
+    .unwrap();
+    let out = std::env::var("O1_PROBE_OUT").expect("O1_PROBE_OUT");
+    let ids = std::env::var("O1_CASES").unwrap_or_else(|_| {
+        "nested_headquarters_city_website_population_bristol,nested_university_count_cardiff,\
+         ambiguous_university_selection_cardiff,empty_parent_headquarters_saskatoon"
+            .into()
+    });
+    let mut limits: Limits = serde_json::from_value(cohort["limits"].clone()).unwrap();
+    limits.workers = limits.workers.max(1);
+    let image = Image::open(
+        std::path::Path::new(&image_path),
+        cohort["image"]["sha256"].as_str().unwrap(),
+        limits,
+    )
+    .unwrap();
+    probe::enable();
+    probe::take();
+    let mut rows = Vec::new();
+    for id in ids.split(',') {
+        let case = cohort["cases"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|case| case["id"] == id)
+            .expect("case id");
+        let question = case["question"].as_str().unwrap();
+        let result = image.read_whole("probe", question, Cancellation::default());
+        let status = match &result {
+            Ok(text) => serde_json::from_str::<Value>(text).unwrap()["status"].clone(),
+            Err(error) => json!(format!("error {error:?}")),
+        };
+        let calls: Vec<_> = probe::take()
+            .into_iter()
+            .map(|r| {
+                json!({"peak_bytes": r.peak, "final_bytes": r.final_bytes, "outcome": r.outcome,
+                    "peak_owners": r.peak_owners.into_iter().collect::<BTreeMap<_, _>>()})
+            })
+            .collect();
+        assert!(!calls.is_empty(), "probe saw no composition call for {id}");
+        rows.push(json!({"id": id, "status": status, "calls": calls}));
+    }
+    std::fs::write(out, serde_json::to_string_pretty(&rows).unwrap()).unwrap();
+}

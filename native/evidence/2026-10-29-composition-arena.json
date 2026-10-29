@@ -1,0 +1,698 @@
+{
+  "scope": "Request-local arena for the native segment/nested composition reader. Representation and accounting change only; no new language family, no limit change, no specialist-panel claim.",
+  "base_commit": "6077aef (dev, includes macOS link config)",
+  "source_sha256": {
+    "native/oracle-core/src/segments.rs": "d9abfa5f537317a5e7b043aa2f8823fd2dcfaea5a144f4731cdefe0bdfea93b1",
+    "native/oracle-core/src/composition.rs": "9505fe174a26228d822a24efc82e3c9ba881922db1ae8c622c79a18e06b2780f",
+    "native/oracle-core/tests/segments_contract.rs": "8cc31e9812f7653baa73df9979b1d03420ac4f303452283cdbc5743493261a9e",
+    "native/oracle-core/tests/composition_contract.rs": "413479af4e951d112209e21e216b2815d7068df76bc700704d3fdde98ddcce4a"
+  },
+  "artifacts": {
+    "candidate": {
+      "path": "/Users/ember/dev/o7vn/var/o1-arena/candidate/oracle_native.so",
+      "sha256": "2ca9d64f258734324a691cbb38a0a2fde86334fd6e2013e33cd60f513b365692",
+      "profile": "debug (cargo build -p oracle-runtime-python, macOS arm64)"
+    },
+    "control": {
+      "path": "/Users/ember/dev/o7vn/var/o1-arena/control/oracle_native.so",
+      "sha256": "bed42ac8729f14faa335a0cf57d92d7919c51f9770da5e6c2ab2470cae1b6eb7",
+      "profile": "debug, root's shared control var/control-20261029/binding (dev sources; differs from candidate only in segments.rs and composition.rs)"
+    },
+    "image": {
+      "path": "/Users/ember/dev/o7vn/var/data-20261029/reader-image-v3.sqlite",
+      "sha256": "8fcb1db9a08e234179f66ea9e032d2633b38cdcb902f4c95d1ba2c2d49c842f4",
+      "receipt_sha256": "a86c50bb1c2771600fc494e7a5223c170e59b34aca64c1f20b56cca9ad05b3c6"
+    },
+    "validation_sha256": "b4aed6ab3d7ad071722064fe3bb02bc028cfbeb15da5f7115d57a1e2d198f3bb"
+  },
+  "limits": {
+    "match_limits": {
+      "combinations": 400,
+      "matches": 4000,
+      "steps": 128,
+      "materialized_bytes": 2097152
+    },
+    "reader_limits_json": {
+      "workers": 2,
+      "timeout_ms": 1000,
+      "fuel": 10000000
+    },
+    "changed": false
+  },
+  "contract_gate": {
+    "command": "cargo test -p oracle-runtime-core --test segments_contract --test composition_contract --test reader_contract --test runtime_language_contract",
+    "passed": {
+      "segments_contract": 35,
+      "composition_contract": 12,
+      "reader_contract": 10,
+      "runtime_language_contract": 2
+    },
+    "ignored": {
+      "composition_contract": "composition_byte_peaks_on_frozen_cases (measurement, needs the real image)"
+    },
+    "clippy": "cargo clippy -p oracle-runtime-core --all-targets -- -D warnings: exit 0",
+    "fmt": "rustfmt --check on the four owned files: clean. cargo fmt --check also reports lib.rs, tests/runtime_session_contract.rs, tests/session_contract.rs, unchanged from dev and not owned by this lane.",
+    "log": "/Users/ember/dev/o7vn/var/o1-arena/contracts.log"
+  },
+  "public_json_identity": {
+    "method": "Every match_composed call in the four contract suites appended (question, level, serialized MatchedProgram list or error) to a file; old code built from a copy of dev sources with the same dump line, new code with a temporary dump line removed afterwards. Lines sorted and compared.",
+    "calls": 109,
+    "identical_calls": 108,
+    "identical_lines_sha256": "28ba82c9cc905edcd114e1f71e956ae35242ef2746e0b82008df1becc488706e",
+    "only_difference": "shared_unit_chains_are_stored_once_and_fit_the_unchanged_envelope (new test): old Err(Limit(composition bytes)), new Ok([]) after 2401 viability checks",
+    "baseline_dump": "/Users/ember/dev/o7vn/var/o1-arena/b.sorted",
+    "candidate_dump": "/Users/ember/dev/o7vn/var/o1-arena/c.sorted"
+  },
+  "frozen_cohort": {
+    "command": "python -B native/tests/qualify_composition_cases.py --cohort var/o1-arena/cohort-repinned.json --image ... --control-extension var/o1-arena/control/oracle_native.so --candidate-extension var/o1-arena/candidate/oracle_native.so --work var/o1-arena/cohort",
+    "cohort_original_sha256": "388810fd2d99c1f25e2e53b0e906e21669915c7836a8fd1524967d755862b853",
+    "cohort_repinned_sha256": "f2cd85016ca955085a5aeddfb0c1422f9e7fa8a9f592f06489d770c90ceeda44",
+    "repin_note": "Only the artifacts block differs: the script refuses any extension whose hash is not pinned there, so it was re-pinned to these two local binaries (both report the combined coverage string). Questions, expected facts, source constraints and limits are byte-identical in content (checked by the copy script).",
+    "script_sha256": "d87b77c5f19d0e01de7ceb8258eb69ea562ff889ee4cd53175bed17f76d56195",
+    "exit_code": 1,
+    "exit_reason": "the control run has 4 operational errors; the candidate run has 0 errors and 0 wrong answers",
+    "counts": {
+      "control": {
+        "answered_correct": 1,
+        "declined_expected": 4,
+        "errors": 4,
+        "unanswered": 7
+      },
+      "candidate": {
+        "answered_correct": 2,
+        "declined_expected": 6,
+        "unanswered": 8
+      }
+    },
+    "cases": [
+      {
+        "id": "baseline_city_website_saskatoon",
+        "control": {
+          "outcome": "unanswered",
+          "status": "refused",
+          "answer": null,
+          "reason": "answer_form",
+          "error": null
+        },
+        "candidate": {
+          "outcome": "unanswered",
+          "status": "refused",
+          "answer": null,
+          "reason": "answer_form",
+          "distinct_answers": [
+            "1",
+            "Saskatoon"
+          ],
+          "matched_programs": 20,
+          "readings": 20
+        },
+        "native_result_identical": true
+      },
+      {
+        "id": "segment_city_website_population_saskatoon",
+        "control": {
+          "outcome": "unanswered",
+          "status": "refused",
+          "answer": null,
+          "reason": "answer_form",
+          "error": null
+        },
+        "candidate": {
+          "outcome": "unanswered",
+          "status": "refused",
+          "answer": null,
+          "reason": "answer_form",
+          "distinct_answers": [
+            "1",
+            "Saskatoon"
+          ],
+          "matched_programs": 10,
+          "readings": 10
+        },
+        "native_result_identical": true
+      },
+      {
+        "id": "segment_city_population_website_saskatoon",
+        "control": {
+          "outcome": "unanswered",
+          "status": "refused",
+          "answer": null,
+          "reason": "answer_form",
+          "error": null
+        },
+        "candidate": {
+          "outcome": "unanswered",
+          "status": "refused",
+          "answer": null,
+          "reason": "answer_form",
+          "distinct_answers": [
+            "1",
+            "Saskatoon"
+          ],
+          "matched_programs": 10,
+          "readings": 10
+        },
+        "native_result_identical": true
+      },
+      {
+        "id": "nested_university_city_website_saskatoon",
+        "control": {
+          "outcome": "unanswered",
+          "status": "refused",
+          "answer": null,
+          "reason": "answer_form",
+          "error": null
+        },
+        "candidate": {
+          "outcome": "unanswered",
+          "status": "refused",
+          "answer": null,
+          "reason": "answer_form",
+          "distinct_answers": [
+            "1",
+            "University of Saskatchewan"
+          ],
+          "matched_programs": 12,
+          "readings": 12
+        },
+        "native_result_identical": true
+      },
+      {
+        "id": "nested_university_city_website_population_saskatoon",
+        "control": {
+          "outcome": "unanswered",
+          "status": "refused",
+          "answer": null,
+          "reason": "answer_form",
+          "error": null
+        },
+        "candidate": {
+          "outcome": "unanswered",
+          "status": "refused",
+          "answer": null,
+          "reason": "answer_form",
+          "distinct_answers": [
+            "1",
+            "University of Saskatchewan"
+          ],
+          "matched_programs": 6,
+          "readings": 6
+        },
+        "native_result_identical": true
+      },
+      {
+        "id": "nested_university_city_website_population_belfast",
+        "control": {
+          "outcome": "unanswered",
+          "status": "refused",
+          "answer": null,
+          "reason": "answer_form",
+          "error": null
+        },
+        "candidate": {
+          "outcome": "unanswered",
+          "status": "refused",
+          "answer": null,
+          "reason": "answer_form",
+          "distinct_answers": [
+            "1",
+            "Queen's University Belfast"
+          ],
+          "matched_programs": 6,
+          "readings": 6
+        },
+        "native_result_identical": true
+      },
+      {
+        "id": "nested_headquarters_city_website_population_bristol",
+        "control": {
+          "outcome": "errors",
+          "status": null,
+          "answer": null,
+          "reason": null,
+          "error": {
+            "text": "resource limit: composition bytes",
+            "truncated": false
+          }
+        },
+        "candidate": {
+          "outcome": "unanswered",
+          "status": "refused",
+          "answer": null,
+          "reason": "answer_form",
+          "distinct_answers": [
+            "1",
+            "University of Bristol"
+          ],
+          "matched_programs": 10,
+          "readings": 10
+        },
+        "native_result_identical": null
+      },
+      {
+        "id": "segment_city_website_population_bristol",
+        "control": {
+          "outcome": "unanswered",
+          "status": "refused",
+          "answer": null,
+          "reason": "answer_form",
+          "error": null
+        },
+        "candidate": {
+          "outcome": "unanswered",
+          "status": "refused",
+          "answer": null,
+          "reason": "answer_form",
+          "distinct_answers": [
+            "1",
+            "Bristol"
+          ],
+          "matched_programs": 10,
+          "readings": 10
+        },
+        "native_result_identical": true
+      },
+      {
+        "id": "nested_human_count_bristol",
+        "control": {
+          "outcome": "answered_correct",
+          "status": "answered",
+          "answer": "6",
+          "reason": null,
+          "error": null
+        },
+        "candidate": {
+          "outcome": "answered_correct",
+          "status": "answered",
+          "answer": "6",
+          "reason": null,
+          "distinct_answers": [
+            "6"
+          ],
+          "matched_programs": 5,
+          "readings": 5
+        },
+        "native_result_identical": true
+      },
+      {
+        "id": "ambiguous_human_selection_bristol",
+        "control": {
+          "outcome": "declined_expected",
+          "status": "refused",
+          "answer": null,
+          "reason": "answer_form",
+          "error": null
+        },
+        "candidate": {
+          "outcome": "declined_expected",
+          "status": "refused",
+          "answer": null,
+          "reason": "answer_form",
+          "distinct_answers": [
+            "6"
+          ],
+          "matched_programs": 6,
+          "readings": 1
+        },
+        "native_result_identical": true
+      },
+      {
+        "id": "nested_university_count_cardiff",
+        "control": {
+          "outcome": "errors",
+          "status": null,
+          "answer": null,
+          "reason": null,
+          "error": {
+            "text": "resource limit: composition bytes",
+            "truncated": false
+          }
+        },
+        "candidate": {
+          "outcome": "answered_correct",
+          "status": "answered",
+          "answer": "2",
+          "reason": null,
+          "distinct_answers": [
+            "2"
+          ],
+          "matched_programs": 9,
+          "readings": 9
+        },
+        "native_result_identical": null
+      },
+      {
+        "id": "ambiguous_university_selection_cardiff",
+        "control": {
+          "outcome": "errors",
+          "status": null,
+          "answer": null,
+          "reason": null,
+          "error": {
+            "text": "resource limit: composition bytes",
+            "truncated": false
+          }
+        },
+        "candidate": {
+          "outcome": "declined_expected",
+          "status": "refused",
+          "answer": null,
+          "reason": "answer_form",
+          "distinct_answers": [
+            "2"
+          ],
+          "matched_programs": 10,
+          "readings": 1
+        },
+        "native_result_identical": null
+      },
+      {
+        "id": "empty_segment_changed_population_bristol",
+        "control": {
+          "outcome": "declined_expected",
+          "status": "unknown",
+          "answer": null,
+          "reason": "no_template",
+          "error": null
+        },
+        "candidate": {
+          "outcome": "declined_expected",
+          "status": "unknown",
+          "answer": null,
+          "reason": "no_template",
+          "distinct_answers": [],
+          "matched_programs": 0,
+          "readings": 0
+        },
+        "native_result_identical": true
+      },
+      {
+        "id": "empty_nested_changed_population_bristol",
+        "control": {
+          "outcome": "declined_expected",
+          "status": "unknown",
+          "answer": null,
+          "reason": "no_template",
+          "error": null
+        },
+        "candidate": {
+          "outcome": "declined_expected",
+          "status": "unknown",
+          "answer": null,
+          "reason": "no_template",
+          "distinct_answers": [],
+          "matched_programs": 0,
+          "readings": 0
+        },
+        "native_result_identical": true
+      },
+      {
+        "id": "empty_segment_conflicting_city_anchors",
+        "control": {
+          "outcome": "declined_expected",
+          "status": "unknown",
+          "answer": null,
+          "reason": "no_template",
+          "error": null
+        },
+        "candidate": {
+          "outcome": "declined_expected",
+          "status": "unknown",
+          "answer": null,
+          "reason": "no_template",
+          "distinct_answers": [],
+          "matched_programs": 0,
+          "readings": 0
+        },
+        "native_result_identical": true
+      },
+      {
+        "id": "empty_parent_headquarters_saskatoon",
+        "control": {
+          "outcome": "errors",
+          "status": null,
+          "answer": null,
+          "reason": null,
+          "error": {
+            "text": "resource limit: composition bytes",
+            "truncated": false
+          }
+        },
+        "candidate": {
+          "outcome": "declined_expected",
+          "status": "unknown",
+          "answer": null,
+          "reason": "no_template",
+          "distinct_answers": [],
+          "matched_programs": 0,
+          "readings": 0
+        },
+        "native_result_identical": null
+      }
+    ],
+    "report_sha256": "e5c0e4aab3dd1a8b79bba9afd5b09b8dc79c4476fe7799ccbb604cbd2a78cbb9"
+  },
+  "bytes_at_peak_four_cases": {
+    "method": "composition_contract::composition_byte_peaks_on_frozen_cases (ignored test, release profile) enables composition::probe and reads the real image; one record per match_composed call (level 0 then level 1). The probe never changes a result; it is disabled unless a test enables it.",
+    "envelope_bytes": 2097152,
+    "cases": [
+      {
+        "id": "nested_headquarters_city_website_population_bristol",
+        "reader_status": "refused",
+        "previous_accounted_bytes_at_failure": 2097670,
+        "previous_outcome": "Limit(composition bytes) in region syntax",
+        "arena_peak_bytes_per_composition_call": [
+          30378,
+          969147
+        ],
+        "arena_call_outcomes": [
+          "ok 6 programs",
+          "ok 4 programs"
+        ],
+        "largest_call_peak_owners": {
+          "arena_steps_programs": 569972,
+          "cache_headers": 512,
+          "lexical_edges": 1661,
+          "nested_recipes": 855,
+          "outer_found": 692,
+          "outer_holes": 5277,
+          "output": 8254,
+          "question": 4326,
+          "region_nodes": 232280,
+          "resolved_node_keys": 344,
+          "units": 37854,
+          "viability_cache": 103280,
+          "walk_scratch": 3840
+        },
+        "largest_call_share_of_envelope": 0.4621
+      },
+      {
+        "id": "nested_university_count_cardiff",
+        "reader_status": "answered",
+        "previous_accounted_bytes_at_failure": 2097469,
+        "previous_outcome": "Limit(composition bytes) in region syntax",
+        "arena_peak_bytes_per_composition_call": [
+          27917,
+          969034
+        ],
+        "arena_call_outcomes": [
+          "ok 5 programs",
+          "ok 4 programs"
+        ],
+        "largest_call_peak_owners": {
+          "arena_steps_programs": 569594,
+          "cache_headers": 448,
+          "lexical_edges": 1548,
+          "nested_recipes": 855,
+          "outer_found": 708,
+          "outer_holes": 5279,
+          "output": 8282,
+          "question": 4610,
+          "region_nodes": 232280,
+          "resolved_node_keys": 344,
+          "units": 37710,
+          "viability_cache": 103280,
+          "walk_scratch": 4096
+        },
+        "largest_call_share_of_envelope": 0.4621
+      },
+      {
+        "id": "ambiguous_university_selection_cardiff",
+        "reader_status": "refused",
+        "previous_accounted_bytes_at_failure": 2097748,
+        "previous_outcome": "Limit(composition bytes) in region syntax",
+        "arena_peak_bytes_per_composition_call": [
+          30403,
+          969166
+        ],
+        "arena_call_outcomes": [
+          "ok 6 programs",
+          "ok 4 programs"
+        ],
+        "largest_call_peak_owners": {
+          "arena_steps_programs": 569974,
+          "cache_headers": 512,
+          "lexical_edges": 1664,
+          "nested_recipes": 855,
+          "outer_found": 692,
+          "outer_holes": 5277,
+          "output": 8266,
+          "question": 4328,
+          "region_nodes": 232280,
+          "resolved_node_keys": 344,
+          "units": 37854,
+          "viability_cache": 103280,
+          "walk_scratch": 3840
+        },
+        "largest_call_share_of_envelope": 0.4621
+      },
+      {
+        "id": "empty_parent_headquarters_saskatoon",
+        "reader_status": "unknown",
+        "previous_accounted_bytes_at_failure": 2097185,
+        "previous_outcome": "Limit(composition bytes) in region syntax",
+        "arena_peak_bytes_per_composition_call": [
+          17483,
+          960831
+        ],
+        "arena_call_outcomes": [
+          "ok 0 programs",
+          "ok 0 programs"
+        ],
+        "largest_call_peak_owners": {
+          "arena_steps_programs": 569276,
+          "cache_headers": 448,
+          "flatten_scratch": 662,
+          "lexical_edges": 1539,
+          "nested_recipes": 855,
+          "outer_found": 708,
+          "outer_holes": 5277,
+          "question": 4604,
+          "region_nodes": 232200,
+          "resolved_node_keys": 216,
+          "units": 37710,
+          "viability_cache": 103240,
+          "walk_scratch": 4096
+        },
+        "largest_call_share_of_envelope": 0.4582
+      }
+    ],
+    "probe_output_sha256": "136a50152b2d1057409e18a2e319a0a167fa163b8e9f6337bc86313cae019ddc"
+  },
+  "reader100": {
+    "command": "PYTHONPATH=<binding dir> python -B native/tests/qualify_reader.py --image ... --image-receipt ... --validation ... --cases 100 --expected-coverage whole_and_exact_fragment_outer_v1+exact_segment_and_single_nested_v1 --work var/o1-arena/reader100-<label>",
+    "script_sha256": "61164e0947fb67c28f9ee636402f2bc39def3fa4bcf5267f93779177265be218",
+    "expected_counts": {
+      "answered_correct": 36,
+      "answered_wrong": 0,
+      "refused": 4,
+      "unknown": 60,
+      "errors": 0
+    },
+    "runs": {
+      "control": {
+        "counts": {
+          "answered_correct": 36,
+          "answered_wrong": 0,
+          "refused": 4,
+          "unknown": 60,
+          "errors": 0
+        },
+        "load_average_1min": 217.4,
+        "process_wall_seconds": 30.59,
+        "peak_rss_bytes": 98287616,
+        "sum_query_wall_seconds": 10.913,
+        "sum_query_cpu_seconds": 8.227,
+        "source_index_200": {
+          "outcome": "answered_correct",
+          "reason": null,
+          "error": null,
+          "seconds": 0.9989704580511898,
+          "cpu_seconds": 0.7521439999999995
+        },
+        "tenant_memory_check_passed": false,
+        "report_sha256": "7bc01172aa975d4228a8a56045993052329d387496e53d1827eb4b4c7cc1005f",
+        "observations_sha256": "2c3246240e9cbc8316c61ef6d0bdecae8b84ce0b15cacd7a0b5d624c3c10cfa6"
+      },
+      "candidate": {
+        "counts": {
+          "answered_correct": 35,
+          "answered_wrong": 0,
+          "refused": 4,
+          "unknown": 60,
+          "errors": 1
+        },
+        "load_average_1min": 224.4,
+        "process_wall_seconds": 34.15,
+        "peak_rss_bytes": 97959936,
+        "sum_query_wall_seconds": 13.838,
+        "sum_query_cpu_seconds": 8.136,
+        "source_index_200": {
+          "outcome": "errors",
+          "reason": "execution_error",
+          "error": {
+            "text": "deadline exceeded",
+            "truncated": false
+          },
+          "seconds": 1.0060771668795496,
+          "cpu_seconds": 0.4242340000000002
+        },
+        "tenant_memory_check_passed": false,
+        "report_sha256": "30b190d7f27f391bf3a0f477b16c75fe1635a57e939d1ef090d8c18d82b9e456",
+        "observations_sha256": "ce7dc0bf3e68e06707995572ddd0dba3aba59be7e54a83e1833039f7f283230c"
+      },
+      "control-run2": {
+        "counts": {
+          "answered_correct": 36,
+          "answered_wrong": 0,
+          "refused": 4,
+          "unknown": 60,
+          "errors": 0
+        },
+        "load_average_1min": 174.1,
+        "process_wall_seconds": 24.96,
+        "peak_rss_bytes": 98107392,
+        "sum_query_wall_seconds": 8.944,
+        "sum_query_cpu_seconds": 8.046,
+        "source_index_200": {
+          "outcome": "answered_correct",
+          "reason": null,
+          "error": null,
+          "seconds": 0.7853514170274138,
+          "cpu_seconds": 0.7044329999999999
+        },
+        "tenant_memory_check_passed": false,
+        "report_sha256": "3b5ffa4a49c7f099aba89926f33adc0777321c7ff8cf4e1593ea2b8737b6bf02",
+        "observations_sha256": "bf8f9adb0667bbdb4943718b5c3e5da6701b3c94a885edc1e7ab6e7e00db1e87"
+      },
+      "candidate-run2": {
+        "counts": {
+          "answered_correct": 36,
+          "answered_wrong": 0,
+          "refused": 4,
+          "unknown": 60,
+          "errors": 0
+        },
+        "load_average_1min": 185.0,
+        "process_wall_seconds": 28.72,
+        "peak_rss_bytes": 98418688,
+        "sum_query_wall_seconds": 8.124,
+        "sum_query_cpu_seconds": 7.394,
+        "source_index_200": {
+          "outcome": "answered_correct",
+          "reason": null,
+          "error": null,
+          "seconds": 0.7194992920849472,
+          "cpu_seconds": 0.5817150000000009
+        },
+        "tenant_memory_check_passed": false,
+        "report_sha256": "0efa323a4ec423e769542e137d4a3585b176defed5c828815a955877ce423cfc",
+        "observations_sha256": "589cc9ddeb383943612267a4943f7e03c8ebfb13a3ba23714fe620853451b6fc"
+      }
+    },
+    "finding": "Run 1 of the candidate had one deadline error on source_index 200, which control answered at 0.999 s wall, 1 ms under the 1 s deadline. The machine's 1-minute load average was about 220 during both runs (other lanes building). The candidate spent less CPU on that question (0.42 s vs 0.75 s) and missed the deadline on wall time. Run 2, same binaries, same order reversed: control and candidate agree on all 100 outcomes, 36/4/60/0/0 each. This is a debug-build timing margin, not a changed reading.",
+    "exit_codes": "every run exits 1 because tenant_memory_check reads /proc, which macOS lacks; unchanged between control and candidate",
+    "release_profile_note": "cargo build --release -p oracle-runtime-python on this Mac produced dylibs that dlopen rejects (mis-aligned LINKEDIT string pool) for both control and candidate, so all numbers here are debug builds."
+  },
+  "capabilities_rows_changed": false
+}

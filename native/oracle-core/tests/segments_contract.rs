@@ -1307,3 +1307,293 @@ fn streamed_equivalent_matches_fit_live_storage_without_retaining_raw_batches() 
     assert_eq!(programs.len(), 1);
     assert_eq!(programs[0].program.len(), 3);
 }
+
+fn composition_db(rows: Vec<TemplateRow>) -> rusqlite::Connection {
+    let db = rusqlite::Connection::open_in_memory().unwrap();
+    db.execute_batch("CREATE TABLE reader_template(family TEXT,level INTEGER,template TEXT,skeleton TEXT,support INTEGER, PRIMARY KEY(family,level,template,skeleton)) WITHOUT ROWID;").unwrap();
+    for (i, r) in rows.into_iter().enumerate() {
+        db.execute(
+            "INSERT INTO reader_template VALUES (?1,0,?2,?3,?4)",
+            rusqlite::params![r.family, r.template, r.skeleton.to_string(), 3 + i as i64],
+        )
+        .unwrap();
+    }
+    db
+}
+fn word_spans(
+    question: &str,
+    kinds: &[(&str, char, &str)],
+) -> Vec<oracle_runtime_core::grammar::GrammarSpan> {
+    let mut spans = Vec::new();
+    let mut offset = 0;
+    for word in question.split_whitespace() {
+        for (surface, kind, canonical) in kinds {
+            if word == *surface {
+                spans.push(oracle_runtime_core::grammar::GrammarSpan {
+                    start: offset,
+                    end: offset + word.len(),
+                    kind: *kind,
+                    canonical: (*canonical).into(),
+                });
+            }
+        }
+        offset += word.len() + 1;
+    }
+    spans
+}
+#[test]
+fn nested_parent_over_chain_child_publishes_chain_provenance_and_child_witness() {
+    use oracle_runtime_core::{composition::match_composed, grammar::MatchLimits, Budget};
+    // Supports are 3, 4, 5, 6 in row order, so each template is identifiable.
+    let db = composition_db(vec![
+        row(
+            "segment",
+            "E1",
+            unit(
+                "source",
+                json!([step("Find", &[], json!([["@", "E", 1, ""]]))]),
+            ),
+        ),
+        row(
+            "segment",
+            "and C1",
+            unit(
+                "filter",
+                json!([step("FilterConcept", &[], json!([["@", "C", 1, ""]]))]),
+            ),
+        ),
+        row(
+            "fragment",
+            "X1 near E1",
+            json!([
+                step("@X", &[], json!([1])),
+                step("Relate", &[0], json!(["near", "forward"]))
+            ]),
+        ),
+        row("outer", "how many X1", outer("Count")),
+    ]);
+    let question = "how many alice and person near bob";
+    let spans = word_spans(
+        question,
+        &[
+            ("alice", 'E', "Alice"),
+            ("person", 'C', "person"),
+            ("bob", 'E', "Bob"),
+        ],
+    );
+    let limits = Limits::default();
+    let budget = Budget::new(&limits, Cancellation::default()).unwrap();
+    let programs = match_composed(
+        &db,
+        question,
+        &spans,
+        &[],
+        0,
+        &ReaderPolicy::default(),
+        MatchLimits::default(),
+        &budget,
+        |_| Ok(true),
+    )
+    .unwrap();
+    assert_eq!(programs.len(), 1);
+    assert_eq!(programs[0].support, 6);
+    assert_eq!(
+        programs[0]
+            .program
+            .iter()
+            .map(|s| s.function.as_str())
+            .collect::<Vec<_>>(),
+        vec!["Find", "FilterConcept", "Relate", "Count"]
+    );
+    let template: Value = serde_json::from_str(&programs[0].template).unwrap();
+    assert_eq!(template["outer"], json!("how many X1"));
+    let fragment = &template["fragments"][0];
+    assert_eq!(
+        (fragment["start"].clone(), fragment["end"].clone()),
+        (json!(9), json!(34))
+    );
+    assert_eq!(fragment["support"], json!(5));
+    let chain = json!({"family":"exact_segment_and_single_nested_v1",
+        "segments":[["E1","source",3],["and C1","filter",4]]})
+    .to_string();
+    let nested: Value = serde_json::from_str(fragment["template"].as_str().unwrap()).unwrap();
+    assert_eq!(
+        nested,
+        json!({"family":"exact_segment_and_single_nested_v1","nested":"X1 near E1",
+            "children":[[9, 25, chain, 3]]})
+    );
+    assert_eq!(
+        fragment["required_children"],
+        json!([{"start":9,"end":25,"program":[
+            {"function":"Find","dependencies":[],"inputs":["Alice"]},
+            {"function":"FilterConcept","dependencies":[0],"inputs":["person"]}
+        ]}])
+    );
+}
+#[test]
+fn chain_paths_with_equal_programs_share_one_node_and_keep_first_provenance() {
+    use oracle_runtime_core::{composition::match_composed, grammar::MatchLimits, Budget};
+    // "and C1" and "and N1" spell the same literal filter, so two unit paths
+    // assemble one exact program. One node survives with the first path's
+    // provenance; the viability closure sees that program once.
+    let db = composition_db(vec![
+        row(
+            "segment",
+            "E1",
+            unit(
+                "source",
+                json!([step("Find", &[], json!([["@", "E", 1, ""]]))]),
+            ),
+        ),
+        row(
+            "segment",
+            "and C1",
+            unit(
+                "filter",
+                json!([step("FilterConcept", &[], json!(["person"]))]),
+            ),
+        ),
+        row(
+            "segment",
+            "and N1",
+            unit(
+                "filter",
+                json!([step("FilterConcept", &[], json!(["person"]))]),
+            ),
+        ),
+        row("outer", "how many X1", outer("Count")),
+    ]);
+    let question = "how many alice and person";
+    let spans = word_spans(
+        question,
+        &[
+            ("alice", 'E', "Alice"),
+            ("person", 'C', "person"),
+            ("person", 'N', "7"),
+        ],
+    );
+    let limits = Limits::default();
+    let budget = Budget::new(&limits, Cancellation::default()).unwrap();
+    let mut calls = 0;
+    let programs = match_composed(
+        &db,
+        question,
+        &spans,
+        &[],
+        0,
+        &ReaderPolicy::default(),
+        MatchLimits::default(),
+        &budget,
+        |_| {
+            calls += 1;
+            Ok(true)
+        },
+    )
+    .unwrap();
+    assert_eq!(calls, 1);
+    assert_eq!(programs.len(), 1);
+    let template: Value = serde_json::from_str(&programs[0].template).unwrap();
+    let chain: Value =
+        serde_json::from_str(template["fragments"][0]["template"].as_str().unwrap()).unwrap();
+    assert_eq!(
+        chain,
+        json!({"family":"exact_segment_and_single_nested_v1",
+            "segments":[["E1","source",3],["and C1","filter",4]]})
+    );
+    assert_eq!(template["fragments"][0]["support"], json!(3));
+}
+
+fn shared_unit_chain_rows() -> Vec<TemplateRow> {
+    let filter = |template: &str, function: &str| {
+        row(
+            "segment",
+            template,
+            unit(
+                "filter",
+                json!([step(function, &[], json!([["@", "C", 1, ""]]))]),
+            ),
+        )
+    };
+    vec![
+        row(
+            "segment",
+            "E1",
+            unit(
+                "source",
+                json!([step("Find", &[], json!([["@", "E", 1, ""]]))]),
+            ),
+        ),
+        filter("with C1", "FilterConcept"),
+        filter("and C1", "FilterName"),
+        filter("or C1", "FilterAlias"),
+        row("outer", "how many X1", outer("Count")),
+    ]
+}
+fn shared_unit_chain_spans(width: usize) -> Vec<oracle_runtime_core::grammar::GrammarSpan> {
+    // Seven lexical readings at each of four positions: 28 learned units
+    // assemble 7^4 = 2401 distinct four-unit chain programs for one region.
+    let mut kinds = Vec::new();
+    let names: Vec<_> = (0..width)
+        .map(|i| format!("reading-{i}-with-a-deliberately-long-canonical-name"))
+        .collect();
+    for name in &names {
+        kinds.push(("alice", 'E', name.as_str()));
+        for word in ["p", "q", "r"] {
+            kinds.push((word, 'C', name.as_str()));
+        }
+    }
+    word_spans("how many alice with p and q or r", &kinds)
+}
+#[test]
+fn shared_unit_chains_are_stored_once_and_fit_the_unchanged_envelope() {
+    use oracle_runtime_core::{composition::match_composed, grammar::MatchLimits, Budget};
+    let db = composition_db(shared_unit_chain_rows());
+    let spans = shared_unit_chain_spans(7);
+    let limits = Limits::default();
+    let budget = Budget::new(&limits, Cancellation::default()).unwrap();
+    let mut calls = 0;
+    let programs = match_composed(
+        &db,
+        "how many alice with p and q or r",
+        &spans,
+        &[],
+        0,
+        &ReaderPolicy::default(),
+        MatchLimits::default(),
+        &budget,
+        |program| {
+            assert_eq!(program.len(), 4);
+            calls += 1;
+            Ok(false)
+        },
+    )
+    .unwrap();
+    assert!(programs.is_empty());
+    // Every distinct chain program is checked exactly once; none is dropped.
+    assert_eq!(calls, 2401);
+}
+#[test]
+fn shared_unit_chains_still_exhaust_a_smaller_byte_envelope() {
+    use oracle_runtime_core::{composition::match_composed, grammar::MatchLimits, Budget};
+    let db = composition_db(shared_unit_chain_rows());
+    let spans = shared_unit_chain_spans(7);
+    let limits = Limits::default();
+    let budget = Budget::new(&limits, Cancellation::default()).unwrap();
+    assert!(matches!(
+        match_composed(
+            &db,
+            "how many alice with p and q or r",
+            &spans,
+            &[],
+            0,
+            &ReaderPolicy::default(),
+            MatchLimits {
+                materialized_bytes: 100_000,
+                ..MatchLimits::default()
+            },
+            &budget,
+            |_| Ok(false),
+        ),
+        Err(Error::Limit("composition bytes"))
+    ));
+}
