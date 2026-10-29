@@ -1,0 +1,1835 @@
+{
+  "scope": "Preregistered targeted composition comparison; failing result retained in full. No random coverage, fleet, panel or complete Reader7 claim.",
+  "exit_code": 1,
+  "qualified": false,
+  "fixture_sha256": "388810fd2d99c1f25e2e53b0e906e21669915c7836a8fd1524967d755862b853",
+  "script_sha256": "d87b77c5f19d0e01de7ceb8258eb69ea562ff889ee4cd53175bed17f76d56195",
+  "helper_sha256": "61164e0947fb67c28f9ee636402f2bc39def3fa4bcf5267f93779177265be218",
+  "source_checks": "All 16 independent finite-image expected selections, uniqueness/count/empty premises and learned-row requirements passed before native execution. Canonical template absences only cover declared literal/generic keys.",
+  "findings": {
+    "control": {
+      "declined_expected": 6,
+      "unanswered": 10
+    },
+    "candidate": {
+      "answered_correct": 1,
+      "declined_expected": 4,
+      "errors": 4,
+      "unanswered": 7
+    },
+    "new_correct_case_ids": [
+      "nested_human_count_bristol"
+    ],
+    "lost_correct_case_ids": [],
+    "composition_byte_error_ids": [
+      "nested_headquarters_city_website_population_bristol",
+      "nested_university_count_cardiff",
+      "ambiguous_university_selection_cardiff",
+      "empty_parent_headquarters_saskatoon"
+    ],
+    "answer_form_boundary": "The intended single-filter control also declined on both artifacts. Seven candidate positive cases decline answer_form; they remain misses, not changed expectations."
+  },
+  "report": {
+    "schema": "oracle-targeted-composition-cases-v1",
+    "scope": "Predeclared targeted exact-segment/single-nested cohort over one finite pinned KB. Independently sourced expectations; no random coverage, shipped specialist-panel, fleet gain, full Reader7 or current-world completeness claim.",
+    "selection": {
+      "method": "Before native runs, inspect exact learned wording and enumerate cities with an official-website row, positive integral population row, direct city membership and a university location/headquarters edge. Choose the first three distinct eligible city IDs in SQLite text order: Q10566 Saskatoon, Q10686 Belfast, Q10690 Cardiff; use their least observed population value. Add Q23154 Bristol as an explicitly hand-selected familiar source anchor for a six-person ambiguity/count pair. Compose/reorder already learned exact pieces, and add unchanged wording and explicit contradictory/empty negatives. No native result or validation gold used for selection.",
+      "source_inspection_date": "2026-10-29",
+      "native_observations_before_freeze": false,
+      "coverage_premise": "Every expected selection, uniqueness, ambiguity and count quantifies over all entity/parent/attribute/forward-edge rows in the named immutable image. The image is the complete finite test universe; these aggregates and empty cases do not assert the outside world is closed or current.",
+      "canonical_absence_boundary": "Exact canonical literal-key and generic A-slot whole/fragment templates below have zero rows in this image. This does not prove absence of every alternative lexical reading; the fixed old artifact comparison determines actual gains.",
+      "negative_construction": "Use source population plus one, mix two different source cities' website/population, and ask for a stored relation with no matching typed targets. Decline-empty expectations follow the reader's fragment nonempty admission rule, not a claim of a universal zero."
+    },
+    "script_sha256": "d87b77c5f19d0e01de7ceb8258eb69ea562ff889ee4cd53175bed17f76d56195",
+    "helper_sha256": "61164e0947fb67c28f9ee636402f2bc39def3fa4bcf5267f93779177265be218",
+    "cohort_sha256": "388810fd2d99c1f25e2e53b0e906e21669915c7836a8fd1524967d755862b853",
+    "image": {
+      "sha256": "8fcb1db9a08e234179f66ea9e032d2633b38cdcb902f4c95d1ba2c2d49c842f4",
+      "source_sha256": "04da7408320c5cb7023c44372cce32846d56d369d8865d2e61a18c3956661a7c"
+    },
+    "source_evidence_sha256": "2348dacdfecdb6ac355018f8b9655d7220aa9a6906029fae9afcdb1b689c362e",
+    "limits": {
+      "workers": 2,
+      "timeout_ms": 1000,
+      "fuel": 10000000
+    },
+    "runs": {
+      "control": {
+        "artifact": {
+          "files": [
+            {
+              "path": "/tank/lanes/o7-native-20261028/binding-performance-20261029/oracle_native.so",
+              "sha256": "8324a59da075d16a7d3c7c07bb7fe85690479c65e1baf416741d5373b010e8b0"
+            }
+          ],
+          "module": "oracle_native"
+        },
+        "counts": {
+          "declined_expected": 6,
+          "unanswered": 10
+        },
+        "timings": {
+          "count": 16,
+          "max_seconds": 0.043628763407468796,
+          "p50_seconds": 0.0021654032170772552,
+          "p95_seconds": 0.043628763407468796
+        }
+      },
+      "candidate": {
+        "artifact": {
+          "files": [
+            {
+              "path": "/tank/lanes/o7-native-20261028/binding-segment-stream31-release-20261029/oracle_native.so",
+              "sha256": "499e9e46484e2e48760def00f1acd24ebcf3d5e63d445e9f72ce39e52a9c8858"
+            }
+          ],
+          "module": "oracle_native"
+        },
+        "counts": {
+          "answered_correct": 1,
+          "declined_expected": 4,
+          "errors": 4,
+          "unanswered": 7
+        },
+        "timings": {
+          "count": 16,
+          "max_seconds": 0.07994783669710159,
+          "p50_seconds": 0.04306601546704769,
+          "p95_seconds": 0.07994783669710159
+        }
+      }
+    },
+    "cases": [
+      {
+        "id": "baseline_city_website_saskatoon",
+        "control": {
+          "id": "baseline_city_website_saskatoon",
+          "outcome": "unanswered",
+          "status": "refused",
+          "answer": null,
+          "reason": "answer_form",
+          "distinct_answers": [
+            "1",
+            "Saskatoon"
+          ],
+          "matched_programs": 10,
+          "readings": 10,
+          "unsupported_programs": 0,
+          "ambiguous_executions": 0,
+          "interpretation_families": [
+            "whole_or_exact_fragment"
+          ],
+          "reading_program_hashes": [
+            "1580c8c91c038735ff2f2f73d8a225575432c6d306004a4a6a22ca1b0461f846",
+            "cd6e72edbc2591351c92ecacd643029b2cc34b4f02fdd43f4fef81d805ad36f2"
+          ],
+          "native_result_sha256": "cda9bcef05fce2bd572b295b221077da8663f1ea727665ccce47c130ac6ed055",
+          "seconds": 0.043628763407468796,
+          "cpu_seconds": 0.04362795
+        },
+        "candidate": {
+          "id": "baseline_city_website_saskatoon",
+          "outcome": "unanswered",
+          "status": "refused",
+          "answer": null,
+          "reason": "answer_form",
+          "distinct_answers": [
+            "1",
+            "Saskatoon"
+          ],
+          "matched_programs": 20,
+          "readings": 20,
+          "unsupported_programs": 0,
+          "ambiguous_executions": 0,
+          "interpretation_families": [
+            "exact_segments",
+            "whole_or_exact_fragment"
+          ],
+          "reading_program_hashes": [
+            "1580c8c91c038735ff2f2f73d8a225575432c6d306004a4a6a22ca1b0461f846",
+            "36c9ae673be15d55082762bb20207965ac86215c93a9cb52a68bc67ca25aaadd",
+            "4dc98686b26ca4e048a800b9274c0c1cc6b7695c611f063e6d0ef0dc6c8314bc",
+            "cd6e72edbc2591351c92ecacd643029b2cc34b4f02fdd43f4fef81d805ad36f2"
+          ],
+          "native_result_sha256": "8839359427ce1953e43eadeca61a285c7dc93fe64a7dbd30f67e3a467baea693",
+          "seconds": 0.046300845220685005,
+          "cpu_seconds": 0.04520785199999999
+        }
+      },
+      {
+        "id": "segment_city_website_population_saskatoon",
+        "control": {
+          "id": "segment_city_website_population_saskatoon",
+          "outcome": "unanswered",
+          "status": "unknown",
+          "answer": null,
+          "reason": "no_template",
+          "distinct_answers": [],
+          "matched_programs": 0,
+          "readings": 0,
+          "unsupported_programs": 0,
+          "ambiguous_executions": 0,
+          "interpretation_families": [],
+          "reading_program_hashes": [],
+          "native_result_sha256": "4c0664d88cf5fc09f0c3ad381fb6e8b24253e845fbca74aedae35911a7001891",
+          "seconds": 0.002334434539079666,
+          "cpu_seconds": 0.002335406999999984
+        },
+        "candidate": {
+          "id": "segment_city_website_population_saskatoon",
+          "outcome": "unanswered",
+          "status": "refused",
+          "answer": null,
+          "reason": "answer_form",
+          "distinct_answers": [
+            "1",
+            "Saskatoon"
+          ],
+          "matched_programs": 10,
+          "readings": 10,
+          "unsupported_programs": 0,
+          "ambiguous_executions": 0,
+          "interpretation_families": [
+            "exact_segments"
+          ],
+          "reading_program_hashes": [
+            "033c02ac6e74eae2d6316020c1ceb51938b8079fba692d943fe4130ab53dc10d",
+            "89faba4240068fb4c5dc4f7c703fda1e9ae1cd217491a1467f5b239ffb7274dc"
+          ],
+          "native_result_sha256": "5179cb3676224e0fd58db33934c15ac3699496dee124e5f450612c4c16d4bcdd",
+          "seconds": 0.06172819063067436,
+          "cpu_seconds": 0.06173027599999997
+        }
+      },
+      {
+        "id": "segment_city_population_website_saskatoon",
+        "control": {
+          "id": "segment_city_population_website_saskatoon",
+          "outcome": "unanswered",
+          "status": "unknown",
+          "answer": null,
+          "reason": "no_template",
+          "distinct_answers": [],
+          "matched_programs": 0,
+          "readings": 0,
+          "unsupported_programs": 0,
+          "ambiguous_executions": 0,
+          "interpretation_families": [],
+          "reading_program_hashes": [],
+          "native_result_sha256": "4c0664d88cf5fc09f0c3ad381fb6e8b24253e845fbca74aedae35911a7001891",
+          "seconds": 0.0020400919020175934,
+          "cpu_seconds": 0.0020405090000000237
+        },
+        "candidate": {
+          "id": "segment_city_population_website_saskatoon",
+          "outcome": "unanswered",
+          "status": "refused",
+          "answer": null,
+          "reason": "answer_form",
+          "distinct_answers": [
+            "1",
+            "Saskatoon"
+          ],
+          "matched_programs": 10,
+          "readings": 10,
+          "unsupported_programs": 0,
+          "ambiguous_executions": 0,
+          "interpretation_families": [
+            "exact_segments"
+          ],
+          "reading_program_hashes": [
+            "52d505833bb8e2f5535ed77a4109252b5e22eacdb3c940b8579bc378e06b39a1",
+            "ed999aa63e2669167800cee72bafd16e227a522e4a88f6beec0deea4f51cd636"
+          ],
+          "native_result_sha256": "72161dd91a142597ebe29576036ff6b4873869e00db00fdb1dc515780eb196cd",
+          "seconds": 0.07994783669710159,
+          "cpu_seconds": 0.07994979199999996
+        }
+      },
+      {
+        "id": "nested_university_city_website_saskatoon",
+        "control": {
+          "id": "nested_university_city_website_saskatoon",
+          "outcome": "unanswered",
+          "status": "unknown",
+          "answer": null,
+          "reason": "no_template",
+          "distinct_answers": [],
+          "matched_programs": 0,
+          "readings": 0,
+          "unsupported_programs": 0,
+          "ambiguous_executions": 0,
+          "interpretation_families": [],
+          "reading_program_hashes": [],
+          "native_result_sha256": "4c0664d88cf5fc09f0c3ad381fb6e8b24253e845fbca74aedae35911a7001891",
+          "seconds": 0.0018023494631052017,
+          "cpu_seconds": 0.0018028310000000047
+        },
+        "candidate": {
+          "id": "nested_university_city_website_saskatoon",
+          "outcome": "unanswered",
+          "status": "refused",
+          "answer": null,
+          "reason": "answer_form",
+          "distinct_answers": [
+            "1",
+            "University of Saskatchewan"
+          ],
+          "matched_programs": 12,
+          "readings": 12,
+          "unsupported_programs": 0,
+          "ambiguous_executions": 0,
+          "interpretation_families": [
+            "exact_segments",
+            "single_nested",
+            "whole_or_exact_fragment"
+          ],
+          "reading_program_hashes": [
+            "553ecd6b252a79ba72fc6311d74bbc0a609ab55b2e0c1dbbce6919ddb7692fa5",
+            "57c93fabf56ef4c60a5bfd802c8e3144eebee48e5e4135f616c1e130a809ac8e",
+            "7372609f6a62193e4f68d5b9fc618f35680a5e60a251111d0f4b3e58878fb557",
+            "a83143a8373c74a98b4094744011e4a58c6913a39b667cb6b90b4e30e7f49bdc"
+          ],
+          "native_result_sha256": "6a224681365a1b21d78a2bbe478a0fef90d84ed60a76bee6cef3e5bf608099bb",
+          "seconds": 0.04315180517733097,
+          "cpu_seconds": 0.04315268099999997
+        }
+      },
+      {
+        "id": "nested_university_city_website_population_saskatoon",
+        "control": {
+          "id": "nested_university_city_website_population_saskatoon",
+          "outcome": "unanswered",
+          "status": "unknown",
+          "answer": null,
+          "reason": "no_template",
+          "distinct_answers": [],
+          "matched_programs": 0,
+          "readings": 0,
+          "unsupported_programs": 0,
+          "ambiguous_executions": 0,
+          "interpretation_families": [],
+          "reading_program_hashes": [],
+          "native_result_sha256": "4c0664d88cf5fc09f0c3ad381fb6e8b24253e845fbca74aedae35911a7001891",
+          "seconds": 0.0020939279347658157,
+          "cpu_seconds": 0.00209433600000003
+        },
+        "candidate": {
+          "id": "nested_university_city_website_population_saskatoon",
+          "outcome": "unanswered",
+          "status": "refused",
+          "answer": null,
+          "reason": "answer_form",
+          "distinct_answers": [
+            "1",
+            "University of Saskatchewan"
+          ],
+          "matched_programs": 6,
+          "readings": 6,
+          "unsupported_programs": 0,
+          "ambiguous_executions": 0,
+          "interpretation_families": [
+            "exact_segments",
+            "single_nested"
+          ],
+          "reading_program_hashes": [
+            "99d7df5e259308a80ce28e7504f48a915a3514db7501e1d7a93460d2d70bfb2a",
+            "cd5cf0cc9701c0620aefbbbaf713265b364ef46d709a19509197b234d1c3d6b1"
+          ],
+          "native_result_sha256": "10389aa54bb5836b400cff9847718e480eed9bf50bdf89b226671e98810640ad",
+          "seconds": 0.03510027937591076,
+          "cpu_seconds": 0.03508861499999999
+        }
+      },
+      {
+        "id": "nested_university_city_website_population_belfast",
+        "control": {
+          "id": "nested_university_city_website_population_belfast",
+          "outcome": "unanswered",
+          "status": "unknown",
+          "answer": null,
+          "reason": "no_template",
+          "distinct_answers": [],
+          "matched_programs": 0,
+          "readings": 0,
+          "unsupported_programs": 0,
+          "ambiguous_executions": 0,
+          "interpretation_families": [],
+          "reading_program_hashes": [],
+          "native_result_sha256": "4c0664d88cf5fc09f0c3ad381fb6e8b24253e845fbca74aedae35911a7001891",
+          "seconds": 0.0020818468183279037,
+          "cpu_seconds": 0.002082189000000012
+        },
+        "candidate": {
+          "id": "nested_university_city_website_population_belfast",
+          "outcome": "unanswered",
+          "status": "refused",
+          "answer": null,
+          "reason": "answer_form",
+          "distinct_answers": [
+            "1",
+            "Queen's University Belfast"
+          ],
+          "matched_programs": 6,
+          "readings": 6,
+          "unsupported_programs": 0,
+          "ambiguous_executions": 0,
+          "interpretation_families": [
+            "exact_segments",
+            "single_nested"
+          ],
+          "reading_program_hashes": [
+            "8eb6d6ef2f2ee57c5d102ca5401075ae70edf9123b3bf933a6ce7f65ac90a6e3",
+            "ca12f9b0567ea8404ea1a80dc56814edf7fb32130f7699ebdb15d777f6f8e064"
+          ],
+          "native_result_sha256": "638279cb29d7cee759bceaf44e1f62465662a0fe82a89ab67b099b64b4957b50",
+          "seconds": 0.035872358828783035,
+          "cpu_seconds": 0.035874032
+        }
+      },
+      {
+        "id": "nested_headquarters_city_website_population_bristol",
+        "control": {
+          "id": "nested_headquarters_city_website_population_bristol",
+          "outcome": "unanswered",
+          "status": "unknown",
+          "answer": null,
+          "reason": "no_template",
+          "distinct_answers": [],
+          "matched_programs": 0,
+          "readings": 0,
+          "unsupported_programs": 0,
+          "ambiguous_executions": 0,
+          "interpretation_families": [],
+          "reading_program_hashes": [],
+          "native_result_sha256": "4c0664d88cf5fc09f0c3ad381fb6e8b24253e845fbca74aedae35911a7001891",
+          "seconds": 0.00265350379049778,
+          "cpu_seconds": 0.002653876999999971
+        },
+        "candidate": {
+          "id": "nested_headquarters_city_website_population_bristol",
+          "outcome": "errors",
+          "error_type": "BudgetError",
+          "error": {
+            "text": "resource limit: composition bytes",
+            "truncated": false
+          },
+          "seconds": 0.04480329155921936,
+          "cpu_seconds": 0.04479406199999997
+        }
+      },
+      {
+        "id": "segment_city_website_population_bristol",
+        "control": {
+          "id": "segment_city_website_population_bristol",
+          "outcome": "unanswered",
+          "status": "unknown",
+          "answer": null,
+          "reason": "no_template",
+          "distinct_answers": [],
+          "matched_programs": 0,
+          "readings": 0,
+          "unsupported_programs": 0,
+          "ambiguous_executions": 0,
+          "interpretation_families": [],
+          "reading_program_hashes": [],
+          "native_result_sha256": "4c0664d88cf5fc09f0c3ad381fb6e8b24253e845fbca74aedae35911a7001891",
+          "seconds": 0.0021730102598667145,
+          "cpu_seconds": 0.0021733380000000246
+        },
+        "candidate": {
+          "id": "segment_city_website_population_bristol",
+          "outcome": "unanswered",
+          "status": "refused",
+          "answer": null,
+          "reason": "answer_form",
+          "distinct_answers": [
+            "1",
+            "Bristol"
+          ],
+          "matched_programs": 10,
+          "readings": 10,
+          "unsupported_programs": 0,
+          "ambiguous_executions": 0,
+          "interpretation_families": [
+            "exact_segments"
+          ],
+          "reading_program_hashes": [
+            "2467dd73b542464829ee59fd96749704c6d8d9e76d1ed0dda217337ecb621b62",
+            "369f1231ca466fc479e96bcda98f9b404fb9b2d93f78d2264c17f113ebf42998"
+          ],
+          "native_result_sha256": "379ce34bc787577bb648eb10992e1bd4819f197734785612b8d1789428a06c4a",
+          "seconds": 0.061350855976343155,
+          "cpu_seconds": 0.06087656600000002
+        }
+      },
+      {
+        "id": "nested_human_count_bristol",
+        "control": {
+          "id": "nested_human_count_bristol",
+          "outcome": "unanswered",
+          "status": "unknown",
+          "answer": null,
+          "reason": "no_template",
+          "distinct_answers": [],
+          "matched_programs": 0,
+          "readings": 0,
+          "unsupported_programs": 0,
+          "ambiguous_executions": 0,
+          "interpretation_families": [],
+          "reading_program_hashes": [],
+          "native_result_sha256": "4c0664d88cf5fc09f0c3ad381fb6e8b24253e845fbca74aedae35911a7001891",
+          "seconds": 0.0020948443561792374,
+          "cpu_seconds": 0.002098108000000043
+        },
+        "candidate": {
+          "id": "nested_human_count_bristol",
+          "outcome": "answered_correct",
+          "status": "answered",
+          "answer": "6",
+          "reason": null,
+          "distinct_answers": [
+            "6"
+          ],
+          "matched_programs": 5,
+          "readings": 5,
+          "unsupported_programs": 0,
+          "ambiguous_executions": 0,
+          "interpretation_families": [
+            "exact_segments",
+            "single_nested"
+          ],
+          "reading_program_hashes": [
+            "30bbb4845e1d933c89475eb0023e3783bbcdd043b6d2e60c27a3a37a906af25e"
+          ],
+          "native_result_sha256": "2853fb0034be3ffea717d2866ec89920d705c141ab06a1e44734d30db2059784",
+          "seconds": 0.03614000789821148,
+          "cpu_seconds": 0.035696750000000055
+        }
+      },
+      {
+        "id": "ambiguous_human_selection_bristol",
+        "control": {
+          "id": "ambiguous_human_selection_bristol",
+          "outcome": "declined_expected",
+          "status": "unknown",
+          "answer": null,
+          "reason": "no_template",
+          "distinct_answers": [],
+          "matched_programs": 0,
+          "readings": 0,
+          "unsupported_programs": 0,
+          "ambiguous_executions": 0,
+          "interpretation_families": [],
+          "reading_program_hashes": [],
+          "native_result_sha256": "4c0664d88cf5fc09f0c3ad381fb6e8b24253e845fbca74aedae35911a7001891",
+          "seconds": 0.002200298011302948,
+          "cpu_seconds": 0.002200617000000016
+        },
+        "candidate": {
+          "id": "ambiguous_human_selection_bristol",
+          "outcome": "declined_expected",
+          "status": "refused",
+          "answer": null,
+          "reason": "answer_form",
+          "distinct_answers": [
+            "6"
+          ],
+          "matched_programs": 6,
+          "readings": 1,
+          "unsupported_programs": 0,
+          "ambiguous_executions": 5,
+          "interpretation_families": [
+            "exact_segments",
+            "single_nested"
+          ],
+          "reading_program_hashes": [
+            "30bbb4845e1d933c89475eb0023e3783bbcdd043b6d2e60c27a3a37a906af25e"
+          ],
+          "native_result_sha256": "e9b4be4dd5e4cb00280e9ac81ce116e4ecc961eb01f7be0508a1a1c8f7a91799",
+          "seconds": 0.03497485630214214,
+          "cpu_seconds": 0.034976175000000054
+        }
+      },
+      {
+        "id": "nested_university_count_cardiff",
+        "control": {
+          "id": "nested_university_count_cardiff",
+          "outcome": "unanswered",
+          "status": "unknown",
+          "answer": null,
+          "reason": "no_template",
+          "distinct_answers": [],
+          "matched_programs": 0,
+          "readings": 0,
+          "unsupported_programs": 0,
+          "ambiguous_executions": 0,
+          "interpretation_families": [],
+          "reading_program_hashes": [],
+          "native_result_sha256": "4c0664d88cf5fc09f0c3ad381fb6e8b24253e845fbca74aedae35911a7001891",
+          "seconds": 0.0022651758044958115,
+          "cpu_seconds": 0.002265589999999984
+        },
+        "candidate": {
+          "id": "nested_university_count_cardiff",
+          "outcome": "errors",
+          "error_type": "BudgetError",
+          "error": {
+            "text": "resource limit: composition bytes",
+            "truncated": false
+          },
+          "seconds": 0.04252142831683159,
+          "cpu_seconds": 0.042522901999999974
+        }
+      },
+      {
+        "id": "ambiguous_university_selection_cardiff",
+        "control": {
+          "id": "ambiguous_university_selection_cardiff",
+          "outcome": "declined_expected",
+          "status": "unknown",
+          "answer": null,
+          "reason": "no_template",
+          "distinct_answers": [],
+          "matched_programs": 0,
+          "readings": 0,
+          "unsupported_programs": 0,
+          "ambiguous_executions": 0,
+          "interpretation_families": [],
+          "reading_program_hashes": [],
+          "native_result_sha256": "4c0664d88cf5fc09f0c3ad381fb6e8b24253e845fbca74aedae35911a7001891",
+          "seconds": 0.002589760348200798,
+          "cpu_seconds": 0.0025900060000000336
+        },
+        "candidate": {
+          "id": "ambiguous_university_selection_cardiff",
+          "outcome": "errors",
+          "error_type": "BudgetError",
+          "error": {
+            "text": "resource limit: composition bytes",
+            "truncated": false
+          },
+          "seconds": 0.04298022575676441,
+          "cpu_seconds": 0.042956799000000045
+        }
+      },
+      {
+        "id": "empty_segment_changed_population_bristol",
+        "control": {
+          "id": "empty_segment_changed_population_bristol",
+          "outcome": "declined_expected",
+          "status": "unknown",
+          "answer": null,
+          "reason": "no_template",
+          "distinct_answers": [],
+          "matched_programs": 0,
+          "readings": 0,
+          "unsupported_programs": 0,
+          "ambiguous_executions": 0,
+          "interpretation_families": [],
+          "reading_program_hashes": [],
+          "native_result_sha256": "4c0664d88cf5fc09f0c3ad381fb6e8b24253e845fbca74aedae35911a7001891",
+          "seconds": 0.0021638385951519012,
+          "cpu_seconds": 0.002164102999999973
+        },
+        "candidate": {
+          "id": "empty_segment_changed_population_bristol",
+          "outcome": "declined_expected",
+          "status": "unknown",
+          "answer": null,
+          "reason": "no_template",
+          "distinct_answers": [],
+          "matched_programs": 0,
+          "readings": 0,
+          "unsupported_programs": 0,
+          "ambiguous_executions": 0,
+          "interpretation_families": [],
+          "reading_program_hashes": [],
+          "native_result_sha256": "a7fc108db1af5d9efce3b6aa3ebfb3ed73cd2b7f7a715768edf95c6e44c9c8cb",
+          "seconds": 0.058365656062960625,
+          "cpu_seconds": 0.058345859
+        }
+      },
+      {
+        "id": "empty_nested_changed_population_bristol",
+        "control": {
+          "id": "empty_nested_changed_population_bristol",
+          "outcome": "declined_expected",
+          "status": "unknown",
+          "answer": null,
+          "reason": "no_template",
+          "distinct_answers": [],
+          "matched_programs": 0,
+          "readings": 0,
+          "unsupported_programs": 0,
+          "ambiguous_executions": 0,
+          "interpretation_families": [],
+          "reading_program_hashes": [],
+          "native_result_sha256": "4c0664d88cf5fc09f0c3ad381fb6e8b24253e845fbca74aedae35911a7001891",
+          "seconds": 0.0019079186022281647,
+          "cpu_seconds": 0.001908269000000018
+        },
+        "candidate": {
+          "id": "empty_nested_changed_population_bristol",
+          "outcome": "declined_expected",
+          "status": "unknown",
+          "answer": null,
+          "reason": "no_template",
+          "distinct_answers": [],
+          "matched_programs": 0,
+          "readings": 0,
+          "unsupported_programs": 0,
+          "ambiguous_executions": 0,
+          "interpretation_families": [],
+          "reading_program_hashes": [],
+          "native_result_sha256": "a7fc108db1af5d9efce3b6aa3ebfb3ed73cd2b7f7a715768edf95c6e44c9c8cb",
+          "seconds": 0.03317108750343323,
+          "cpu_seconds": 0.03316562300000003
+        }
+      },
+      {
+        "id": "empty_segment_conflicting_city_anchors",
+        "control": {
+          "id": "empty_segment_conflicting_city_anchors",
+          "outcome": "declined_expected",
+          "status": "unknown",
+          "answer": null,
+          "reason": "no_template",
+          "distinct_answers": [],
+          "matched_programs": 0,
+          "readings": 0,
+          "unsupported_programs": 0,
+          "ambiguous_executions": 0,
+          "interpretation_families": [],
+          "reading_program_hashes": [],
+          "native_result_sha256": "4c0664d88cf5fc09f0c3ad381fb6e8b24253e845fbca74aedae35911a7001891",
+          "seconds": 0.0021669678390026093,
+          "cpu_seconds": 0.002167426000000028
+        },
+        "candidate": {
+          "id": "empty_segment_conflicting_city_anchors",
+          "outcome": "declined_expected",
+          "status": "unknown",
+          "answer": null,
+          "reason": "no_template",
+          "distinct_answers": [],
+          "matched_programs": 0,
+          "readings": 0,
+          "unsupported_programs": 0,
+          "ambiguous_executions": 0,
+          "interpretation_families": [],
+          "reading_program_hashes": [],
+          "native_result_sha256": "a7fc108db1af5d9efce3b6aa3ebfb3ed73cd2b7f7a715768edf95c6e44c9c8cb",
+          "seconds": 0.060865823179483414,
+          "cpu_seconds": 0.05991496899999993
+        }
+      },
+      {
+        "id": "empty_parent_headquarters_saskatoon",
+        "control": {
+          "id": "empty_parent_headquarters_saskatoon",
+          "outcome": "declined_expected",
+          "status": "unknown",
+          "answer": null,
+          "reason": "no_template",
+          "distinct_answers": [],
+          "matched_programs": 0,
+          "readings": 0,
+          "unsupported_programs": 0,
+          "ambiguous_executions": 0,
+          "interpretation_families": [],
+          "reading_program_hashes": [],
+          "native_result_sha256": "4c0664d88cf5fc09f0c3ad381fb6e8b24253e845fbca74aedae35911a7001891",
+          "seconds": 0.002139287069439888,
+          "cpu_seconds": 0.0021396260000000056
+        },
+        "candidate": {
+          "id": "empty_parent_headquarters_saskatoon",
+          "outcome": "errors",
+          "error_type": "BudgetError",
+          "error": {
+            "text": "resource limit: composition bytes",
+            "truncated": false
+          },
+          "seconds": 0.040161339566111565,
+          "cpu_seconds": 0.04016319600000007
+        }
+      }
+    ],
+    "newly_correct_case_ids": [
+      "nested_human_count_bristol"
+    ],
+    "lost_correct_case_ids": [],
+    "timing_boundary": "One control and one candidate fresh process, fixed order, warm filesystem; descriptive only, not a matched performance experiment.",
+    "coverage_boundary": "Targeted construction from learned wording and source rows; no random/fleet/panel or full Reader7 claim. Primary canonical template absence does not exclude all lexical alternative readings."
+  },
+  "independent_source_selections": [
+    {
+      "id": "baseline_city_website_saskatoon",
+      "anchor_matches": [
+        [
+          "Q10566",
+          "Saskatoon"
+        ]
+      ],
+      "target_matches": [
+        [
+          "Q10566",
+          "Saskatoon"
+        ]
+      ],
+      "learned_wording": [
+        {
+          "family": "fragment",
+          "template": "C1 whose official website is V1",
+          "rows": 1,
+          "rows_sha256": "7d9351ad85fd35c70a71b5ade574fa9f239ad1695b12b3e4267cc8aaabf39f0f"
+        },
+        {
+          "family": "outer",
+          "template": "which X1",
+          "rows": 30,
+          "rows_sha256": "07a11b079220cc9b82e3ff0ff828d0cb5401fbea17b57ab7869ec029438bf05d"
+        }
+      ],
+      "absent_primary_canonical_wording": []
+    },
+    {
+      "id": "segment_city_website_population_saskatoon",
+      "anchor_matches": [
+        [
+          "Q10566",
+          "Saskatoon"
+        ]
+      ],
+      "target_matches": [
+        [
+          "Q10566",
+          "Saskatoon"
+        ]
+      ],
+      "learned_wording": [
+        {
+          "family": "segment",
+          "template": "C1",
+          "rows": 2,
+          "rows_sha256": "04897a4123ac46e7f9be868dd55c9aa771f7ff06a5230b3183b8660ad6f593e9"
+        },
+        {
+          "family": "segment",
+          "template": "whose official website is V1",
+          "rows": 1,
+          "rows_sha256": "d47aa387fb7b37bd7369a8c58470e8c3720caedbe4cd05ff8fac566fc9ecdf8d"
+        },
+        {
+          "family": "segment",
+          "template": "whose population is N1",
+          "rows": 1,
+          "rows_sha256": "62c91a8532849de5157bf5f1803465f0f9a8eda6e8955abd43919d0f90f99f0f"
+        },
+        {
+          "family": "outer",
+          "template": "which X1",
+          "rows": 30,
+          "rows_sha256": "07a11b079220cc9b82e3ff0ff828d0cb5401fbea17b57ab7869ec029438bf05d"
+        }
+      ],
+      "absent_primary_canonical_wording": [
+        {
+          "family": "fragment",
+          "template": "C1 whose official website is V1 whose population is N1",
+          "rows": 0
+        },
+        {
+          "family": "whole",
+          "template": "which C1 whose official website is V1 whose population is N1",
+          "rows": 0
+        },
+        {
+          "family": "fragment",
+          "template": "C1 whose A1 is V1 whose A2 is N1",
+          "rows": 0
+        },
+        {
+          "family": "whole",
+          "template": "which C1 whose A1 is V1 whose A2 is N1",
+          "rows": 0
+        }
+      ]
+    },
+    {
+      "id": "segment_city_population_website_saskatoon",
+      "anchor_matches": [
+        [
+          "Q10566",
+          "Saskatoon"
+        ]
+      ],
+      "target_matches": [
+        [
+          "Q10566",
+          "Saskatoon"
+        ]
+      ],
+      "learned_wording": [
+        {
+          "family": "segment",
+          "template": "C1",
+          "rows": 2,
+          "rows_sha256": "04897a4123ac46e7f9be868dd55c9aa771f7ff06a5230b3183b8660ad6f593e9"
+        },
+        {
+          "family": "segment",
+          "template": "whose official website is V1",
+          "rows": 1,
+          "rows_sha256": "d47aa387fb7b37bd7369a8c58470e8c3720caedbe4cd05ff8fac566fc9ecdf8d"
+        },
+        {
+          "family": "segment",
+          "template": "whose population is N1",
+          "rows": 1,
+          "rows_sha256": "62c91a8532849de5157bf5f1803465f0f9a8eda6e8955abd43919d0f90f99f0f"
+        },
+        {
+          "family": "outer",
+          "template": "which X1",
+          "rows": 30,
+          "rows_sha256": "07a11b079220cc9b82e3ff0ff828d0cb5401fbea17b57ab7869ec029438bf05d"
+        }
+      ],
+      "absent_primary_canonical_wording": [
+        {
+          "family": "fragment",
+          "template": "C1 whose population is N1 whose official website is V1",
+          "rows": 0
+        },
+        {
+          "family": "whole",
+          "template": "which C1 whose population is N1 whose official website is V1",
+          "rows": 0
+        },
+        {
+          "family": "fragment",
+          "template": "C1 whose A1 is N1 whose A2 is V1",
+          "rows": 0
+        },
+        {
+          "family": "whole",
+          "template": "which C1 whose A1 is N1 whose A2 is V1",
+          "rows": 0
+        }
+      ]
+    },
+    {
+      "id": "nested_university_city_website_saskatoon",
+      "anchor_matches": [
+        [
+          "Q10566",
+          "Saskatoon"
+        ]
+      ],
+      "target_matches": [
+        [
+          "Q1514848",
+          "University of Saskatchewan"
+        ]
+      ],
+      "learned_wording": [
+        {
+          "family": "fragment",
+          "template": "C1 whose official website is V1",
+          "rows": 1,
+          "rows_sha256": "7d9351ad85fd35c70a71b5ade574fa9f239ad1695b12b3e4267cc8aaabf39f0f"
+        },
+        {
+          "family": "fragment",
+          "template": "C1 located in X1",
+          "rows": 1,
+          "rows_sha256": "4f0e2be216ee793854a4c88713bc1bd4038c401d9fc70325bd195ff4fab218b9"
+        },
+        {
+          "family": "outer",
+          "template": "which X1",
+          "rows": 30,
+          "rows_sha256": "07a11b079220cc9b82e3ff0ff828d0cb5401fbea17b57ab7869ec029438bf05d"
+        }
+      ],
+      "absent_primary_canonical_wording": [
+        {
+          "family": "fragment",
+          "template": "C1 located in C2 whose official website is V1",
+          "rows": 0
+        },
+        {
+          "family": "whole",
+          "template": "which C1 located in C2 whose official website is V1",
+          "rows": 0
+        },
+        {
+          "family": "fragment",
+          "template": "C1 located in C2 whose A1 is V1",
+          "rows": 0
+        },
+        {
+          "family": "whole",
+          "template": "which C1 located in C2 whose A1 is V1",
+          "rows": 0
+        }
+      ]
+    },
+    {
+      "id": "nested_university_city_website_population_saskatoon",
+      "anchor_matches": [
+        [
+          "Q10566",
+          "Saskatoon"
+        ]
+      ],
+      "target_matches": [
+        [
+          "Q1514848",
+          "University of Saskatchewan"
+        ]
+      ],
+      "learned_wording": [
+        {
+          "family": "segment",
+          "template": "C1",
+          "rows": 2,
+          "rows_sha256": "04897a4123ac46e7f9be868dd55c9aa771f7ff06a5230b3183b8660ad6f593e9"
+        },
+        {
+          "family": "segment",
+          "template": "whose official website is V1",
+          "rows": 1,
+          "rows_sha256": "d47aa387fb7b37bd7369a8c58470e8c3720caedbe4cd05ff8fac566fc9ecdf8d"
+        },
+        {
+          "family": "segment",
+          "template": "whose population is N1",
+          "rows": 1,
+          "rows_sha256": "62c91a8532849de5157bf5f1803465f0f9a8eda6e8955abd43919d0f90f99f0f"
+        },
+        {
+          "family": "fragment",
+          "template": "C1 located in X1",
+          "rows": 1,
+          "rows_sha256": "4f0e2be216ee793854a4c88713bc1bd4038c401d9fc70325bd195ff4fab218b9"
+        },
+        {
+          "family": "outer",
+          "template": "which X1",
+          "rows": 30,
+          "rows_sha256": "07a11b079220cc9b82e3ff0ff828d0cb5401fbea17b57ab7869ec029438bf05d"
+        }
+      ],
+      "absent_primary_canonical_wording": [
+        {
+          "family": "fragment",
+          "template": "C1 located in C2 whose official website is V1 whose population is N1",
+          "rows": 0
+        },
+        {
+          "family": "whole",
+          "template": "which C1 located in C2 whose official website is V1 whose population is N1",
+          "rows": 0
+        },
+        {
+          "family": "fragment",
+          "template": "C1 located in C2 whose A1 is V1 whose A2 is N1",
+          "rows": 0
+        },
+        {
+          "family": "whole",
+          "template": "which C1 located in C2 whose A1 is V1 whose A2 is N1",
+          "rows": 0
+        }
+      ]
+    },
+    {
+      "id": "nested_university_city_website_population_belfast",
+      "anchor_matches": [
+        [
+          "Q10686",
+          "Belfast"
+        ]
+      ],
+      "target_matches": [
+        [
+          "Q877925",
+          "Queen's University Belfast"
+        ]
+      ],
+      "learned_wording": [
+        {
+          "family": "segment",
+          "template": "C1",
+          "rows": 2,
+          "rows_sha256": "04897a4123ac46e7f9be868dd55c9aa771f7ff06a5230b3183b8660ad6f593e9"
+        },
+        {
+          "family": "segment",
+          "template": "whose official website is V1",
+          "rows": 1,
+          "rows_sha256": "d47aa387fb7b37bd7369a8c58470e8c3720caedbe4cd05ff8fac566fc9ecdf8d"
+        },
+        {
+          "family": "segment",
+          "template": "whose population is N1",
+          "rows": 1,
+          "rows_sha256": "62c91a8532849de5157bf5f1803465f0f9a8eda6e8955abd43919d0f90f99f0f"
+        },
+        {
+          "family": "fragment",
+          "template": "C1 located in X1",
+          "rows": 1,
+          "rows_sha256": "4f0e2be216ee793854a4c88713bc1bd4038c401d9fc70325bd195ff4fab218b9"
+        },
+        {
+          "family": "outer",
+          "template": "which X1",
+          "rows": 30,
+          "rows_sha256": "07a11b079220cc9b82e3ff0ff828d0cb5401fbea17b57ab7869ec029438bf05d"
+        }
+      ],
+      "absent_primary_canonical_wording": [
+        {
+          "family": "fragment",
+          "template": "C1 located in C2 whose official website is V1 whose population is N1",
+          "rows": 0
+        },
+        {
+          "family": "whole",
+          "template": "which C1 located in C2 whose official website is V1 whose population is N1",
+          "rows": 0
+        },
+        {
+          "family": "fragment",
+          "template": "C1 located in C2 whose A1 is V1 whose A2 is N1",
+          "rows": 0
+        },
+        {
+          "family": "whole",
+          "template": "which C1 located in C2 whose A1 is V1 whose A2 is N1",
+          "rows": 0
+        }
+      ]
+    },
+    {
+      "id": "nested_headquarters_city_website_population_bristol",
+      "anchor_matches": [
+        [
+          "Q23154",
+          "Bristol"
+        ]
+      ],
+      "target_matches": [
+        [
+          "Q459506",
+          "University of Bristol"
+        ]
+      ],
+      "learned_wording": [
+        {
+          "family": "segment",
+          "template": "C1",
+          "rows": 2,
+          "rows_sha256": "04897a4123ac46e7f9be868dd55c9aa771f7ff06a5230b3183b8660ad6f593e9"
+        },
+        {
+          "family": "segment",
+          "template": "whose official website is V1",
+          "rows": 1,
+          "rows_sha256": "d47aa387fb7b37bd7369a8c58470e8c3720caedbe4cd05ff8fac566fc9ecdf8d"
+        },
+        {
+          "family": "segment",
+          "template": "whose population is N1",
+          "rows": 1,
+          "rows_sha256": "62c91a8532849de5157bf5f1803465f0f9a8eda6e8955abd43919d0f90f99f0f"
+        },
+        {
+          "family": "fragment",
+          "template": "C1 headquartered in X1",
+          "rows": 1,
+          "rows_sha256": "60874601509df27efa3bc220e29404a6b7dba9543f8cec539381ed9353ceeacb"
+        },
+        {
+          "family": "outer",
+          "template": "which X1",
+          "rows": 30,
+          "rows_sha256": "07a11b079220cc9b82e3ff0ff828d0cb5401fbea17b57ab7869ec029438bf05d"
+        }
+      ],
+      "absent_primary_canonical_wording": [
+        {
+          "family": "fragment",
+          "template": "C1 headquartered in C2 whose official website is V1 whose population is N1",
+          "rows": 0
+        },
+        {
+          "family": "whole",
+          "template": "which C1 headquartered in C2 whose official website is V1 whose population is N1",
+          "rows": 0
+        },
+        {
+          "family": "fragment",
+          "template": "C1 headquartered in C2 whose A1 is V1 whose A2 is N1",
+          "rows": 0
+        },
+        {
+          "family": "whole",
+          "template": "which C1 headquartered in C2 whose A1 is V1 whose A2 is N1",
+          "rows": 0
+        }
+      ]
+    },
+    {
+      "id": "segment_city_website_population_bristol",
+      "anchor_matches": [
+        [
+          "Q23154",
+          "Bristol"
+        ]
+      ],
+      "target_matches": [
+        [
+          "Q23154",
+          "Bristol"
+        ]
+      ],
+      "learned_wording": [
+        {
+          "family": "segment",
+          "template": "C1",
+          "rows": 2,
+          "rows_sha256": "04897a4123ac46e7f9be868dd55c9aa771f7ff06a5230b3183b8660ad6f593e9"
+        },
+        {
+          "family": "segment",
+          "template": "whose official website is V1",
+          "rows": 1,
+          "rows_sha256": "d47aa387fb7b37bd7369a8c58470e8c3720caedbe4cd05ff8fac566fc9ecdf8d"
+        },
+        {
+          "family": "segment",
+          "template": "whose population is N1",
+          "rows": 1,
+          "rows_sha256": "62c91a8532849de5157bf5f1803465f0f9a8eda6e8955abd43919d0f90f99f0f"
+        },
+        {
+          "family": "outer",
+          "template": "which X1",
+          "rows": 30,
+          "rows_sha256": "07a11b079220cc9b82e3ff0ff828d0cb5401fbea17b57ab7869ec029438bf05d"
+        }
+      ],
+      "absent_primary_canonical_wording": [
+        {
+          "family": "fragment",
+          "template": "C1 whose official website is V1 whose population is N1",
+          "rows": 0
+        },
+        {
+          "family": "whole",
+          "template": "which C1 whose official website is V1 whose population is N1",
+          "rows": 0
+        },
+        {
+          "family": "fragment",
+          "template": "C1 whose A1 is V1 whose A2 is N1",
+          "rows": 0
+        },
+        {
+          "family": "whole",
+          "template": "which C1 whose A1 is V1 whose A2 is N1",
+          "rows": 0
+        }
+      ]
+    },
+    {
+      "id": "nested_human_count_bristol",
+      "anchor_matches": [
+        [
+          "Q23154",
+          "Bristol"
+        ]
+      ],
+      "target_matches": [
+        [
+          "Q23814",
+          "Stephen Merchant"
+        ],
+        [
+          "Q312124",
+          "Tom Hollander"
+        ],
+        [
+          "Q312693",
+          "Robert Wyatt"
+        ],
+        [
+          "Q318263",
+          "Michael Redgrave"
+        ],
+        [
+          "Q528200",
+          "Andy Williams"
+        ],
+        [
+          "Q83410",
+          "Cary Grant"
+        ]
+      ],
+      "learned_wording": [
+        {
+          "family": "segment",
+          "template": "C1",
+          "rows": 2,
+          "rows_sha256": "04897a4123ac46e7f9be868dd55c9aa771f7ff06a5230b3183b8660ad6f593e9"
+        },
+        {
+          "family": "segment",
+          "template": "whose official website is V1",
+          "rows": 1,
+          "rows_sha256": "d47aa387fb7b37bd7369a8c58470e8c3720caedbe4cd05ff8fac566fc9ecdf8d"
+        },
+        {
+          "family": "segment",
+          "template": "whose population is N1",
+          "rows": 1,
+          "rows_sha256": "62c91a8532849de5157bf5f1803465f0f9a8eda6e8955abd43919d0f90f99f0f"
+        },
+        {
+          "family": "fragment",
+          "template": "C1 born in X1",
+          "rows": 1,
+          "rows_sha256": "228e32919591a10c53fae3044cf244dd4b60dfa52ac7d766c02d7f296bffe18a"
+        },
+        {
+          "family": "outer",
+          "template": "how many X1",
+          "rows": 10,
+          "rows_sha256": "5bee3f85f81b331c23bba77598be81c5757ae4e00d0a5b75e2160826951937e8"
+        }
+      ],
+      "absent_primary_canonical_wording": [
+        {
+          "family": "fragment",
+          "template": "C1 born in C2 whose official website is V1 whose population is N1",
+          "rows": 0
+        },
+        {
+          "family": "whole",
+          "template": "how many C1 born in C2 whose official website is V1 whose population is N1",
+          "rows": 0
+        },
+        {
+          "family": "fragment",
+          "template": "C1 born in C2 whose A1 is V1 whose A2 is N1",
+          "rows": 0
+        },
+        {
+          "family": "whole",
+          "template": "how many C1 born in C2 whose A1 is V1 whose A2 is N1",
+          "rows": 0
+        }
+      ]
+    },
+    {
+      "id": "ambiguous_human_selection_bristol",
+      "anchor_matches": [
+        [
+          "Q23154",
+          "Bristol"
+        ]
+      ],
+      "target_matches": [
+        [
+          "Q23814",
+          "Stephen Merchant"
+        ],
+        [
+          "Q312124",
+          "Tom Hollander"
+        ],
+        [
+          "Q312693",
+          "Robert Wyatt"
+        ],
+        [
+          "Q318263",
+          "Michael Redgrave"
+        ],
+        [
+          "Q528200",
+          "Andy Williams"
+        ],
+        [
+          "Q83410",
+          "Cary Grant"
+        ]
+      ],
+      "learned_wording": [
+        {
+          "family": "segment",
+          "template": "C1",
+          "rows": 2,
+          "rows_sha256": "04897a4123ac46e7f9be868dd55c9aa771f7ff06a5230b3183b8660ad6f593e9"
+        },
+        {
+          "family": "segment",
+          "template": "whose official website is V1",
+          "rows": 1,
+          "rows_sha256": "d47aa387fb7b37bd7369a8c58470e8c3720caedbe4cd05ff8fac566fc9ecdf8d"
+        },
+        {
+          "family": "segment",
+          "template": "whose population is N1",
+          "rows": 1,
+          "rows_sha256": "62c91a8532849de5157bf5f1803465f0f9a8eda6e8955abd43919d0f90f99f0f"
+        },
+        {
+          "family": "fragment",
+          "template": "C1 born in X1",
+          "rows": 1,
+          "rows_sha256": "228e32919591a10c53fae3044cf244dd4b60dfa52ac7d766c02d7f296bffe18a"
+        },
+        {
+          "family": "outer",
+          "template": "which X1",
+          "rows": 30,
+          "rows_sha256": "07a11b079220cc9b82e3ff0ff828d0cb5401fbea17b57ab7869ec029438bf05d"
+        }
+      ],
+      "absent_primary_canonical_wording": [
+        {
+          "family": "fragment",
+          "template": "C1 born in C2 whose official website is V1 whose population is N1",
+          "rows": 0
+        },
+        {
+          "family": "whole",
+          "template": "which C1 born in C2 whose official website is V1 whose population is N1",
+          "rows": 0
+        },
+        {
+          "family": "fragment",
+          "template": "C1 born in C2 whose A1 is V1 whose A2 is N1",
+          "rows": 0
+        },
+        {
+          "family": "whole",
+          "template": "which C1 born in C2 whose A1 is V1 whose A2 is N1",
+          "rows": 0
+        }
+      ]
+    },
+    {
+      "id": "nested_university_count_cardiff",
+      "anchor_matches": [
+        [
+          "Q10690",
+          "Cardiff"
+        ]
+      ],
+      "target_matches": [
+        [
+          "Q1035745",
+          "Cardiff University"
+        ],
+        [
+          "Q1072029",
+          "University of Wales"
+        ]
+      ],
+      "learned_wording": [
+        {
+          "family": "segment",
+          "template": "C1",
+          "rows": 2,
+          "rows_sha256": "04897a4123ac46e7f9be868dd55c9aa771f7ff06a5230b3183b8660ad6f593e9"
+        },
+        {
+          "family": "segment",
+          "template": "whose official website is V1",
+          "rows": 1,
+          "rows_sha256": "d47aa387fb7b37bd7369a8c58470e8c3720caedbe4cd05ff8fac566fc9ecdf8d"
+        },
+        {
+          "family": "segment",
+          "template": "whose population is N1",
+          "rows": 1,
+          "rows_sha256": "62c91a8532849de5157bf5f1803465f0f9a8eda6e8955abd43919d0f90f99f0f"
+        },
+        {
+          "family": "fragment",
+          "template": "C1 headquartered in X1",
+          "rows": 1,
+          "rows_sha256": "60874601509df27efa3bc220e29404a6b7dba9543f8cec539381ed9353ceeacb"
+        },
+        {
+          "family": "outer",
+          "template": "how many X1",
+          "rows": 10,
+          "rows_sha256": "5bee3f85f81b331c23bba77598be81c5757ae4e00d0a5b75e2160826951937e8"
+        }
+      ],
+      "absent_primary_canonical_wording": [
+        {
+          "family": "fragment",
+          "template": "C1 headquartered in C2 whose official website is V1 whose population is N1",
+          "rows": 0
+        },
+        {
+          "family": "whole",
+          "template": "how many C1 headquartered in C2 whose official website is V1 whose population is N1",
+          "rows": 0
+        },
+        {
+          "family": "fragment",
+          "template": "C1 headquartered in C2 whose A1 is V1 whose A2 is N1",
+          "rows": 0
+        },
+        {
+          "family": "whole",
+          "template": "how many C1 headquartered in C2 whose A1 is V1 whose A2 is N1",
+          "rows": 0
+        }
+      ]
+    },
+    {
+      "id": "ambiguous_university_selection_cardiff",
+      "anchor_matches": [
+        [
+          "Q10690",
+          "Cardiff"
+        ]
+      ],
+      "target_matches": [
+        [
+          "Q1035745",
+          "Cardiff University"
+        ],
+        [
+          "Q1072029",
+          "University of Wales"
+        ]
+      ],
+      "learned_wording": [
+        {
+          "family": "segment",
+          "template": "C1",
+          "rows": 2,
+          "rows_sha256": "04897a4123ac46e7f9be868dd55c9aa771f7ff06a5230b3183b8660ad6f593e9"
+        },
+        {
+          "family": "segment",
+          "template": "whose official website is V1",
+          "rows": 1,
+          "rows_sha256": "d47aa387fb7b37bd7369a8c58470e8c3720caedbe4cd05ff8fac566fc9ecdf8d"
+        },
+        {
+          "family": "segment",
+          "template": "whose population is N1",
+          "rows": 1,
+          "rows_sha256": "62c91a8532849de5157bf5f1803465f0f9a8eda6e8955abd43919d0f90f99f0f"
+        },
+        {
+          "family": "fragment",
+          "template": "C1 headquartered in X1",
+          "rows": 1,
+          "rows_sha256": "60874601509df27efa3bc220e29404a6b7dba9543f8cec539381ed9353ceeacb"
+        },
+        {
+          "family": "outer",
+          "template": "which X1",
+          "rows": 30,
+          "rows_sha256": "07a11b079220cc9b82e3ff0ff828d0cb5401fbea17b57ab7869ec029438bf05d"
+        }
+      ],
+      "absent_primary_canonical_wording": [
+        {
+          "family": "fragment",
+          "template": "C1 headquartered in C2 whose official website is V1 whose population is N1",
+          "rows": 0
+        },
+        {
+          "family": "whole",
+          "template": "which C1 headquartered in C2 whose official website is V1 whose population is N1",
+          "rows": 0
+        },
+        {
+          "family": "fragment",
+          "template": "C1 headquartered in C2 whose A1 is V1 whose A2 is N1",
+          "rows": 0
+        },
+        {
+          "family": "whole",
+          "template": "which C1 headquartered in C2 whose A1 is V1 whose A2 is N1",
+          "rows": 0
+        }
+      ]
+    },
+    {
+      "id": "empty_segment_changed_population_bristol",
+      "anchor_matches": [],
+      "target_matches": [],
+      "learned_wording": [
+        {
+          "family": "segment",
+          "template": "C1",
+          "rows": 2,
+          "rows_sha256": "04897a4123ac46e7f9be868dd55c9aa771f7ff06a5230b3183b8660ad6f593e9"
+        },
+        {
+          "family": "segment",
+          "template": "whose official website is V1",
+          "rows": 1,
+          "rows_sha256": "d47aa387fb7b37bd7369a8c58470e8c3720caedbe4cd05ff8fac566fc9ecdf8d"
+        },
+        {
+          "family": "segment",
+          "template": "whose population is N1",
+          "rows": 1,
+          "rows_sha256": "62c91a8532849de5157bf5f1803465f0f9a8eda6e8955abd43919d0f90f99f0f"
+        },
+        {
+          "family": "outer",
+          "template": "which X1",
+          "rows": 30,
+          "rows_sha256": "07a11b079220cc9b82e3ff0ff828d0cb5401fbea17b57ab7869ec029438bf05d"
+        }
+      ],
+      "absent_primary_canonical_wording": [
+        {
+          "family": "fragment",
+          "template": "C1 whose official website is V1 whose population is N1",
+          "rows": 0
+        },
+        {
+          "family": "whole",
+          "template": "which C1 whose official website is V1 whose population is N1",
+          "rows": 0
+        },
+        {
+          "family": "fragment",
+          "template": "C1 whose A1 is V1 whose A2 is N1",
+          "rows": 0
+        },
+        {
+          "family": "whole",
+          "template": "which C1 whose A1 is V1 whose A2 is N1",
+          "rows": 0
+        }
+      ]
+    },
+    {
+      "id": "empty_nested_changed_population_bristol",
+      "anchor_matches": [],
+      "target_matches": [],
+      "learned_wording": [
+        {
+          "family": "segment",
+          "template": "C1",
+          "rows": 2,
+          "rows_sha256": "04897a4123ac46e7f9be868dd55c9aa771f7ff06a5230b3183b8660ad6f593e9"
+        },
+        {
+          "family": "segment",
+          "template": "whose official website is V1",
+          "rows": 1,
+          "rows_sha256": "d47aa387fb7b37bd7369a8c58470e8c3720caedbe4cd05ff8fac566fc9ecdf8d"
+        },
+        {
+          "family": "segment",
+          "template": "whose population is N1",
+          "rows": 1,
+          "rows_sha256": "62c91a8532849de5157bf5f1803465f0f9a8eda6e8955abd43919d0f90f99f0f"
+        },
+        {
+          "family": "fragment",
+          "template": "C1 located in X1",
+          "rows": 1,
+          "rows_sha256": "4f0e2be216ee793854a4c88713bc1bd4038c401d9fc70325bd195ff4fab218b9"
+        },
+        {
+          "family": "outer",
+          "template": "how many X1",
+          "rows": 10,
+          "rows_sha256": "5bee3f85f81b331c23bba77598be81c5757ae4e00d0a5b75e2160826951937e8"
+        }
+      ],
+      "absent_primary_canonical_wording": [
+        {
+          "family": "fragment",
+          "template": "C1 located in C2 whose official website is V1 whose population is N1",
+          "rows": 0
+        },
+        {
+          "family": "whole",
+          "template": "how many C1 located in C2 whose official website is V1 whose population is N1",
+          "rows": 0
+        },
+        {
+          "family": "fragment",
+          "template": "C1 located in C2 whose A1 is V1 whose A2 is N1",
+          "rows": 0
+        },
+        {
+          "family": "whole",
+          "template": "how many C1 located in C2 whose A1 is V1 whose A2 is N1",
+          "rows": 0
+        }
+      ]
+    },
+    {
+      "id": "empty_segment_conflicting_city_anchors",
+      "anchor_matches": [],
+      "target_matches": [],
+      "learned_wording": [
+        {
+          "family": "segment",
+          "template": "C1",
+          "rows": 2,
+          "rows_sha256": "04897a4123ac46e7f9be868dd55c9aa771f7ff06a5230b3183b8660ad6f593e9"
+        },
+        {
+          "family": "segment",
+          "template": "whose official website is V1",
+          "rows": 1,
+          "rows_sha256": "d47aa387fb7b37bd7369a8c58470e8c3720caedbe4cd05ff8fac566fc9ecdf8d"
+        },
+        {
+          "family": "segment",
+          "template": "whose population is N1",
+          "rows": 1,
+          "rows_sha256": "62c91a8532849de5157bf5f1803465f0f9a8eda6e8955abd43919d0f90f99f0f"
+        },
+        {
+          "family": "outer",
+          "template": "which X1",
+          "rows": 30,
+          "rows_sha256": "07a11b079220cc9b82e3ff0ff828d0cb5401fbea17b57ab7869ec029438bf05d"
+        }
+      ],
+      "absent_primary_canonical_wording": [
+        {
+          "family": "fragment",
+          "template": "C1 whose official website is V1 whose population is N1",
+          "rows": 0
+        },
+        {
+          "family": "whole",
+          "template": "which C1 whose official website is V1 whose population is N1",
+          "rows": 0
+        },
+        {
+          "family": "fragment",
+          "template": "C1 whose A1 is V1 whose A2 is N1",
+          "rows": 0
+        },
+        {
+          "family": "whole",
+          "template": "which C1 whose A1 is V1 whose A2 is N1",
+          "rows": 0
+        }
+      ]
+    },
+    {
+      "id": "empty_parent_headquarters_saskatoon",
+      "anchor_matches": [
+        [
+          "Q10566",
+          "Saskatoon"
+        ]
+      ],
+      "target_matches": [],
+      "learned_wording": [
+        {
+          "family": "segment",
+          "template": "C1",
+          "rows": 2,
+          "rows_sha256": "04897a4123ac46e7f9be868dd55c9aa771f7ff06a5230b3183b8660ad6f593e9"
+        },
+        {
+          "family": "segment",
+          "template": "whose official website is V1",
+          "rows": 1,
+          "rows_sha256": "d47aa387fb7b37bd7369a8c58470e8c3720caedbe4cd05ff8fac566fc9ecdf8d"
+        },
+        {
+          "family": "segment",
+          "template": "whose population is N1",
+          "rows": 1,
+          "rows_sha256": "62c91a8532849de5157bf5f1803465f0f9a8eda6e8955abd43919d0f90f99f0f"
+        },
+        {
+          "family": "fragment",
+          "template": "C1 headquartered in X1",
+          "rows": 1,
+          "rows_sha256": "60874601509df27efa3bc220e29404a6b7dba9543f8cec539381ed9353ceeacb"
+        },
+        {
+          "family": "outer",
+          "template": "how many X1",
+          "rows": 10,
+          "rows_sha256": "5bee3f85f81b331c23bba77598be81c5757ae4e00d0a5b75e2160826951937e8"
+        }
+      ],
+      "absent_primary_canonical_wording": [
+        {
+          "family": "fragment",
+          "template": "C1 headquartered in C2 whose official website is V1 whose population is N1",
+          "rows": 0
+        },
+        {
+          "family": "whole",
+          "template": "how many C1 headquartered in C2 whose official website is V1 whose population is N1",
+          "rows": 0
+        },
+        {
+          "family": "fragment",
+          "template": "C1 headquartered in C2 whose A1 is V1 whose A2 is N1",
+          "rows": 0
+        },
+        {
+          "family": "whole",
+          "template": "how many C1 headquartered in C2 whose A1 is V1 whose A2 is N1",
+          "rows": 0
+        }
+      ]
+    }
+  ],
+  "retained_raw_files": {
+    "/Users/ember/dev/o7vn/var/composition-cases-20261029/report.json": {
+      "bytes": 27138,
+      "sha256": "bd9a75777653928aca931d0c1d131a108f2496824fa74d0e2836341e2faeddfb"
+    },
+    "/Users/ember/dev/o7vn/var/composition-cases-20261029/predeclared-cohort.json": {
+      "bytes": 32684,
+      "sha256": "388810fd2d99c1f25e2e53b0e906e21669915c7836a8fd1524967d755862b853"
+    },
+    "/Users/ember/dev/o7vn/var/composition-cases-20261029/source-evidence.json": {
+      "bytes": 86916,
+      "sha256": "2348dacdfecdb6ac355018f8b9655d7220aa9a6906029fae9afcdb1b689c362e"
+    },
+    "/Users/ember/dev/o7vn/var/composition-cases-20261029/candidate/observations.json": {
+      "bytes": 9961,
+      "sha256": "f58e1bc3ba4a71b5e0984267e2ce3aa374e52513880205edec3b4fb60fd0bbec"
+    },
+    "/Users/ember/dev/o7vn/var/composition-cases-20261029/candidate/process.json": {
+      "bytes": 607,
+      "sha256": "c90560f13d5399de01cce28cd630ab3e7147d90e7bb62a86a6280151c491ce6d"
+    },
+    "/Users/ember/dev/o7vn/var/composition-cases-20261029/control/observations.json": {
+      "bytes": 8960,
+      "sha256": "b11e12f1eb74ae638869fb69defc60ed8f38ba9aa86a6ab6b12e8c30d78fd643"
+    },
+    "/Users/ember/dev/o7vn/var/composition-cases-20261029/control/process.json": {
+      "bytes": 563,
+      "sha256": "83d8ffc7c037259f89e033c44044d6455dc237ec08771defa0dbe65a6bc5b905"
+    }
+  },
+  "next_question": "Diagnose retained-storage representation under unchanged bounds and answer-form veto against source semantics. No repeats, fixture edits or broader benchmark until a concrete new fix/question."
+}

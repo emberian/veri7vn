@@ -59,22 +59,26 @@ Earlier signed-package tests answered through Mini in two
 independent grains. The newer agent lifecycle and complete restart/recovery
 journey remain unfinished; this is not a public Dreggnet deployment.
 
-The next shared runtime has a [Rust and PyO3 implementation](native/README.md):
-shared indexed data and learned tables, complete KQA programs, learned
-whole/fragment/outer language reading, exact values, atomic durable language
-turns, release-bound retries and
-bounded native-kernel transport. It is a working library with real-data
-comparisons; the full Engine cascade and signed-appliance integration remain.
-The [migration map](native/docs/MIGRATION.md) separates native capabilities from
-remaining Python providers, and the [tracker](project/lanes/NATIVE-FOUNDATION-2026-10-28.md)
-records measured progress and remaining work.
+The next shared runtime has a [Rust and PyO3 implementation](native/README.md)
+and a [relocatable Linux appliance](native/docs/DISTRIBUTION.md). Its
+[standalone service](native/docs/STANDALONE.md) offers discovery and direct calls
+through shared bounded workers, independently of minidregg. Graph optimization,
+symbolic calculations, exact charge/isotope-conserving
+[reaction balancing](native/docs/CHEMISTRY.md), scientific models, dependencies,
+DNA alignment and statistical regression operate on supplied inputs.
 
-The optional native computations also have a [standalone service](native/docs/STANDALONE.md)
-with operation discovery, direct calls and shared bounded workers. Graph,
-symbolic, exact charge/isotope-conserving [reaction balancing](native/docs/CHEMISTRY.md),
-scientific and dependency operations run and can be tested without
-minidregg or a public dataset. This pure-computation service is separate from
-the signed conversational package and makes no durable-conversation claim.
+An optional [durable runtime profile](native/docs/RUNTIME-HOST.md) adds shared
+indexed data, complete KQA programs, learned language composition, atomic turns
+and release-bound retry journals. Actual HTTP checks cover restart, lost-response
+retry and tenant separation. The full Engine cascade, authenticated public
+hosting and fresh signed Mini integration remain unfinished. The separate
+stable-model reasoning prototype is tested but not yet exposed by this service.
+
+The [migration map](native/docs/MIGRATION.md) separates native capabilities from
+remaining Python providers. The [current native checkpoint and backlog](project/NATIVE-EXPANSION-2026-10-29.md)
+records delivered work and failures: the original 100-question reader result is
+preserved, but a new 16-question composition challenge still has unanswered
+questions and storage-limit errors. These samples are not a specialist-fleet score.
 
 Start with the [shared-hosting checkpoint](project/HOSTED-2026-10-27.md),
 the [Mini appliance overview](https://github.com/emberian/minidregg/blob/main/docs/oracle-appliance.md),

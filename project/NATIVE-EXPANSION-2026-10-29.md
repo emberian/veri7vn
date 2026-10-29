@@ -7,6 +7,53 @@ for everything shipped. Preserve the distinction between computed, checked,
 sourced, numerical and theorem-backed claims. Ordinary committed checkpoints
 and an upstream issue/PR update are authorized.
 
+## Current checkpoint — 29 October, after `259d7b9`
+
+The sections below are a chronological record, not a current unchecked task list.
+The native service now has a relocatable Linux package, optional durable runtime
+hosting, shared workers, restart/retry checks, permanent namespace retirement,
+resident extracted MST checking and exact shortest paths. Invalid pure requests
+can leave a healthy worker resident. The refreshed package contains reader code
+`2fda9fe`; the later `259d7b9` stable-model reasoning crate is qualified separately
+and is **not hosted or included as a callable package operation**.
+
+Reader composition preserves the original 100 results: 36 correct, four refused,
+60 unknown, zero wrong and zero operational errors. That sample has no answer
+gain, and its historical timings do not establish a speedup. The new frozen
+[16-case challenge](lanes/NCOMP-CASES-2026-10-29.md) failed: one newly correct
+answer, seven unanswered positives, four expected declines and four composition
+storage-limit errors. No wrong answers were returned. The learned `which X1`
+source admits conflicting Count and entity readings; byte-error ownership is
+still under diagnosis. Keep the questions, bounds and expected facts unchanged.
+
+### Outstanding work, including work displaced by this batch
+
+1. Diagnose and repair the four composition storage failures; investigate the
+   learned answer-form conflict without suppressing legitimate interpretations.
+2. Integrate stable-model reasoning through shared workspace/PyO3, discovery and
+   HTTP, with an operator-admitted solver resource and bounded child lifetime.
+3. Complete Engine compatibility: other relation/document stores and reader
+   families, route ordering, dialogue state adapters and real effect executors.
+4. Qualify the fresh signed Mini/Hermes agent/browser/restart journey. Independent
+   native HTTP checks do not establish that integration or a public deployment.
+5. Measure sustained mixed multitenant load, fairness and memory; finish gateway
+   authentication/admission, containment, retention operations and explicit
+   release-history migration. Bounded pools alone do not establish production SLOs.
+6. Turn the public native branch checkpoints into small reviewable upstream
+   provider/backend contributions. Biology PR 8 and statistics PR 9 remain open;
+   they are not a native-runtime PR.
+7. Resume the wider specialist and assurance burndown. This native batch did not
+   re-audit the old Wave-6 backlog or establish a current consolidated fleet score.
+8. Revisit deeper symbolic/interval reasoning and verified CAS, ephemerides,
+   optimization, richer biological/statistical models and learned representation
+   probes. These remain candidates for implementation, not delivered features.
+
+Start with [native overview](../native/README.md),
+[service use](../native/docs/STANDALONE.md),
+[runtime hosting](../native/docs/RUNTIME-HOST.md),
+[distribution](../native/docs/DISTRIBUTION.md) and
+[migration boundaries](../native/docs/MIGRATION.md).
+
 ## First provider checkpoint
 
 - Added petgraph graph optimization and an independent forest optimality check.
@@ -33,7 +80,7 @@ agreement. That negative result is a decision input, not a reason to hide the
 comparison. Scientific fitting remains numerical; dimensions and residuals do
 not prove the caller's physical model.
 
-## Work to carry through next
+## Original work sequence — historical; current backlog above
 
 1. Connect external graph candidates to the extracted `mst_cert` interface.
    Audit isolated-node/disconnected-forest semantics against its edge-derived

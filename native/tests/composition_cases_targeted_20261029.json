@@ -1,0 +1,1178 @@
+{
+  "schema": "oracle-targeted-composition-cases-v1",
+  "scope": "Predeclared targeted exact-segment/single-nested cohort over one finite pinned KB. Independently sourced expectations; no random coverage, shipped specialist-panel, fleet gain, full Reader7 or current-world completeness claim.",
+  "selection": {
+    "method": "Before native runs, inspect exact learned wording and enumerate cities with an official-website row, positive integral population row, direct city membership and a university location/headquarters edge. Choose the first three distinct eligible city IDs in SQLite text order: Q10566 Saskatoon, Q10686 Belfast, Q10690 Cardiff; use their least observed population value. Add Q23154 Bristol as an explicitly hand-selected familiar source anchor for a six-person ambiguity/count pair. Compose/reorder already learned exact pieces, and add unchanged wording and explicit contradictory/empty negatives. No native result or validation gold used for selection.",
+    "source_inspection_date": "2026-10-29",
+    "native_observations_before_freeze": false,
+    "coverage_premise": "Every expected selection, uniqueness, ambiguity and count quantifies over all entity/parent/attribute/forward-edge rows in the named immutable image. The image is the complete finite test universe; these aggregates and empty cases do not assert the outside world is closed or current.",
+    "canonical_absence_boundary": "Exact canonical literal-key and generic A-slot whole/fragment templates below have zero rows in this image. This does not prove absence of every alternative lexical reading; the fixed old artifact comparison determines actual gains.",
+    "negative_construction": "Use source population plus one, mix two different source cities' website/population, and ask for a stored relation with no matching typed targets. Decline-empty expectations follow the reader's fragment nonempty admission rule, not a claim of a universal zero."
+  },
+  "image": {
+    "sha256": "8fcb1db9a08e234179f66ea9e032d2633b38cdcb902f4c95d1ba2c2d49c842f4",
+    "source_sha256": "04da7408320c5cb7023c44372cce32846d56d369d8865d2e61a18c3956661a7c"
+  },
+  "limits": {
+    "workers": 2,
+    "timeout_ms": 1000,
+    "fuel": 10000000
+  },
+  "artifacts": {
+    "control": {
+      "code": "6cc653b",
+      "sha256": "8324a59da075d16a7d3c7c07bb7fe85690479c65e1baf416741d5373b010e8b0",
+      "coverage": "whole_and_exact_fragment_outer_v1"
+    },
+    "candidate": {
+      "code": "2fda9fe",
+      "sha256": "499e9e46484e2e48760def00f1acd24ebcf3d5e63d445e9f72ce39e52a9c8858",
+      "coverage": "whole_and_exact_fragment_outer_v1+exact_segment_and_single_nested_v1"
+    }
+  },
+  "cases": [
+    {
+      "id": "baseline_city_website_saskatoon",
+      "question": "Which city whose official website is http://www.saskatoon.ca/?",
+      "intended_family": "unchanged_control",
+      "purpose": "Existing exact fragment/outer single-filter control.",
+      "source": {
+        "anchor": {
+          "concept_id": "Q515",
+          "attributes": [
+            {
+              "key": "official website",
+              "type": "string",
+              "value": "http://www.saskatoon.ca/"
+            }
+          ]
+        }
+      },
+      "expected": {
+        "kind": "entity",
+        "entity_ids": [
+          "Q10566"
+        ],
+        "answer": "Saskatoon"
+      },
+      "wording": {
+        "required_templates": [
+          [
+            "fragment",
+            "C1 whose official website is V1"
+          ],
+          [
+            "outer",
+            "which X1"
+          ]
+        ],
+        "absent_canonical_templates": []
+      }
+    },
+    {
+      "id": "segment_city_website_population_saskatoon",
+      "question": "Which city whose official website is http://www.saskatoon.ca/ whose population is 222189?",
+      "intended_family": "exact_segments",
+      "purpose": "Three learned units without a direct canonical combined template.",
+      "source": {
+        "anchor": {
+          "concept_id": "Q515",
+          "attributes": [
+            {
+              "key": "official website",
+              "type": "string",
+              "value": "http://www.saskatoon.ca/"
+            },
+            {
+              "key": "population",
+              "type": "quantity",
+              "unit": "1",
+              "value": 222189
+            }
+          ]
+        }
+      },
+      "expected": {
+        "kind": "entity",
+        "entity_ids": [
+          "Q10566"
+        ],
+        "answer": "Saskatoon"
+      },
+      "wording": {
+        "required_templates": [
+          [
+            "segment",
+            "C1"
+          ],
+          [
+            "segment",
+            "whose official website is V1"
+          ],
+          [
+            "segment",
+            "whose population is N1"
+          ],
+          [
+            "outer",
+            "which X1"
+          ]
+        ],
+        "absent_canonical_templates": [
+          [
+            "fragment",
+            "C1 whose official website is V1 whose population is N1"
+          ],
+          [
+            "whole",
+            "which C1 whose official website is V1 whose population is N1"
+          ],
+          [
+            "fragment",
+            "C1 whose A1 is V1 whose A2 is N1"
+          ],
+          [
+            "whole",
+            "which C1 whose A1 is V1 whose A2 is N1"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "segment_city_population_website_saskatoon",
+      "question": "Which city whose population is 222189 whose official website is http://www.saskatoon.ca/?",
+      "intended_family": "exact_segments",
+      "purpose": "Same conjunction with the attribute units in reverse surface order.",
+      "source": {
+        "anchor": {
+          "concept_id": "Q515",
+          "attributes": [
+            {
+              "key": "official website",
+              "type": "string",
+              "value": "http://www.saskatoon.ca/"
+            },
+            {
+              "key": "population",
+              "type": "quantity",
+              "unit": "1",
+              "value": 222189
+            }
+          ]
+        }
+      },
+      "expected": {
+        "kind": "entity",
+        "entity_ids": [
+          "Q10566"
+        ],
+        "answer": "Saskatoon"
+      },
+      "wording": {
+        "required_templates": [
+          [
+            "segment",
+            "C1"
+          ],
+          [
+            "segment",
+            "whose official website is V1"
+          ],
+          [
+            "segment",
+            "whose population is N1"
+          ],
+          [
+            "outer",
+            "which X1"
+          ]
+        ],
+        "absent_canonical_templates": [
+          [
+            "fragment",
+            "C1 whose population is N1 whose official website is V1"
+          ],
+          [
+            "whole",
+            "which C1 whose population is N1 whose official website is V1"
+          ],
+          [
+            "fragment",
+            "C1 whose A1 is N1 whose A2 is V1"
+          ],
+          [
+            "whole",
+            "which C1 whose A1 is N1 whose A2 is V1"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "nested_university_city_website_saskatoon",
+      "question": "Which university located in city whose official website is http://www.saskatoon.ca/?",
+      "intended_family": "single_nested",
+      "purpose": "One learned nested relation over an exact base fragment.",
+      "source": {
+        "anchor": {
+          "concept_id": "Q515",
+          "attributes": [
+            {
+              "key": "official website",
+              "type": "string",
+              "value": "http://www.saskatoon.ca/"
+            }
+          ]
+        },
+        "incoming_relation": {
+          "predicate": "located in the administrative territorial entity",
+          "concept_id": "Q3918"
+        }
+      },
+      "expected": {
+        "kind": "entity",
+        "entity_ids": [
+          "Q1514848"
+        ],
+        "answer": "University of Saskatchewan"
+      },
+      "wording": {
+        "required_templates": [
+          [
+            "fragment",
+            "C1 whose official website is V1"
+          ],
+          [
+            "fragment",
+            "C1 located in X1"
+          ],
+          [
+            "outer",
+            "which X1"
+          ]
+        ],
+        "absent_canonical_templates": [
+          [
+            "fragment",
+            "C1 located in C2 whose official website is V1"
+          ],
+          [
+            "whole",
+            "which C1 located in C2 whose official website is V1"
+          ],
+          [
+            "fragment",
+            "C1 located in C2 whose A1 is V1"
+          ],
+          [
+            "whole",
+            "which C1 located in C2 whose A1 is V1"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "nested_university_city_website_population_saskatoon",
+      "question": "Which university located in city whose official website is http://www.saskatoon.ca/ whose population is 222189?",
+      "intended_family": "single_nested",
+      "purpose": "One nested relation over a newly combined segment base.",
+      "source": {
+        "anchor": {
+          "concept_id": "Q515",
+          "attributes": [
+            {
+              "key": "official website",
+              "type": "string",
+              "value": "http://www.saskatoon.ca/"
+            },
+            {
+              "key": "population",
+              "type": "quantity",
+              "unit": "1",
+              "value": 222189
+            }
+          ]
+        },
+        "incoming_relation": {
+          "predicate": "located in the administrative territorial entity",
+          "concept_id": "Q3918"
+        }
+      },
+      "expected": {
+        "kind": "entity",
+        "entity_ids": [
+          "Q1514848"
+        ],
+        "answer": "University of Saskatchewan"
+      },
+      "wording": {
+        "required_templates": [
+          [
+            "segment",
+            "C1"
+          ],
+          [
+            "segment",
+            "whose official website is V1"
+          ],
+          [
+            "segment",
+            "whose population is N1"
+          ],
+          [
+            "fragment",
+            "C1 located in X1"
+          ],
+          [
+            "outer",
+            "which X1"
+          ]
+        ],
+        "absent_canonical_templates": [
+          [
+            "fragment",
+            "C1 located in C2 whose official website is V1 whose population is N1"
+          ],
+          [
+            "whole",
+            "which C1 located in C2 whose official website is V1 whose population is N1"
+          ],
+          [
+            "fragment",
+            "C1 located in C2 whose A1 is V1 whose A2 is N1"
+          ],
+          [
+            "whole",
+            "which C1 located in C2 whose A1 is V1 whose A2 is N1"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "nested_university_city_website_population_belfast",
+      "question": "Which university located in city whose official website is http://www.belfastcity.gov.uk/ whose population is 333871?",
+      "intended_family": "single_nested",
+      "purpose": "Second city and university, sourced independently.",
+      "source": {
+        "anchor": {
+          "concept_id": "Q515",
+          "attributes": [
+            {
+              "key": "official website",
+              "type": "string",
+              "value": "http://www.belfastcity.gov.uk/"
+            },
+            {
+              "key": "population",
+              "type": "quantity",
+              "unit": "1",
+              "value": 333871
+            }
+          ]
+        },
+        "incoming_relation": {
+          "predicate": "located in the administrative territorial entity",
+          "concept_id": "Q3918"
+        }
+      },
+      "expected": {
+        "kind": "entity",
+        "entity_ids": [
+          "Q877925"
+        ],
+        "answer": "Queen's University Belfast"
+      },
+      "wording": {
+        "required_templates": [
+          [
+            "segment",
+            "C1"
+          ],
+          [
+            "segment",
+            "whose official website is V1"
+          ],
+          [
+            "segment",
+            "whose population is N1"
+          ],
+          [
+            "fragment",
+            "C1 located in X1"
+          ],
+          [
+            "outer",
+            "which X1"
+          ]
+        ],
+        "absent_canonical_templates": [
+          [
+            "fragment",
+            "C1 located in C2 whose official website is V1 whose population is N1"
+          ],
+          [
+            "whole",
+            "which C1 located in C2 whose official website is V1 whose population is N1"
+          ],
+          [
+            "fragment",
+            "C1 located in C2 whose A1 is V1 whose A2 is N1"
+          ],
+          [
+            "whole",
+            "which C1 located in C2 whose A1 is V1 whose A2 is N1"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "nested_headquarters_city_website_population_bristol",
+      "question": "Which university headquartered in city whose official website is http://www.bristol.gov.uk/ whose population is 442500?",
+      "intended_family": "single_nested",
+      "purpose": "Different learned relation family: headquarters.",
+      "source": {
+        "anchor": {
+          "concept_id": "Q515",
+          "attributes": [
+            {
+              "key": "official website",
+              "type": "string",
+              "value": "http://www.bristol.gov.uk/"
+            },
+            {
+              "key": "population",
+              "type": "quantity",
+              "unit": "1",
+              "value": 442500
+            }
+          ]
+        },
+        "incoming_relation": {
+          "predicate": "headquarters location",
+          "concept_id": "Q3918"
+        }
+      },
+      "expected": {
+        "kind": "entity",
+        "entity_ids": [
+          "Q459506"
+        ],
+        "answer": "University of Bristol"
+      },
+      "wording": {
+        "required_templates": [
+          [
+            "segment",
+            "C1"
+          ],
+          [
+            "segment",
+            "whose official website is V1"
+          ],
+          [
+            "segment",
+            "whose population is N1"
+          ],
+          [
+            "fragment",
+            "C1 headquartered in X1"
+          ],
+          [
+            "outer",
+            "which X1"
+          ]
+        ],
+        "absent_canonical_templates": [
+          [
+            "fragment",
+            "C1 headquartered in C2 whose official website is V1 whose population is N1"
+          ],
+          [
+            "whole",
+            "which C1 headquartered in C2 whose official website is V1 whose population is N1"
+          ],
+          [
+            "fragment",
+            "C1 headquartered in C2 whose A1 is V1 whose A2 is N1"
+          ],
+          [
+            "whole",
+            "which C1 headquartered in C2 whose A1 is V1 whose A2 is N1"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "segment_city_website_population_bristol",
+      "question": "Which city whose official website is http://www.bristol.gov.uk/ whose population is 442500?",
+      "intended_family": "exact_segments",
+      "purpose": "Source anchor also used by the relation/count/ambiguity cases.",
+      "source": {
+        "anchor": {
+          "concept_id": "Q515",
+          "attributes": [
+            {
+              "key": "official website",
+              "type": "string",
+              "value": "http://www.bristol.gov.uk/"
+            },
+            {
+              "key": "population",
+              "type": "quantity",
+              "unit": "1",
+              "value": 442500
+            }
+          ]
+        }
+      },
+      "expected": {
+        "kind": "entity",
+        "entity_ids": [
+          "Q23154"
+        ],
+        "answer": "Bristol"
+      },
+      "wording": {
+        "required_templates": [
+          [
+            "segment",
+            "C1"
+          ],
+          [
+            "segment",
+            "whose official website is V1"
+          ],
+          [
+            "segment",
+            "whose population is N1"
+          ],
+          [
+            "outer",
+            "which X1"
+          ]
+        ],
+        "absent_canonical_templates": [
+          [
+            "fragment",
+            "C1 whose official website is V1 whose population is N1"
+          ],
+          [
+            "whole",
+            "which C1 whose official website is V1 whose population is N1"
+          ],
+          [
+            "fragment",
+            "C1 whose A1 is V1 whose A2 is N1"
+          ],
+          [
+            "whole",
+            "which C1 whose A1 is V1 whose A2 is N1"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "nested_human_count_bristol",
+      "question": "How many humans born in city whose official website is http://www.bristol.gov.uk/ whose population is 442500?",
+      "intended_family": "single_nested",
+      "purpose": "Count all six distinct stored human subjects, rather than selecting one.",
+      "source": {
+        "anchor": {
+          "concept_id": "Q515",
+          "attributes": [
+            {
+              "key": "official website",
+              "type": "string",
+              "value": "http://www.bristol.gov.uk/"
+            },
+            {
+              "key": "population",
+              "type": "quantity",
+              "unit": "1",
+              "value": 442500
+            }
+          ]
+        },
+        "incoming_relation": {
+          "predicate": "place of birth",
+          "concept_id": "Q5"
+        }
+      },
+      "expected": {
+        "kind": "count",
+        "entity_ids": [
+          "Q23814",
+          "Q312124",
+          "Q312693",
+          "Q318263",
+          "Q528200",
+          "Q83410"
+        ],
+        "answer": "6"
+      },
+      "wording": {
+        "required_templates": [
+          [
+            "segment",
+            "C1"
+          ],
+          [
+            "segment",
+            "whose official website is V1"
+          ],
+          [
+            "segment",
+            "whose population is N1"
+          ],
+          [
+            "fragment",
+            "C1 born in X1"
+          ],
+          [
+            "outer",
+            "how many X1"
+          ]
+        ],
+        "absent_canonical_templates": [
+          [
+            "fragment",
+            "C1 born in C2 whose official website is V1 whose population is N1"
+          ],
+          [
+            "whole",
+            "how many C1 born in C2 whose official website is V1 whose population is N1"
+          ],
+          [
+            "fragment",
+            "C1 born in C2 whose A1 is V1 whose A2 is N1"
+          ],
+          [
+            "whole",
+            "how many C1 born in C2 whose A1 is V1 whose A2 is N1"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "ambiguous_human_selection_bristol",
+      "question": "Which human born in city whose official website is http://www.bristol.gov.uk/ whose population is 442500?",
+      "intended_family": "single_nested",
+      "purpose": "The same six source witnesses do not justify a single-person answer.",
+      "source": {
+        "anchor": {
+          "concept_id": "Q515",
+          "attributes": [
+            {
+              "key": "official website",
+              "type": "string",
+              "value": "http://www.bristol.gov.uk/"
+            },
+            {
+              "key": "population",
+              "type": "quantity",
+              "unit": "1",
+              "value": 442500
+            }
+          ]
+        },
+        "incoming_relation": {
+          "predicate": "place of birth",
+          "concept_id": "Q5"
+        }
+      },
+      "expected": {
+        "kind": "decline_ambiguous",
+        "entity_ids": [
+          "Q23814",
+          "Q312124",
+          "Q312693",
+          "Q318263",
+          "Q528200",
+          "Q83410"
+        ],
+        "answer": null
+      },
+      "wording": {
+        "required_templates": [
+          [
+            "segment",
+            "C1"
+          ],
+          [
+            "segment",
+            "whose official website is V1"
+          ],
+          [
+            "segment",
+            "whose population is N1"
+          ],
+          [
+            "fragment",
+            "C1 born in X1"
+          ],
+          [
+            "outer",
+            "which X1"
+          ]
+        ],
+        "absent_canonical_templates": [
+          [
+            "fragment",
+            "C1 born in C2 whose official website is V1 whose population is N1"
+          ],
+          [
+            "whole",
+            "which C1 born in C2 whose official website is V1 whose population is N1"
+          ],
+          [
+            "fragment",
+            "C1 born in C2 whose A1 is V1 whose A2 is N1"
+          ],
+          [
+            "whole",
+            "which C1 born in C2 whose A1 is V1 whose A2 is N1"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "nested_university_count_cardiff",
+      "question": "How many universities headquartered in city whose official website is https://www.cardiff.gov.uk/ whose population is 346100?",
+      "intended_family": "single_nested",
+      "purpose": "Two distinct stored university headquarters share the uniquely anchored city.",
+      "source": {
+        "anchor": {
+          "concept_id": "Q515",
+          "attributes": [
+            {
+              "key": "official website",
+              "type": "string",
+              "value": "https://www.cardiff.gov.uk/"
+            },
+            {
+              "key": "population",
+              "type": "quantity",
+              "unit": "1",
+              "value": 346100
+            }
+          ]
+        },
+        "incoming_relation": {
+          "predicate": "headquarters location",
+          "concept_id": "Q3918"
+        }
+      },
+      "expected": {
+        "kind": "count",
+        "entity_ids": [
+          "Q1035745",
+          "Q1072029"
+        ],
+        "answer": "2"
+      },
+      "wording": {
+        "required_templates": [
+          [
+            "segment",
+            "C1"
+          ],
+          [
+            "segment",
+            "whose official website is V1"
+          ],
+          [
+            "segment",
+            "whose population is N1"
+          ],
+          [
+            "fragment",
+            "C1 headquartered in X1"
+          ],
+          [
+            "outer",
+            "how many X1"
+          ]
+        ],
+        "absent_canonical_templates": [
+          [
+            "fragment",
+            "C1 headquartered in C2 whose official website is V1 whose population is N1"
+          ],
+          [
+            "whole",
+            "how many C1 headquartered in C2 whose official website is V1 whose population is N1"
+          ],
+          [
+            "fragment",
+            "C1 headquartered in C2 whose A1 is V1 whose A2 is N1"
+          ],
+          [
+            "whole",
+            "how many C1 headquartered in C2 whose A1 is V1 whose A2 is N1"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "ambiguous_university_selection_cardiff",
+      "question": "Which university headquartered in city whose official website is https://www.cardiff.gov.uk/ whose population is 346100?",
+      "intended_family": "single_nested",
+      "purpose": "The same source rows require a decline for a single-university question.",
+      "source": {
+        "anchor": {
+          "concept_id": "Q515",
+          "attributes": [
+            {
+              "key": "official website",
+              "type": "string",
+              "value": "https://www.cardiff.gov.uk/"
+            },
+            {
+              "key": "population",
+              "type": "quantity",
+              "unit": "1",
+              "value": 346100
+            }
+          ]
+        },
+        "incoming_relation": {
+          "predicate": "headquarters location",
+          "concept_id": "Q3918"
+        }
+      },
+      "expected": {
+        "kind": "decline_ambiguous",
+        "entity_ids": [
+          "Q1035745",
+          "Q1072029"
+        ],
+        "answer": null
+      },
+      "wording": {
+        "required_templates": [
+          [
+            "segment",
+            "C1"
+          ],
+          [
+            "segment",
+            "whose official website is V1"
+          ],
+          [
+            "segment",
+            "whose population is N1"
+          ],
+          [
+            "fragment",
+            "C1 headquartered in X1"
+          ],
+          [
+            "outer",
+            "which X1"
+          ]
+        ],
+        "absent_canonical_templates": [
+          [
+            "fragment",
+            "C1 headquartered in C2 whose official website is V1 whose population is N1"
+          ],
+          [
+            "whole",
+            "which C1 headquartered in C2 whose official website is V1 whose population is N1"
+          ],
+          [
+            "fragment",
+            "C1 headquartered in C2 whose A1 is V1 whose A2 is N1"
+          ],
+          [
+            "whole",
+            "which C1 headquartered in C2 whose A1 is V1 whose A2 is N1"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "empty_segment_changed_population_bristol",
+      "question": "Which city whose official website is http://www.bristol.gov.uk/ whose population is 442501?",
+      "intended_family": "exact_segments",
+      "purpose": "Source population plus one: explicit negative conjunction, no zero-count answer.",
+      "source": {
+        "anchor": {
+          "concept_id": "Q515",
+          "attributes": [
+            {
+              "key": "official website",
+              "type": "string",
+              "value": "http://www.bristol.gov.uk/"
+            },
+            {
+              "key": "population",
+              "type": "quantity",
+              "unit": "1",
+              "value": 442501
+            }
+          ]
+        }
+      },
+      "expected": {
+        "kind": "decline_empty",
+        "entity_ids": [],
+        "answer": null
+      },
+      "wording": {
+        "required_templates": [
+          [
+            "segment",
+            "C1"
+          ],
+          [
+            "segment",
+            "whose official website is V1"
+          ],
+          [
+            "segment",
+            "whose population is N1"
+          ],
+          [
+            "outer",
+            "which X1"
+          ]
+        ],
+        "absent_canonical_templates": [
+          [
+            "fragment",
+            "C1 whose official website is V1 whose population is N1"
+          ],
+          [
+            "whole",
+            "which C1 whose official website is V1 whose population is N1"
+          ],
+          [
+            "fragment",
+            "C1 whose A1 is V1 whose A2 is N1"
+          ],
+          [
+            "whole",
+            "which C1 whose A1 is V1 whose A2 is N1"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "empty_nested_changed_population_bristol",
+      "question": "How many universities located in city whose official website is http://www.bristol.gov.uk/ whose population is 442501?",
+      "intended_family": "single_nested",
+      "purpose": "An empty inner city fragment cannot become an outer zero count.",
+      "source": {
+        "anchor": {
+          "concept_id": "Q515",
+          "attributes": [
+            {
+              "key": "official website",
+              "type": "string",
+              "value": "http://www.bristol.gov.uk/"
+            },
+            {
+              "key": "population",
+              "type": "quantity",
+              "unit": "1",
+              "value": 442501
+            }
+          ]
+        },
+        "incoming_relation": {
+          "predicate": "located in the administrative territorial entity",
+          "concept_id": "Q3918"
+        }
+      },
+      "expected": {
+        "kind": "decline_empty",
+        "entity_ids": [],
+        "answer": null
+      },
+      "wording": {
+        "required_templates": [
+          [
+            "segment",
+            "C1"
+          ],
+          [
+            "segment",
+            "whose official website is V1"
+          ],
+          [
+            "segment",
+            "whose population is N1"
+          ],
+          [
+            "fragment",
+            "C1 located in X1"
+          ],
+          [
+            "outer",
+            "how many X1"
+          ]
+        ],
+        "absent_canonical_templates": [
+          [
+            "fragment",
+            "C1 located in C2 whose official website is V1 whose population is N1"
+          ],
+          [
+            "whole",
+            "how many C1 located in C2 whose official website is V1 whose population is N1"
+          ],
+          [
+            "fragment",
+            "C1 located in C2 whose A1 is V1 whose A2 is N1"
+          ],
+          [
+            "whole",
+            "how many C1 located in C2 whose A1 is V1 whose A2 is N1"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "empty_segment_conflicting_city_anchors",
+      "question": "Which city whose official website is http://www.saskatoon.ca/ whose population is 442500?",
+      "intended_family": "exact_segments",
+      "purpose": "Saskatoon website combined with Bristol population; independently empty in the pinned store.",
+      "source": {
+        "anchor": {
+          "concept_id": "Q515",
+          "attributes": [
+            {
+              "key": "official website",
+              "type": "string",
+              "value": "http://www.saskatoon.ca/"
+            },
+            {
+              "key": "population",
+              "type": "quantity",
+              "unit": "1",
+              "value": 442500
+            }
+          ]
+        }
+      },
+      "expected": {
+        "kind": "decline_empty",
+        "entity_ids": [],
+        "answer": null
+      },
+      "wording": {
+        "required_templates": [
+          [
+            "segment",
+            "C1"
+          ],
+          [
+            "segment",
+            "whose official website is V1"
+          ],
+          [
+            "segment",
+            "whose population is N1"
+          ],
+          [
+            "outer",
+            "which X1"
+          ]
+        ],
+        "absent_canonical_templates": [
+          [
+            "fragment",
+            "C1 whose official website is V1 whose population is N1"
+          ],
+          [
+            "whole",
+            "which C1 whose official website is V1 whose population is N1"
+          ],
+          [
+            "fragment",
+            "C1 whose A1 is V1 whose A2 is N1"
+          ],
+          [
+            "whole",
+            "which C1 whose A1 is V1 whose A2 is N1"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "empty_parent_headquarters_saskatoon",
+      "question": "How many universities headquartered in city whose official website is http://www.saskatoon.ca/ whose population is 222189?",
+      "intended_family": "single_nested",
+      "purpose": "Nonempty city child, but no stored university headquarters target; empty parent must decline.",
+      "source": {
+        "anchor": {
+          "concept_id": "Q515",
+          "attributes": [
+            {
+              "key": "official website",
+              "type": "string",
+              "value": "http://www.saskatoon.ca/"
+            },
+            {
+              "key": "population",
+              "type": "quantity",
+              "unit": "1",
+              "value": 222189
+            }
+          ]
+        },
+        "incoming_relation": {
+          "predicate": "headquarters location",
+          "concept_id": "Q3918"
+        }
+      },
+      "expected": {
+        "kind": "decline_empty",
+        "entity_ids": [],
+        "answer": null
+      },
+      "wording": {
+        "required_templates": [
+          [
+            "segment",
+            "C1"
+          ],
+          [
+            "segment",
+            "whose official website is V1"
+          ],
+          [
+            "segment",
+            "whose population is N1"
+          ],
+          [
+            "fragment",
+            "C1 headquartered in X1"
+          ],
+          [
+            "outer",
+            "how many X1"
+          ]
+        ],
+        "absent_canonical_templates": [
+          [
+            "fragment",
+            "C1 headquartered in C2 whose official website is V1 whose population is N1"
+          ],
+          [
+            "whole",
+            "how many C1 headquartered in C2 whose official website is V1 whose population is N1"
+          ],
+          [
+            "fragment",
+            "C1 headquartered in C2 whose A1 is V1 whose A2 is N1"
+          ],
+          [
+            "whole",
+            "how many C1 headquartered in C2 whose A1 is V1 whose A2 is N1"
+          ]
+        ]
+      }
+    }
+  ]
+}
