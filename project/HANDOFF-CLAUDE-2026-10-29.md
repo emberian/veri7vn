@@ -1,5 +1,13 @@
 # Claude handoff — 29 October 2026
 
+> Taken up by Claude root the same day. The current state is the evening
+> checkpoint in [NATIVE-EXPANSION-2026-10-29.md](NATIVE-EXPANSION-2026-10-29.md)
+> and the review in [DIRECTION-2026-10-29.md](DIRECTION-2026-10-29.md). Of the
+> items below: the prototypes are compiled and tested; the storage remedy is
+> written and qualified on macOS; the plural patch's tests ran; the diagnostic
+> hunks are removed; the logic crate is hosted. The text below is the morning
+> state and is kept as written.
+
 Ember asked for a fresh turn from Claude. The task is to make Oracle7/veri7vn
 useful as a fast shared service and broaden its reasoning capabilities. Do not
 let the next four reader cases become the whole project. Ember's latest request

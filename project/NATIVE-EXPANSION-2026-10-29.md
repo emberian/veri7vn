@@ -7,7 +7,34 @@ for everything shipped. Preserve the distinction between computed, checked,
 sourced, numerical and theorem-backed claims. Ordinary committed checkpoints
 and an upstream issue/PR update are authorized.
 
-## Current checkpoint — 29 October, after `259d7b9`
+## Checkpoint — 29 October evening, Claude root
+
+Root's review and the day's lanes are in [DIRECTION-2026-10-29.md](DIRECTION-2026-10-29.md).
+What changed since the morning handoff:
+
+| Work | Result | Record |
+| --- | --- | --- |
+| Four design prototypes | Compile, lint clean, 40 tests pass on macOS; caveats rewritten | [receipt](../native/evidence/2026-10-29-experiments-execution.json) |
+| Plural-first reader patch | Unpatched source fails exactly the two predicted tests, patched passes all eight | [receipt](../native/evidence/2026-10-29-plural-first-regressions.json) |
+| Upstream control on the 116 reader questions | Native 36/4/60/0 against Reader7 alone 32 or 37 with 0 wrong; the shipped Engine answers none in gold form | [receipt](../native/evidence/2026-10-29-upstream-reader-control.json) |
+| Composition storage (O1) | Readings live in a request-local arena; the four byte errors are gone, one new correct answer, two new expected declines, zero wrong; peak accounting 46% of the envelope | [receipt](../native/evidence/2026-10-29-composition-arena.json) |
+| Scalar query demand (O2) | Viability asks SQLite for existence instead of fetching every reply; answers identical; no speedup established in debug builds | [receipt](../native/evidence/2026-10-29-scalar-output.json) |
+| Hosted logic (O3) | `logic.query` and `logic.enumerate` as the optional `logic` profile with an operator-admitted, hash-pinned clingo | [receipt](../native/evidence/2026-10-29-logic-hosted.json) |
+| Rational formulas (O4) | `algebra.simplify_rational` with a replayed proof and domain obligations; agrees with the densities specialist on three items | [receipt](../native/evidence/2026-10-29-rational-formulas.json) |
+
+Combined qualification of the merged tree on macOS and the Linux receipt on hbox
+are in progress (lane S4). The temporary diagnostic instrumentation is removed;
+its snapshots stay under `var/composition-byte-four-20261029/`. The macOS
+extension links for the first time (`native/.cargo/config.toml`). The
+16-case cohort now stands at 2 correct, 6 expected declines, 8 unanswered with
+the learned-form conflict, 0 wrong, 0 errors on macOS debug builds, pending Linux.
+
+Next in order: Linux receipt and package refresh; reader retrain with the plural
+patch and the code-only, data-only, combined comparison; organ folders for the
+graph, statistics and chemistry operations so native work earns panel numbers;
+the native front door with the Python Engine as a contained worker.
+
+## Morning checkpoint — 29 October, after `259d7b9` (superseded above)
 
 This page tracks current work. Detailed measurements are linked below.
 The native service now has a relocatable Linux package, optional durable runtime
