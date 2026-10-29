@@ -52,9 +52,23 @@ not prove the caller's physical model.
 6. Continue the [complete native runtime](lanes/NATIVE-FOUNDATION-2026-10-28.md):
    compositional language, route ordering, dialogue adapters, effect executors,
    durable retention/migration and full-resource profiles remain unfinished.
-7. Publish the tested branch cut and measured scope on upstream appliance #5;
-   propose small optional-backend/provider contributions with reproducible cases,
-   unaffected-head controls and explicit implementation/data versions.
+7. Follow up on the published upstream checkpoint with small optional-backend/
+   provider contributions, reproducible cases, unaffected-head controls and
+   explicit implementation/data versions.
+
+## Upstream and active second batch
+
+Checkpoint `b6481309b776407b0791ea1546cce58e16c5a7db` is committed and pushed.
+Posted a substantive update to [upstream appliance discussion #5](https://huggingface.co/psiloceyeben/oracle7-slim/discussions/5)
+on 29 October (comment `6ae2cd22050e230f92d13066`), linking the exact commit,
+integration program and validation, including both performance results and
+unfinished hosting boundaries. No PR or upstream merge is implied.
+
+Four implementation lanes are active after that checkpoint: demand-driven
+incremental views and bounded fresh execution; a supplied thermal-network model
+using the scientific solver; the external extracted MST certificate interface;
+and a globally bounded native-provider process pool. Root integrates and runs
+central checks. Their unfinished source is not qualified by the first receipt.
 
 The first Sol batch owned incremental reasoning, scientific solving, dimensional
 symbolics and the host adapter. Root owned graph/algebra, interfaces, centralized
