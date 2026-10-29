@@ -151,18 +151,21 @@ def load_module(path, name):
 
 
 class Operations:
-    """Construct and call only on the same thread that owns Engine's runtime."""
-    def __init__(self, engine, config):
+    """Construct and call on the host's owner thread; Engine is optional."""
+    def __init__(self, engine, config, *, providers=()):
         self.engine, self.config = engine, config
         self.items, self.calls, self.organs = {}, {}, {}
         self.root = config.data_root / "specialists"
-        if not hasattr(engine, "_rt"):
-            return  # transport-test fake launchers have no runtime registrations
-        self._specialists()
-        self._numeric()
-        self._core()
-        self._extensions()
-        self._declarations()
+        if hasattr(engine, "_rt"):
+            self._specialists()
+            self._numeric()
+            self._core()
+            self._extensions()
+            self._declarations()
+        # Host-created providers can serve without constructing a Python Engine.
+        # This parameter is not populated from caller arguments or module paths.
+        for provider in providers:
+            self.register_provider(provider)
 
     def add(self, item, call=None):
         item["transport_limits"] = {"request_body_bytes": getattr(self.config, "max_request_bytes", 16384),
@@ -404,16 +407,19 @@ class Operations:
                 self.add(descriptor("provider." + class_name, class_name, unavailable_reason="provider_load_failed",
                                     error_type=type(error).__name__, limitations=["Optional provider failed to load; unrelated operations remain available."]))
                 continue
-            for declaration in declarations:
-                item = descriptor(declaration["id"], declaration.get("name", declaration["id"]), **{k: v for k, v in declaration.items() if k not in ("id", "name")})
-                def invoke_provider(args, session, provider=provider, op_id=item["id"]):
-                    try:
-                        return provider.invoke(op_id, args)
-                    except ValueError as error:
-                        # Provider contract: ValueError is bounded input validation,
-                        # before capability work, never a deliberate domain refusal.
-                        raise OperationError("invalid_arguments", 400) from error
-                self.add(item, invoke_provider if item["availability"] == "live_direct" else None)
+            self.register_provider(provider, declarations=declarations)
+
+    def register_provider(self, provider, *, declarations=None):
+        """Register an already constructed, operator-selected provider."""
+        for declaration in provider.catalog() if declarations is None else declarations:
+            item = descriptor(declaration["id"], declaration.get("name", declaration["id"]), **{k: v for k, v in declaration.items() if k not in ("id", "name")})
+            def invoke_provider(args, session, provider=provider, op_id=item["id"]):
+                try:
+                    return provider.invoke(op_id, args)
+                except ValueError as error:
+                    # Pre-work validation, not a deliberate domain refusal.
+                    raise OperationError("invalid_arguments", 400) from error
+            self.add(item, invoke_provider if item["availability"] == "live_direct" else None)
 
     def _declarations(self):
         # These are visible boundaries, not callable filesystem/network powers.

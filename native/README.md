@@ -1,5 +1,10 @@
 # Shared native Oracle foundation
 
+The [native integration program](docs/INTEGRATIONS.md) adds optional graph,
+symbolic/dimensional, scientific and incremental-reasoning providers. They have
+Rust libraries, CLIs and feature-gated PyO3 calls; their experimental status and
+remaining hosted boundaries are explicit.
+
 This is the Rust and PyO3 foundation for the next Oracle appliance. It builds a
 release's knowledge base once, executes structured query plans over shared
 indexes, and persists a conversation's selection and exact replies together.

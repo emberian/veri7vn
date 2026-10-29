@@ -1,6 +1,10 @@
 #![forbid(unsafe_code)]
 use oracle_runtime_core as core;
 mod kernel;
+#[cfg(any(feature = "science", feature = "incremental"))]
+mod providers;
+#[cfg(feature = "reasoning")]
+mod reasoning;
 mod release;
 use pyo3::exceptions::{PyRuntimeError, PyValueError};
 use pyo3::prelude::*;
@@ -276,6 +280,10 @@ fn operation_catalog() -> PyResult<String> {
 
 #[pymodule]
 fn oracle_native(py: Python<'_>, module: &Bound<'_, PyModule>) -> PyResult<()> {
+    #[cfg(any(feature = "science", feature = "incremental"))]
+    providers::register(module)?;
+    #[cfg(feature = "reasoning")]
+    reasoning::register(module)?;
     kernel::register(module)?;
     module.add_class::<Runtime>()?;
     module.add_class::<Cancellation>()?;

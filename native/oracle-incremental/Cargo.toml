@@ -1,0 +1,16 @@
+[package]
+name = "oracle-incremental"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version = "1.86"
+
+[dependencies]
+differential-dataflow = { version = "=0.25.1", default-features = false }
+timely = { version = "=0.31.0", default-features = false }
+serde.workspace = true
+serde_json.workspace = true
+
+[[bin]]
+name = "oracle-incremental"
+path = "src/main.rs"

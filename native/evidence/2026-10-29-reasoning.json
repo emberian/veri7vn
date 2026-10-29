@@ -1,0 +1,829 @@
+{
+  "schema": "oracle-reasoning-evaluation-v1",
+  "scope": "synthetic supplied-graph and polynomial operations; no full Oracle, panel or hosted-concurrency claim",
+  "platform": "Linux-6.11.0-29-generic-x86_64-with-glibc2.40",
+  "python": "3.12.7",
+  "load_average": [
+    0.60791015625,
+    1.12060546875,
+    1.2490234375
+  ],
+  "extension_sha256": "23011f14f252db7c3f9d397edea3e126472287ffd38da8713166e98d6bae6280",
+  "catalog": {
+    "assurance": "independent Rust checks; not Isabelle-verified",
+    "hosting": "pure library/CLI; no Mini registration or hard containment",
+    "limits": {
+      "coefficient_bits": 4096,
+      "edges": 100000,
+      "egraph_nodes": 10000,
+      "expression_depth": 32,
+      "expression_nodes": 128,
+      "iterations": 12,
+      "polynomial_terms": 512,
+      "polynomial_work": 1000000,
+      "request_bytes": 4194304,
+      "search_ms": 50,
+      "vertices": 10000
+    },
+    "operations": [
+      {
+        "arguments": {
+          "edges": "list of [source, target, weight]; edge ID is list position",
+          "vertices": "nonnegative integer; vertex IDs are 0..vertices-1"
+        },
+        "domain": "supplied undirected multigraph, exact i64 edge weights",
+        "id": "graph.minimum_spanning_forest"
+      },
+      {
+        "arguments": {
+          "expression": "prefix expression: i64 literals, ASCII variables, binary + - *; no division or floating-point semantics"
+        },
+        "domain": "dimensionless commutative polynomials with integer coefficients",
+        "id": "algebra.optimize_polynomial"
+      },
+      {
+        "arguments": {
+          "expression": "prefix expression",
+          "output_dimension": "optional seven SI integer exponents",
+          "variables": "list of {name, dimension: seven SI integer exponents, kind?: linear|affine}; affine refused"
+        },
+        "dimension_order": [
+          "length",
+          "mass",
+          "time",
+          "electric_current",
+          "temperature",
+          "amount",
+          "luminous_intensity"
+        ],
+        "domain": "exact polynomials over normalized linear SI quantities; dimensions checked, physical law not established",
+        "id": "algebra.optimize_dimensional_polynomial",
+        "max_exponent": 64
+      }
+    ],
+    "schema": "oracle-reasoning-experimental-v1"
+  },
+  "memory_before_kib": {
+    "Rss": 20952,
+    "Pss": 15525,
+    "Private_Clean": 6216,
+    "Private_Dirty": 8464
+  },
+  "graphs": [
+    {
+      "vertices": 256,
+      "edges": 1024,
+      "request_sha256": "0477bd7df7169e03e48509e57ee63c59d4372bae2a5d025492b0f4318eff2dfb",
+      "reference": "independent Python heap-based Prim; includes JSON decode, no certificate check",
+      "native": "petgraph Kruskal plus independent cycle-optimality check; includes JSON decode/encode and PyO3",
+      "reference_time": {
+        "milliseconds": [
+          1.021245,
+          0.518317,
+          0.510881,
+          0.513711,
+          0.504711,
+          0.504601,
+          0.499581
+        ],
+        "median_ms": 0.510881
+      },
+      "native_time": {
+        "milliseconds": [
+          0.232218,
+          0.194332,
+          0.181059,
+          0.175719,
+          0.171691,
+          0.17341,
+          0.170269
+        ],
+        "median_ms": 0.175719
+      },
+      "native_phase_median_us": {
+        "build_us": 3,
+        "search_us": 65,
+        "check_us": 46
+      },
+      "all_matches": true,
+      "total_weight": "-180838"
+    },
+    {
+      "vertices": 4096,
+      "edges": 16384,
+      "request_sha256": "5baa119ad1995e1e38b6cb0ef44348eec9742bb78721bb3847e97359d5992a00",
+      "reference": "independent Python heap-based Prim; includes JSON decode, no certificate check",
+      "native": "petgraph Kruskal plus independent cycle-optimality check; includes JSON decode/encode and PyO3",
+      "reference_time": {
+        "milliseconds": [
+          14.994748,
+          16.225459,
+          14.232775,
+          13.784767,
+          15.944238,
+          14.796265,
+          17.995185
+        ],
+        "median_ms": 14.994748
+      },
+      "native_time": {
+        "milliseconds": [
+          4.391605,
+          3.909708,
+          3.88416,
+          3.87846,
+          3.838657,
+          3.888383,
+          3.850166
+        ],
+        "median_ms": 3.88416
+      },
+      "native_phase_median_us": {
+        "build_us": 57,
+        "search_us": 1673,
+        "check_us": 1317
+      },
+      "all_matches": true,
+      "total_weight": "-2898344"
+    }
+  ],
+  "algebra": [
+    {
+      "name": "common_factor",
+      "input": "(+ (* x y) (* x z))",
+      "timing": {
+        "milliseconds": [
+          0.651538,
+          0.061101,
+          0.063469,
+          0.046032,
+          0.045,
+          0.043418,
+          0.041417
+        ],
+        "median_ms": 0.046032
+      },
+      "result": {
+        "check": "independent exact integer-polynomial normalization in Rust; not an Isabelle proof",
+        "check_us": 1,
+        "cost_model": "tree cost: multiply=4, other nodes=1; not measured runtime or global optimality",
+        "egraph_nodes": 13,
+        "expression": "(* x (+ y z))",
+        "iterations": 3,
+        "normalize_us": 2,
+        "original_cost": 13,
+        "polynomial_terms": 2,
+        "schema": "oracle-polynomial-optimization-v1",
+        "search_stop": "Some(Saturated)",
+        "search_us": 29,
+        "selected_cost": 8
+      },
+      "all_integer_probes_match": true,
+      "phase_median_us": {
+        "normalize_us": 2,
+        "search_us": 32,
+        "check_us": 2
+      }
+    },
+    {
+      "name": "coupled_balance",
+      "input": "(+ (+ (* a x) (* a y)) (+ (* b x) (* b y)))",
+      "timing": {
+        "milliseconds": [
+          0.186498,
+          0.158147,
+          0.151867,
+          0.145129,
+          0.143801,
+          0.146968,
+          0.152613
+        ],
+        "median_ms": 0.151867
+      },
+      "result": {
+        "check": "independent exact integer-polynomial normalization in Rust; not an Isabelle proof",
+        "check_us": 3,
+        "cost_model": "tree cost: multiply=4, other nodes=1; not measured runtime or global optimality",
+        "egraph_nodes": 83,
+        "expression": "(* (+ x y) (+ a b))",
+        "iterations": 7,
+        "normalize_us": 5,
+        "original_cost": 27,
+        "polynomial_terms": 4,
+        "schema": "oracle-polynomial-optimization-v1",
+        "search_stop": "Some(Saturated)",
+        "search_us": 132,
+        "selected_cost": 10
+      },
+      "all_integer_probes_match": true,
+      "phase_median_us": {
+        "normalize_us": 5,
+        "search_us": 130,
+        "check_us": 3
+      }
+    },
+    {
+      "name": "difference_of_squares",
+      "input": "(* (+ x 1) (- x 1))",
+      "timing": {
+        "milliseconds": [
+          0.374944,
+          0.354614,
+          0.34828,
+          0.353908,
+          0.349002,
+          0.349794,
+          0.358379
+        ],
+        "median_ms": 0.353908
+      },
+      "result": {
+        "check": "independent exact integer-polynomial normalization in Rust; not an Isabelle proof",
+        "check_us": 2,
+        "cost_model": "tree cost: multiply=4, other nodes=1; not measured runtime or global optimality",
+        "egraph_nodes": 217,
+        "expression": "(* (+ x 1) (+ x -1))",
+        "iterations": 10,
+        "normalize_us": 2,
+        "original_cost": 10,
+        "polynomial_terms": 2,
+        "schema": "oracle-polynomial-optimization-v1",
+        "search_stop": "Some(Saturated)",
+        "search_us": 340,
+        "selected_cost": 10
+      },
+      "all_integer_probes_match": true,
+      "phase_median_us": {
+        "normalize_us": 3,
+        "search_us": 334,
+        "check_us": 3
+      }
+    },
+    {
+      "name": "cancellation",
+      "input": "(- (+ (* x y) z) (+ z (* y x)))",
+      "timing": {
+        "milliseconds": [
+          0.145097,
+          0.133674,
+          0.121827,
+          0.118089,
+          0.114847,
+          0.114154,
+          0.114754
+        ],
+        "median_ms": 0.118089
+      },
+      "result": {
+        "check": "independent exact integer-polynomial normalization in Rust; not an Isabelle proof",
+        "check_us": 0,
+        "cost_model": "tree cost: multiply=4, other nodes=1; not measured runtime or global optimality",
+        "egraph_nodes": 88,
+        "expression": "0",
+        "iterations": 7,
+        "normalize_us": 4,
+        "original_cost": 17,
+        "polynomial_terms": 0,
+        "schema": "oracle-polynomial-optimization-v1",
+        "search_stop": "Some(Saturated)",
+        "search_us": 100,
+        "selected_cost": 1
+      },
+      "all_integer_probes_match": true,
+      "phase_median_us": {
+        "normalize_us": 4,
+        "search_us": 103,
+        "check_us": 0
+      }
+    },
+    {
+      "name": "heat_difference_shape",
+      "input": "(- (* m (* c hot)) (* m (* c cold)))",
+      "timing": {
+        "milliseconds": [
+          0.161238,
+          0.143769,
+          0.137044,
+          0.130485,
+          0.128846,
+          0.125236,
+          0.13343
+        ],
+        "median_ms": 0.13343
+      },
+      "result": {
+        "check": "independent exact integer-polynomial normalization in Rust; not an Isabelle proof",
+        "check_us": 3,
+        "cost_model": "tree cost: multiply=4, other nodes=1; not measured runtime or global optimality",
+        "egraph_nodes": 91,
+        "expression": "(* (* m c) (+ hot (* cold -1)))",
+        "iterations": 7,
+        "normalize_us": 3,
+        "original_cost": 23,
+        "polynomial_terms": 2,
+        "schema": "oracle-polynomial-optimization-v1",
+        "search_stop": "Some(Saturated)",
+        "search_us": 115,
+        "selected_cost": 18
+      },
+      "all_integer_probes_match": true,
+      "phase_median_us": {
+        "normalize_us": 4,
+        "search_us": 115,
+        "check_us": 3
+      }
+    },
+    {
+      "name": "cost_balance_shape",
+      "input": "(+ (* price count_a) (* price count_b))",
+      "timing": {
+        "milliseconds": [
+          0.054047,
+          0.047106,
+          0.042317,
+          0.042374,
+          0.040278,
+          0.040614,
+          0.039281
+        ],
+        "median_ms": 0.042317
+      },
+      "result": {
+        "check": "independent exact integer-polynomial normalization in Rust; not an Isabelle proof",
+        "check_us": 1,
+        "cost_model": "tree cost: multiply=4, other nodes=1; not measured runtime or global optimality",
+        "egraph_nodes": 13,
+        "expression": "(* price (+ count_a count_b))",
+        "iterations": 3,
+        "normalize_us": 2,
+        "original_cost": 13,
+        "polynomial_terms": 2,
+        "schema": "oracle-polynomial-optimization-v1",
+        "search_stop": "Some(Saturated)",
+        "search_us": 28,
+        "selected_cost": 8
+      },
+      "all_integer_probes_match": true,
+      "phase_median_us": {
+        "normalize_us": 2,
+        "search_us": 29,
+        "check_us": 2
+      }
+    }
+  ],
+  "binding_invalid_cases_rejected": 4,
+  "host_adapter": {
+    "scope": "real Operations registry and native extension, no Engine, HTTP or Mini authentication",
+    "operations": [
+      {
+        "id": "graph.minimum_spanning_forest",
+        "reply": {
+          "status": "answered",
+          "operation_id": "graph.minimum_spanning_forest",
+          "result": {
+            "build_us": 0,
+            "check": "independent Rust forest coverage and cycle-optimality check; not an Isabelle certificate",
+            "check_us": 1,
+            "components": 1,
+            "connected": true,
+            "edge_ids": [
+              0,
+              1
+            ],
+            "schema": "oracle-minimum-spanning-forest-v1",
+            "search_us": 1,
+            "total_weight": "2"
+          },
+          "runtime_identity": "23011f14f252db7c3f9d397edea3e126472287ffd38da8713166e98d6bae6280",
+          "authority": "computation_only"
+        }
+      },
+      {
+        "id": "algebra.optimize_polynomial",
+        "reply": {
+          "status": "answered",
+          "operation_id": "algebra.optimize_polynomial",
+          "result": {
+            "check": "independent exact integer-polynomial normalization in Rust; not an Isabelle proof",
+            "check_us": 3,
+            "cost_model": "tree cost: multiply=4, other nodes=1; not measured runtime or global optimality",
+            "egraph_nodes": 13,
+            "expression": "(* x (+ y z))",
+            "iterations": 3,
+            "normalize_us": 6,
+            "original_cost": 13,
+            "polynomial_terms": 2,
+            "schema": "oracle-polynomial-optimization-v1",
+            "search_stop": "Some(Saturated)",
+            "search_us": 50,
+            "selected_cost": 8
+          },
+          "runtime_identity": "23011f14f252db7c3f9d397edea3e126472287ffd38da8713166e98d6bae6280",
+          "authority": "computation_only"
+        }
+      },
+      {
+        "id": "algebra.optimize_dimensional_polynomial",
+        "reply": {
+          "status": "answered",
+          "operation_id": "algebra.optimize_dimensional_polynomial",
+          "result": {
+            "check": "independent exact integer-polynomial normalization in Rust; not an Isabelle proof",
+            "check_us": 2,
+            "cost_model": "tree cost: multiply=4, other nodes=1; not measured runtime or global optimality",
+            "dimension_check": "original and selected expressions checked with exact SI exponents; numerical zero may take the required dimension; variable-bearing zero retains its dimension",
+            "dimension_order": [
+              "length",
+              "mass",
+              "time",
+              "electric_current",
+              "temperature",
+              "amount",
+              "luminous_intensity"
+            ],
+            "egraph_nodes": 13,
+            "expression": "(* m (+ a b))",
+            "iterations": 3,
+            "normalize_us": 3,
+            "original_cost": 13,
+            "output_dimension": [
+              1,
+              1,
+              -2,
+              0,
+              0,
+              0,
+              0
+            ],
+            "polynomial_terms": 2,
+            "schema": "oracle-dimensional-polynomial-optimization-v1",
+            "search_stop": "Some(Saturated)",
+            "search_us": 42,
+            "selected_cost": 8,
+            "selection_fallback": null,
+            "unit_convention": "variables denote coherent linear SI quantities; scale/affine conversion is external; dimensional consistency does not establish a physical law or floating-point equality"
+          },
+          "runtime_identity": "23011f14f252db7c3f9d397edea3e126472287ffd38da8713166e98d6bae6280",
+          "authority": "computation_only"
+        }
+      }
+    ]
+  },
+  "scientific_bindings": [
+    {
+      "example": "heat-balance.json",
+      "reply": {
+        "schema": "oracle-science-experimental-v1",
+        "assurance": "experimental floating-point computation; not formally verified",
+        "operation": "solve_linear",
+        "outcome": "consistent_unique_within_tolerance",
+        "candidate": [
+          9.999999999999998,
+          9.999999999999998
+        ],
+        "candidate_interpretation": "numerical solution within declared tolerance",
+        "diagnostics": {
+          "rows": 2,
+          "columns": 2,
+          "numerical_rank": 2,
+          "nullity": 0,
+          "rank_cutoff_scaled": 1.2060113295832981e-12,
+          "singular_values_scaled": [
+            1.2060113295832982,
+            0.4606553370833684
+          ],
+          "matrix_scale": 3.0,
+          "rhs_scale": 20.0,
+          "condition_number_2": 2.6180339887498945,
+          "retained_condition_number_2": 2.6180339887498945,
+          "equations_consistent_within_tolerance": true,
+          "residuals": [
+            -5.329070518200751e-15,
+            -1.7763568394002505e-15
+          ],
+          "residual_l2_over_rhs_scale": 2.808666774861361e-16,
+          "componentwise_backward_error": 8.881784197001253e-17,
+          "maximum_row_backward_errors": [
+            8.881784197001253e-17,
+            4.440892098500627e-17
+          ],
+          "normal_equation_gradient_scaled": [
+            -2.3684757858670006e-16,
+            2.96059473233375e-17
+          ],
+          "candidate_l2": 14.142135623730947,
+          "svd_scratch_bytes": 1088,
+          "work_estimate": 8,
+          "threads": 1
+        },
+        "model": {
+          "description": "two steady thermal nodes relative to a fixed reference",
+          "variable_units": [
+            "K interval",
+            "K interval"
+          ],
+          "row_units": [
+            "W",
+            "W"
+          ],
+          "normalization": "both balance rows are expressed in watts",
+          "assumptions": [
+            "steady state; fixed linear conductances; no unmodeled heat sources"
+          ]
+        },
+        "tolerances": {
+          "rank_relative": 1e-12,
+          "consistency_relative": 1e-10
+        },
+        "warnings": [
+          "Numerical residuals assess the supplied equations, not whether the physical model or observations are true."
+        ]
+      }
+    },
+    {
+      "example": "spring-fit.json",
+      "reply": {
+        "schema": "oracle-science-experimental-v1",
+        "assurance": "experimental floating-point computation; not formally verified",
+        "operation": "least_squares",
+        "outcome": "least_squares_unique_within_rank_policy",
+        "candidate": [
+          0.8333333333333333,
+          1.5
+        ],
+        "candidate_interpretation": "truncated SVD least-squares candidate; not an exact solution claim",
+        "diagnostics": {
+          "rows": 3,
+          "columns": 2,
+          "numerical_rank": 2,
+          "nullity": 0,
+          "rank_cutoff_scaled": 1.3381215994976294e-12,
+          "singular_values_scaled": [
+            1.3381215994976294,
+            0.4576358650257923
+          ],
+          "matrix_scale": 2.0,
+          "rhs_scale": 4.0,
+          "condition_number_2": 2.923987610591257,
+          "retained_condition_number_2": 2.923987610591257,
+          "equations_consistent_within_tolerance": false,
+          "residuals": [
+            -0.16666666666666674,
+            0.33333333333333326,
+            -0.16666666666666674
+          ],
+          "residual_l2_over_rhs_scale": 0.10206207261596575,
+          "componentwise_backward_error": 0.09090909090909095,
+          "maximum_row_backward_errors": [
+            0.09090909090909095,
+            0.07692307692307691,
+            0.02127659574468086
+          ],
+          "normal_equation_gradient_scaled": [
+            -2.7755575615628914e-17,
+            -2.7755575615628914e-17
+          ],
+          "candidate_l2": 1.7159383568311666,
+          "svd_scratch_bytes": 1088,
+          "work_estimate": 12,
+          "threads": 1
+        },
+        "model": {
+          "description": "force = offset + stiffness * displacement; displacements 0, 1, 2 m",
+          "variable_units": [
+            "N",
+            "N/m"
+          ],
+          "row_units": [
+            "N",
+            "N",
+            "N"
+          ],
+          "normalization": "equally weighted force observations in newtons; no rescaling per observation",
+          "assumptions": [
+            "fixed displacement observations; linear spring response; no uncertainty or causal claim"
+          ]
+        },
+        "tolerances": {
+          "rank_relative": 1e-12,
+          "consistency_relative": 1e-10
+        },
+        "warnings": [
+          "Numerical residuals assess the supplied equations, not whether the physical model or observations are true."
+        ]
+      }
+    }
+  ],
+  "incremental_binding": {
+    "result": {
+      "coverage": "only_the_complete_supplied_graph_at_each_version",
+      "epochs": [
+        {
+          "answers": [
+            {
+              "nodes": [
+                0,
+                1,
+                2,
+                3
+              ],
+              "op": "impact"
+            },
+            {
+              "nodes": [
+                0,
+                1,
+                2
+              ],
+              "op": "impact"
+            },
+            {
+              "from": 1,
+              "op": "reachable",
+              "reachable": true,
+              "to": 1
+            },
+            {
+              "from": 0,
+              "op": "reachable",
+              "reachable": false,
+              "to": 99
+            }
+          ],
+          "delta": [
+            {
+              "diff": 1,
+              "from": 0,
+              "to": 1
+            },
+            {
+              "diff": 1,
+              "from": 0,
+              "to": 2
+            },
+            {
+              "diff": 1,
+              "from": 0,
+              "to": 3
+            },
+            {
+              "diff": 1,
+              "from": 1,
+              "to": 1
+            },
+            {
+              "diff": 1,
+              "from": 1,
+              "to": 2
+            },
+            {
+              "diff": 1,
+              "from": 1,
+              "to": 3
+            },
+            {
+              "diff": 1,
+              "from": 2,
+              "to": 1
+            },
+            {
+              "diff": 1,
+              "from": 2,
+              "to": 2
+            },
+            {
+              "diff": 1,
+              "from": 2,
+              "to": 3
+            }
+          ],
+          "distinct_edges": 4,
+          "elapsed_us": 214,
+          "frontier": [
+            11
+          ],
+          "live_facts": 5,
+          "observed_output_events": 9,
+          "reachable_pairs": 9,
+          "settled": true,
+          "version": 10,
+          "worker_steps": 13
+        },
+        {
+          "answers": [
+            {
+              "from": 0,
+              "op": "reachable",
+              "reachable": true,
+              "to": 3
+            }
+          ],
+          "delta": [],
+          "distinct_edges": 4,
+          "elapsed_us": 37,
+          "frontier": [
+            12
+          ],
+          "live_facts": 4,
+          "observed_output_events": 0,
+          "reachable_pairs": 9,
+          "settled": true,
+          "version": 11,
+          "worker_steps": 3
+        },
+        {
+          "answers": [
+            {
+              "from": 0,
+              "op": "reachable",
+              "reachable": false,
+              "to": 3
+            },
+            {
+              "from": 1,
+              "op": "reachable",
+              "reachable": true,
+              "to": 3
+            }
+          ],
+          "delta": [
+            {
+              "diff": -1,
+              "from": 0,
+              "to": 1
+            },
+            {
+              "diff": -1,
+              "from": 0,
+              "to": 2
+            },
+            {
+              "diff": -1,
+              "from": 0,
+              "to": 3
+            }
+          ],
+          "distinct_edges": 3,
+          "elapsed_us": 122,
+          "frontier": [
+            16
+          ],
+          "live_facts": 3,
+          "observed_output_events": 3,
+          "reachable_pairs": 6,
+          "settled": true,
+          "version": 15,
+          "worker_steps": 13
+        },
+        {
+          "answers": [
+            {
+              "from": 1,
+              "op": "reachable",
+              "reachable": false,
+              "to": 1
+            }
+          ],
+          "delta": [
+            {
+              "diff": -1,
+              "from": 1,
+              "to": 1
+            },
+            {
+              "diff": -1,
+              "from": 2,
+              "to": 1
+            },
+            {
+              "diff": -1,
+              "from": 2,
+              "to": 2
+            }
+          ],
+          "distinct_edges": 2,
+          "elapsed_us": 102,
+          "frontier": [
+            21
+          ],
+          "live_facts": 2,
+          "observed_output_events": 3,
+          "reachable_pairs": 3,
+          "settled": true,
+          "version": 20,
+          "worker_steps": 11
+        }
+      ],
+      "evidence": "unverified_rust_computation",
+      "provider": "differential_dataflow_0.25.1",
+      "scope": "lesson-revision/supplied-demo"
+    },
+    "status": "ok"
+  },
+  "memory_after_kib": {
+    "Rss": 34628,
+    "Pss": 27320,
+    "Private_Clean": 4592,
+    "Private_Dirty": 20088
+  }
+}

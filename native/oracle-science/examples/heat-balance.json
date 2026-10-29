@@ -1,0 +1,14 @@
+{
+  "operation": "science.solve_linear",
+  "arguments": {
+    "matrix": [[3, -1], [-1, 2]],
+    "rhs": [20, 10],
+    "model": {
+      "description": "two steady thermal nodes relative to a fixed reference",
+      "variable_units": ["K interval", "K interval"],
+      "row_units": ["W", "W"],
+      "normalization": "both balance rows are expressed in watts",
+      "assumptions": ["steady state; fixed linear conductances; no unmodeled heat sources"]
+    }
+  }
+}

@@ -1,0 +1,118 @@
+{
+  "date": "2026-10-29",
+  "scope": "optional experimental providers, actual combined PyO3 binding and host operation registry; no new specialist-panel/theorem/hosted Mini claim",
+  "source_digest_scheme": "sha256 sorted repository-relative code path + NUL + bytes + NUL; native .rs/.py/.toml/.lock and named host Python files",
+  "source_sha256": "3fee01eb156152f878df7d1227e561a2b8d2f0e82c718ebd02d514cef2b7c0d7",
+  "source_files": [
+    "native/Cargo.lock",
+    "native/Cargo.toml",
+    "native/oracle-core/Cargo.toml",
+    "native/oracle-core/src/admission.rs",
+    "native/oracle-core/src/bin/oracle-image.rs",
+    "native/oracle-core/src/budget.rs",
+    "native/oracle-core/src/effects.rs",
+    "native/oracle-core/src/grammar.rs",
+    "native/oracle-core/src/image.rs",
+    "native/oracle-core/src/kernel.rs",
+    "native/oracle-core/src/lexicon.rs",
+    "native/oracle-core/src/lib.rs",
+    "native/oracle-core/src/program.rs",
+    "native/oracle-core/src/query.rs",
+    "native/oracle-core/src/reader.rs",
+    "native/oracle-core/src/release.rs",
+    "native/oracle-core/src/runtime/host_effects.rs",
+    "native/oracle-core/src/runtime.rs",
+    "native/oracle-core/src/session.rs",
+    "native/oracle-core/src/value.rs",
+    "native/oracle-core/tests/admission_contract.rs",
+    "native/oracle-core/tests/effects_contract.rs",
+    "native/oracle-core/tests/grammar_contract.rs",
+    "native/oracle-core/tests/kernel_contract.rs",
+    "native/oracle-core/tests/lexicon_contract.rs",
+    "native/oracle-core/tests/predicate_contract.rs",
+    "native/oracle-core/tests/program_contract.rs",
+    "native/oracle-core/tests/reader_contract.rs",
+    "native/oracle-core/tests/release_contract.rs",
+    "native/oracle-core/tests/runtime_contract.rs",
+    "native/oracle-core/tests/runtime_effects_contract.rs",
+    "native/oracle-core/tests/runtime_release_contract.rs",
+    "native/oracle-core/tests/runtime_session_contract.rs",
+    "native/oracle-core/tests/session_contract.rs",
+    "native/oracle-core/tests/value_contract.rs",
+    "native/oracle-incremental/Cargo.toml",
+    "native/oracle-incremental/src/lib.rs",
+    "native/oracle-incremental/src/main.rs",
+    "native/oracle-incremental/tests/semantics.rs",
+    "native/oracle-python/Cargo.toml",
+    "native/oracle-python/src/kernel.rs",
+    "native/oracle-python/src/lib.rs",
+    "native/oracle-python/src/providers.rs",
+    "native/oracle-python/src/reasoning.rs",
+    "native/oracle-python/src/release.rs",
+    "native/oracle-reasoning/Cargo.toml",
+    "native/oracle-reasoning/src/algebra.rs",
+    "native/oracle-reasoning/src/dimensions.rs",
+    "native/oracle-reasoning/src/graph.rs",
+    "native/oracle-reasoning/src/lib.rs",
+    "native/oracle-reasoning/src/main.rs",
+    "native/oracle-reasoning/tests/contracts.rs",
+    "native/oracle-reasoning/tests/dimensions_contract.rs",
+    "native/oracle-science/Cargo.toml",
+    "native/oracle-science/src/lib.rs",
+    "native/oracle-science/src/main.rs",
+    "native/oracle-science/tests/contracts.rs",
+    "native/pyproject.toml",
+    "native/tests/qualify.py",
+    "native/tests/qualify_programs.py",
+    "native/tests/qualify_reader.py",
+    "native/tests/qualify_reasoning.py",
+    "native/tests/test_python_contract.py",
+    "native/tests/test_python_program.py",
+    "native/tests/test_python_release.py",
+    "native/tools/export_reader_tables.py",
+    "tools/appliance/operations.py",
+    "tools/oracle_components/reasoning.py",
+    "tools/oracle_components/test_reasoning.py"
+  ],
+  "extension_sha256": "23011f14f252db7c3f9d397edea3e126472287ffd38da8713166e98d6bae6280",
+  "checks": [
+    {
+      "command": "cargo test -p oracle-science -p oracle-incremental -p oracle-reasoning",
+      "rust_passed": 51,
+      "failed": 0
+    },
+    {
+      "command": "cargo clippy --locked -p oracle-science -p oracle-incremental -p oracle-reasoning -p oracle-runtime-python --features oracle-runtime-python/reasoning,oracle-runtime-python/science,oracle-runtime-python/incremental --all-targets -- -D warnings",
+      "result": "passed"
+    },
+    {
+      "command": "test_python_program + test_python_release against actual combined extension; test_python_contract.py with real v3 image through its required CLI",
+      "python_passed": 17,
+      "failed": 0
+    },
+    {
+      "command": "python3 -B -m unittest discover -s tools/oracle_components -p test_reasoning.py",
+      "passed": 16,
+      "failed": 0
+    },
+    {
+      "command": "python3 -B -m unittest discover -s tests/appliance -p test_component_composition.py",
+      "passed": 11,
+      "skipped": 1,
+      "failed": 0
+    }
+  ],
+  "evaluations": [
+    "2026-10-29-reasoning.json",
+    "2026-10-29-incremental.json"
+  ],
+  "repaired_findings": [
+    "serde arbitrary_precision plus tagged float argument decoding: parse RawValue arguments directly",
+    "request variable names must not remain in process-global interned symbols",
+    "dimensional candidate may lose zero type: preserve/recheck original explicitly"
+  ],
+  "negative_results": [
+    "48-node/80-epoch dataflow slower than fresh BFS; retained comparison includes initialization and complete semantic agreement"
+  ],
+  "harness_note": "An initial generic unittest loader omitted the required real-image globals for six old binding tests. Those six were rerun through their documented CLI and all passed."
+}

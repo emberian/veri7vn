@@ -1,0 +1,14 @@
+{
+  "operation": "science.least_squares",
+  "arguments": {
+    "matrix": [[1, 0], [1, 1], [1, 2]],
+    "rhs": [1, 2, 4],
+    "model": {
+      "description": "force = offset + stiffness * displacement; displacements 0, 1, 2 m",
+      "variable_units": ["N", "N/m"],
+      "row_units": ["N", "N", "N"],
+      "normalization": "equally weighted force observations in newtons; no rescaling per observation",
+      "assumptions": ["fixed displacement observations; linear spring response; no uncertainty or causal claim"]
+    }
+  }
+}

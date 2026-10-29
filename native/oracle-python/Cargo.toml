@@ -8,7 +8,15 @@ license.workspace = true
 name = "oracle_native"
 crate-type = ["cdylib"]
 
+[features]
+reasoning = ["dep:oracle-reasoning"]
+science = ["dep:oracle-science"]
+incremental = ["dep:oracle-incremental"]
+
 [dependencies]
 oracle-runtime-core = { path = "../oracle-core" }
+oracle-reasoning = { path = "../oracle-reasoning", optional = true }
+oracle-science = { path = "../oracle-science", optional = true }
+oracle-incremental = { path = "../oracle-incremental", optional = true }
 pyo3 = { version = "0.27.2", features = ["extension-module", "abi3-py312"] }
 serde_json.workspace = true

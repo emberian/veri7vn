@@ -1,0 +1,40 @@
+{
+  "scope": "lesson-revision/supplied-demo",
+  "nodes": [0, 1, 2, 3, 99],
+  "epochs": [
+    {
+      "version": 10,
+      "mutations": [
+        {"op":"insert","fact_id":"lesson-a","from":0,"to":1},
+        {"op":"insert","fact_id":"lesson-b","from":0,"to":1},
+        {"op":"insert","fact_id":"rule","from":1,"to":2},
+        {"op":"insert","fact_id":"cycle","from":2,"to":1},
+        {"op":"insert","fact_id":"answer","from":2,"to":3}
+      ],
+      "queries": [
+        {"op":"impact","roots":[0],"direction":"downstream","include_roots":true},
+        {"op":"impact","roots":[3],"direction":"upstream"},
+        {"op":"reachable","from":1,"to":1},
+        {"op":"reachable","from":0,"to":99}
+      ]
+    },
+    {
+      "version": 11,
+      "mutations": [{"op":"retract","fact_id":"lesson-a"}],
+      "queries": [{"op":"reachable","from":0,"to":3}]
+    },
+    {
+      "version": 15,
+      "mutations": [{"op":"retract","fact_id":"lesson-b"}],
+      "queries": [
+        {"op":"reachable","from":0,"to":3},
+        {"op":"reachable","from":1,"to":3}
+      ]
+    },
+    {
+      "version": 20,
+      "mutations": [{"op":"retract","fact_id":"cycle"}],
+      "queries": [{"op":"reachable","from":1,"to":1}]
+    }
+  ]
+}
