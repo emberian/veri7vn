@@ -422,6 +422,48 @@ impl Meter<'_> {
     }
 }
 
+/// What the consumer of one evaluation needs. Every demand runs the same
+/// `compile`: the same stages, the same language guard and the same stage
+/// metering. They differ only in what is read from the output stage afterwards.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum Demand {
+    /// The reply, its entities and statement evidence, and the Selection a
+    /// caller may persist as the next turn's Previous.
+    Full,
+    /// Only whether the output stage holds at least one entity.
+    Exists,
+    /// Only how many distinct entities the output stage holds.
+    #[cfg_attr(
+        not(test),
+        expect(dead_code, reason = "no production caller asks for a count yet")
+    )]
+    Count,
+}
+
+/// An evaluation shaped by its Demand. Scalar demands fetch no ids, facts or
+/// attributes and produce no Selection, so nothing they return can be stored
+/// as Previous or shown as evidence.
+#[derive(Debug)]
+pub(crate) enum Delivered {
+    Full(Box<QueryResult>, Selection),
+    Exists(bool),
+    #[cfg_attr(
+        not(test),
+        expect(dead_code, reason = "no production caller asks for a count yet")
+    )]
+    Count(u64),
+}
+impl Delivered {
+    fn into_full(self) -> Result<(QueryResult, Selection)> {
+        match self {
+            Self::Full(result, selected) => Ok((*result, selected)),
+            _ => Err(Error::Format(
+                "scalar evaluation where a reply was demanded".into(),
+            )),
+        }
+    }
+}
+
 pub(crate) fn evaluate(
     db: &Connection,
     identity: &str,
@@ -430,8 +472,19 @@ pub(crate) fn evaluate(
     limits: &Limits,
     budget: &Budget,
 ) -> Result<(QueryResult, Selection)> {
-    evaluate_with_mode(db, identity, plan, previous, limits, budget, false, None)?
-        .ok_or_else(|| Error::Format("unexpected guarded graph evaluation".into()))
+    evaluate_with_mode(
+        db,
+        identity,
+        plan,
+        previous,
+        limits,
+        budget,
+        false,
+        None,
+        Demand::Full,
+    )?
+    .ok_or_else(|| Error::Format("unexpected guarded graph evaluation".into()))?
+    .into_full()
 }
 
 /// R7's language-only admission guard: every entity-producing step is evaluated
@@ -455,7 +508,19 @@ pub(crate) fn evaluate_language(
     budget.check()?;
     db.execute_batch("DELETE FROM temp.oracle_sets; DELETE FROM temp.oracle_facts; DELETE FROM temp.oracle_attributes;")?;
     budget.check()?;
-    evaluate_with_mode(db, identity, plan, previous, limits, budget, true, None)
+    evaluate_with_mode(
+        db,
+        identity,
+        plan,
+        previous,
+        limits,
+        budget,
+        true,
+        None,
+        Demand::Full,
+    )?
+    .map(Delivered::into_full)
+    .transpose()
 }
 
 /// One reader request on one exclusive worker, image and previous selection.
@@ -623,6 +688,33 @@ pub(crate) fn evaluate_language_shared(
     budget: &Budget,
     shared: &mut LanguageWorkspace,
 ) -> Result<Option<(QueryResult, Selection)>> {
+    evaluate_language_demand(
+        db,
+        identity,
+        plan,
+        previous,
+        limits,
+        budget,
+        shared,
+        Demand::Full,
+    )?
+    .map(Delivered::into_full)
+    .transpose()
+}
+
+/// `evaluate_language_shared` for a consumer that states what it needs.
+/// `None` is the language guard's refusal, exactly as for `Demand::Full`.
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn evaluate_language_demand(
+    db: &Connection,
+    identity: &str,
+    plan: &Plan,
+    previous: &Selection,
+    limits: &Limits,
+    budget: &Budget,
+    shared: &mut LanguageWorkspace,
+    demand: Demand,
+) -> Result<Option<Delivered>> {
     evaluate_with_mode(
         db,
         identity,
@@ -632,6 +724,7 @@ pub(crate) fn evaluate_language_shared(
         budget,
         true,
         Some(shared),
+        demand,
     )
 }
 
@@ -645,7 +738,8 @@ fn evaluate_with_mode(
     budget: &Budget,
     language: bool,
     shared: Option<&mut LanguageWorkspace>,
-) -> Result<Option<(QueryResult, Selection)>> {
+    demand: Demand,
+) -> Result<Option<Delivered>> {
     let mut meter = Meter {
         rows: 0,
         bytes: 0,
@@ -658,6 +752,36 @@ fn evaluate_with_mode(
     let Some(compiled) = compile(db, plan, previous, &mut meter, language, shared)? else {
         return Ok(None);
     };
+    // A scalar demand asks SQLite one aggregate over the output stage. In
+    // language mode that stage is already a scratch table, so this is an index
+    // probe; in graph mode it runs the same pushed-down SQL Full would read.
+    let scalar = match demand {
+        Demand::Full => None,
+        Demand::Exists => Some(format!(
+            "{} SELECT EXISTS(SELECT 1 FROM n{})",
+            compiled.prefix, plan.output
+        )),
+        Demand::Count => Some(format!(
+            "{} SELECT count(*) FROM (SELECT DISTINCT id FROM n{})",
+            compiled.prefix, plan.output
+        )),
+    };
+    if let Some(sql) = scalar {
+        budget.spend(1)?;
+        let mut stmt = db.prepare_cached(&sql)?;
+        let count = stmt.parameter_count();
+        let value: i64 = stmt.query_row(
+            rusqlite::params_from_iter(compiled.parameters.iter().take(count)),
+            |row| row.get(0),
+        )?;
+        budget.check()?;
+        let value = u64::try_from(value).map_err(|_| Error::Format("negative count".into()))?;
+        return Ok(Some(if demand == Demand::Exists {
+            Delivered::Exists(value != 0)
+        } else {
+            Delivered::Count(value)
+        }));
+    }
     let mut selected = Selection::default();
     {
         let sql = format!(
@@ -714,7 +838,7 @@ fn evaluate_with_mode(
         attributes: selected.attributes.iter().cloned().collect(),
         value,
     };
-    Ok(Some((result, selected)))
+    Ok(Some(Delivered::Full(Box::new(result), selected)))
 }
 
 struct Compiled {
@@ -2025,5 +2149,453 @@ mod language_guard_contract {
         let column = shared.columns.values().next().unwrap();
         assert_eq!(column.strings["live"].len(), 2); // Separate positions/qualifiers.
         assert_eq!(column.strings[" live "].len(), 1); // Source whitespace preserved.
+    }
+}
+
+#[cfg(test)]
+mod output_contract {
+    use super::*;
+    use crate::{build_image, Cancellation, Image};
+    use std::sync::Arc;
+    use tempfile::TempDir;
+
+    /// Parallel edges (Alpha knows Gamma twice, with different qualifiers) and
+    /// two subjects reaching the same objects give Relate and Or many duplicate
+    /// candidate ids and several statement witnesses per id.
+    fn fixture(limits: Limits) -> (TempDir, Arc<Image>) {
+        let directory = tempfile::tempdir().unwrap();
+        let source = directory.path().join("kb.json");
+        let image = directory.path().join("image.sqlite");
+        let since = |year: i64| json!({"since":[{"type":"year","value":year}]});
+        std::fs::write(&source, json!({"concepts":{"P":{"name":"person","instanceOf":[]}},"entities":{
+            "A":{"name":"Alpha","instanceOf":["P"],"attributes":[
+                {"key":"mass","value":{"type":"quantity","value":1,"unit":"1"},"qualifiers":since(2000)}
+            ],"relations":[
+                {"predicate":"knows","direction":"forward","object":"C","qualifiers":since(2000)},
+                {"predicate":"knows","direction":"forward","object":"C","qualifiers":since(2001)},
+                {"predicate":"knows","direction":"forward","object":"D","qualifiers":{}}
+            ]},
+            "B":{"name":"Beta","instanceOf":["P"],"attributes":[
+                {"key":"mass","value":{"type":"quantity","value":2,"unit":"1"},"qualifiers":{}}
+            ],"relations":[
+                {"predicate":"knows","direction":"forward","object":"C","qualifiers":{}},
+                {"predicate":"knows","direction":"forward","object":"D","qualifiers":since(2001)}
+            ]},
+            "C":{"name":"Gamma","instanceOf":[],"attributes":[],"relations":[]},
+            "D":{"name":"Delta","instanceOf":[],"attributes":[],"relations":[]}
+        }}).to_string()).unwrap();
+        let receipt = build_image(&source, &image, 100_000, 10_000).unwrap();
+        let image = Image::open(&image, &receipt.image_sha256, limits).unwrap();
+        (directory, image)
+    }
+    fn plan(nodes: Value, output: usize, projection: &Value) -> Plan {
+        Plan::parse(
+            &json!({"nodes":nodes,"output":output,"projection":projection}).to_string(),
+            &Limits::default(),
+        )
+        .unwrap()
+    }
+    fn knows(input: usize) -> Value {
+        json!({"op":"relate","input":input,"predicate":"knows","direction":"forward"})
+    }
+    /// Plans compared across output contracts, each with an Entities, a Count
+    /// and a Names projection. The last four have an empty stage: an empty
+    /// output, an empty output behind an empty input, a dead branch, and an
+    /// empty union side. Language mode refuses those unless the projection is
+    /// Count; graph mode answers the last two and returns empty for the others.
+    fn plans() -> Vec<(String, Plan)> {
+        let alpha = json!({"op":"find","name":"Alpha"});
+        let beta = json!({"op":"find","name":"Beta"});
+        let absent = json!({"op":"find","name":"Absent"});
+        let both = json!({"op":"or","left":0,"right":1});
+        let mut out = Vec::new();
+        for (kind, projection) in [
+            ("entities", json!({"kind":"entities"})),
+            ("count", json!({"kind":"count"})),
+            ("names", json!({"kind":"names"})),
+        ] {
+            let p = &projection;
+            for (name, plan) in [
+                ("parallel_relate", plan(json!([alpha, knows(0)]), 1, p)),
+                (
+                    "union_of_relates",
+                    plan(
+                        json!([alpha, beta, both, knows(2), {"op":"or","left":3,"right":2}]),
+                        4,
+                        p,
+                    ),
+                ),
+                (
+                    "shared_union_with_itself",
+                    plan(
+                        json!([alpha, beta, both, knows(2), {"op":"or","left":3,"right":3},
+                            {"op":"and","left":4,"right":3}]),
+                        5,
+                        p,
+                    ),
+                ),
+                (
+                    "qualifier_filter",
+                    plan(
+                        json!([alpha, beta, both, knows(2),
+                            {"op":"filter_qualifier","input":3,"key":"since",
+                             "predicate":{"kind":"year","literal":"2001","comparison":"="}}]),
+                        4,
+                        p,
+                    ),
+                ),
+                (
+                    "attribute_filter",
+                    plan(
+                        json!([{"op":"all"},
+                            {"op":"filter_attribute","input":0,"key":"mass",
+                             "predicate":{"kind":"quantity","literal":"0","comparison":">"}}]),
+                        1,
+                        p,
+                    ),
+                ),
+                ("absent_only", plan(json!([absent]), 0, p)),
+                ("relate_from_absent", plan(json!([absent, knows(0)]), 1, p)),
+                (
+                    "dead_empty_branch",
+                    plan(json!([absent, alpha, knows(1)]), 2, p),
+                ),
+                (
+                    "empty_union_side",
+                    plan(json!([absent, alpha, {"op":"or","left":0,"right":1}]), 2, p),
+                ),
+            ] {
+                out.push((format!("{name}/{kind}"), plan));
+            }
+        }
+        out
+    }
+
+    /// Full replies for every plan, in graph mode and in shared language mode,
+    /// with the per-build image digest replaced by a placeholder. Graph
+    /// queries each take a fresh lease, as `Image::query` does; the language
+    /// plans share one lease and workspace in order, as one reader request does.
+    fn full_replies(image: &Arc<Image>) -> Value {
+        let budget = Budget::new(&image.limits, Cancellation::default()).unwrap();
+        let previous = Selection::default();
+        let anonymous = |result: QueryResult| {
+            let mut value = serde_json::to_value(result).unwrap();
+            value["image"] = json!("<image>");
+            value
+        };
+        let mut replies = serde_json::Map::new();
+        for (name, plan) in plans() {
+            let worker = image.acquire("tenant", &budget).unwrap();
+            let (graph, _) = evaluate(
+                &worker,
+                &image.identity,
+                &plan,
+                &previous,
+                &image.limits,
+                &budget,
+            )
+            .unwrap();
+            replies.insert(name, json!({"graph":anonymous(graph)}));
+        }
+        let worker = image.acquire("tenant", &budget).unwrap();
+        let mut shared = LanguageWorkspace::new(&worker).unwrap();
+        for (name, plan) in plans() {
+            let language = evaluate_language_shared(
+                &worker,
+                &image.identity,
+                &plan,
+                &previous,
+                &image.limits,
+                &budget,
+                &mut shared,
+            )
+            .unwrap()
+            .map(|(result, _)| anonymous(result));
+            replies[&name]["language"] = json!(language);
+        }
+        Value::Object(replies)
+    }
+
+    /// Full replies recorded from the executor before `Demand` existed
+    /// (commit ecfeec3), by the same `full_replies` over the same fixture.
+    const FROZEN_FULL: &str = include_str!("../tests/fixtures/query_output_full.json");
+
+    #[test]
+    fn full_demand_reply_is_unchanged_from_before_the_output_contract() {
+        let (_directory, image) = fixture(Limits::default());
+        let frozen: Value = serde_json::from_str(FROZEN_FULL).unwrap();
+        assert_eq!(frozen.as_object().unwrap().len(), 27);
+        assert_eq!(full_replies(&image), frozen);
+    }
+
+    /// One graph evaluation on its own fresh lease, as `Image::query` runs.
+    fn graph(image: &Arc<Image>, plan: &Plan, demand: Demand) -> Result<Delivered> {
+        let budget = Budget::new(&image.limits, Cancellation::default()).unwrap();
+        let worker = image.acquire("tenant", &budget).unwrap();
+        evaluate_with_mode(
+            &worker,
+            &image.identity,
+            plan,
+            &Selection::default(),
+            &image.limits,
+            &budget,
+            false,
+            None,
+            demand,
+        )
+        .map(|delivered| delivered.expect("graph mode never refuses"))
+    }
+
+    /// Every plan in order on one lease and one shared workspace under one
+    /// demand, as one reader request evaluates its candidates. Returns each
+    /// outcome and the workspace's final stage table and retained totals.
+    #[allow(clippy::type_complexity)]
+    fn language(
+        image: &Arc<Image>,
+        demand: Demand,
+    ) -> (
+        Vec<(String, Option<Delivered>)>,
+        Vec<(String, usize, bool)>,
+        (usize, usize),
+    ) {
+        let budget = Budget::new(&image.limits, Cancellation::default()).unwrap();
+        let worker = image.acquire("tenant", &budget).unwrap();
+        let mut shared = LanguageWorkspace::new(&worker).unwrap();
+        let outcomes = plans()
+            .into_iter()
+            .map(|(name, plan)| {
+                let outcome = evaluate_language_demand(
+                    &worker,
+                    &image.identity,
+                    &plan,
+                    &Selection::default(),
+                    &image.limits,
+                    &budget,
+                    &mut shared,
+                    demand,
+                )
+                .unwrap();
+                (name, outcome)
+            })
+            .collect();
+        let stages = shared
+            .stages
+            .iter()
+            .map(|(key, &(slot, nonempty))| (key.clone(), slot, nonempty))
+            .collect();
+        (
+            outcomes,
+            stages,
+            (shared.retained_rows, shared.retained_bytes),
+        )
+    }
+
+    #[test]
+    fn exists_agrees_with_full_on_nonempty_empty_and_refusal() {
+        let (_directory, image) = fixture(Limits::default());
+        let mut graph_empty = 0;
+        for (name, plan) in plans() {
+            let (full, _) = graph(&image, &plan, Demand::Full)
+                .unwrap()
+                .into_full()
+                .unwrap();
+            let Delivered::Exists(exists) = graph(&image, &plan, Demand::Exists).unwrap() else {
+                panic!("{name}: exists demand");
+            };
+            assert_eq!(exists, !full.entities.is_empty(), "{name}");
+            graph_empty += usize::from(!exists);
+        }
+        // absent_only and relate_from_absent under three projections.
+        assert_eq!(graph_empty, 6);
+
+        let (full, full_stages, full_retained) = language(&image, Demand::Full);
+        let (exists, exists_stages, exists_retained) = language(&image, Demand::Exists);
+        // The same stages were materialized, keyed, sized and judged empty.
+        assert_eq!(exists_stages, full_stages);
+        assert_eq!(exists_retained, full_retained);
+        let (mut refused, mut nonempty, mut empty) = (0, 0, 0);
+        for ((name, full), (_, exists)) in full.into_iter().zip(exists) {
+            match (full, exists) {
+                (None, None) => refused += 1,
+                (Some(Delivered::Full(result, _)), Some(Delivered::Exists(exists))) => {
+                    assert_eq!(exists, !result.entities.is_empty(), "{name}");
+                    if exists {
+                        nonempty += 1;
+                    } else {
+                        empty += 1;
+                    }
+                }
+                (full, exists) => panic!("{name}: {full:?} against {exists:?}"),
+            }
+        }
+        // Four plans with an empty stage refuse under entities and names; only
+        // a Count projection admits them, and two of those are empty outputs.
+        assert_eq!((refused, nonempty, empty), (8, 17, 2));
+    }
+
+    #[test]
+    fn count_equals_full_distinct_ids_on_duplicate_heavy_plans() {
+        let (_directory, image) = fixture(Limits::default());
+        for (name, plan) in plans() {
+            let (full, _) = graph(&image, &plan, Demand::Full)
+                .unwrap()
+                .into_full()
+                .unwrap();
+            let Delivered::Count(count) = graph(&image, &plan, Demand::Count).unwrap() else {
+                panic!("{name}: count demand");
+            };
+            assert_eq!(count, full.entities.len() as u64, "{name}");
+            if name == "union_of_relates/count" {
+                // Five statements (two parallel) reach four distinct entities.
+                assert_eq!(
+                    (count, full.facts.len(), full.value.clone()),
+                    (4, 5, json!(4))
+                );
+            }
+            if name == "parallel_relate/entities" {
+                assert_eq!((count, full.facts.len()), (2, 3));
+            }
+        }
+        let (full, full_stages, _) = language(&image, Demand::Full);
+        let (counts, count_stages, _) = language(&image, Demand::Count);
+        assert_eq!(count_stages, full_stages);
+        let mut admitted = 0;
+        for ((name, full), (_, count)) in full.into_iter().zip(counts) {
+            match (full, count) {
+                (None, None) => {}
+                (Some(Delivered::Full(result, _)), Some(Delivered::Count(count))) => {
+                    assert_eq!(count, result.entities.len() as u64, "{name}");
+                    admitted += 1;
+                }
+                (full, count) => panic!("{name}: {full:?} against {count:?}"),
+            }
+        }
+        assert_eq!(admitted, 19);
+    }
+
+    #[test]
+    fn scalar_demands_keep_stage_limits_and_drop_only_fetch_charges() {
+        let plans: BTreeMap<String, Plan> = plans().into_iter().collect();
+        let relate = &plans["parallel_relate/entities"];
+        // Language stage metering: stage 0 holds one id, stage 1 two ids and
+        // three statements. Six rows pass compile; a seventh fetched row fails.
+        let (_directory, tight) = fixture(Limits {
+            materialized_rows: 5,
+            ..Limits::default()
+        });
+        for demand in [Demand::Full, Demand::Exists, Demand::Count] {
+            let budget = Budget::new(&tight.limits, Cancellation::default()).unwrap();
+            let worker = tight.acquire("tenant", &budget).unwrap();
+            let mut shared = LanguageWorkspace::new(&worker).unwrap();
+            let outcome = evaluate_language_demand(
+                &worker,
+                &tight.identity,
+                relate,
+                &Selection::default(),
+                &tight.limits,
+                &budget,
+                &mut shared,
+                demand,
+            );
+            assert!(
+                matches!(outcome, Err(Error::Limit("materialized rows"))),
+                "{demand:?}: {outcome:?}"
+            );
+        }
+        let (_directory, roomy) = fixture(Limits {
+            materialized_rows: 6,
+            ..Limits::default()
+        });
+        let budget = Budget::new(&roomy.limits, Cancellation::default()).unwrap();
+        let worker = roomy.acquire("tenant", &budget).unwrap();
+        let mut shared = LanguageWorkspace::new(&worker).unwrap();
+        assert!(matches!(
+            evaluate_language_demand(
+                &worker,
+                &roomy.identity,
+                relate,
+                &Selection::default(),
+                &roomy.limits,
+                &budget,
+                &mut shared,
+                Demand::Full,
+            ),
+            Err(Error::Limit("materialized rows"))
+        ));
+        drop(shared);
+        drop(worker);
+        let budget = Budget::new(&roomy.limits, Cancellation::default()).unwrap();
+        let worker = roomy.acquire("tenant", &budget).unwrap();
+        let mut shared = LanguageWorkspace::new(&worker).unwrap();
+        assert!(matches!(
+            evaluate_language_demand(
+                &worker,
+                &roomy.identity,
+                relate,
+                &Selection::default(),
+                &roomy.limits,
+                &budget,
+                &mut shared,
+                Demand::Exists,
+            ),
+            Ok(Some(Delivered::Exists(true)))
+        ));
+        // The workspace's aggregate bound across candidates is a compile-time
+        // stage bound, so it still refuses a scalar demand. With one row
+        // allowed, Full already fails on its own reply fetch.
+        let find = |name: &str| {
+            plan(
+                json!([{"op":"find","name":name}]),
+                0,
+                &json!({"kind":"entities"}),
+            )
+        };
+        let (_directory, image) = fixture(Limits {
+            materialized_rows: 1,
+            ..Limits::default()
+        });
+        let budget = Budget::new(&image.limits, Cancellation::default()).unwrap();
+        let worker = image.acquire("tenant", &budget).unwrap();
+        let mut shared = LanguageWorkspace::new(&worker).unwrap();
+        let mut run = |plan: &Plan, demand: Demand| {
+            evaluate_language_demand(
+                &worker,
+                &image.identity,
+                plan,
+                &Selection::default(),
+                &image.limits,
+                &budget,
+                &mut shared,
+                demand,
+            )
+        };
+        assert!(matches!(
+            run(&find("Alpha"), Demand::Exists),
+            Ok(Some(Delivered::Exists(true)))
+        ));
+        assert!(matches!(
+            run(&find("Beta"), Demand::Exists),
+            Err(Error::Limit("language shared rows"))
+        ));
+        let (_directory, image) = fixture(Limits {
+            materialized_rows: 1,
+            ..Limits::default()
+        });
+        let budget = Budget::new(&image.limits, Cancellation::default()).unwrap();
+        let worker = image.acquire("tenant", &budget).unwrap();
+        let mut shared = LanguageWorkspace::new(&worker).unwrap();
+        assert!(matches!(
+            evaluate_language_demand(
+                &worker,
+                &image.identity,
+                &find("Alpha"),
+                &Selection::default(),
+                &image.limits,
+                &budget,
+                &mut shared,
+                Demand::Full,
+            ),
+            Err(Error::Limit("materialized rows"))
+        ));
     }
 }

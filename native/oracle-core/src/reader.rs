@@ -275,16 +275,23 @@ fn evaluate_inner(
                 {
                     return Err(Error::Format("non-entity composition fragment".into()));
                 }
-                Ok(evaluate_language_shared(
-                    db,
-                    identity,
-                    &plan,
-                    previous,
-                    limits,
-                    budget,
-                    &mut shared,
-                )?
-                .is_some())
+                // Viability needs one boolean, so no ids, facts or attributes
+                // are fetched. The guard and stage caching are unchanged; with
+                // the fragment's Entities projection an admitted plan has a
+                // nonempty output, so this equals the former `is_some()`.
+                Ok(matches!(
+                    crate::query::evaluate_language_demand(
+                        db,
+                        identity,
+                        &plan,
+                        previous,
+                        limits,
+                        budget,
+                        &mut shared,
+                        crate::query::Demand::Exists,
+                    )?,
+                    Some(crate::query::Delivered::Exists(true))
+                ))
             },
         )?);
         for candidate in matched {

@@ -1,0 +1,458 @@
+{
+ "scope": "Lane O2-SCALAR-QUERY: viability probes ask the output stage one EXISTS question instead of fetching the full reply. Untrusted targeted comparison on one laptop under heavy load; not a panel or fleet score.",
+ "panel_numbers": "none; this change is not expected to move any answer and none moved",
+ "base_commit_at_build": "6077aef",
+ "head_at_report": "df03f33 (O3's oracle-python/oracle-logic/appliance edits that were in the tree at build time are now committed as 0931bd1)",
+ "candidate": {
+  "path": "var/o2-scalar/candidate/oracle_native.so",
+  "sha256": "01ba70abfcf37dc98c746d238cb382ff35aabb2d036165af12adfb3c92176b5e",
+  "profile": "dev (debug), macOS arm64",
+  "tree": "6077aef + O2 query.rs/reader.rs + O3 in-progress oracle-python/oracle-logic edits (see var/o2-scalar/candidate-diffstat.txt)"
+ },
+ "control": {
+  "path": "var/control-20261029/binding/oracle_native.so",
+  "sha256": "bed42ac8729f14faa335a0cf57d92d7919c51f9770da5e6c2ab2470cae1b6eb7",
+  "profile": "dev (debug), built by root from HEAD 6077aef"
+ },
+ "machine": {
+  "cpu": "Apple M2 Max, 12 cores",
+  "load_average_1m_range": [
+   175,
+   245
+  ],
+  "note": "other lanes were running; timings are noisy"
+ },
+ "rust_checks": {
+  "clippy": "cargo clippy -p oracle-runtime-core --all-targets -- -D warnings: clean after marking Demand::Count/Delivered::Count expect(dead_code) outside tests",
+  "rustfmt": "query.rs and reader.rs clean; cargo fmt --check reports pre-existing diffs only in oracle-core/src/lib.rs, tests/session_contract.rs, tests/runtime_session_contract.rs (not touched by this lane)",
+  "tests": {
+   "--lib output_contract": "4 passed",
+   "--lib query::": "13 passed (includes the 4 above)",
+   "--test composition_contract": "12 passed",
+   "--test reader_contract": "10 passed",
+   "--test runtime_contract": "14 passed",
+   "--test runtime_language_contract": "2 passed",
+   "--test segments_contract": "31 passed"
+  }
+ },
+ "targeted_composition_16": {
+  "script": "native/tests/qualify_composition_cases.py",
+  "script_sha256": "d87b77c5f19d0e01de7ceb8258eb69ea562ff889ee4cd53175bed17f76d56195",
+  "cohort": "native/tests/composition_cases_targeted_20261029.json with only artifacts (sha256, coverage) replaced; copies in var/o2-scalar/cohort-o2*.json",
+  "at_1000ms": {
+   "note": "both debug builds hit the 1 s deadline on 6-9 of 16; outcomes differ only where a case lands near the deadline",
+   "HEAD": {
+    "answered_correct": 1,
+    "declined_expected": 1,
+    "errors": 9,
+    "unanswered": 5
+   },
+   "O2": {
+    "answered_correct": 1,
+    "declined_expected": 2,
+    "errors": 9,
+    "unanswered": 4
+   }
+  },
+  "at_60000ms": [
+   {
+    "run": "cohort-60s",
+    "order": [
+     "HEAD",
+     "O2"
+    ],
+    "limits": {
+     "workers": 2,
+     "timeout_ms": 60000,
+     "fuel": 10000000
+    },
+    "HEAD": {
+     "counts": {
+      "answered_correct": 1,
+      "declined_expected": 4,
+      "errors": 4,
+      "unanswered": 7
+     },
+     "wall_seconds_sum": 8.484,
+     "cpu_seconds_sum": 6.1
+    },
+    "O2": {
+     "counts": {
+      "answered_correct": 1,
+      "declined_expected": 4,
+      "errors": 4,
+      "unanswered": 7
+     },
+     "wall_seconds_sum": 5.651,
+     "cpu_seconds_sum": 5.236
+    },
+    "result_bytes_identical_all_16": true
+   },
+   {
+    "run": "cohort-60s-r2",
+    "order": [
+     "HEAD",
+     "O2"
+    ],
+    "limits": {
+     "workers": 2,
+     "timeout_ms": 60000,
+     "fuel": 10000000
+    },
+    "HEAD": {
+     "counts": {
+      "answered_correct": 1,
+      "declined_expected": 4,
+      "errors": 4,
+      "unanswered": 7
+     },
+     "wall_seconds_sum": 5.815,
+     "cpu_seconds_sum": 5.143
+    },
+    "O2": {
+     "counts": {
+      "answered_correct": 1,
+      "declined_expected": 4,
+      "errors": 4,
+      "unanswered": 7
+     },
+     "wall_seconds_sum": 5.563,
+     "cpu_seconds_sum": 5.176
+    },
+    "result_bytes_identical_all_16": true
+   },
+   {
+    "run": "cohort-60s-swapped",
+    "order": [
+     "O2",
+     "HEAD"
+    ],
+    "limits": {
+     "workers": 2,
+     "timeout_ms": 60000,
+     "fuel": 10000000
+    },
+    "HEAD": {
+     "counts": {
+      "answered_correct": 1,
+      "declined_expected": 4,
+      "errors": 4,
+      "unanswered": 7
+     },
+     "wall_seconds_sum": 5.544,
+     "cpu_seconds_sum": 5.005
+    },
+    "O2": {
+     "counts": {
+      "answered_correct": 1,
+      "declined_expected": 4,
+      "errors": 4,
+      "unanswered": 7
+     },
+     "wall_seconds_sum": 5.068,
+     "cpu_seconds_sum": 4.857
+    },
+    "result_bytes_identical_all_16": true
+   },
+   {
+    "run": "cohort-60s-swapped-r2",
+    "order": [
+     "O2",
+     "HEAD"
+    ],
+    "limits": {
+     "workers": 2,
+     "timeout_ms": 60000,
+     "fuel": 10000000
+    },
+    "HEAD": {
+     "counts": {
+      "answered_correct": 1,
+      "declined_expected": 4,
+      "errors": 4,
+      "unanswered": 7
+     },
+     "wall_seconds_sum": 5.742,
+     "cpu_seconds_sum": 5.33
+    },
+    "O2": {
+     "counts": {
+      "answered_correct": 1,
+      "declined_expected": 4,
+      "errors": 4,
+      "unanswered": 7
+     },
+     "wall_seconds_sum": 6.605,
+     "cpu_seconds_sum": 5.727
+    },
+    "result_bytes_identical_all_16": true
+   }
+  ],
+  "per_question_median_of_4_seconds": {
+   "baseline_city_website_saskatoon": {
+    "outcome": "unanswered",
+    "HEAD_cpu": 0.199,
+    "O2_cpu": 0.214,
+    "HEAD_wall": 0.229,
+    "O2_wall": 0.238
+   },
+   "segment_city_website_population_saskatoon": {
+    "outcome": "unanswered",
+    "HEAD_cpu": 0.543,
+    "O2_cpu": 0.53,
+    "HEAD_wall": 0.612,
+    "O2_wall": 0.584
+   },
+   "segment_city_population_website_saskatoon": {
+    "outcome": "unanswered",
+    "HEAD_cpu": 0.667,
+    "O2_cpu": 0.637,
+    "HEAD_wall": 0.8,
+    "O2_wall": 0.71
+   },
+   "nested_university_city_website_saskatoon": {
+    "outcome": "unanswered",
+    "HEAD_cpu": 0.219,
+    "O2_cpu": 0.209,
+    "HEAD_wall": 0.244,
+    "O2_wall": 0.225
+   },
+   "nested_university_city_website_population_saskatoon": {
+    "outcome": "unanswered",
+    "HEAD_cpu": 0.166,
+    "O2_cpu": 0.168,
+    "HEAD_wall": 0.211,
+    "O2_wall": 0.184
+   },
+   "nested_university_city_website_population_belfast": {
+    "outcome": "unanswered",
+    "HEAD_cpu": 0.166,
+    "O2_cpu": 0.168,
+    "HEAD_wall": 0.176,
+    "O2_wall": 0.181
+   },
+   "nested_headquarters_city_website_population_bristol": {
+    "outcome": "errors",
+    "HEAD_cpu": 0.35,
+    "O2_cpu": 0.347,
+    "HEAD_wall": 0.382,
+    "O2_wall": 0.379
+   },
+   "segment_city_website_population_bristol": {
+    "outcome": "unanswered",
+    "HEAD_cpu": 0.505,
+    "O2_cpu": 0.533,
+    "HEAD_wall": 0.536,
+    "O2_wall": 0.57
+   },
+   "nested_human_count_bristol": {
+    "outcome": "answered_correct",
+    "HEAD_cpu": 0.145,
+    "O2_cpu": 0.142,
+    "HEAD_wall": 0.158,
+    "O2_wall": 0.15
+   },
+   "ambiguous_human_selection_bristol": {
+    "outcome": "declined_expected",
+    "HEAD_cpu": 0.166,
+    "O2_cpu": 0.167,
+    "HEAD_wall": 0.176,
+    "O2_wall": 0.185
+   },
+   "nested_university_count_cardiff": {
+    "outcome": "errors",
+    "HEAD_cpu": 0.347,
+    "O2_cpu": 0.322,
+    "HEAD_wall": 0.394,
+    "O2_wall": 0.334
+   },
+   "ambiguous_university_selection_cardiff": {
+    "outcome": "errors",
+    "HEAD_cpu": 0.331,
+    "O2_cpu": 0.328,
+    "HEAD_wall": 0.35,
+    "O2_wall": 0.337
+   },
+   "empty_segment_changed_population_bristol": {
+    "outcome": "declined_expected",
+    "HEAD_cpu": 0.501,
+    "O2_cpu": 0.525,
+    "HEAD_wall": 0.571,
+    "O2_wall": 0.591
+   },
+   "empty_nested_changed_population_bristol": {
+    "outcome": "declined_expected",
+    "HEAD_cpu": 0.151,
+    "O2_cpu": 0.132,
+    "HEAD_wall": 0.165,
+    "O2_wall": 0.134
+   },
+   "empty_segment_conflicting_city_anchors": {
+    "outcome": "declined_expected",
+    "HEAD_cpu": 0.491,
+    "O2_cpu": 0.482,
+    "HEAD_wall": 0.513,
+    "O2_wall": 0.501
+   },
+   "empty_parent_headquarters_saskatoon": {
+    "outcome": "errors",
+    "HEAD_cpu": 0.344,
+    "O2_cpu": 0.314,
+    "HEAD_wall": 0.43,
+    "O2_wall": 0.325
+   }
+  },
+  "errors_are": "4 x 'resource limit: composition bytes', identical in both builds (lane O1's open issue)"
+ },
+ "reader_100": {
+  "script": "native/tests/qualify_reader.py",
+  "script_sha256": "61164e0947fb67c28f9ee636402f2bc39def3fa4bcf5267f93779177265be218",
+  "args": "--cases 100 --expected-coverage whole_and_exact_fragment_outer_v1+exact_segment_and_single_nested_v1; exit 1 in every run comes from the script's non-answer gates (macOS has no /proc memory figures), not from answers",
+  "runs": [
+   {
+    "run": "r100-control-1s",
+    "counts": {
+     "answered_correct": 36,
+     "answered_wrong": 0,
+     "refused": 4,
+     "unknown": 60,
+     "errors": 0
+    },
+    "error_types": {},
+    "limits": {
+     "workers": 2,
+     "timeout_ms": 1000,
+     "fuel": 10000000
+    },
+    "wall_seconds_sum": 12.891,
+    "cpu_seconds_sum": 7.945,
+    "p50_seconds": 0.0752,
+    "p95_seconds": 0.4568,
+    "load_average_1m": 221.4,
+    "exit_code": 1
+   },
+   {
+    "run": "r100-candidate-1s",
+    "counts": {
+     "answered_correct": 35,
+     "answered_wrong": 0,
+     "refused": 4,
+     "unknown": 60,
+     "errors": 1
+    },
+    "error_types": {
+     "BudgetError": 1
+    },
+    "limits": {
+     "workers": 2,
+     "timeout_ms": 1000,
+     "fuel": 10000000
+    },
+    "wall_seconds_sum": 13.145,
+    "cpu_seconds_sum": 8.173,
+    "p50_seconds": 0.0615,
+    "p95_seconds": 0.4005,
+    "load_average_1m": 229.9,
+    "exit_code": 1
+   },
+   {
+    "run": "r100-control-10s-a",
+    "counts": {
+     "answered_correct": 36,
+     "answered_wrong": 0,
+     "refused": 4,
+     "unknown": 60,
+     "errors": 0
+    },
+    "error_types": {},
+    "limits": {
+     "workers": 2,
+     "timeout_ms": 10000,
+     "fuel": 10000000
+    },
+    "wall_seconds_sum": 12.714,
+    "cpu_seconds_sum": 8.818,
+    "p50_seconds": 0.0591,
+    "p95_seconds": 0.4029,
+    "load_average_1m": 245.3,
+    "exit_code": 1
+   },
+   {
+    "run": "r100-candidate-10s-a",
+    "counts": {
+     "answered_correct": 36,
+     "answered_wrong": 0,
+     "refused": 4,
+     "unknown": 60,
+     "errors": 0
+    },
+    "error_types": {},
+    "limits": {
+     "workers": 2,
+     "timeout_ms": 10000,
+     "fuel": 10000000
+    },
+    "wall_seconds_sum": 10.483,
+    "cpu_seconds_sum": 8.014,
+    "p50_seconds": 0.0426,
+    "p95_seconds": 0.3242,
+    "load_average_1m": 245.4,
+    "exit_code": 1
+   },
+   {
+    "run": "r100-candidate-10s-b",
+    "counts": {
+     "answered_correct": 36,
+     "answered_wrong": 0,
+     "refused": 4,
+     "unknown": 60,
+     "errors": 0
+    },
+    "error_types": {},
+    "limits": {
+     "workers": 2,
+     "timeout_ms": 10000,
+     "fuel": 10000000
+    },
+    "wall_seconds_sum": 9.677,
+    "cpu_seconds_sum": 7.867,
+    "p50_seconds": 0.0466,
+    "p95_seconds": 0.2572,
+    "load_average_1m": 237.8,
+    "exit_code": 1
+   },
+   {
+    "run": "r100-control-10s-b",
+    "counts": {
+     "answered_correct": 36,
+     "answered_wrong": 0,
+     "refused": 4,
+     "unknown": 60,
+     "errors": 0
+    },
+    "error_types": {},
+    "limits": {
+     "workers": 2,
+     "timeout_ms": 10000,
+     "fuel": 10000000
+    },
+    "wall_seconds_sum": 10.0,
+    "cpu_seconds_sum": 7.979,
+    "p50_seconds": 0.0411,
+    "p95_seconds": 0.2813,
+    "load_average_1m": 242.3,
+    "exit_code": 1
+   }
+  ],
+  "per_question_agreement": "all four 10 s runs agree on outcome, answer, status, reason, matched_programs, successful_readings, unsupported_programs, ambiguous_executions for all 100; the one 1 s difference is source_index 200 (0.7 s CPU in debug) exceeding the deadline in the candidate run at load 230",
+  "per_question_file": "var/o2-scalar/reader100-per-question.json"
+ },
+ "verdict": "Answers identical in every long-deadline run. No timing gain stands above noise. 16-case cohort, 4 runs each: median CPU sum HEAD 5.24 s, O2 5.21 s; median wall HEAD 5.78 s, O2 5.61 s. Reader 100, 2 runs each: CPU sums HEAD 8.82/7.98 s, O2 8.01/7.87 s; wall sums HEAD 12.71/10.00 s, O2 10.48/9.68 s. O2 is 0-11 percent lower, but HEAD's own two runs differ by 10 percent CPU and 27 percent wall, so the difference is not established.",
+ "accepted_behaviour_change": "Exists no longer pays reply-fetch row charges, so a fragment whose Full fetch would have hit Error::Limit(\"materialized rows\") is judged viable. Stage limits and the language workspace's shared-row limit still apply. The final candidate evaluation is still Full and still enforces the fetch limit. Pinned by output_contract::scalar_demands_keep_stage_limits_and_drop_only_fetch_charges.",
+ "not_done": [
+  "Linux receipt (root)",
+  "release-profile timing",
+  "scalar API flag for pure Image::query/query_program",
+  "integer-posting image adapter (not built)"
+ ]
+}

@@ -1,0 +1,1466 @@
+{
+ "absent_only/count": {
+  "graph": {
+   "coverage": "complete_relative_to_image",
+   "entities": [],
+   "facts": [],
+   "image": "<image>",
+   "value": 0
+  },
+  "language": {
+   "coverage": "complete_relative_to_image",
+   "entities": [],
+   "facts": [],
+   "image": "<image>",
+   "value": 0
+  }
+ },
+ "absent_only/entities": {
+  "graph": {
+   "coverage": "complete_relative_to_image",
+   "entities": [],
+   "facts": [],
+   "image": "<image>",
+   "value": null
+  },
+  "language": null
+ },
+ "absent_only/names": {
+  "graph": {
+   "coverage": "complete_relative_to_image",
+   "entities": [],
+   "facts": [],
+   "image": "<image>",
+   "value": []
+  },
+  "language": null
+ },
+ "attribute_filter/count": {
+  "graph": {
+   "attributes": [
+    {
+     "key": "mass",
+     "position": 0,
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2000}]}",
+     "subject": "A",
+     "value_json": "{\"type\":\"quantity\",\"unit\":\"1\",\"value\":1}"
+    },
+    {
+     "key": "mass",
+     "position": 0,
+     "qualifiers_json": "{}",
+     "subject": "B",
+     "value_json": "{\"type\":\"quantity\",\"unit\":\"1\",\"value\":2}"
+    }
+   ],
+   "coverage": "complete_relative_to_image",
+   "entities": [
+    "A",
+    "B"
+   ],
+   "facts": [],
+   "image": "<image>",
+   "value": 2
+  },
+  "language": {
+   "attributes": [
+    {
+     "key": "mass",
+     "position": 0,
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2000}]}",
+     "subject": "A",
+     "value_json": "{\"type\":\"quantity\",\"unit\":\"1\",\"value\":1}"
+    },
+    {
+     "key": "mass",
+     "position": 0,
+     "qualifiers_json": "{}",
+     "subject": "B",
+     "value_json": "{\"type\":\"quantity\",\"unit\":\"1\",\"value\":2}"
+    }
+   ],
+   "coverage": "complete_relative_to_image",
+   "entities": [
+    "A",
+    "B"
+   ],
+   "facts": [],
+   "image": "<image>",
+   "value": 2
+  }
+ },
+ "attribute_filter/entities": {
+  "graph": {
+   "attributes": [
+    {
+     "key": "mass",
+     "position": 0,
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2000}]}",
+     "subject": "A",
+     "value_json": "{\"type\":\"quantity\",\"unit\":\"1\",\"value\":1}"
+    },
+    {
+     "key": "mass",
+     "position": 0,
+     "qualifiers_json": "{}",
+     "subject": "B",
+     "value_json": "{\"type\":\"quantity\",\"unit\":\"1\",\"value\":2}"
+    }
+   ],
+   "coverage": "complete_relative_to_image",
+   "entities": [
+    "A",
+    "B"
+   ],
+   "facts": [],
+   "image": "<image>",
+   "value": null
+  },
+  "language": {
+   "attributes": [
+    {
+     "key": "mass",
+     "position": 0,
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2000}]}",
+     "subject": "A",
+     "value_json": "{\"type\":\"quantity\",\"unit\":\"1\",\"value\":1}"
+    },
+    {
+     "key": "mass",
+     "position": 0,
+     "qualifiers_json": "{}",
+     "subject": "B",
+     "value_json": "{\"type\":\"quantity\",\"unit\":\"1\",\"value\":2}"
+    }
+   ],
+   "coverage": "complete_relative_to_image",
+   "entities": [
+    "A",
+    "B"
+   ],
+   "facts": [],
+   "image": "<image>",
+   "value": null
+  }
+ },
+ "attribute_filter/names": {
+  "graph": {
+   "attributes": [
+    {
+     "key": "mass",
+     "position": 0,
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2000}]}",
+     "subject": "A",
+     "value_json": "{\"type\":\"quantity\",\"unit\":\"1\",\"value\":1}"
+    },
+    {
+     "key": "mass",
+     "position": 0,
+     "qualifiers_json": "{}",
+     "subject": "B",
+     "value_json": "{\"type\":\"quantity\",\"unit\":\"1\",\"value\":2}"
+    }
+   ],
+   "coverage": "complete_relative_to_image",
+   "entities": [
+    "A",
+    "B"
+   ],
+   "facts": [],
+   "image": "<image>",
+   "value": [
+    {
+     "id": "A",
+     "name": "Alpha"
+    },
+    {
+     "id": "B",
+     "name": "Beta"
+    }
+   ]
+  },
+  "language": {
+   "attributes": [
+    {
+     "key": "mass",
+     "position": 0,
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2000}]}",
+     "subject": "A",
+     "value_json": "{\"type\":\"quantity\",\"unit\":\"1\",\"value\":1}"
+    },
+    {
+     "key": "mass",
+     "position": 0,
+     "qualifiers_json": "{}",
+     "subject": "B",
+     "value_json": "{\"type\":\"quantity\",\"unit\":\"1\",\"value\":2}"
+    }
+   ],
+   "coverage": "complete_relative_to_image",
+   "entities": [
+    "A",
+    "B"
+   ],
+   "facts": [],
+   "image": "<image>",
+   "value": [
+    {
+     "id": "A",
+     "name": "Alpha"
+    },
+    {
+     "id": "B",
+     "name": "Beta"
+    }
+   ]
+  }
+ },
+ "dead_empty_branch/count": {
+  "graph": {
+   "coverage": "complete_relative_to_image",
+   "entities": [
+    "C",
+    "D"
+   ],
+   "facts": [
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2000}]}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2001}]}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "D",
+     "predicate": "knows",
+     "qualifiers_json": "{}",
+     "subject": "A"
+    }
+   ],
+   "image": "<image>",
+   "value": 2
+  },
+  "language": {
+   "coverage": "complete_relative_to_image",
+   "entities": [
+    "C",
+    "D"
+   ],
+   "facts": [
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2000}]}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2001}]}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "D",
+     "predicate": "knows",
+     "qualifiers_json": "{}",
+     "subject": "A"
+    }
+   ],
+   "image": "<image>",
+   "value": 2
+  }
+ },
+ "dead_empty_branch/entities": {
+  "graph": {
+   "coverage": "complete_relative_to_image",
+   "entities": [
+    "C",
+    "D"
+   ],
+   "facts": [
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2000}]}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2001}]}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "D",
+     "predicate": "knows",
+     "qualifiers_json": "{}",
+     "subject": "A"
+    }
+   ],
+   "image": "<image>",
+   "value": null
+  },
+  "language": null
+ },
+ "dead_empty_branch/names": {
+  "graph": {
+   "coverage": "complete_relative_to_image",
+   "entities": [
+    "C",
+    "D"
+   ],
+   "facts": [
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2000}]}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2001}]}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "D",
+     "predicate": "knows",
+     "qualifiers_json": "{}",
+     "subject": "A"
+    }
+   ],
+   "image": "<image>",
+   "value": [
+    {
+     "id": "C",
+     "name": "Gamma"
+    },
+    {
+     "id": "D",
+     "name": "Delta"
+    }
+   ]
+  },
+  "language": null
+ },
+ "empty_union_side/count": {
+  "graph": {
+   "coverage": "complete_relative_to_image",
+   "entities": [
+    "A"
+   ],
+   "facts": [],
+   "image": "<image>",
+   "value": 1
+  },
+  "language": {
+   "coverage": "complete_relative_to_image",
+   "entities": [
+    "A"
+   ],
+   "facts": [],
+   "image": "<image>",
+   "value": 1
+  }
+ },
+ "empty_union_side/entities": {
+  "graph": {
+   "coverage": "complete_relative_to_image",
+   "entities": [
+    "A"
+   ],
+   "facts": [],
+   "image": "<image>",
+   "value": null
+  },
+  "language": null
+ },
+ "empty_union_side/names": {
+  "graph": {
+   "coverage": "complete_relative_to_image",
+   "entities": [
+    "A"
+   ],
+   "facts": [],
+   "image": "<image>",
+   "value": [
+    {
+     "id": "A",
+     "name": "Alpha"
+    }
+   ]
+  },
+  "language": null
+ },
+ "parallel_relate/count": {
+  "graph": {
+   "coverage": "complete_relative_to_image",
+   "entities": [
+    "C",
+    "D"
+   ],
+   "facts": [
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2000}]}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2001}]}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "D",
+     "predicate": "knows",
+     "qualifiers_json": "{}",
+     "subject": "A"
+    }
+   ],
+   "image": "<image>",
+   "value": 2
+  },
+  "language": {
+   "coverage": "complete_relative_to_image",
+   "entities": [
+    "C",
+    "D"
+   ],
+   "facts": [
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2000}]}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2001}]}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "D",
+     "predicate": "knows",
+     "qualifiers_json": "{}",
+     "subject": "A"
+    }
+   ],
+   "image": "<image>",
+   "value": 2
+  }
+ },
+ "parallel_relate/entities": {
+  "graph": {
+   "coverage": "complete_relative_to_image",
+   "entities": [
+    "C",
+    "D"
+   ],
+   "facts": [
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2000}]}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2001}]}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "D",
+     "predicate": "knows",
+     "qualifiers_json": "{}",
+     "subject": "A"
+    }
+   ],
+   "image": "<image>",
+   "value": null
+  },
+  "language": {
+   "coverage": "complete_relative_to_image",
+   "entities": [
+    "C",
+    "D"
+   ],
+   "facts": [
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2000}]}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2001}]}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "D",
+     "predicate": "knows",
+     "qualifiers_json": "{}",
+     "subject": "A"
+    }
+   ],
+   "image": "<image>",
+   "value": null
+  }
+ },
+ "parallel_relate/names": {
+  "graph": {
+   "coverage": "complete_relative_to_image",
+   "entities": [
+    "C",
+    "D"
+   ],
+   "facts": [
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2000}]}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2001}]}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "D",
+     "predicate": "knows",
+     "qualifiers_json": "{}",
+     "subject": "A"
+    }
+   ],
+   "image": "<image>",
+   "value": [
+    {
+     "id": "C",
+     "name": "Gamma"
+    },
+    {
+     "id": "D",
+     "name": "Delta"
+    }
+   ]
+  },
+  "language": {
+   "coverage": "complete_relative_to_image",
+   "entities": [
+    "C",
+    "D"
+   ],
+   "facts": [
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2000}]}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2001}]}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "D",
+     "predicate": "knows",
+     "qualifiers_json": "{}",
+     "subject": "A"
+    }
+   ],
+   "image": "<image>",
+   "value": [
+    {
+     "id": "C",
+     "name": "Gamma"
+    },
+    {
+     "id": "D",
+     "name": "Delta"
+    }
+   ]
+  }
+ },
+ "qualifier_filter/count": {
+  "graph": {
+   "coverage": "complete_relative_to_image",
+   "entities": [
+    "C",
+    "D"
+   ],
+   "facts": [
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2001}]}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "D",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2001}]}",
+     "subject": "B"
+    }
+   ],
+   "image": "<image>",
+   "value": 2
+  },
+  "language": {
+   "coverage": "complete_relative_to_image",
+   "entities": [
+    "C",
+    "D"
+   ],
+   "facts": [
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2001}]}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "D",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2001}]}",
+     "subject": "B"
+    }
+   ],
+   "image": "<image>",
+   "value": 2
+  }
+ },
+ "qualifier_filter/entities": {
+  "graph": {
+   "coverage": "complete_relative_to_image",
+   "entities": [
+    "C",
+    "D"
+   ],
+   "facts": [
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2001}]}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "D",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2001}]}",
+     "subject": "B"
+    }
+   ],
+   "image": "<image>",
+   "value": null
+  },
+  "language": {
+   "coverage": "complete_relative_to_image",
+   "entities": [
+    "C",
+    "D"
+   ],
+   "facts": [
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2001}]}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "D",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2001}]}",
+     "subject": "B"
+    }
+   ],
+   "image": "<image>",
+   "value": null
+  }
+ },
+ "qualifier_filter/names": {
+  "graph": {
+   "coverage": "complete_relative_to_image",
+   "entities": [
+    "C",
+    "D"
+   ],
+   "facts": [
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2001}]}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "D",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2001}]}",
+     "subject": "B"
+    }
+   ],
+   "image": "<image>",
+   "value": [
+    {
+     "id": "C",
+     "name": "Gamma"
+    },
+    {
+     "id": "D",
+     "name": "Delta"
+    }
+   ]
+  },
+  "language": {
+   "coverage": "complete_relative_to_image",
+   "entities": [
+    "C",
+    "D"
+   ],
+   "facts": [
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2001}]}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "D",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2001}]}",
+     "subject": "B"
+    }
+   ],
+   "image": "<image>",
+   "value": [
+    {
+     "id": "C",
+     "name": "Gamma"
+    },
+    {
+     "id": "D",
+     "name": "Delta"
+    }
+   ]
+  }
+ },
+ "relate_from_absent/count": {
+  "graph": {
+   "coverage": "complete_relative_to_image",
+   "entities": [],
+   "facts": [],
+   "image": "<image>",
+   "value": 0
+  },
+  "language": {
+   "coverage": "complete_relative_to_image",
+   "entities": [],
+   "facts": [],
+   "image": "<image>",
+   "value": 0
+  }
+ },
+ "relate_from_absent/entities": {
+  "graph": {
+   "coverage": "complete_relative_to_image",
+   "entities": [],
+   "facts": [],
+   "image": "<image>",
+   "value": null
+  },
+  "language": null
+ },
+ "relate_from_absent/names": {
+  "graph": {
+   "coverage": "complete_relative_to_image",
+   "entities": [],
+   "facts": [],
+   "image": "<image>",
+   "value": []
+  },
+  "language": null
+ },
+ "shared_union_with_itself/count": {
+  "graph": {
+   "coverage": "complete_relative_to_image",
+   "entities": [
+    "C",
+    "D"
+   ],
+   "facts": [
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2000}]}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2001}]}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "D",
+     "predicate": "knows",
+     "qualifiers_json": "{}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{}",
+     "subject": "B"
+    },
+    {
+     "direction": "forward",
+     "object": "D",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2001}]}",
+     "subject": "B"
+    }
+   ],
+   "image": "<image>",
+   "value": 2
+  },
+  "language": {
+   "coverage": "complete_relative_to_image",
+   "entities": [
+    "C",
+    "D"
+   ],
+   "facts": [
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2000}]}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2001}]}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "D",
+     "predicate": "knows",
+     "qualifiers_json": "{}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{}",
+     "subject": "B"
+    },
+    {
+     "direction": "forward",
+     "object": "D",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2001}]}",
+     "subject": "B"
+    }
+   ],
+   "image": "<image>",
+   "value": 2
+  }
+ },
+ "shared_union_with_itself/entities": {
+  "graph": {
+   "coverage": "complete_relative_to_image",
+   "entities": [
+    "C",
+    "D"
+   ],
+   "facts": [
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2000}]}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2001}]}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "D",
+     "predicate": "knows",
+     "qualifiers_json": "{}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{}",
+     "subject": "B"
+    },
+    {
+     "direction": "forward",
+     "object": "D",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2001}]}",
+     "subject": "B"
+    }
+   ],
+   "image": "<image>",
+   "value": null
+  },
+  "language": {
+   "coverage": "complete_relative_to_image",
+   "entities": [
+    "C",
+    "D"
+   ],
+   "facts": [
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2000}]}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2001}]}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "D",
+     "predicate": "knows",
+     "qualifiers_json": "{}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{}",
+     "subject": "B"
+    },
+    {
+     "direction": "forward",
+     "object": "D",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2001}]}",
+     "subject": "B"
+    }
+   ],
+   "image": "<image>",
+   "value": null
+  }
+ },
+ "shared_union_with_itself/names": {
+  "graph": {
+   "coverage": "complete_relative_to_image",
+   "entities": [
+    "C",
+    "D"
+   ],
+   "facts": [
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2000}]}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2001}]}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "D",
+     "predicate": "knows",
+     "qualifiers_json": "{}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{}",
+     "subject": "B"
+    },
+    {
+     "direction": "forward",
+     "object": "D",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2001}]}",
+     "subject": "B"
+    }
+   ],
+   "image": "<image>",
+   "value": [
+    {
+     "id": "C",
+     "name": "Gamma"
+    },
+    {
+     "id": "D",
+     "name": "Delta"
+    }
+   ]
+  },
+  "language": {
+   "coverage": "complete_relative_to_image",
+   "entities": [
+    "C",
+    "D"
+   ],
+   "facts": [
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2000}]}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2001}]}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "D",
+     "predicate": "knows",
+     "qualifiers_json": "{}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{}",
+     "subject": "B"
+    },
+    {
+     "direction": "forward",
+     "object": "D",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2001}]}",
+     "subject": "B"
+    }
+   ],
+   "image": "<image>",
+   "value": [
+    {
+     "id": "C",
+     "name": "Gamma"
+    },
+    {
+     "id": "D",
+     "name": "Delta"
+    }
+   ]
+  }
+ },
+ "union_of_relates/count": {
+  "graph": {
+   "coverage": "complete_relative_to_image",
+   "entities": [
+    "A",
+    "B",
+    "C",
+    "D"
+   ],
+   "facts": [
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2000}]}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2001}]}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "D",
+     "predicate": "knows",
+     "qualifiers_json": "{}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{}",
+     "subject": "B"
+    },
+    {
+     "direction": "forward",
+     "object": "D",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2001}]}",
+     "subject": "B"
+    }
+   ],
+   "image": "<image>",
+   "value": 4
+  },
+  "language": {
+   "coverage": "complete_relative_to_image",
+   "entities": [
+    "A",
+    "B",
+    "C",
+    "D"
+   ],
+   "facts": [
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2000}]}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2001}]}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "D",
+     "predicate": "knows",
+     "qualifiers_json": "{}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{}",
+     "subject": "B"
+    },
+    {
+     "direction": "forward",
+     "object": "D",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2001}]}",
+     "subject": "B"
+    }
+   ],
+   "image": "<image>",
+   "value": 4
+  }
+ },
+ "union_of_relates/entities": {
+  "graph": {
+   "coverage": "complete_relative_to_image",
+   "entities": [
+    "A",
+    "B",
+    "C",
+    "D"
+   ],
+   "facts": [
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2000}]}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2001}]}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "D",
+     "predicate": "knows",
+     "qualifiers_json": "{}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{}",
+     "subject": "B"
+    },
+    {
+     "direction": "forward",
+     "object": "D",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2001}]}",
+     "subject": "B"
+    }
+   ],
+   "image": "<image>",
+   "value": null
+  },
+  "language": {
+   "coverage": "complete_relative_to_image",
+   "entities": [
+    "A",
+    "B",
+    "C",
+    "D"
+   ],
+   "facts": [
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2000}]}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2001}]}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "D",
+     "predicate": "knows",
+     "qualifiers_json": "{}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{}",
+     "subject": "B"
+    },
+    {
+     "direction": "forward",
+     "object": "D",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2001}]}",
+     "subject": "B"
+    }
+   ],
+   "image": "<image>",
+   "value": null
+  }
+ },
+ "union_of_relates/names": {
+  "graph": {
+   "coverage": "complete_relative_to_image",
+   "entities": [
+    "A",
+    "B",
+    "C",
+    "D"
+   ],
+   "facts": [
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2000}]}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2001}]}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "D",
+     "predicate": "knows",
+     "qualifiers_json": "{}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{}",
+     "subject": "B"
+    },
+    {
+     "direction": "forward",
+     "object": "D",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2001}]}",
+     "subject": "B"
+    }
+   ],
+   "image": "<image>",
+   "value": [
+    {
+     "id": "A",
+     "name": "Alpha"
+    },
+    {
+     "id": "B",
+     "name": "Beta"
+    },
+    {
+     "id": "C",
+     "name": "Gamma"
+    },
+    {
+     "id": "D",
+     "name": "Delta"
+    }
+   ]
+  },
+  "language": {
+   "coverage": "complete_relative_to_image",
+   "entities": [
+    "A",
+    "B",
+    "C",
+    "D"
+   ],
+   "facts": [
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2000}]}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2001}]}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "D",
+     "predicate": "knows",
+     "qualifiers_json": "{}",
+     "subject": "A"
+    },
+    {
+     "direction": "forward",
+     "object": "C",
+     "predicate": "knows",
+     "qualifiers_json": "{}",
+     "subject": "B"
+    },
+    {
+     "direction": "forward",
+     "object": "D",
+     "predicate": "knows",
+     "qualifiers_json": "{\"since\":[{\"type\":\"year\",\"value\":2001}]}",
+     "subject": "B"
+    }
+   ],
+   "image": "<image>",
+   "value": [
+    {
+     "id": "A",
+     "name": "Alpha"
+    },
+    {
+     "id": "B",
+     "name": "Beta"
+    },
+    {
+     "id": "C",
+     "name": "Gamma"
+    },
+    {
+     "id": "D",
+     "name": "Delta"
+    }
+   ]
+  }
+ }
+}
