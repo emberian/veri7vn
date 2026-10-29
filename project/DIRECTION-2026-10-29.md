@@ -19,16 +19,29 @@ recent effort went. That is the shape problem. It is not a quality problem: the
 native code is careful and its receipts are exact. It is that nothing a user or
 a panel touches routes through it.
 
-## The reader numbers need a control
+## The reader numbers now have a control
 
-The native reader scores 36 correct, 4 refused, 60 unknown on 100 retained
-questions. Nobody has recorded what Reader7 itself scores on those same 100 or
-on the 16-case cohort. Without that control, 36 is not interpretable: it could
-be parity or it could be a third of upstream. The only baseline on record is the
-older native whole-template reader, not upstream. The local `upstream/` checkout
-answers questions through `oracle7.py`; running the same 116 questions through
-it is under an hour of work and changes how every reader result should be read.
-Do this before any more reader engineering is judged.
+Until today nobody had recorded what upstream scores on the native reader's
+questions. Lane S3 ran both upstream paths on the same 116
+([receipt](../native/evidence/2026-10-29-upstream-reader-control.json)):
+
+| Answerer, 100 retained questions | Correct | Refused | Unknown | Wrong |
+| --- | --- | --- | --- | --- |
+| Native reader | 36 | 4 | 60 | 0 |
+| Reader7 alone, v7 only | 32 | 0 | 68 | 0 |
+| Reader7 alone, v6 then v7 (its own order) | 37 | 1 | 62 | 0 |
+| Oracle7 Engine as shipped | 0 | 0 | 90 | 10 prose replies, none in gold form |
+
+The native reader is at parity with Reader7 on this sample: it answers eight
+that v7 does not, refuses three that Reader7 answers, and both have zero wrong.
+The 60 unknowns are upstream's unknowns too. The Engine users actually run does
+not expose this reader at all for these questions, and it costs 443 MB and 224 s
+for the batch against Reader7's 1.33 GB. On the 16-case cohort Reader7 answers
+the two count questions and none of the eight entity questions; native answered
+one and errored on four. So the composition work is not catching up to upstream,
+it is ahead of what the Engine serves, and the storage fix in flight is the
+remaining gap on that cohort. The 60 unknowns, shared with upstream, are where
+new capability would come from.
 
 ## Treat the composition explosion as a design fact, not only a storage bug
 
