@@ -1,3 +1,4 @@
+> Current, 29 October evening: [root direction review](DIRECTION-2026-10-29.md) and the [evening checkpoint](NATIVE-EXPANSION-2026-10-29.md): one Rust host, appliance on slim 10.1, native work scored as specialist folders.
 > Current, 29 October: [native capabilities, performance and extracted integration](NATIVE-EXPANSION-2026-10-29.md).
 > Current, 27 October: [Mars, source-precise dates and Mini shared data](CONTINUE-2026-10-27.md).
 > Active again, 26 October: [appliance and correctness batch](APPLIANCE-2026-10-26.md).
