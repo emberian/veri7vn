@@ -18,6 +18,7 @@ LIMIT_NAMES = ("request_bytes", "vertices", "edges", "expression_nodes",
                "polynomial_work", "egraph_nodes", "iterations", "search_ms")
 I64_MIN, I64_MAX = -(2**63), 2**63 - 1
 GRAPH = "graph.minimum_spanning_forest"
+SHORTEST = "graph.shortest_path"
 ALGEBRA = "algebra.optimize_polynomial"
 DIMENSIONAL = "algebra.optimize_dimensional_polynomial"
 CHEMISTRY = "chemistry.balance_reaction"
@@ -120,7 +121,12 @@ def _inputs(limits, max_exponent=None, chemistry_limits=None):
     dimensional_expression = copy.deepcopy(expression)
     dimensional_expression["description"] = dimensional_expression["description"].replace(
         "Exact commutative integer-polynomial semantics", "Exact commutative polynomial semantics for coherent linear SI quantities")
+    directed_edges = copy.deepcopy(edges)
+    directed_edges["description"] = "Complete supplied directed multigraph only. Stable edge IDs are list positions; loops and parallel edges are allowed."
+    positive_vertices = dict(vertices, minimum=1)
     return {GRAPH: _object({"vertices": vertices, "edges": edges}),
+            SHORTEST: _object({"vertices": positive_vertices, "edges": directed_edges,
+                               "source": endpoint, "target": endpoint}),
             ALGEBRA: _object({"expression": expression}),
             DIMENSIONAL: _object({"expression": dimensional_expression, "variables": annotations,
                                   "output_dimension": {"anyOf": [_dimension(max_exponent), {"type": "null"}]}},
@@ -158,6 +164,16 @@ def _results(limits, max_exponent=None, chemistry_limits=None):
                         "selection_fallback": {"anyOf": [_string(MAX_REPLY_BYTES), {"type": "null"}]}})
     results[DIMENSIONAL] = _object(dimensional)
     results[CHEMISTRY] = _chemistry_result(chemistry_limits)
+    decimal = _string(40, pattern=r"^(0|-[1-9][0-9]*|[1-9][0-9]*)$")
+    path = {"type": "array", "maxItems": count("vertices"), "items": _integer(0, count("edges") - 1)}
+    labels = {"type": "array", "maxItems": count("vertices"),
+              "items": {"anyOf": [decimal, {"type": "null"}]}}
+    results[SHORTEST] = {"anyOf": [
+        _object({"outcome": {"const": "finite"}, "distance": decimal, "path": path, "labels": labels}),
+        _object({"outcome": {"const": "unreachable"}, "reachable": {
+            "type": "array", "maxItems": count("vertices"), "items": {"type": "boolean"}}}),
+        _object({"outcome": {"const": "unbounded"}, "prefix": path,
+                 "cycle": dict(path, minItems=1), "suffix": path})]}
     # Named telemetry is optional across experimental native revisions. Keep
     # every supplied timing without weakening the required semantic contract
     # or accepting arbitrary additional result fields.
@@ -170,7 +186,7 @@ def _results(limits, max_exponent=None, chemistry_limits=None):
     return results
 
 
-OPERATION_IDS = (GRAPH, ALGEBRA, DIMENSIONAL, CHEMISTRY)
+OPERATION_IDS = (GRAPH, ALGEBRA, DIMENSIONAL, CHEMISTRY, SHORTEST)
 LIMITATIONS = [
     "Experimental computation only. No specialist panel numbers, release admission, Isabelle proof or Mini capability authority.",
     "The host must enable this provider explicitly and supply its runtime identity. Identity is a host assertion, not an independent attestation.",
@@ -239,6 +255,7 @@ class ReasoningOperations:
         self._catalog_digest = None
         self._limits = None
         self._chemistry_limits = None
+        self._path_limits = None
         self._available_ids = set()
         self._operation_unavailable = {}
         self._inputs, self._results = _inputs(None), _results(None)
@@ -300,6 +317,20 @@ class ReasoningOperations:
                 self._operation_unavailable[CHEMISTRY] = "native_operation_schema_unsupported"
             else:
                 self._chemistry_limits = {key: chemistry[key] for key in CHEMISTRY_LIMIT_NAMES}
+        if SHORTEST in self._available_ids:
+            path = next(row for row in rows if row["id"] == SHORTEST).get("path_limits")
+            keys = ("vertices", "edges", "work", "milliseconds", "reply_bytes")
+            if (not isinstance(path, dict) or not set(keys) <= set(path)
+                    or any(type(path[k]) is not int or not 1 <= path[k] <= 2**64 - 1 for k in keys)
+                    or path["vertices"] != limits["vertices"] or path["edges"] != limits["edges"]
+                    or path["milliseconds"] != limits["search_ms"]
+                    or path["work"] != limits.get("graph_work")
+                    or path["reply_bytes"] != limits.get("graph_reply_bytes")):
+                self._available_ids.remove(SHORTEST)
+                self._operation_unavailable[SHORTEST] = "native_operation_schema_unsupported"
+            else:
+                self._path_limits = {key: path[key] for key in keys}
+                self._limits.update(graph_work=path["work"], graph_reply_bytes=path["reply_bytes"])
         self._inputs = _inputs(self._limits, max_exponent, self._chemistry_limits)
         self._results = _results(self._limits, max_exponent, self._chemistry_limits)
         self._call = call
@@ -330,13 +361,17 @@ class ReasoningOperations:
                  {"name": "O2", "side": "reactant", "composition": {"O": 2}, "charge": 0},
                  {"name": "H2O", "side": "product", "composition": {"H": 2, "O": 1}, "charge": 0}]},
              "Conservation does not establish that a species exists or a reaction occurs. Multidimensional positive-coefficient search is bounded: inconclusive search is withheld, not impossibility. A found primitive candidate need not minimize coefficients. Basis/rank are exact Rust computations, not independently certified rank proofs. Integer counts and charges must be serialized exactly; coefficients and basis entries are decimal/rational strings."),
+            (SHORTEST, "Shortest walk in a supplied directed graph",
+             "Return an exact finite minimum, unreachable, or unbounded-below result with a checked graph-local certificate.",
+             {"vertices": 3, "edges": [[0, 1, 4], [1, 2, -2], [0, 2, 9]], "source": 0, "target": 2},
+             "The graph is the complete supplied input, not the world. A negative cycle matters only when source-reachable and able to reach target. Distances and labels are exact decimal strings. Finite paths attain feasible-label lower bounds; unreachable sets are closed; unbounded witnesses connect source, negative cycle and target. Rust checks are not Isabelle proofs. Search, checking and capped serialization share cooperative budgets."),
         ):
             item = {"id": op_id, "name": name, "description": description,
                     "availability": "live_direct" if self._call is not None and op_id in self._available_ids else "unavailable",
                     "input_schema": copy.deepcopy(self._inputs[op_id]),
                     "output_schema": self._output_schema(op_id),
                     "units": ({"input": "caller-defined consistent edge weight units", "output": "same weight units"}
-                              if op_id == GRAPH else {"input": "coherent linear SI quantities", "output": "declared SI exponents; tree cost is an abstract count"}
+                              if op_id in (GRAPH, SHORTEST) else {"input": "coherent linear SI quantities", "output": "declared SI exponents; tree cost is an abstract count"}
                               if op_id == DIMENSIONAL else {"input": "exact atom/isotope counts and signed elementary-charge counts", "output": "dimensionless stoichiometric coefficients; exact inventory totals"}
                               if op_id == CHEMISTRY else {"input": "dimensionless", "output": "dimensionless; tree cost is an abstract count"}),
                     "sources": [], "examples": [{"arguments": example, "source": "usage example; not a panel result"}],
@@ -349,6 +384,8 @@ class ReasoningOperations:
                     "limitations": LIMITATIONS + [limitation]}
             if op_id == CHEMISTRY:
                 item["chemistry_limits"] = copy.deepcopy(self._chemistry_limits)
+            if op_id == SHORTEST:
+                item["path_limits"] = copy.deepcopy(self._path_limits)
             if item["availability"] == "unavailable":
                 item["unavailable_reason"] = self.unavailable_reason or self._operation_unavailable.get(op_id, "native_operation_absent")
             rows.append(item)
@@ -394,9 +431,12 @@ class ReasoningOperations:
         except Exception:
             return self._withheld(operation_id, "native_execution_failed")
         try:
-            result = _json(raw, MAX_REPLY_BYTES)
+            maximum = min(MAX_REPLY_BYTES, self._path_limits["reply_bytes"]) if operation_id == SHORTEST else MAX_REPLY_BYTES
+            result = _json(raw, maximum)
             if not _valid(result, self._results[operation_id]):
                 raise ValueError("native result schema differs")
+            if operation_id == SHORTEST:
+                self._check_path_reply(arguments, result)
             if operation_id == CHEMISTRY:
                 self._check_chemistry_reply(arguments, result)
         except Exception:
@@ -412,6 +452,40 @@ class ReasoningOperations:
                 reply["answer_kind"] = ("positive_balance" if result["coefficients"] is not None
                                         else "mathematical_negative")
         return reply
+
+    @staticmethod
+    def _check_path_reply(arguments, result):
+        """Check transport coverage and edge-ID walks; Rust checks optimality."""
+        vertices, edges = arguments["vertices"], arguments["edges"]
+        def walk(path, start):
+            if len(path) > vertices:
+                raise ValueError("oversized witness walk")
+            vertex, total = start, 0
+            for edge_id in path:
+                if edge_id >= len(edges) or edges[edge_id][0] != vertex:
+                    raise ValueError("unknown or disconnected witness edge")
+                _, vertex, weight = edges[edge_id]
+                total += weight
+            return vertex, total
+        outcome = result["outcome"]
+        if outcome == "finite":
+            labels = result["labels"]
+            if (len(labels) != vertices or labels[arguments["source"]] != "0"
+                    or labels[arguments["target"]] != result["distance"]
+                    or walk(result["path"], arguments["source"]) != (arguments["target"], int(result["distance"]))
+                    or any(value is not None and not -(2**127) <= int(value) < 2**127 for value in labels)):
+                raise ValueError("finite certificate transport differs from input")
+        elif outcome == "unreachable":
+            reachable = result["reachable"]
+            if (len(reachable) != vertices or not reachable[arguments["source"]]
+                    or reachable[arguments["target"]]
+                    or any(reachable[a] and not reachable[z] for a, z, _ in edges)):
+                raise ValueError("unreachable certificate differs from input")
+        else:
+            anchor, _ = walk(result["prefix"], arguments["source"])
+            end, weight = walk(result["cycle"], anchor)
+            if end != anchor or weight >= 0 or walk(result["suffix"], anchor)[0] != arguments["target"]:
+                raise ValueError("negative-cycle witness differs from input")
 
     @staticmethod
     def _check_chemistry_reply(arguments, result):
@@ -505,6 +579,8 @@ class ReasoningOperations:
         vertices, edges = arguments["vertices"], arguments["edges"]
         if type(vertices) is not int or not 0 <= vertices <= self._limits["vertices"]:
             raise ValueError("vertices outside native range")
+        if op_id == SHORTEST and (vertices < 1 or any(type(arguments[k]) is not int or not 0 <= arguments[k] < vertices for k in ("source", "target"))):
+            raise ValueError("source/target outside nonempty supplied graph")
         if not isinstance(edges, list) or len(edges) > self._limits["edges"]:
             raise ValueError("edges outside native range")
         for edge in edges:

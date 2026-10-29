@@ -5,6 +5,7 @@
 pub mod algebra;
 pub mod dimensions;
 pub mod graph;
+pub mod shortest_path;
 pub mod stoichiometry;
 use serde::{Deserialize, Serialize};
 
@@ -27,6 +28,9 @@ pub struct Limits {
     pub request_bytes: usize,
     pub vertices: usize,
     pub edges: usize,
+    pub graph_work: usize,
+    /// Maximum serialized directed shortest-path certificate bytes.
+    pub graph_reply_bytes: usize,
     pub expression_nodes: usize,
     pub expression_depth: usize,
     pub polynomial_terms: usize,
@@ -42,6 +46,8 @@ impl Default for Limits {
             request_bytes: 4 * 1024 * 1024,
             vertices: 10_000,
             edges: 100_000,
+            graph_work: 5_000_000,
+            graph_reply_bytes: 256 * 1024,
             expression_nodes: 128,
             expression_depth: 32,
             polynomial_terms: 512,
@@ -59,6 +65,8 @@ impl Default for Limits {
 enum Request {
     #[serde(rename = "graph.minimum_spanning_forest")]
     Forest(graph::GraphInput),
+    #[serde(rename = "graph.shortest_path")]
+    ShortestPath(shortest_path::ShortestPathInput),
     #[serde(rename = "algebra.optimize_polynomial")]
     Polynomial(algebra::PolynomialInput),
     #[serde(rename = "algebra.optimize_dimensional_polynomial")]
@@ -71,7 +79,16 @@ pub fn call(request: &str, limits: &Limits) -> Result<String> {
     if request.len() > limits.request_bytes {
         return Err(Error::Limit("request bytes"));
     }
-    let reply = match serde_json::from_str(request)? {
+    let reply = match serde_json::from_str(request)
+        .map_err(|e| Error::Invalid(format!("request JSON: {e}")))?
+    {
+        Request::ShortestPath(input) => {
+            return shortest_path::shortest_path_json(
+                &input,
+                &shortest_path_limits(limits),
+                &std::sync::atomic::AtomicBool::new(false),
+            )
+        }
         Request::Reaction(input) => serde_json::to_value(stoichiometry::balance_reaction(
             &input,
             &stoichiometry::ChemistryLimits::default(),
@@ -85,6 +102,16 @@ pub fn call(request: &str, limits: &Limits) -> Result<String> {
     Ok(serde_json::to_string(&reply)?)
 }
 
+pub fn shortest_path_limits(limits: &Limits) -> shortest_path::PathLimits {
+    shortest_path::PathLimits {
+        vertices: limits.vertices,
+        edges: limits.edges,
+        work: limits.graph_work,
+        milliseconds: limits.search_ms,
+        reply_bytes: limits.graph_reply_bytes,
+    }
+}
+
 pub fn catalog() -> serde_json::Value {
     serde_json::json!({
         "schema": "oracle-reasoning-experimental-v1",
@@ -92,6 +119,7 @@ pub fn catalog() -> serde_json::Value {
         "hosting": "pure library/CLI; no Mini registration or hard containment",
         "limits": Limits::default(),
         "operations": [
+            {"id": "graph.shortest_path", "domain": "exact directed minimum walk weight in the complete supplied multigraph only; finite, unreachable or unbounded below; missing world edges are not established", "path_limits": shortest_path_limits(&Limits::default()), "assurance": "independent Rust path/feasible-label, closed-set or anchored-negative-cycle check; not Isabelle-verified", "arguments": {"vertices": "positive integer; vertex IDs are 0..vertices-1", "edges": "list of [source, target, exact i64 weight]; stable edge ID is list position", "source": "vertex ID", "target": "vertex ID"}},
             {"id": "chemistry.balance_reaction", "domain": "exact element/isotope and charge conservation for supplied species; not reaction feasibility", "chemistry_limits": stoichiometry::ChemistryLimits::default(), "arguments": {"species": "list of {name, side: reactant|product, composition: {element_or_isotope: positive_u64}, charge: i64}; empty composition with charge -1 represents an explicit electron"}},
             {"id": "graph.minimum_spanning_forest", "domain": "supplied undirected multigraph, exact i64 edge weights", "arguments": {"vertices": "nonnegative integer; vertex IDs are 0..vertices-1", "edges": "list of [source, target, weight]; edge ID is list position"}},
             {"id": "algebra.optimize_polynomial", "domain": "dimensionless commutative polynomials with integer coefficients", "arguments": {"expression": "prefix expression: i64 literals, ASCII variables, binary + - *; no division or floating-point semantics"}},

@@ -102,7 +102,7 @@ class WorkerRequestFailureContract(unittest.TestCase):
                 (ValueError("invalid_input", "same text"), "bio", Declared),
                 (ValueError("invalid_input", "same text"), "bio", ValueError),
                 (Subclass("invalid_input", "same args"), "bio", Declared),
-                (error, "reasoning", Declared), (error, "bio", None),
+                (error, "runtime", Declared), (error, "bio", None),
                 (Declared("numerical_failure", "SVD failure"), "statistics", Declared),
                 (Declared("candidate_check_failed", "score disagreement"), "bio", Declared),
                 (Declared("cancelled", "stop"), "bio", Declared),
@@ -254,13 +254,13 @@ class NativePoolTests(unittest.TestCase):
         self.assertEqual(len(pool.artifacts), 1)
 
     def test_invalid_safe_failure_frames_and_unclassified_faults_retire(self):
-        pool = self.pool([self.provider("bio", "bio"), self.provider("science", "science")])
+        pool = self.pool([self.provider("bio", "bio"), self.provider("incremental", "incremental")])
         cases = [("bio", {"test": "expected", "code": "numerical_failure"}),
                  ("bio", {"test": "expected", "code": ["invalid_input"]}),
                  ("bio", {"test": "expected", "extra": True}),
                  ("bio", {"test": "expected", "detail": "🧬" * 129}),
                  ("bio", {"test": "expected", "bad_unicode": True}),
-                 ("science", {"test": "expected"})]
+                 ("incremental", {"test": "expected"})]
         for profile, payload in cases:
             previous = pool.execute("tenant-a", "bio", {})
             self.assert_error("worker_protocol_error", lambda: pool.execute("tenant-b", profile, payload))

@@ -28,14 +28,17 @@ def native_catalog():
                        "expression_nodes": 20, "expression_depth": 8,
                        "polynomial_terms": 10, "coefficient_bits": 128,
                        "polynomial_work": 1000, "egraph_nodes": 99,
-                       "iterations": 3, "search_ms": 5},
+                       "iterations": 3, "search_ms": 5, "graph_work": 3000, "graph_reply_bytes": 4096},
             "operations": [{"id": op_id,
                             **({"dimension_order": list(ADAPTER.DIMENSION_ORDER), "max_exponent": 5}
                                if op_id == ADAPTER.DIMENSIONAL else {}),
                             **({"chemistry_limits": {"species": 6, "conserved_rows": 5,
                                                       "coefficient_bits": 96, "work": 700,
                                                       "free_coefficient_bound": 3, "search_candidates": 11}}
-                               if op_id == ADAPTER.CHEMISTRY else {})}
+                               if op_id == ADAPTER.CHEMISTRY else {}),
+                            **({"path_limits": {"vertices": 7, "edges": 9, "work": 3000,
+                                                "milliseconds": 5, "reply_bytes": 4096}}
+                               if op_id == ADAPTER.SHORTEST else {})}
                            for op_id in ADAPTER.OPERATION_IDS]}
 
 
@@ -419,6 +422,62 @@ class ReasoningContract(unittest.TestCase):
             reply = self.bind(known_module(reply=fixture)).invoke(ADAPTER.CHEMISTRY, chemistry_arguments())
             self.assertEqual(reply["status"], "withheld")
             self.assertEqual(reply["reason"], "native_reply_invalid")
+
+    def test_shortest_path_discovery_and_all_certificate_shapes(self):
+        cases = [
+            ({"vertices": 2, "source": 0, "target": 1, "edges": [[0, 1, 7]]},
+             {"outcome": "finite", "distance": "7", "path": [0], "labels": ["0", "7"]}),
+            ({"vertices": 2, "source": 0, "target": 1, "edges": []},
+             {"outcome": "unreachable", "reachable": [True, False]}),
+            ({"vertices": 2, "source": 0, "target": 1, "edges": [[0, 0, -1], [0, 1, 0]]},
+             {"outcome": "unbounded", "prefix": [], "cycle": [0], "suffix": [1]}),
+        ]
+        for arguments, fixture in cases:
+            module = known_module(reply=fixture)
+            provider = self.bind(module)
+            item = {row["id"]: row for row in provider.catalog()}[ADAPTER.SHORTEST]
+            self.assertEqual(item["availability"], "live_direct")
+            self.assertEqual(item["path_limits"]["work"], 3000)
+            self.assertEqual(item["input_schema"]["properties"]["vertices"]["minimum"], 1)
+            reply = provider.invoke(ADAPTER.SHORTEST, arguments)
+            self.assertEqual(reply["result"], fixture)
+            HOST.validate(arguments, item["input_schema"])
+            HOST.validate(reply, item["output_schema"])
+
+    def test_shortest_path_rejects_bad_endpoints_and_witness_transport(self):
+        arguments = {"vertices": 2, "source": 0, "target": 1, "edges": [[0, 1, 7]]}
+        for change in ({"source": True}, {"target": 2}, {"vertices": 0}, {"work": 999}):
+            module = known_module()
+            with self.assertRaises(ValueError):
+                self.bind(module).invoke(ADAPTER.SHORTEST, dict(arguments, **change))
+            module.reasoning_call.assert_not_called()
+        for fixture in (
+            {"outcome": "finite", "distance": "7", "path": [1], "labels": ["0", "7"]},
+            {"outcome": "finite", "distance": "7", "path": [0], "labels": ["0"]},
+            {"outcome": "finite", "distance": "07", "path": [0], "labels": ["0", "07"]},
+            {"outcome": "unreachable", "reachable": [True, False]},
+            {"outcome": "unbounded", "prefix": [], "cycle": [], "suffix": [0]},
+            {"outcome": "unbounded", "prefix": [], "cycle": [0], "suffix": [0]},
+            {"outcome": "finite", "distance": "7", "path": [0], "labels": ["0", "7"], "extra": 1},
+        ):
+            reply = self.bind(known_module(reply=fixture)).invoke(ADAPTER.SHORTEST, arguments)
+            self.assertEqual(reply["reason"], "native_reply_invalid", fixture)
+
+    def test_shortest_path_metadata_and_native_reply_byte_ceiling(self):
+        for key, value in (("vertices", 8), ("work", True), ("reply_bytes", 0), ("milliseconds", 6)):
+            declaration = native_catalog()
+            declaration["operations"][4]["path_limits"][key] = value
+            provider = self.bind(known_module(declaration))
+            rows = {row["id"]: row for row in provider.catalog()}
+            self.assertEqual(rows[ADAPTER.SHORTEST]["unavailable_reason"], "native_operation_schema_unsupported")
+            self.assertEqual(rows[ADAPTER.GRAPH]["availability"], "live_direct")
+        declaration = native_catalog()
+        declaration["limits"]["graph_reply_bytes"] = 40
+        declaration["operations"][4]["path_limits"]["reply_bytes"] = 40
+        fixture = {"outcome": "finite", "distance": "0", "path": [], "labels": ["0"]}
+        reply = self.bind(known_module(declaration, fixture)).invoke(ADAPTER.SHORTEST,
+            {"vertices": 1, "source": 0, "target": 0, "edges": []})
+        self.assertEqual(reply["reason"], "native_reply_invalid")
 
 
 if __name__ == "__main__":

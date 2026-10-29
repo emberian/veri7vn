@@ -65,7 +65,7 @@ class NativeService:
                 call = self._bound_call(provider.id)
                 if provider.profile == "reasoning":
                     def reasoning_call(raw, call=call):
-                        return json.dumps(call(decode(raw)), ensure_ascii=False, allow_nan=False)
+                        return json.dumps(call(decode(raw)), ensure_ascii=False, allow_nan=False, separators=(",", ":"))
                     proxy = types.SimpleNamespace(__name__="oracle_native", reasoning_call=reasoning_call,
                                                   reasoning_catalog=lambda catalog=catalog: json.dumps(catalog, allow_nan=False))
                     adapter = create_reasoning_operations(None, None, native_module=proxy,

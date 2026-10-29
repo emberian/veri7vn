@@ -57,3 +57,36 @@ Build the Python package with feature `reasoning` to expose
 `oracle_native.reasoning_catalog()` and `reasoning_call(request_json)`.
 These functions release the GIL. They do not register operations in the native
 admitted runtime or automatically enable the Mini appliance.
+
+`graph.shortest_path` answers an exact directed walk question:
+
+```json
+{"operation":"graph.shortest_path","arguments":{"vertices":3,"edges":[[0,1,4],[1,2,-2],[0,2,9]],"source":0,"target":2}}
+```
+
+The result is `finite`, `unreachable`, or `unbounded` below. A finite result
+contains an attaining edge-ID path and feasible distance labels; unreachable
+contains an outgoing-edge-closed set containing the source and excluding the
+target; unbounded contains a source prefix, a closed negative cycle and a target
+suffix. The independent Rust checker replays these certificates. A negative cycle
+outside the source-to-target corridor does not spoil a finite answer. Source equal
+to target admits the empty walk unless a relevant negative cycle makes weights
+unbounded below. This concerns the complete supplied graph, not completeness of
+real-world knowledge. The forest operation above remains undirected.
+
+Distances and labels are decimal strings, using checked i128 arithmetic over i64
+weights. Nonnegative corridors use an integer heap; signed corridors use bounded
+Bellman-Ford. Vertex/edge ceilings come from the caller's `Limits`; `graph_work`
+and `search_ms` cover validation, search, checking and serialization together.
+`graph_reply_bytes` caps encoded certificates while they are being written,
+without first building an unbounded JSON value. Its default is 256 KiB; appliance
+request and reply envelope limits still apply. These settings are operator-owned,
+not request arguments. The pure library also accepts cooperative cancellation;
+the generic Python/HTTP interface does not expose a cancellation handle.
+
+`native/tests/qualify_shortest_path.py --extension <built-library> --output <receipt>`
+exercises the actual PyO3 feature and private NativeService/NativePool HTTP operation handler,
+including all outcomes, irrelevant negative cycles and exact large totals.
+Repeated pure calls recompute; request IDs provide correlation, not durable replay.
+It is a component qualification, not a specialist-panel score or a full Engine
+or Mini authentication test.

@@ -20,6 +20,16 @@ pyo3::create_exception!(oracle_native, BusyError, PyRuntimeError);
 pyo3::create_exception!(oracle_native, ConflictError, PyRuntimeError);
 pyo3::create_exception!(oracle_native, BudgetError, PyRuntimeError);
 
+// Exact request-local errors from reviewed pure providers only. Durable runtime
+// errors keep their independent, conservative retirement boundary.
+#[cfg(any(
+    feature = "reasoning",
+    feature = "science",
+    feature = "bio",
+    feature = "statistics"
+))]
+pyo3::create_exception!(oracle_native, NativeRequestError, PyValueError);
+
 fn error(e: core::Error) -> PyErr {
     let message = e.to_string();
     match e {
@@ -325,6 +335,16 @@ fn operation_catalog() -> PyResult<String> {
 
 #[pymodule]
 fn oracle_native(py: Python<'_>, module: &Bound<'_, PyModule>) -> PyResult<()> {
+    #[cfg(any(
+        feature = "reasoning",
+        feature = "science",
+        feature = "bio",
+        feature = "statistics"
+    ))]
+    module.add(
+        "NativeRequestError",
+        module.py().get_type::<NativeRequestError>(),
+    )?;
     #[cfg(any(
         feature = "science",
         feature = "incremental",

@@ -26,7 +26,7 @@ PROFILES = {"reasoning": ("reasoning_call", "reasoning_catalog"),
 # Host policy, never supplied in a request or by the extension's catalog. Other
 # profiles retain the conservative fault boundary until explicitly reviewed.
 SAFE_REQUEST_FAILURES = {profile: frozenset(("invalid_input", "resource_limit"))
-                         for profile in ("bio", "statistics")}
+                         for profile in ("reasoning", "science", "bio", "statistics")}
 REQUEST_ERROR_EXPORT = "NativeRequestError"
 REQUEST_ERROR_DETAIL_BYTES = 512
 

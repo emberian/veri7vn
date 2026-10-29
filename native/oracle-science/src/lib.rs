@@ -514,10 +514,12 @@ pub fn call(request: &str, limits: &Limits, cancel: &AtomicBool) -> Result<Strin
     if request.len() > limits.request_bytes.min(MAX_REQUEST_BYTES) {
         return Err(Error::Limit("request bytes"));
     }
-    let request: Request = serde_json::from_str(request)?;
+    let request: Request =
+        serde_json::from_str(request).map_err(|e| Error::Invalid(format!("request JSON: {e}")))?;
     let operation = match request.operation.as_str() {
         "science.thermal_network" => {
-            let input = serde_json::from_str(request.arguments.get())?;
+            let input = serde_json::from_str(request.arguments.get())
+                .map_err(|e| Error::Invalid(format!("request arguments: {e}")))?;
             return Ok(serde_json::to_string(&thermal::thermal_network(
                 &input, limits, cancel,
             )?)?);
@@ -526,7 +528,8 @@ pub fn call(request: &str, limits: &Limits, cancel: &AtomicBool) -> Result<Strin
         "science.least_squares" => Operation::LeastSquares,
         _ => return Err(Error::Invalid("unknown scientific operation".into())),
     };
-    let input: LinearInput = serde_json::from_str(request.arguments.get())?;
+    let input: LinearInput = serde_json::from_str(request.arguments.get())
+        .map_err(|e| Error::Invalid(format!("request arguments: {e}")))?;
     let result = linear(&input, operation, limits, cancel)?;
     Ok(serde_json::to_string(&result)?)
 }
