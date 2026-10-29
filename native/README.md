@@ -1,90 +1,41 @@
-# Shared native Oracle foundation
+# Native Oracle runtime and appliance
 
-The [native integration program](docs/INTEGRATIONS.md) adds optional graph,
-symbolic/dimensional, scientific and incremental-reasoning providers. Optional
-[DNA alignment and statistical regression](docs/BIO-STATISTICS.md) operate on
-supplied sequences and models. They have
-Rust libraries, CLIs and feature-gated PyO3 calls; their experimental status and
-remaining hosted boundaries are explicit.
+This directory contains a shared-data query runtime and optional computation
+providers. The [capability catalog](docs/CAPABILITIES.md) lists exact operation
+IDs, current limits and retained results.
 
-The [standalone native service](docs/STANDALONE.md) exposes these computations
-through discovery and direct HTTP calls, sharing bounded workers across tenants.
-It runs and tests without any minidregg dependency or public Oracle dataset. An
-optional [durable runtime profile](docs/RUNTIME-HOST.md) admits an operator image
-and release, then serves structured queries and atomic language turns. The
-[distribution builder](docs/DISTRIBUTION.md) produces a relocatable Python/native
-bundle; images, journals and private configuration stay external.
+The [standalone HTTP service](docs/STANDALONE.md) shares bounded worker processes
+across tenants. It runs without Oracle7, Mini or an account. Supplied-model
+operations need no Oracle dataset. The optional [durable runtime](docs/RUNTIME-HOST.md)
+serves an admitted data image, KQA programs and learned language turns, with exact
+reply replay after restart. The [distribution builder](docs/DISTRIBUTION.md)
+packages the service into a relocatable directory; images, journals and private
+configuration stay external.
 
-This is the Rust and PyO3 foundation for the next Oracle appliance. It builds a
-release's knowledge base once, executes structured query plans over shared
-indexes, and persists a conversation's selection and exact replies together.
-A tenant handle holds an identity and a shared reference. It starts no process,
-loads no corpus, and owns no database connection.
+`oracle-core` builds a KQA-shaped JSON source into immutable indexed SQLite,
+executes bounded query graphs and stores versioned session selections/replies.
+It preserves typed values and qualifiers, checks dangling references and creates
+reverse relation indexes. Source decimal digits are retained exactly. Building
+parses the whole source offline; serving shares indexes rather than a Python
+object graph per tenant. `oracle-python` exposes the core through PyO3 and
+releases the interpreter while native work runs.
 
-The callable library now includes the full pinned KQA program vocabulary,
-exact typed predicates and scalar answers, learned whole/fragment/outer language
-reading and durable language turns, release-bound restart/retry, and bounded resident transport for the extracted
-quantity/acoustics kernels and the resident connected-MST checker. Rust hosts can commit authorized effect intents
-with a query and recover their outcomes through an outbox. Python is not called
-inside any of these native execution paths.
+The reader uses offline-exported lexical and learned grammar tables bound to the
+KB digest. It executes whole templates, exact fragment/outer composition,
+2–4-segment chains and one nested fragment pass under one worker budget.
+Consumed children must run and be nonempty; successful interpretations must
+agree. Serving neither learns nor unpickles. The retained 100 questions have
+36 correct answers, 4 refusals and 60 unknowns with no wrong answers/errors;
+a separate 16-question expansion failed acceptance, including four byte-limit
+errors. Details and evidence are in the catalog.
 
-This is not the complete Oracle Engine and is not installed in signed v7.
-Additional composition families, the full route cascade and dialogue adapters,
-additional specialists and real effect executors remain. The [migration
-map](docs/MIGRATION.md) identifies those surfaces and the practical Python
-boundaries. The [development roadmap](docs/ROADMAP.md) sets out the shared
-runtime design, extracted-code strategy, candidate specialist libraries and
-performance evidence needed for an upstream proposal. There are no new
-specialist-panel scores. The separate [extracted graph checker](../src/extract/discrete-certificate/README.md)
-connects supplied connected-tree candidates to specific Isabelle theorems; it
-does not confer formal assurance on the Rust runtime or other computations.
-
-## What runs
-
-`oracle-core` contains the image builder, query compiler, execution budgets and
-transactional state store. It has no Python dependency and forbids unsafe Rust
-in our code. SQLite and PyO3 remain native dependencies with their own safety
-boundaries. `oracle-python` exports the same core through PyO3, releasing the
-interpreter while native work runs. Both share the checked-in Cargo lockfile.
-
-The builder accepts a complete KQA-shaped JSON knowledge base. It preserves
-source records, typed attribute values and relation qualifiers; creates reverse
-relation indexes; deduplicates identical edges; and checks dangling references.
-Concept hierarchy and entity membership have separately indexed kinds. Numeric
-source digits are preserved rather than converted through a binary float.
-Publication uses a temporary file, fsync and a no-overwrite publish. A receipt
-binds source bytes, image bytes and schema version. Build-time memory is separate
-from serving memory: the current builder parses the whole source offline.
-
-Queries contain validated acyclic graphs, with typed attribute and qualifier
-filters, relation/concept operations, exact selection and scalar projections.
-The separate `query_program` / `execute_program` APIs accept the upstream
-`function/dependencies/inputs` format. They compile the complete program once;
-no Python call occurs for each operation. The original bytes and explicit
-dialect bind durable retry identity.
-
-Single-use chains can remain inside SQLite's planner. Shared subplans are
-materialized once in bounded worker scratch; they must not expand exponentially
-during SQL preparation. Language execution checks every entity stage once,
-including unused branches, to preserve its empty-intermediate refusal rules.
-
-`build_reader_image` adds shared lexical and trained grammar indexes. Training
-runs offline through `tools/export_reader_tables.py`; the export must bind the
-exact KB digest. `Tenant.read_whole(question, cancellation)` performs indexed
-lexical lookup, whole-template matching, native program execution, answer-form
-guards and agreement under one worker lease and budget. Its result explicitly
-says `whole_and_exact_fragment_outer_v1`. Learned outer questions demand only
-the fragment regions they consume; shared fragment programs are checked once,
-and whole/composed alternatives must agree. Empty fragments cannot supply a zero
-count. Segment chains, nested fragments, content-key fallback, analogy and
-clause/date wrappers remain unsupported. Serving never learns or unpickles
-those tables. A learned interpretation is a hypothesis, not a proof of meaning.
-
-No client SQL is accepted. Ambiguous names remain multiple candidates; a unique
-name request reports ambiguity instead of picking the first. Returned coverage
-means complete for the admitted image and this plan, not complete knowledge of
-the world. Exceeding a bound fails the request; it never returns truncated data
-as a complete answer. These are executable contracts, not Isabelle proofs.
+This does not replace the complete Oracle Engine or install it in signed v7.
+The full route cascade, dialogue adapters, remaining language families and real
+external effect executors remain. No new specialist-panel scores are available.
+The [migration map](docs/MIGRATION.md) describes these gaps; the
+[roadmap](docs/ROADMAP.md) names the next work. Handwritten Rust contracts do not
+inherit Isabelle proofs. [Resident connected-MST checking](../src/extract/discrete-certificate/README.md)
+has its own theorem scope and receipt admission.
 
 ## Use from Python
 
@@ -147,7 +98,7 @@ Engine's full dialogue state or provide external effect execution.
 The current evaluator is pure. It does not call Python, send messages, run tools
 or mutate external files during evaluation. An uncommitted turn can therefore
 be evaluated again after a crash. This guarantee does not extend to arbitrary
-Python callbacks or external effects; those need the planned effect broker.
+Python callbacks or external effects; those require an authorized host executor and its own recovery contract.
 
 ## Resource and isolation contract
 
@@ -208,145 +159,33 @@ The outbox is not a teaching, filesystem or network executor.
 
 `KernelExecutor` admits operator-supplied executable hashes once and supplies
 cheap tenant handles to a fixed resident process pool. The current audited
-protocols are acoustics and quantity modes. Cancellation owns the child process
+protocols include acoustics, quantity and connected-MST checking. The MST path
+can admit compiler/proof receipts as described in the checker contract.
+Cancellation owns the child process
 group and joins its I/O threads before releasing capacity. This transport does
 not replace the extracted SML implementations, dispatcher acceptance or proofs.
 
-## Build and qualify
+## Build and evidence
 
-From this directory:
+Build on the project's designated host under its resource controls. The workspace
+uses the checked-in Cargo lockfile. From this directory:
 
 ```sh
-CARGO_BUILD_JOBS=2 cargo test --locked -p oracle-runtime-core --test runtime_contract
 CARGO_BUILD_JOBS=2 cargo build --locked --release --workspace
 maturin build --locked --release --compatibility linux
 ```
 
-The extension uses the CPython 3.12+ stable ABI. The `linux` wheel command builds
-for the current Linux toolchain; it does not establish manylinux portability or
-qualification on Mini's runtime base. Build a pinned compatible wheel in the
-appliance build environment before packaging it into an SPK. Keep corpora,
-images, targets, wheels and state stores outside tracked source.
+The extension targets CPython 3.12+ stable ABI. A local Linux wheel does not
+establish manylinux portability or compatibility with Mini's base image. Keep
+corpora, images, targets, wheels and state stores outside tracked source.
 
-`tests/test_python_contract.py` checks the actual extension's scoped handles,
-shared query graphs, parallel admission, cancellation, cleanup and process-kill
-recovery. `tests/qualify.py` runs the pinned upstream KQA and native reader in
-separate fresh processes, comparing relation qualifiers and concept selections
-on the real knowledge base. It then creates 256 logical tenant sessions at fixed
-worker capacity. Source data preparation is in another process; it cannot inflate
-the native process's memory measurement. These are data-access comparisons, not
-full Oracle or specialist-panel scores.
-
-The earlier [retained Linux receipt](evidence/2026-10-28-linux.json) records its input and
-extension hashes. On that run, all 288 comparisons matched. Native post-use PSS
-was about 18 MiB versus 545 MiB for the reference KQA; startup was 0.17 versus
-2.93 seconds, including image hashing on the native side. Median query time was
-77 versus 9 microseconds; p95 was 0.12 versus 4.43 milliseconds. The simple
-in-memory lookup remains cheaper in Python, while indexed concept traversal
-and the memory footprint improve. These are observed fresh-process timings on
-a warm filesystem cache, not guaranteed service latency or full-Engine numbers.
-
-The earlier [installed-wheel validation](evidence/2026-10-28-validation.json) records
-14 passing Rust contract tests, six passing Python binding/recovery checks,
-Clippy with warnings denied, and the source and wheel digests.
-
-The [0.2 serving validation](evidence/2026-10-28-serving-validation.json)
-records 185 passing Rust checks (including one real resident-kernel protocol
-check), 17 Python checks, and Clippy with warnings denied. It binds the exact
-source and installed wheel; the retained image and corpora are outside Git.
-
-The [233-program sample](evidence/2026-10-28-programs.json) exercises every
-pinned KQA operation: 225 answers match gold, zero are wrong, and eight withhold
-on unit/date ambiguity. The [40-question whole-reader sample](evidence/2026-10-28-reader.json)
-answers 17 correctly, returns unknown for 23, and has zero wrong answers or
-execution errors. Its median is 2.4 ms and p95 23.4 ms; post-query PSS is about
-33.2 MiB. Adding 256 scoped handles adds 12 KiB PSS and no threads. This is a
-small fresh-process sample on warm filesystem caches, not a throughput or
-full-language-coverage claim. This historical receipt predates fragment/outer
-composition; current checkpoint evidence is recorded separately.
-
-The same 40 questions previously hit a span-combination bound 25 times. Indexed
-template-prefix search removed those errors without raising the limit or hiding
-alternatives; the [before receipt](evidence/2026-10-28-reader-before-prefix.json)
-is retained alongside the final run.
-
-The [29 October checkpoint](evidence/2026-10-29-language-chemistry-domains-validation.json)
-passed 101 scoped Rust checks, warnings-denied combined Clippy, 15 actual binding
-checks, eight new adapter checks and 15 standalone service checks. A default
-build separately confirms that optional DNA/statistics exports are absent.
-These count executable contracts, not specialist panels or formal proofs.
-
-The [paired 100-question reader sample](evidence/2026-10-29-language-chemistry-reader.json)
-uses the same pinned image, questions and limits for a retained whole-only
-artifact and the new composed reader. Correct answers increase from 35 to 36;
-both have zero wrong answers/errors and four refusals. Unknowns decrease from
-61 to 60. The original 40-question prefix is restored to 17 correct / 23 unknown
-without errors. Independent source inspection confirms the gained BristolUni
-subscriber qualifier across every matching education candidate in the pinned KB.
-It does not establish a current external subscriber count.
-
-The extra coverage costs time: median 10.0 ms versus 2.08 ms, p95 30.7 ms versus
-20.1 ms, in one fresh process per artifact on warm filesystem caches. Repeated
-lexical analysis and prefix probes remain a performance target. The earlier
-[regressions](evidence/2026-10-29-language-chemistry-reader-history.json) are
-retained; bounds were not raised and alternatives were not discarded.
-
-The [lexical reuse and worker checkpoint](evidence/2026-10-29-native-performance-validation.json)
-passes 46 focused Rust checks, combined Clippy, 17 binding checks, 20 process-pool
-checks and 16 service checks. Independent default, DNA-only and statistics-only
-builds verify their actual exports; each enabled single-domain build also calls
-its operation. Known typed DNA/statistics input or resource refusals now preserve
-a healthy worker and release its tenant lease. Unclassified failures still retire
-it, with actual numerical-failure/replacement coverage.
-
-In one balanced [control/new/new/control exercise](evidence/2026-10-29-native-performance-reader.json),
-the same 100 questions retain every answer and interpretation count. Control
-query medians are 10.88–11.45 ms; new medians are 4.10–4.48 ms. CPU timing follows
-wall timing. Per-question new/control ratios have median 0.475 for both clocks;
-summed query CPU is 0.742 of control. The 41 questions with matched programs
-benefit less than the 59 without one. The earlier overloaded run is retained.
-These are bounded workload measurements, without a throughput or universal
-latency claim. Optional cache retention and output scratch have separate bounded
-estimates; neither is a hard RSS ceiling.
-
-The [stable appliance checkpoint](evidence/2026-10-29-stable-appliance-validation.json)
-qualifies commit `7773163` from an immutable staged-index snapshot: 115 scoped
-Rust contracts, one actual resident-checker contract, warnings-denied Clippy and
-54 selected Python checks pass on the final artifact. Hosted and relocated
-package journeys use manufactured data; the previously qualified reader stays
-unchanged in this cut. Experimental segment/nested work remains separate.
-
-State-store schemas 1/2 upgrade transactionally to 3 without rewriting old reply
-bytes or request identities; session envelopes stay version 2. The new retirement
-limit affects the measured resource profile, and releases still require explicit
-admission. No release-history migration is inferred. Shutdown cancellation was
-checked with a real HTTP call gated before worker exchange: it returns 503 with
-uncertainty, reaps the child, and restart replays the earlier committed reply.
-A separate lost-response-after-commit test checks exact retry after a successful
-commit. Full routing, dialogue, external effects and signed Mini integration remain.
-
-The [graph/refusal checkpoint](evidence/2026-10-29-graph-pure-validation.json)
-qualifies commit `951a178`: exact directed shortest paths return checked finite,
-unreachable or unbounded witnesses over the supplied graph. Seven graph
-contracts include 6,561 comparisons with an independent oracle; five actual
-binding/HTTP cases and a near-cap 8,100-vertex reply pass. Expected invalid-input
-and resource refusals now retain healthy reasoning/science workers under the
-strict typed protocol, including independent single-feature builds. Other
-faults still retire workers. Pure request IDs correlate recomputation rather
-than durable replay. The reader remains unchanged in this checkpoint.
-
-The [exact segment checkpoint](evidence/2026-10-29-segment-reader-validation.json)
-qualifies `2fda9fe`: learned chains of two to four segments and one nested
-fragment pass join the existing whole/exact reader. Consumed children must be
-runnable and nonempty, and every successful interpretation still participates
-in answer agreement. Deferred child plans and streaming storage keep duplicate
-paths within the existing budgets. This accounting estimates retained storage;
-it is not a hard RSS ceiling. Deeper nesting, analogy and clause/date wrappers
-remain outside the admitted coverage.
-
-All 31 segment contracts, 55 affected/guard contracts, lint and the refreshed
-host/package journeys pass. The same 100 real questions retain 36 correct,
-four refusals, 60 unknown and no wrong answers or errors. Five questions gain
-interpretations without changing outcomes. Median query time is 8.80 ms versus
-the historical control's 4.10 ms; these separate runs establish neither a speedup
-nor new coverage gain. Earlier failed reader runs and packages remain retained.
+Use the focused checks for the changed surface, centrally coordinated on the
+build host. [Runtime hosting](docs/RUNTIME-HOST.md), [distribution](docs/DISTRIBUTION.md)
+and domain documents give reproduction commands and exact artifact receipts.
+Historical [data-access measurements](evidence/2026-10-28-linux.json) compare
+288 KQA queries, not the full Engine: all matched; native post-use PSS was about
+18 MiB versus 545 MiB, while median lookup time was slower (77 versus 9 µs).
+The [lexical reuse experiment](evidence/2026-10-29-native-performance-reader.json)
+preserved results while lowering CPU/wall time on its bounded workload.
+These results are separate checkpoints, not a combined score or service-latency
+guarantee. Raw evidence and failed runs remain under `evidence/`.

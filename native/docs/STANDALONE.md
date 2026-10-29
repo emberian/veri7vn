@@ -14,6 +14,9 @@ dependency queries. Optional [DNA alignment and regression profiles](BIO-STATIST
 add supplied-sequence alignment and conditional model inference. Discovery comes from the admitted extension's actual exports
 and catalogs. Unsupported features fail startup rather than appearing callable.
 
+The [capability catalog](CAPABILITIES.md) lists exact operation IDs and the current
+reader results, including the failed expansion cohort.
+
 ## Launch
 
 Build on the designated build host, using the project's resource controls:
@@ -90,7 +93,7 @@ reply replay. It requires an independently admitted release and image; pure
 calls retain their existing retry semantics. Neither profile qualifies the
 signed Mini package.
 
-Reviewed DNA/statistics `invalid_input` and `resource_limit` failures can retain
+Reviewed reasoning/science/DNA/statistics `invalid_input` and `resource_limit` failures can retain
 the worker through an exact `NativeRequestError` boundary. Both the child and
 parent validate the fixed codes and bounded metadata. The actual mixed-tenant
 journey keeps one PID and snapshot through valid calls, these refusals and later
@@ -136,6 +139,5 @@ for cancellation, lost-response replay, tenant/resource separation and restart c
 The [stable appliance receipt](../evidence/2026-10-29-stable-appliance-validation.json)
 qualifies exact commit `7773163`, including the operator-bound durable runtime,
 relocated package and resident checker. Actual hosted journeys use a manufactured
-KB. The committed reader stays unchanged; experimental reader expansion and
-later providers are separate work. [Retirement](RETENTION.md) describes the
+KB. That receipt covers its frozen reader. The later [segment/nested checkpoint](../evidence/2026-10-29-segment-reader-validation.json) adds exact composition and refreshes host/package journeys; its new cohort failed acceptance. Current reader scope is in the catalog. [Retirement](RETENTION.md) describes the
 state-store upgrade, permanent fences and release-identity compatibility limits.

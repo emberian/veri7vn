@@ -1,27 +1,22 @@
 # veri7vn
 
-**Oracle7's sibling, with an Isabelle spine.**
+veri7vn develops native computation and reasoning components for
+[Oracle7](https://huggingface.co/psiloceyeben/oracle7). It contains Isabelle
+functions compiled to Standard ML, a Rust query and reasoning runtime, and a
+shared service that exposes these components to agents.
 
-[Oracle7](https://huggingface.co/psiloceyeben/oracle7) answers questions through
-specialists, stored records and an ordered series of routing rules. veri7vn
-turns those specialists' calculations and decisions into functions with
-machine-checked proofs, then compiles them into small programs that can run
-inside Oracle7 or on their own.
-
-The aim is to answer more questions correctly, make the assumptions behind an
-answer inspectable, and let both systems grow from each other's components.
+The aim is to answer more questions correctly with less memory and computation,
+and to state the assumptions behind each answer.
 There are implementations for 145 non-relation specialist IDs (including the
 new `meteorology-v2`) and one
 kernel serving the 161 relation readers. Connecting every capability through
 the combined runtime, strengthening its proofs and completing the specialists'
 intended algorithms are active work.
 
-Each specialist is also being examined beyond its shipped question templates.
-The original answer is a comparison, not a correctness requirement: dropped
-signs, lost units, mistaken subjects and answers to the wrong requested quantity
-are repaired even when the old panels pass. The
-[current batch](project/APPLIANCE-2026-10-26.md) records integrated changes,
-their measured scope and the next substantive defects.
+Specialist repairs cover dropped signs, lost units, mistaken subjects and
+answers to the wrong requested quantity, including cases absent from the shipped
+tests. See the [specialist record](project/APPLIANCE-2026-10-26.md) and
+[current native work](project/NATIVE-EXPANSION-2026-10-29.md).
 
 A proof establishes a particular statement about a computation. It can show
 that a result satisfies an equation or a decision follows from supplied rows.
@@ -87,7 +82,7 @@ the [materialization tools](deploy/appliance/README.md), and the
 [current checkpoint](project/CONTINUE-2026-10-27.md) links exact candidates,
 measured results and remaining integration work.
 
-## The board
+## Measurements
 
 Full table with every run: [`docs/parity/BOARD.md`](docs/parity/BOARD.md).
 
@@ -113,31 +108,23 @@ interference with other routes, identity handling and latency.
 | Separate head-route components | word problems 24/24 core items; precision guards 114/114 recorded declines; document W5-18: 225/231 status | component measurements; full dispatcher integration is unfinished |
 | Dialogue scorer | 236 of 237 recorded Oracle7 verdicts reproduced | this tests the scorer, not veri7vn's dialogue ability; the scout kernel itself scored 161/237 |
 
-The previous summary said every family had zero wrong answers. The underlying
-receipts did not support that claim. The named stores and space snapshots above
-include specific repairs; other families are still converging. The
-[current continuation](project/CODEX-2026-10-18.md) records corrections,
-ownership, completed changes and remaining work.
+Some recorded runs contain wrong answers. Family repairs do not establish a
+clean fleet result; the [18 October record](project/CODEX-2026-10-18.md)
+explains the corrections and outstanding work from those runs.
 
 In the earlier fleet measurement, 19 binaries occupied 12 MiB on disk, started
 in milliseconds, used 4–10 MiB each, with median 0.1 ms per question. Oracle7's head
 on the same questions: 3.6 s to start, 140 ms median, 1.96 GB resident
 ([`docs/performance/fleet.md`](docs/performance/fleet.md)).
 
-## The Oracle7 package
+## Extracted specialist package
 
-[`docs/handoff/organ-package.md`](docs/handoff/organ-package.md) describes a
-package Oracle7's author can drop into `root/specialists/` with no veri7vn
-checkout: the existing package has 125 specialist folders, binaries for macOS and
-Linux with hashes and build receipts, and a README written for him. It passed
-its smoke test on both platforms (12,247 panel questions, every reply equal to
-the lane runs, including their errors). It also records what we found in the
-release: his exam cannot run a shipped panel as written; the release composes
-specialists in front of the head although its constitution says fallback;
-under head-first composition no specialist the head half-covers can be
-admitted; the lane cap was measured on a 400-question sample; no verdict
-carries the file hash the exam promises. The linter at `tools/lint/` says the
-same per folder.
+The [specialist package](docs/handoff/organ-package.md) can be installed under
+Oracle7's `root/specialists/` without a veri7vn checkout. The recorded package
+contains 125 specialist folders and macOS/Linux binaries. Its 12,247 panel
+replies matched the individual family runs on both platforms, including their
+errors. The package document records source identities, test limitations and
+differences between Oracle7's exam and runtime routing.
 
 The refreshed registry includes earth and finance, and dispatch and packaging
 share explicit rules for new answer kinds. Stores now has a relocatable fetcher
@@ -172,15 +159,15 @@ runs at answer time; builds run on hbox and persvati through
 `tools/dev/remote-build`. Shared numeric and text machinery lives in
 `src/extract/commons/`.
 
-The runtime already reports routes and some source and theorem metadata. The
-fuller goal—explaining the particular assumptions and guarantees behind each
-answer, and checking claims against them—is still being connected to it. A list
-of theorem names alone does not do that.
+The runtime reports routes and some source and theorem metadata. Connecting each
+answer to the assumptions and guarantees of its computation remains unfinished.
 
 ## Layout
 
 | Path | What |
 |---|---|
+| `native/` | Rust runtime, optional providers, PyO3 bindings and service documentation |
+| `tools/appliance/`, `tools/oracle_components/` | HTTP serving, worker pools and operation adapters |
 | `project/PLAN.md`, `project/swarm/` | the plan; lane waves (`WAVE5.md`, `WAVE6.md`), the lane brief, the beyond-parity recipe (`BEYOND.md`) |
 | `project/lanes/*.md` | one handoff per lane: theorem statements, numbers, receipts, limits |
 | `project/scouts/` | GLM scout briefs, their reports, the triage logs (`TRIAGE-N.md`) |
@@ -223,16 +210,20 @@ green only when its receipt reports success.
 ## What is not done
 
 The 30 properties absent from the shipped relation store (1,814 panel items)
-need data that did not ship. The recognizers are untrusted code in every
-family. Several lanes' theorems restate definitions rather than bind to a
-specification; the audit in `docs/assurance/` lists them and wave 6 fixes
-them. Beyond-parity implementation and integration now span multiple
+need data that did not ship. English recognizers remain outside the proofs.
+Several audited theorems restate definitions rather than establish the intended
+specification; `docs/assurance/` records the findings, and the Wave-6 work records
+repairs. That backlog still needs a current audit. Implementation and integration span multiple
 specialist families, with scoped measurements recorded in the continuation and
 lane reports; they do not establish a complete refreshed fleet result. The code
 organ remains an authorized capability frontier, but it has no panel and no
 core-panel question reaches it, so there is no measured implementation result
-yet. CAS remains parked.
+yet. General computer algebra remains a proposal; the native service currently
+supports the narrower exact polynomial operations in its
+[capability catalog](native/docs/CAPABILITIES.md).
 
-The audited Oracle7 revision is `c5d6a29d5bc5e2525078e5a53afa1abf659e4d69`.
+The original fleet audit used Oracle7 revision
+`c5d6a29d5bc5e2525078e5a53afa1abf659e4d69`; later native and appliance receipts
+name their own source revisions.
 Code here is CC0 (`LICENSE.md`); Oracle7 itself is Apache-2.0 code with
 per-source data licences (`upstream/DATA_LICENSES.md`).

@@ -1,0 +1,61 @@
+# Native capabilities
+
+The standalone service advertises operations from the admitted extension's actual
+catalog. Optional features must be compiled in and selected by the operator.
+A listed Rust library is not automatically an HTTP operation.
+
+| Profile | Operation IDs | What it does and where it stops |
+| --- | --- | --- |
+| `reasoning` | `graph.minimum_spanning_forest` | Finds and independently checks a minimum spanning forest with exact signed integer weights, parallel edges and isolated vertices. The HTTP operation uses the Rust check. Separate resident extracted checking is described below. |
+| `reasoning` | `graph.shortest_path` | Directed integer-weight paths with checked finite, unreachable or unbounded witnesses. The graph is supplied by the caller. |
+| `reasoning` | `algebra.optimize_polynomial`, `algebra.optimize_dimensional_polynomial` | Bounded integer-polynomial rewriting, checked by separate exact normalization. The dimensional version checks supplied SI dimensions. No division, floating-point identity or global optimum guarantee. |
+| `reasoning` | `chemistry.balance_reaction` | Exact atom, charge and isotope conservation for supplied species. Does not establish reaction feasibility. See [chemistry](CHEMISTRY.md). |
+| `science` | `science.solve_linear`, `science.least_squares`, `science.thermal_network` | Numerical equations, fitting and supplied thermal models, with diagnostics. A small residual does not establish the model's truth. |
+| `incremental` | `incremental.dependencies`, `incremental.rooted_dependencies` | Versioned finite dependency batches, insertions/retractions and settled changes; rooted queries restrict the requested view. Arrangements are discarded after the call; no hosted subscription. |
+| `bio` | `bio.align_pairwise` | Supplied-sequence alignment. See [DNA and statistics](BIO-STATISTICS.md) for scoring and limits. |
+| `statistics` | `statistics.linear_regression` | Conditional inference over a supplied linear model and noise assumptions. See [DNA and statistics](BIO-STATISTICS.md). |
+| `runtime` | `graph.query`, `graph.execute` | Query DAGs over an admitted KQA-shaped image. These IDs refer to data queries, not the supplied-graph optimizer above. `execute` journals a versioned session turn. |
+| `runtime` | `kqa.query`, `kqa.execute` | The pinned 27-operation KQA program vocabulary. Typed values retain exact decimals, unit and date distinctions; ambiguous cases can refuse. |
+| `runtime` | `reader.whole`, `reader.execute` | Learned whole templates, exact fragment/outer composition, 2–4-segment chains and one nested fragment pass. Successful readings must agree. `execute` journals the language turn; `whole` is pure. Requires admitted in-image reader tables. |
+
+Pure supplied-argument operations recompute on retry. The runtime's three
+`execute` operations persist exact replies and selection together; their paired
+pure operations do not. See [runtime hosting](RUNTIME-HOST.md) for release
+admission and retry identity, and [standalone serving](STANDALONE.md) for HTTP.
+
+## Extracted code and library-only paths
+
+`KernelExecutor` hosts bounded resident extracted quantity/acoustics kernels and
+the connected-MST checker. These are operator-admitted library paths, not extra
+operations automatically added to standalone discovery. With `reasoning`,
+`KernelTenant.minimum_spanning_forest` composes the Rust candidate/checker with
+the resident extracted checker. Disconnected graphs, singletons and isolated
+vertices are outside that extracted connected-tree guarantee. HOL evidence also
+requires admission of the actual compiler/proof receipts. See the [checker
+contract](../../src/extract/discrete-certificate/README.md).
+
+Rust hosts can atomically commit authorized effect intents with state and reply,
+then claim and settle them through `HostEffects`. No teaching, filesystem,
+network or other external executor is supplied by that outbox.
+
+`oracle-logic` is a standalone stable-model prototype with 18 centrally passing
+tests, including real clingo. It is outside the main workspace and has no PyO3, HTTP or package consumer.
+Its model checks and solver-trusted absence claims are distinct; see its
+[README](../oracle-logic/README.md) and [receipt](../evidence/2026-10-29-logic-validation.json).
+
+## Coverage and evidence
+
+No new shipped specialist-panel scores are available. Component checks and small
+real-data samples describe narrower results:
+
+| Retained workload | Result |
+| --- | --- |
+| [233 KQA programs](../evidence/2026-10-28-programs.json) | 225 correct, 8 withheld, 0 wrong; all pinned operations exercised. |
+| [100 retained reader questions](../evidence/2026-10-29-segment-reader-validation.json) | 36 correct, 4 refused, 60 unknown, 0 wrong or execution errors. Segment/nested composition adds interpretations, with no answer gain on this set. |
+| [New 16-question segment/nested acceptance cohort](../evidence/2026-10-29-targeted-composition.json) | Failed acceptance: 1 new correct answer, 7 unanswered, 4 expected declines and 4 byte-limit errors. Passing contracts do not remove these failures. |
+| [Hosted/relocated appliance](../evidence/2026-10-29-stable-appliance-validation.json) | Durable HTTP and relocated package journeys passed on manufactured data. This does not qualify the full Oracle Engine or signed Mini integration. |
+
+Language coverage still excludes content-key fallback, deeper nesting, analogy,
+clause/date wrappers and the complete upstream routing/dialogue system. Reader
+interpretations are learned hypotheses about meaning. Query completeness is
+relative to the admitted image and plan, not the world.
