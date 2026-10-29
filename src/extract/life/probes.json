@@ -1418,5 +1418,115 @@
     "q": "Translate DNA ATGAAA in reading frame 1.",
     "expect": "MK",
     "source": "Standard genetic code, stated positive frame relative to normalized coding strand; complete remaining codons; stop truncation. Same-author mechanistic probes."
+  },
+  {
+    "specialist": "biology",
+    "q": "Transcribe the DNA template strand 3\u2032-TACGGA-5\u2032 into mRNA.",
+    "expect": "AUGCCU",
+    "source": "RNA polymerase reads the template 3-prime to 5-prime, producing complementary RNA 5-prime to 3-prime (OpenStax Biology 2e 15.2, figure 15.7). Typed transcript/protein vectors check Unicode prime and apostrophe orientation through the actual reader."
+  },
+  {
+    "specialist": "biology",
+    "q": "Translate the DNA template strand 3\u2032-TACGGA-5\u2032 into protein.",
+    "expect": "MP",
+    "source": "RNA polymerase reads the template 3-prime to 5-prime, producing complementary RNA 5-prime to 3-prime (OpenStax Biology 2e 15.2, figure 15.7). Typed transcript/protein vectors check Unicode prime and apostrophe orientation through the actual reader."
+  },
+  {
+    "specialist": "biology",
+    "q": "Transcribe the DNA template strand 5\u2032-AGGCAT-3\u2032 into mRNA.",
+    "expect": "AUGCCU",
+    "source": "RNA polymerase reads the template 3-prime to 5-prime, producing complementary RNA 5-prime to 3-prime (OpenStax Biology 2e 15.2, figure 15.7). Typed transcript/protein vectors check Unicode prime and apostrophe orientation through the actual reader."
+  },
+  {
+    "specialist": "biology",
+    "q": "Translate the DNA template strand 5\u2032-AGGCAT-3\u2032 into protein.",
+    "expect": "MP",
+    "source": "RNA polymerase reads the template 3-prime to 5-prime, producing complementary RNA 5-prime to 3-prime (OpenStax Biology 2e 15.2, figure 15.7). Typed transcript/protein vectors check Unicode prime and apostrophe orientation through the actual reader."
+  },
+  {
+    "specialist": "biology",
+    "q": "Transcribe the DNA coding strand 5\u2032-ATGCCT-3\u2032 into mRNA.",
+    "expect": "AUGCCU",
+    "source": "RNA polymerase reads the template 3-prime to 5-prime, producing complementary RNA 5-prime to 3-prime (OpenStax Biology 2e 15.2, figure 15.7). Typed transcript/protein vectors check Unicode prime and apostrophe orientation through the actual reader."
+  },
+  {
+    "specialist": "biology",
+    "q": "Translate the DNA coding strand 5\u2032-ATGCCT-3\u2032 into protein.",
+    "expect": "MP",
+    "source": "RNA polymerase reads the template 3-prime to 5-prime, producing complementary RNA 5-prime to 3-prime (OpenStax Biology 2e 15.2, figure 15.7). Typed transcript/protein vectors check Unicode prime and apostrophe orientation through the actual reader."
+  },
+  {
+    "specialist": "biology",
+    "q": "Transcribe the DNA coding strand 3\u2032-TCCGTA-5\u2032 into mRNA.",
+    "expect": "AUGCCU",
+    "source": "RNA polymerase reads the template 3-prime to 5-prime, producing complementary RNA 5-prime to 3-prime (OpenStax Biology 2e 15.2, figure 15.7). Typed transcript/protein vectors check Unicode prime and apostrophe orientation through the actual reader."
+  },
+  {
+    "specialist": "biology",
+    "q": "Translate the DNA coding strand 3\u2032-TCCGTA-5\u2032 into protein.",
+    "expect": "MP",
+    "source": "RNA polymerase reads the template 3-prime to 5-prime, producing complementary RNA 5-prime to 3-prime (OpenStax Biology 2e 15.2, figure 15.7). Typed transcript/protein vectors check Unicode prime and apostrophe orientation through the actual reader."
+  },
+  {
+    "specialist": "biology",
+    "q": "Transcribe the DNA template strand 3\u2019-TACGGA-5\u2019 into mRNA.",
+    "expect": "AUGCCU",
+    "source": "RNA polymerase reads the template 3-prime to 5-prime, producing complementary RNA 5-prime to 3-prime (OpenStax Biology 2e 15.2, figure 15.7). Typed transcript/protein vectors check Unicode prime and apostrophe orientation through the actual reader."
+  },
+  {
+    "specialist": "biology",
+    "q": "Translate the DNA template strand 3\u2019-TACGGA-5\u2019 into protein.",
+    "expect": "MP",
+    "source": "RNA polymerase reads the template 3-prime to 5-prime, producing complementary RNA 5-prime to 3-prime (OpenStax Biology 2e 15.2, figure 15.7). Typed transcript/protein vectors check Unicode prime and apostrophe orientation through the actual reader."
+  },
+  {
+    "specialist": "biology",
+    "q": "Transcribe the DNA template strand 5\u2019-AGGCAT-3\u2019 into mRNA.",
+    "expect": "AUGCCU",
+    "source": "RNA polymerase reads the template 3-prime to 5-prime, producing complementary RNA 5-prime to 3-prime (OpenStax Biology 2e 15.2, figure 15.7). Typed transcript/protein vectors check Unicode prime and apostrophe orientation through the actual reader."
+  },
+  {
+    "specialist": "biology",
+    "q": "Translate the DNA template strand 5\u2019-AGGCAT-3\u2019 into protein.",
+    "expect": "MP",
+    "source": "RNA polymerase reads the template 3-prime to 5-prime, producing complementary RNA 5-prime to 3-prime (OpenStax Biology 2e 15.2, figure 15.7). Typed transcript/protein vectors check Unicode prime and apostrophe orientation through the actual reader."
+  },
+  {
+    "specialist": "biology",
+    "q": "Transcribe the DNA coding strand 5\u2019-ATGCCT-3\u2019 into mRNA.",
+    "expect": "AUGCCU",
+    "source": "RNA polymerase reads the template 3-prime to 5-prime, producing complementary RNA 5-prime to 3-prime (OpenStax Biology 2e 15.2, figure 15.7). Typed transcript/protein vectors check Unicode prime and apostrophe orientation through the actual reader."
+  },
+  {
+    "specialist": "biology",
+    "q": "Translate the DNA coding strand 5\u2019-ATGCCT-3\u2019 into protein.",
+    "expect": "MP",
+    "source": "RNA polymerase reads the template 3-prime to 5-prime, producing complementary RNA 5-prime to 3-prime (OpenStax Biology 2e 15.2, figure 15.7). Typed transcript/protein vectors check Unicode prime and apostrophe orientation through the actual reader."
+  },
+  {
+    "specialist": "biology",
+    "q": "Transcribe the DNA coding strand 3\u2019-TCCGTA-5\u2019 into mRNA.",
+    "expect": "AUGCCU",
+    "source": "RNA polymerase reads the template 3-prime to 5-prime, producing complementary RNA 5-prime to 3-prime (OpenStax Biology 2e 15.2, figure 15.7). Typed transcript/protein vectors check Unicode prime and apostrophe orientation through the actual reader."
+  },
+  {
+    "specialist": "biology",
+    "q": "Translate the DNA coding strand 3\u2019-TCCGTA-5\u2019 into protein.",
+    "expect": "MP",
+    "source": "RNA polymerase reads the template 3-prime to 5-prime, producing complementary RNA 5-prime to 3-prime (OpenStax Biology 2e 15.2, figure 15.7). Typed transcript/protein vectors check Unicode prime and apostrophe orientation through the actual reader."
+  },
+  {
+    "specialist": "biology",
+    "q": "Transcribe DNA template 3\u2019-TACGGA-3\u2019 into mRNA.",
+    "expect": null,
+    "source": "A strand must have opposite 3-prime and 5-prime ends; typographic apostrophes must not bypass the contradictory-direction refusal.",
+    "decline_class": "malformed"
+  },
+  {
+    "specialist": "biology",
+    "q": "Transcribe DNA template 5\u2019-TACGGA-5\u2019 into mRNA.",
+    "expect": null,
+    "source": "A strand must have opposite 3-prime and 5-prime ends; typographic apostrophes must not bypass the contradictory-direction refusal.",
+    "decline_class": "malformed"
   }
 ]

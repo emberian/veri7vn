@@ -316,12 +316,12 @@ struct
      convention; incomplete/conflicting marks request clarification. *)
   fun bioDirection low seq : bool option =
     let
-      val p = "([35])\\s*['\226\128\178]\\s*[-:]?\\s*([acgtu]{3,}(?:[ \\-][acgtu]{3})*)\\s*[-:]?\\s*([35])\\s*['\226\128\178]"
+      val p = "([35])\\s*['\226\128\178\226\128\153]\\s*[-:]?\\s*([acgtu]{3,}(?:[ \\-][acgtu]{3})*)\\s*[-:]?\\s*([35])\\s*['\226\128\178\226\128\153]"
       fun bases g = String.translate (fn c => if Char.isSpace c orelse c = #"-" then "" else String.str c) g
       val ms = List.filter (fn m => bases (valOf (grp low m 2)) = lower seq) (findall p low)
     in case ms of
          [m] => if g1 low m = valOf (grp low m 3) then NONE else SOME (g1 low m = "3")
-       | [] => if has "[35]\\s*['\226\128\178]" low then NONE else SOME false
+       | [] => if has "[35]\\s*['\226\128\178\226\128\153]" low then NONE else SOME false
        | _ => NONE
     end
 
