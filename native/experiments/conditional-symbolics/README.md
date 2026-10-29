@@ -1,8 +1,9 @@
-# Conditional formula composition — exploratory, uncompiled and unmeasured
+# Conditional formula composition — exploratory, compiled and fixture-tested, unmeasured
 
 This isolated crate extends the current polynomial idea to rational formulas.
-It has **no specialist-panel numbers**, builds, executed tests, benchmarks or
-new Isabelle theorem. It changes no production path or existing SML kernel.
+It compiles, passes `clippy -D warnings`, and its authored fixture and seven
+tests pass on macOS ([receipt](../../evidence/2026-10-29-experiments-execution.json)). It has **no specialist-panel numbers**,
+benchmarks or new Isabelle theorem, and is not registered in the service. It changes no production path or existing SML kernel.
 Dependencies already used by native reasoning are declared without fetching.
 
 The useful new boundary is a typed shared expression DAG and a small replay
@@ -28,7 +29,7 @@ could reuse this same mass node and the same normalized total-energy expression
 across requested outputs. The selected formula contains one division rather
 than two. That is an expression property, not a measured speedup.
 
-Hand walkthroughs, not execution receipts:
+Hand walkthroughs, each asserted by `tests/fixture.rs`:
 
 | Case | Expected mechanics |
 | --- | --- |
@@ -62,7 +63,7 @@ The full original-domain evaluation means no cancellation can remove a required
 input or singularity. Exact arithmetic can still exhaust resources.
 
 Recommendation: retain this experiment as a reviewable design probe; do not
-admit it as a hosted provider yet. First compile and run the authored driver,
-review replay for counterexamples, add rational work/bit and depth budgets,
+admit it as a hosted provider yet. First review replay for counterexamples, add rational work/bit and depth budgets,
 then connect one supplied mechanics model and compare scoped panel behavior.
-No new build or test was run for this sprint, as requested.
+The driver and tests have since been compiled and run once on macOS
+([receipt](../../evidence/2026-10-29-experiments-execution.json)).

@@ -224,7 +224,7 @@ pub fn both(atom: &str, skeptical: bool, credulous: bool) -> Expectation<'_> {
 
 /// Default is a design trace with handwritten expected results. Explicit
 /// --solver /absolute/operator-admitted/clingo opts into the existing API.
-/// Authoring these demos did not execute either mode or any solver.
+/// The default mode was run on macOS (see tests/demo_consistency.rs); no solver was ever executed.
 pub fn emit(
     program: &mut Program,
     title: &str,
@@ -239,7 +239,7 @@ pub fn emit(
     let mut output = serde_json::json!({"scenario":title,"request":request,"evidence_ledger":program.ledger(),
         "revisions":program.revisions(),"handwritten_expected_status":expected_status,
         "handwritten_expected_answers":expected,"handwritten_expected_models_with_conditional_traces":traces,
-        "design_note":note,"qualification":"new demo layer authored only; not runtime checked"});
+        "design_note":note,"qualification":"demo layer: handwritten expectations, no solver executed"});
     let args: Vec<_> = std::env::args().collect();
     if args.len() == 3 && args[1] == "--solver" {
         let input = serde_json::to_string(&request).expect("serialize request");

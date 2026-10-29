@@ -1,6 +1,8 @@
 # A reasoning laboratory, before choosing an integration
 
-New exploratory code, authored but **not compiled, run or solver-checked**.
+New exploratory code. It compiles, passes `clippy -D warnings`, and its default
+mode runs on macOS ([receipt](../evidence/2026-10-29-experiments-execution.json)); it is **not solver-checked**: no clingo was
+executed, and there are no panel numbers or service registration.
 The earlier 18-test receipt qualifies the frozen provider core, not these demos.
 Only `examples/**` and this document changed in this sprint. No new dependency,
 PyO3/HTTP integration, host registration or action execution.
@@ -10,14 +12,16 @@ small but useful domains. `examples/support/mod.rs` is reusable scaffolding:
 name atoms and rules, attach source descriptions, atomically assert/withdraw
 fact tokens, produce a complete snapshot, and explain a supplied interpretation
 through finite support rounds. Expected models and answers are handwritten.
-Rustfmt parsed the Rust sources; that is not a type check or behavioral receipt.
+`tests/demo_consistency.rs` runs the default mode and checks that the thirteen
+handwritten readouts agree with each other and with the builder's rules; that is
+a consistency check of the demo layer, not a solver result.
 
 The default executable mode would print newline-separated pretty JSON objects:
 the full bounded-program request, handwritten expected answers, named evidence
 ledger, revision log and conditional rule traces. An explicit
 `--solver /absolute/operator-admitted/clingo` would use the existing provider
-API and add an actual reply to each readout. Neither mode was executed during
-this sprint. There is deliberately no implicit executable discovery, install,
+API and add an actual reply to each readout. Only the default mode has been
+executed. There is deliberately no implicit executable discovery, install,
 background process, deployment or automatic action.
 
 ## What to inspect in the scenarios

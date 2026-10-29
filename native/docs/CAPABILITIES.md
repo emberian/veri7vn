@@ -45,7 +45,9 @@ Its model checks and solver-trusted absence claims are distinct; see its
 
 The [design experiments](../experiments/README.md) explore streaming queries,
 maintained views, conditional formulas and evidence revisions. Their new code
-and examples have not been compiled or run. They are absent from service discovery.
+and examples compile and their authored fixtures and tests pass on macOS
+([receipt](../evidence/2026-10-29-experiments-execution.json)); they are not benchmarked, have no panel numbers, and are
+absent from service discovery.
 
 ## Coverage and evidence
 

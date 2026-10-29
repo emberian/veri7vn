@@ -77,8 +77,9 @@ questions and storage-limit errors. These samples are not a specialist-fleet sco
 
 Separate [Rust design experiments](native/experiments/README.md) explore
 streaming queries, maintained views, conditional formulas and nonmonotonic
-reasoning scenarios. They are source prototypes, with no execution or performance
-results and no service registration.
+reasoning scenarios. They compile and their authored fixtures and tests pass on
+macOS ([receipt](native/evidence/2026-10-29-experiments-execution.json)); they have
+no performance results, no panel numbers and no service registration.
 
 Start with the [shared-hosting checkpoint](project/HOSTED-2026-10-27.md),
 the [Mini appliance overview](https://github.com/emberian/minidregg/blob/main/docs/oracle-appliance.md),

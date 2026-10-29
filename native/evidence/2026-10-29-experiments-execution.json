@@ -1,0 +1,221 @@
+{
+  "receipt": "experiments-execution",
+  "date": "2026-10-29",
+  "lane": "S1-EXPERIMENTS-RECEIPT",
+  "platform": {
+    "os": "macOS 27.0.1",
+    "arch": "arm64"
+  },
+  "toolchain": {
+    "rustc": "rustc 1.98.0-nightly (91fe22da8 2026-06-21)",
+    "cargo": "cargo 1.98.0-nightly (a595d0da2 2026-06-20)",
+    "clippy": "clippy 0.1.98 (91fe22da80 2026-06-21)"
+  },
+  "crates": {
+    "streaming-query": {
+      "dir": "native/experiments/streaming-query",
+      "commands": [
+        {
+          "cmd": "cargo fmt --check",
+          "exit": 0,
+          "log": "streaming-query-fmt.log"
+        },
+        {
+          "cmd": "cargo clippy --all-targets -- -D warnings",
+          "exit": 0,
+          "log": "streaming-query-clippy.log"
+        },
+        {
+          "cmd": "cargo run",
+          "exit": 0,
+          "log": "streaming-query-fixture.log"
+        },
+        {
+          "cmd": "cargo test",
+          "exit": 0,
+          "log": "streaming-query-test.log",
+          "tests": {
+            "passed": 10,
+            "failed": 0,
+            "ignored": 0
+          }
+        }
+      ],
+      "added_test_files": [
+        "tests/fixture.rs"
+      ],
+      "src_examples_hash": {
+        "files": [
+          "src/lib.rs",
+          "src/main.rs"
+        ],
+        "sha256": "62c61993d3e1de62b535622e81506626de366ab188a6f03f77206bf8cbec6186"
+      },
+      "tests_hash": {
+        "files": [
+          "tests/fixture.rs"
+        ],
+        "sha256": "3bd6e624f9bf47c766fb3fe44ad258318c2c498e6b9de40fd2dbcfc1cacbc8f1"
+      }
+    },
+    "maintained-views": {
+      "dir": "native/experiments/maintained-views",
+      "commands": [
+        {
+          "cmd": "cargo fmt --check",
+          "exit": 0,
+          "log": "maintained-views-fmt.log"
+        },
+        {
+          "cmd": "cargo clippy --all-targets -- -D warnings",
+          "exit": 0,
+          "log": "maintained-views-clippy.log"
+        },
+        {
+          "cmd": "cargo run --example transitions",
+          "exit": 0,
+          "log": "maintained-views-fixture.log"
+        },
+        {
+          "cmd": "cargo test",
+          "exit": 0,
+          "log": "maintained-views-test.log",
+          "tests": {
+            "passed": 4,
+            "failed": 0,
+            "ignored": 0
+          }
+        }
+      ],
+      "added_test_files": [
+        "tests/transitions.rs"
+      ],
+      "src_examples_hash": {
+        "files": [
+          "examples/transitions.rs",
+          "src/lib.rs"
+        ],
+        "sha256": "0c294f7921be48f3ab1237e236cf367b095e8e469c691945d5a4da037e83f464"
+      },
+      "tests_hash": {
+        "files": [
+          "tests/transitions.rs"
+        ],
+        "sha256": "ef77cd3f0578390d400a78ab28b7efba52e009775f3a37e93deef9f10cb851c4"
+      },
+      "note": "examples/transitions.rs prints nothing; it contains 18 lines of assert!/assert_eq!/assert_ne! that execute, so exit 0 means they held. tests/transitions.rs adds four test functions."
+    },
+    "conditional-symbolics": {
+      "dir": "native/experiments/conditional-symbolics",
+      "commands": [
+        {
+          "cmd": "cargo fmt --check",
+          "exit": 0,
+          "log": "conditional-symbolics-fmt.log"
+        },
+        {
+          "cmd": "cargo clippy --all-targets -- -D warnings",
+          "exit": 0,
+          "log": "conditional-symbolics-clippy.log"
+        },
+        {
+          "cmd": "cargo run",
+          "exit": 0,
+          "log": "conditional-symbolics-fixture.log"
+        },
+        {
+          "cmd": "cargo test",
+          "exit": 0,
+          "log": "conditional-symbolics-test.log",
+          "tests": {
+            "passed": 7,
+            "failed": 0,
+            "ignored": 0
+          }
+        }
+      ],
+      "added_test_files": [
+        "tests/fixture.rs"
+      ],
+      "src_examples_hash": {
+        "files": [
+          "src/lib.rs",
+          "src/main.rs"
+        ],
+        "sha256": "c47e6e9d2e4b3fbd573a4656d4cef6d2b2ba8f7a3286c0354f830e8c08c1d315"
+      },
+      "tests_hash": {
+        "files": [
+          "tests/fixture.rs"
+        ],
+        "sha256": "9a08bf37e7740127e98f9ddb282cdec76cc6c6ffe65884ea3ff4f4200355a8fa"
+      }
+    },
+    "oracle-logic": {
+      "dir": "native/oracle-logic",
+      "commands": [
+        {
+          "cmd": "cargo fmt --check",
+          "exit": 0,
+          "log": "oracle-logic-fmt.log"
+        },
+        {
+          "cmd": "cargo clippy --all-targets -- -D warnings",
+          "exit": 0,
+          "log": "oracle-logic-clippy.log"
+        },
+        {
+          "cmd": "cargo run --example reasoning_lab",
+          "exit": 0,
+          "log": "oracle-logic-fixture.log"
+        },
+        {
+          "cmd": "cargo test",
+          "exit": 0,
+          "log": "oracle-logic-test.log",
+          "tests": {
+            "passed": 19,
+            "failed": 0,
+            "ignored": 2
+          }
+        }
+      ],
+      "added_test_files": [
+        "tests/demo_consistency.rs"
+      ],
+      "src_examples_hash": {
+        "files": [
+          "examples/alternative-plans.json",
+          "examples/default-flight.json",
+          "examples/exception-flight.json",
+          "examples/inconsistent.json",
+          "examples/reasoning_lab.rs",
+          "examples/recursive-policy.json",
+          "examples/support/mod.rs",
+          "src/lib.rs",
+          "src/process.rs"
+        ],
+        "sha256": "99f91386c6626f8af5eef1e302162d1ce659f7861595eae22f029ad379fd9d2a"
+      },
+      "tests_hash": {
+        "files": [
+          "tests/demo_consistency.rs",
+          "tests/semantics.rs",
+          "tests/solver_boundary.rs"
+        ],
+        "sha256": "ebc4474a278858e294a099773def961d3fd28efde0d2af2fea637352398dfa2d"
+      }
+    }
+  },
+  "limits": [
+    "no benchmark was run",
+    "no specialist-panel numbers",
+    "no solver (clingo) was executed; oracle-logic ran in its default mode only",
+    "macOS arm64 only; no Linux run",
+    "fixtures and tests assert hand-traced expectations written by the authors; they are not compared against SQLite, the production executor or any independent implementation",
+    "oracle-logic demo_consistency checks the handwritten models of the demo layer against each other and against the builder's rules; it does not show the models are complete",
+    "none of the four crates is registered in the service or part of the native workspace"
+  ],
+  "logs_dir": "/Users/ember/dev/o7vn/var/s1-experiments",
+  "hash_scheme": "SHA-256 over, for each file in sorted relative-path order, path + NUL + bytes + NUL; src/** and examples/** only (tests/ listed separately)"
+}

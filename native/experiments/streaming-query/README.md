@@ -1,9 +1,10 @@
 # Pull-based integer query experiment
 
-Uncompiled and unmeasured. No builds, tests, benchmarks or specialist panels were
-run. Panel numbers: none. This package is isolated from the native workspace,
-uses only std, and changes no production path. `src/main.rs` is an authored
-executable fixture; its assertions describe expectations, not observed results.
+Compiled, linted and its authored fixture and ten tests pass on macOS
+([receipt](../../evidence/2026-10-29-experiments-execution.json)); not benchmarked, no panel numbers, not registered in the
+service. This package is isolated from the native workspace, uses only std, and
+changes no production path. `src/main.rs` and `tests/fixture.rs` assert
+hand-traced expectations, not measurements.
 
 The current query engine already pushes operations into SQLite and materializes
 shared graph nodes. `query.rs::compile` counts consumers to avoid repeated DAG
@@ -33,7 +34,7 @@ Materialized sets provide explicit independent cursors for DAG reuse. Scan
 partitioning shares the image, and ordered disjoint fan-in has no result buffer;
 there are no tenant pools, actual worker threads or scheduler here.
 
-Hand traces, not execution:
+Hand traces (now asserted by `tests/fixture.rs`; see the [receipt](../../evidence/2026-10-29-experiments-execution.json)):
 
 - `{1,2,4,9} ∩ {2,3,4}` advances 1, matches 2, advances 3, matches 4: `{2,4}`.
 - Their union is `{1,2,3,4,9}`; equal heads advance both exactly once.
@@ -58,8 +59,8 @@ numeric release label. Materialization and scalar reducers inherit scope from
 their source; callers supply no final release stamp. SetPull is sealed so external
 code cannot manufacture an incorrectly scoped stream. Empty fan-in without any
 image scope is refused; an empty image scan represents a scoped empty result.
-The fixture authors mixed-image intersection, union, join and empty/nonempty
-fan-in refusals. These assertions have not been run.
+The fixture asserts mixed-image intersection, union, join and fan-in refusals;
+they pass on macOS ([receipt](../../evidence/2026-10-29-experiments-execution.json)).
 
 This identity establishes compatibility within the prototype, not authenticity,
 source provenance, release admission or real-world completeness. Separately
@@ -86,7 +87,7 @@ must be requested explicitly, and relation qualifiers need witness-preserving
 operators before use. Repeated consumers should materialize once rather than
 clone/recompute pipelines; blind streaming loses DAG reuse.
 
-Next decisive experiment: after review, compile this package, then add a narrow
+Next decisive experiment: after review, add a narrow
 adapter for Find/And/Or/Relate/Count over the same admitted image. Compare with
 SQLite on independently checked empty, overlapping, fanout and shared-DAG plans,
 including duplicate edge statements. Measure allocations, scanned rows, temp

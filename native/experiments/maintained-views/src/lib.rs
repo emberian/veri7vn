@@ -1,4 +1,4 @@
-//! Unverified, uncompiled experiment; no production provider or assurance claim.
+//! Unverified experiment (compiled, linted, tests pass on macOS); no production provider or assurance claim.
 //! Nonempty directed reachability over an immutable public release and private
 //! identified supports. Shared public adjacency is never cloned per tenant.
 #![forbid(unsafe_code)]
