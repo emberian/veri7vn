@@ -1,0 +1,306 @@
+{
+ "what": "algorithms-native organ folder (src/extract/graph-native/oracle7-organ) scored on the shipped algorithms panel with the shipped scorer algorithms_scorer.ok under upstream/workbench/exam.py's criteria via tools/parity/harness.py. Counts are right / false yes / wrong.",
+ "date": "2026-10-29",
+ "source_revision": "4dea4f83accbb0022d7b7d3fb64f5156d299758b (dev; organ folder and test uncommitted at run time)",
+ "artifact": {
+  "file": "var/i1-organ/bin/oracle_native.so (copy of native/target/debug/liboracle_native.dylib, not committed)",
+  "platform": "darwin-arm64",
+  "profile": "debug",
+  "build": "cd native && cargo build -p oracle-runtime-python --features reasoning",
+  "build_log": "var/i1-organ/build.log",
+  "sha256": "2037b0b6cf87ebbf39ceeb3b8d251a08babc05d9e59b685110168b4eb59728ce"
+ },
+ "folder_files_sha": "130580bddf6860166b1ee781edfbd8ee392eec9ec44573644a05aaacd52b148b (workbench/exam.py files_sha rule, folder without bin/)",
+ "commands": {
+  "alone": "PARITY_UPSTREAM=upstream VERI7VN_NATIVE_EXTENSION=var/i1-organ/bin/oracle_native.so .venv/bin/python -B tools/parity/harness.py --answerer '.venv/bin/python -B tools/parity/answerers/oracle7.py --specialist {dir} --alone' --specialist algorithms-native --split both --specialists-dir var/i1-organ/specialists --out var/i1-organ/parity/alone-2",
+  "front_w363": "same env; --answerer '.venv/bin/python -B tools/parity/answerers/oracle7.py --compose front --tip oracle_release_runtime_w363 --specialist {dir}' --lane-answerer '... --specialist {dir} --alone' --out var/i1-organ/parity/front-w363-2"
+ },
+ "specialists_dir_note": "var/i1-organ/specialists/algorithms-native is a symlink to src/extract/graph-native/oracle7-organ",
+ "runs": {
+  "alone": {
+   "dev": {
+    "right_false_yes_wrong": [
+     18,
+     0,
+     0
+    ],
+    "head_alone": null,
+    "n": 42,
+    "decision": "INCOMPLETE",
+    "reasons": [],
+    "statuses": {
+     "answered": 16,
+     "withheld": 26
+    },
+    "organ_kinds": {
+     "shortest_path": 8,
+     "mst": 8,
+     "underspecified": 1
+    },
+    "core_lane": null,
+    "panel_sha": "829f0f7618d2127066fcd40ce47e7eff7d3fa199e37615f3ce785e26032007b1",
+    "run_dir": "var/i1-organ/parity/alone-2"
+   },
+   "heldout": {
+    "right_false_yes_wrong": [
+     18,
+     0,
+     0
+    ],
+    "head_alone": null,
+    "n": 42,
+    "decision": "INCOMPLETE",
+    "reasons": [],
+    "statuses": {
+     "answered": 16,
+     "withheld": 26
+    },
+    "organ_kinds": {
+     "shortest_path": 8,
+     "mst": 8,
+     "underspecified": 1
+    },
+    "core_lane": null,
+    "panel_sha": "4ebafb2aef2cae0ee0291246718b90e8d251bc85f2a72278acba11682c0bd032",
+    "run_dir": "var/i1-organ/parity/alone-2"
+   }
+  },
+  "front_w363": {
+   "dev": {
+    "right_false_yes_wrong": [
+     18,
+     0,
+     8
+    ],
+    "head_alone": [
+     2,
+     0,
+     8
+    ],
+    "n": 42,
+    "decision": "WOULD FAIL",
+    "reasons": [
+     "WRONG: 8 answered wrong, cap 1"
+    ],
+    "statuses": {
+     "answered": 24,
+     "clarification": 17,
+     "withheld": 1
+    },
+    "organ_kinds": {
+     "shortest_path": 8,
+     "mst": 8,
+     "underspecified": 1
+    },
+    "core_lane": {
+     "n": 924,
+     "taken": 0,
+     "cap": 9,
+     "examples": []
+    },
+    "panel_sha": "829f0f7618d2127066fcd40ce47e7eff7d3fa199e37615f3ce785e26032007b1",
+    "run_dir": "var/i1-organ/parity/front-w363-2"
+   },
+   "heldout": {
+    "right_false_yes_wrong": [
+     18,
+     0,
+     0
+    ],
+    "head_alone": [
+     1,
+     1,
+     16
+    ],
+    "n": 42,
+    "decision": "ADMIT",
+    "reasons": [],
+    "statuses": {
+     "answered": 16,
+     "clarification": 25,
+     "withheld": 1
+    },
+    "organ_kinds": {
+     "shortest_path": 8,
+     "mst": 8,
+     "underspecified": 1
+    },
+    "core_lane": {
+     "n": 924,
+     "taken": 0,
+     "cap": 9,
+     "examples": []
+    },
+    "panel_sha": "4ebafb2aef2cae0ee0291246718b90e8d251bc85f2a72278acba11682c0bd032",
+    "run_dir": "var/i1-organ/parity/front-w363-2"
+   }
+  }
+ },
+ "wrong": [
+  {
+   "run": "front_w363",
+   "split": "dev",
+   "answered_by": "head (w363)",
+   "panel_kind": "sort",
+   "question": "Sort these numbers in ascending order: 42, 49, 12, -3, 52, -2, 56, 28, 51",
+   "expected": [
+    -3,
+    -2,
+    12,
+    28,
+    42,
+    49,
+    51,
+    52,
+    56
+   ],
+   "reply": "[ev:direct] In simple terms: May mean lawfulness, but more often means class structure. [simplewiki_6dc27915603590452763a234] The dictionary sense: Arrangement, disposition, or sequence.. [wiktionary:order:sense1]",
+   "path": "arb:explain_simply->capability:explain_simply"
+  },
+  {
+   "run": "front_w363",
+   "split": "dev",
+   "answered_by": "head (w363)",
+   "panel_kind": "sort",
+   "question": "Sort these numbers in ascending order: 29, -14, 59, 23, 36",
+   "expected": [
+    -14,
+    23,
+    29,
+    36,
+    59
+   ],
+   "reply": "[ev:direct] In simple terms: May mean lawfulness, but more often means class structure. [simplewiki_6dc27915603590452763a234] The dictionary sense: Arrangement, disposition, or sequence.. [wiktionary:order:sense1]",
+   "path": "arb:explain_simply->capability:explain_simply"
+  },
+  {
+   "run": "front_w363",
+   "split": "dev",
+   "answered_by": "head (w363)",
+   "panel_kind": "sort",
+   "question": "Sort these numbers in ascending order: 35, 15, 0, -20, 13",
+   "expected": [
+    -20,
+    0,
+    13,
+    15,
+    35
+   ],
+   "reply": "[ev:direct] In simple terms: May mean lawfulness, but more often means class structure. [simplewiki_6dc27915603590452763a234] The dictionary sense: Arrangement, disposition, or sequence.. [wiktionary:order:sense1]",
+   "path": "arb:explain_simply->capability:explain_simply"
+  },
+  {
+   "run": "front_w363",
+   "split": "dev",
+   "answered_by": "head (w363)",
+   "panel_kind": "sort",
+   "question": "Sort these numbers in ascending order: -15, 53, 50, 2, -17, -7",
+   "expected": [
+    -17,
+    -15,
+    -7,
+    2,
+    50,
+    53
+   ],
+   "reply": "[ev:direct] In simple terms: May mean lawfulness, but more often means class structure. [simplewiki_6dc27915603590452763a234] The dictionary sense: Arrangement, disposition, or sequence.. [wiktionary:order:sense1]",
+   "path": "arb:explain_simply->capability:explain_simply"
+  },
+  {
+   "run": "front_w363",
+   "split": "dev",
+   "answered_by": "head (w363)",
+   "panel_kind": "sort",
+   "question": "Sort these numbers in ascending order: -3, -7, -13, 9, -2, -17, 54, 36",
+   "expected": [
+    -17,
+    -13,
+    -7,
+    -3,
+    -2,
+    9,
+    36,
+    54
+   ],
+   "reply": "[ev:direct] In simple terms: May mean lawfulness, but more often means class structure. [simplewiki_6dc27915603590452763a234] The dictionary sense: Arrangement, disposition, or sequence.. [wiktionary:order:sense1]",
+   "path": "arb:explain_simply->capability:explain_simply"
+  },
+  {
+   "run": "front_w363",
+   "split": "dev",
+   "answered_by": "head (w363)",
+   "panel_kind": "sort",
+   "question": "Sort these numbers in ascending order: -20, 41, 46, 35, -5, 56, -11, 31, -19",
+   "expected": [
+    -20,
+    -19,
+    -11,
+    -5,
+    31,
+    35,
+    41,
+    46,
+    56
+   ],
+   "reply": "[ev:direct] In simple terms: May mean lawfulness, but more often means class structure. [simplewiki_6dc27915603590452763a234] The dictionary sense: Arrangement, disposition, or sequence.. [wiktionary:order:sense1]",
+   "path": "arb:explain_simply->capability:explain_simply"
+  },
+  {
+   "run": "front_w363",
+   "split": "dev",
+   "answered_by": "head (w363)",
+   "panel_kind": "sort",
+   "question": "Sort these numbers in ascending order: 3, 10, 30, -18, -17, 50, -15",
+   "expected": [
+    -18,
+    -17,
+    -15,
+    3,
+    10,
+    30,
+    50
+   ],
+   "reply": "[ev:direct] In simple terms: May mean lawfulness, but more often means class structure. [simplewiki_6dc27915603590452763a234] The dictionary sense: Arrangement, disposition, or sequence.. [wiktionary:order:sense1]",
+   "path": "arb:explain_simply->capability:explain_simply"
+  },
+  {
+   "run": "front_w363",
+   "split": "dev",
+   "answered_by": "head (w363)",
+   "panel_kind": "sort",
+   "question": "Sort these numbers in ascending order: 51, -5, 17, 50, 48, 36",
+   "expected": [
+    -5,
+    17,
+    36,
+    48,
+    50,
+    51
+   ],
+   "reply": "[ev:direct] In simple terms: May mean lawfulness, but more often means class structure. [simplewiki_6dc27915603590452763a234] The dictionary sense: Arrangement, disposition, or sequence.. [wiktionary:order:sense1]",
+   "path": "arb:explain_simply->capability:explain_simply"
+  }
+ ],
+ "wrong_by_organ": 0,
+ "shipped_algorithms_row_docs_parity_BOARD": {
+  "specialist": "algorithms",
+  "split": "heldout",
+  "head": "w363",
+  "head_alone": [
+   1,
+   1,
+   16
+  ],
+  "with_specialist": [
+   42,
+   0,
+   0
+  ],
+  "decision": "ADMIT",
+  "run": "var/parity/full-front-shipped-head"
+ },
+ "earlier_runs_same_counts": [
+  "var/i1-organ/parity/alone-1",
+  "var/i1-organ/parity/front-w363-1 (before README.md was added to the folder)"
+ ]
+}

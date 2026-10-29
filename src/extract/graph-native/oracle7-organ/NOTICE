@@ -1,0 +1,9 @@
+algorithms_scorer.py and narrow_v1.py are verbatim copies of root/specialists/algorithms/algorithms_scorer.py and
+root/specialists/algorithms/narrow_v1.py from Oracle7 (upstream/root/specialists/algorithms/ in veri7vn).
+algorithms_panel_v1.json holds the items of root/specialists/algorithms/algorithms_panel_v1.json from Oracle7,
+unchanged, regrouped from one list with a "split" field into {"dev": [...], "heldout": [...]} as workbench/exam.py
+reads panels. All three belong to Oracle7's author.
+
+organ_algorithms_native.py and manifest.json are veri7vn's. bin/oracle_native.so, when present, is built from
+veri7vn's native/ workspace (crates oracle-runtime-python and oracle-reasoning) and is not part of this folder's
+source.

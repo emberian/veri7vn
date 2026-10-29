@@ -1,0 +1,33 @@
+{
+ "id": "algorithms-native",
+ "name": "Algorithms: shortest paths and spanning trees (veri7vn native, checked)",
+ "tier": "A",
+ "sources": [
+  {"name": "Dijkstra shortest paths and Kruskal minimum spanning forests executed on the user's own stated graph (integer weights)", "licence": "execution", "url": "https://en.wikibooks.org/wiki/Algorithms"},
+  {"name": "veri7vn native operations graph.shortest_path and graph.minimum_spanning_forest (native/oracle-reasoning in veri7vn): each reply passes an independent Rust check of its certificate; not Isabelle-verified", "licence": "see veri7vn"}
+ ],
+ "store": {
+  "path": "__ORACLE7_ROOT__/specialists/algorithms-native/organ_algorithms_native.py",
+  "native_extension": {
+   "module": "oracle_native",
+   "file": "bin/oracle_native.so",
+   "env": "VERI7VN_NATIVE_EXTENSION",
+   "build": "cd native && cargo build -p oracle-runtime-python --features reasoning (veri7vn); copy target/<profile>/liboracle_native.{dylib,so} to bin/oracle_native.so",
+   "sha256": {
+    "darwin-arm64": "2037b0b6cf87ebbf39ceeb3b8d251a08babc05d9e59b685110168b4eb59728ce"
+   }
+  }
+ },
+ "organ": {"dir": "__ORACLE7_ROOT__/specialists/algorithms-native", "module": "organ_algorithms_native", "class": "AlgorithmsNativeOrgan", "init": {}},
+ "accept": {
+  "kinds": ["shortest_path", "unreachable", "mst", "disconnected"],
+  "declines_in_domain": ["underspecified", "no_node", "negative"],
+  "context_regex": "\\b(?:shortest path|shortest distance|shortest route|dijkstra|minimum spanning tree|minimum spanning forest|mst)\\b"
+ },
+ "panel": {"path": "algorithms_panel_v1.json", "splits": ["dev", "heldout"], "exclude_kinds_composed": [], "scorer_module": "algorithms_scorer", "scorer_fn": "ok"},
+ "routing_cues": ["shortest path", "Dijkstra", "minimum spanning tree"],
+ "budgets": {"latency_p50_ms": 50, "store_mb": 1},
+ "core_sample": {"n": 400, "seed": 20260928},
+ "veri7vn": {"family": "graph-native", "operations": ["graph.shortest_path", "graph.minimum_spanning_forest"], "extension": "bin/oracle_native.so or $VERI7VN_NATIVE_EXTENSION, checked against store.native_extension.sha256"},
+ "notes": "The graph half of the shipped algorithms specialist (shortest path, unreachable, minimum spanning tree, disconnected), computed in-process by veri7vn's native Rust operations, each reply checked independently before it is used. Sorting, binary search and complexity questions are left to the head. Panel and scorer are copies of the shipped algorithms ones; the panel is regrouped into {dev, heldout} lists for workbench/exam.py."
+}

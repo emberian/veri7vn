@@ -1,0 +1,854 @@
+{
+ "dev": [
+  {
+   "split": "dev",
+   "kind": "sp",
+   "valid": true,
+   "q": "Edges: A-B 6, B-C 1, C-D 4, D-B 7, D-A 12. What is the shortest path from D to A?",
+   "expect": 11
+  },
+  {
+   "split": "dev",
+   "kind": "mst",
+   "valid": true,
+   "q": "Edges: A-B 6, B-C 1, C-D 4, D-B 7, D-A 12. What is the weight of the minimum spanning tree?",
+   "expect": 11
+  },
+  {
+   "split": "dev",
+   "kind": "sort",
+   "valid": true,
+   "q": "Sort these numbers in ascending order: 42, 49, 12, -3, 52, -2, 56, 28, 51",
+   "expect": [
+    -3,
+    -2,
+    12,
+    28,
+    42,
+    49,
+    51,
+    52,
+    56
+   ]
+  },
+  {
+   "split": "dev",
+   "kind": "sortd",
+   "valid": true,
+   "q": "Sort in descending order: 42, 49, 12, -3, 52, -2, 56, 28, 51",
+   "expect": [
+    56,
+    52,
+    51,
+    49,
+    42,
+    28,
+    12,
+    -2,
+    -3
+   ]
+  },
+  {
+   "split": "dev",
+   "kind": "bs",
+   "valid": true,
+   "q": "Using binary search for 12 in the sorted list [-3, -2, 12, 28, 42, 49, 51, 52, 56], what index is it at?",
+   "expect": 2
+  },
+  {
+   "split": "dev",
+   "kind": "sp",
+   "valid": true,
+   "q": "Edges: A-B 7, B-C 9, C-D 3, D-E 7, E-F 6, D-B 7, D-A 11. What is the shortest path from D to F?",
+   "expect": 13
+  },
+  {
+   "split": "dev",
+   "kind": "mst",
+   "valid": true,
+   "q": "Edges: A-B 7, B-C 9, C-D 3, D-E 7, E-F 6, D-B 7, D-A 11. What is the weight of the minimum spanning tree?",
+   "expect": 30
+  },
+  {
+   "split": "dev",
+   "kind": "sort",
+   "valid": true,
+   "q": "Sort these numbers in ascending order: 29, -14, 59, 23, 36",
+   "expect": [
+    -14,
+    23,
+    29,
+    36,
+    59
+   ]
+  },
+  {
+   "split": "dev",
+   "kind": "sortd",
+   "valid": true,
+   "q": "Sort in descending order: 29, -14, 59, 23, 36",
+   "expect": [
+    59,
+    36,
+    29,
+    23,
+    -14
+   ]
+  },
+  {
+   "split": "dev",
+   "kind": "bs",
+   "valid": true,
+   "q": "Using binary search for 59 in the sorted list [-14, 23, 29, 36, 59], what index is it at?",
+   "expect": 4
+  },
+  {
+   "split": "dev",
+   "kind": "sp",
+   "valid": true,
+   "q": "Edges: A-B 8, B-C 9, C-D 1, C-A 8. What is the shortest path from B to A?",
+   "expect": 8
+  },
+  {
+   "split": "dev",
+   "kind": "mst",
+   "valid": true,
+   "q": "Edges: A-B 8, B-C 9, C-D 1, C-A 8. What is the weight of the minimum spanning tree?",
+   "expect": 17
+  },
+  {
+   "split": "dev",
+   "kind": "sort",
+   "valid": true,
+   "q": "Sort these numbers in ascending order: 35, 15, 0, -20, 13",
+   "expect": [
+    -20,
+    0,
+    13,
+    15,
+    35
+   ]
+  },
+  {
+   "split": "dev",
+   "kind": "sortd",
+   "valid": true,
+   "q": "Sort in descending order: 35, 15, 0, -20, 13",
+   "expect": [
+    35,
+    15,
+    13,
+    0,
+    -20
+   ]
+  },
+  {
+   "split": "dev",
+   "kind": "bs",
+   "valid": true,
+   "q": "Using binary search for 15 in the sorted list [-20, 0, 13, 15, 35], what index is it at?",
+   "expect": 3
+  },
+  {
+   "split": "dev",
+   "kind": "sp",
+   "valid": true,
+   "q": "Edges: A-B 3, B-C 1, C-D 2. What is the shortest path from B to C?",
+   "expect": 1
+  },
+  {
+   "split": "dev",
+   "kind": "mst",
+   "valid": true,
+   "q": "Edges: A-B 3, B-C 1, C-D 2. What is the weight of the minimum spanning tree?",
+   "expect": 6
+  },
+  {
+   "split": "dev",
+   "kind": "sort",
+   "valid": true,
+   "q": "Sort these numbers in ascending order: -15, 53, 50, 2, -17, -7",
+   "expect": [
+    -17,
+    -15,
+    -7,
+    2,
+    50,
+    53
+   ]
+  },
+  {
+   "split": "dev",
+   "kind": "sortd",
+   "valid": true,
+   "q": "Sort in descending order: -15, 53, 50, 2, -17, -7",
+   "expect": [
+    53,
+    50,
+    2,
+    -7,
+    -15,
+    -17
+   ]
+  },
+  {
+   "split": "dev",
+   "kind": "bs",
+   "valid": true,
+   "q": "Using binary search for -15 in the sorted list [-17, -15, -7, 2, 50, 53], what index is it at?",
+   "expect": 1
+  },
+  {
+   "split": "dev",
+   "kind": "sp",
+   "valid": true,
+   "q": "Edges: A-B 8, B-C 9, C-D 3, D-E 2, E-F 8, D-B 10. What is the shortest path from D to B?",
+   "expect": 10
+  },
+  {
+   "split": "dev",
+   "kind": "mst",
+   "valid": true,
+   "q": "Edges: A-B 8, B-C 9, C-D 3, D-E 2, E-F 8, D-B 10. What is the weight of the minimum spanning tree?",
+   "expect": 30
+  },
+  {
+   "split": "dev",
+   "kind": "sort",
+   "valid": true,
+   "q": "Sort these numbers in ascending order: -3, -7, -13, 9, -2, -17, 54, 36",
+   "expect": [
+    -17,
+    -13,
+    -7,
+    -3,
+    -2,
+    9,
+    36,
+    54
+   ]
+  },
+  {
+   "split": "dev",
+   "kind": "sortd",
+   "valid": true,
+   "q": "Sort in descending order: -3, -7, -13, 9, -2, -17, 54, 36",
+   "expect": [
+    54,
+    36,
+    9,
+    -2,
+    -3,
+    -7,
+    -13,
+    -17
+   ]
+  },
+  {
+   "split": "dev",
+   "kind": "bs",
+   "valid": true,
+   "q": "Using binary search for -13 in the sorted list [-17, -13, -7, -3, -2, 9, 36, 54], what index is it at?",
+   "expect": 1
+  },
+  {
+   "split": "dev",
+   "kind": "sp",
+   "valid": true,
+   "q": "Edges: A-B 5, B-C 4, C-D 6, D-B 7, D-A 7. What is the shortest path from D to C?",
+   "expect": 6
+  },
+  {
+   "split": "dev",
+   "kind": "mst",
+   "valid": true,
+   "q": "Edges: A-B 5, B-C 4, C-D 6, D-B 7, D-A 7. What is the weight of the minimum spanning tree?",
+   "expect": 15
+  },
+  {
+   "split": "dev",
+   "kind": "sort",
+   "valid": true,
+   "q": "Sort these numbers in ascending order: -20, 41, 46, 35, -5, 56, -11, 31, -19",
+   "expect": [
+    -20,
+    -19,
+    -11,
+    -5,
+    31,
+    35,
+    41,
+    46,
+    56
+   ]
+  },
+  {
+   "split": "dev",
+   "kind": "sortd",
+   "valid": true,
+   "q": "Sort in descending order: -20, 41, 46, 35, -5, 56, -11, 31, -19",
+   "expect": [
+    56,
+    46,
+    41,
+    35,
+    31,
+    -5,
+    -11,
+    -19,
+    -20
+   ]
+  },
+  {
+   "split": "dev",
+   "kind": "bs",
+   "valid": true,
+   "q": "Using binary search for -19 in the sorted list [-20, -19, -11, -5, 31, 35, 41, 46, 56], what index is it at?",
+   "expect": 1
+  },
+  {
+   "split": "dev",
+   "kind": "sp",
+   "valid": true,
+   "q": "Edges: A-B 9, B-C 1, C-D 1, D-E 2, B-D 11. What is the shortest path from B to A?",
+   "expect": 9
+  },
+  {
+   "split": "dev",
+   "kind": "mst",
+   "valid": true,
+   "q": "Edges: A-B 9, B-C 1, C-D 1, D-E 2, B-D 11. What is the weight of the minimum spanning tree?",
+   "expect": 13
+  },
+  {
+   "split": "dev",
+   "kind": "sort",
+   "valid": true,
+   "q": "Sort these numbers in ascending order: 3, 10, 30, -18, -17, 50, -15",
+   "expect": [
+    -18,
+    -17,
+    -15,
+    3,
+    10,
+    30,
+    50
+   ]
+  },
+  {
+   "split": "dev",
+   "kind": "sortd",
+   "valid": true,
+   "q": "Sort in descending order: 3, 10, 30, -18, -17, 50, -15",
+   "expect": [
+    50,
+    30,
+    10,
+    3,
+    -15,
+    -17,
+    -18
+   ]
+  },
+  {
+   "split": "dev",
+   "kind": "bs",
+   "valid": true,
+   "q": "Using binary search for 3 in the sorted list [-18, -17, -15, 3, 10, 30, 50], what index is it at?",
+   "expect": 3
+  },
+  {
+   "split": "dev",
+   "kind": "sp",
+   "valid": true,
+   "q": "Edges: A-B 4, B-C 5, C-D 5, D-E 9, E-F 8, C-A 8, B-F 11, F-A 3. What is the shortest path from D to E?",
+   "expect": 9
+  },
+  {
+   "split": "dev",
+   "kind": "mst",
+   "valid": true,
+   "q": "Edges: A-B 4, B-C 5, C-D 5, D-E 9, E-F 8, C-A 8, B-F 11, F-A 3. What is the weight of the minimum spanning tree?",
+   "expect": 25
+  },
+  {
+   "split": "dev",
+   "kind": "sort",
+   "valid": true,
+   "q": "Sort these numbers in ascending order: 51, -5, 17, 50, 48, 36",
+   "expect": [
+    -5,
+    17,
+    36,
+    48,
+    50,
+    51
+   ]
+  },
+  {
+   "split": "dev",
+   "kind": "sortd",
+   "valid": true,
+   "q": "Sort in descending order: 51, -5, 17, 50, 48, 36",
+   "expect": [
+    51,
+    50,
+    48,
+    36,
+    17,
+    -5
+   ]
+  },
+  {
+   "split": "dev",
+   "kind": "bs",
+   "valid": true,
+   "q": "Using binary search for 36 in the sorted list [-5, 17, 36, 48, 50, 51], what index is it at?",
+   "expect": 2
+  },
+  {
+   "split": "dev",
+   "kind": "decline",
+   "valid": false,
+   "q": "Using binary search for 7 in the list [9, 2, 7, 4, 1], what index is it at?",
+   "expect": "decline"
+  },
+  {
+   "split": "dev",
+   "kind": "decline",
+   "valid": false,
+   "q": "Edges: A-B 3, B-C 4. What is the shortest path?",
+   "expect": "decline"
+  }
+ ],
+ "heldout": [
+  {
+   "split": "heldout",
+   "kind": "sp",
+   "valid": true,
+   "q": "Graph with weighted edges A-B 7, B-C 6, C-D 5, D-E 9, D-B 9, E-A 12. Find the shortest distance from D to B (Dijkstra).",
+   "expect": 9
+  },
+  {
+   "split": "heldout",
+   "kind": "mst",
+   "valid": true,
+   "q": "For the graph with edges A-B 7, B-C 6, C-D 5, D-E 9, D-B 9, E-A 12, find the total weight of its MST.",
+   "expect": 27
+  },
+  {
+   "split": "heldout",
+   "kind": "sort",
+   "valid": true,
+   "q": "Put these in sorted order, ascending: 47, -14, 28, 15, 31, 1, -15",
+   "expect": [
+    -15,
+    -14,
+    1,
+    15,
+    28,
+    31,
+    47
+   ]
+  },
+  {
+   "split": "heldout",
+   "kind": "sortd",
+   "valid": true,
+   "q": "List these from largest to smallest (descending): 47, -14, 28, 15, 31, 1, -15",
+   "expect": [
+    47,
+    31,
+    28,
+    15,
+    1,
+    -14,
+    -15
+   ]
+  },
+  {
+   "split": "heldout",
+   "kind": "bs",
+   "valid": true,
+   "q": "Binary search the list [-15, -14, 1, 15, 28, 31, 47] for 1. At which index (0-based)?",
+   "expect": 2
+  },
+  {
+   "split": "heldout",
+   "kind": "sp",
+   "valid": true,
+   "q": "Graph with weighted edges A-B 2, B-C 9, C-D 7, D-E 8, E-C 2, B-D 4. Find the shortest distance from A to D (Dijkstra).",
+   "expect": 6
+  },
+  {
+   "split": "heldout",
+   "kind": "mst",
+   "valid": true,
+   "q": "For the graph with edges A-B 2, B-C 9, C-D 7, D-E 8, E-C 2, B-D 4, find the total weight of its MST.",
+   "expect": 15
+  },
+  {
+   "split": "heldout",
+   "kind": "sort",
+   "valid": true,
+   "q": "Put these in sorted order, ascending: 48, -16, -18, 26, 10, 53, 46, 6, 7",
+   "expect": [
+    -18,
+    -16,
+    6,
+    7,
+    10,
+    26,
+    46,
+    48,
+    53
+   ]
+  },
+  {
+   "split": "heldout",
+   "kind": "sortd",
+   "valid": true,
+   "q": "List these from largest to smallest (descending): 48, -16, -18, 26, 10, 53, 46, 6, 7",
+   "expect": [
+    53,
+    48,
+    46,
+    26,
+    10,
+    7,
+    6,
+    -16,
+    -18
+   ]
+  },
+  {
+   "split": "heldout",
+   "kind": "bs",
+   "valid": true,
+   "q": "Binary search the list [-18, -16, 6, 7, 10, 26, 46, 48, 53] for 6. At which index (0-based)?",
+   "expect": 2
+  },
+  {
+   "split": "heldout",
+   "kind": "sp",
+   "valid": true,
+   "q": "Graph with weighted edges A-B 4, B-C 1, C-D 6, D-E 3, D-A 9, A-C 9. Find the shortest distance from B to C (Dijkstra).",
+   "expect": 1
+  },
+  {
+   "split": "heldout",
+   "kind": "mst",
+   "valid": true,
+   "q": "For the graph with edges A-B 4, B-C 1, C-D 6, D-E 3, D-A 9, A-C 9, find the total weight of its MST.",
+   "expect": 14
+  },
+  {
+   "split": "heldout",
+   "kind": "sort",
+   "valid": true,
+   "q": "Put these in sorted order, ascending: 33, -11, -12, 6, 59, 32, 12, -14",
+   "expect": [
+    -14,
+    -12,
+    -11,
+    6,
+    12,
+    32,
+    33,
+    59
+   ]
+  },
+  {
+   "split": "heldout",
+   "kind": "sortd",
+   "valid": true,
+   "q": "List these from largest to smallest (descending): 33, -11, -12, 6, 59, 32, 12, -14",
+   "expect": [
+    59,
+    33,
+    32,
+    12,
+    6,
+    -11,
+    -12,
+    -14
+   ]
+  },
+  {
+   "split": "heldout",
+   "kind": "bs",
+   "valid": true,
+   "q": "Binary search the list [-14, -12, -11, 6, 12, 32, 33, 59] for -14. At which index (0-based)?",
+   "expect": 0
+  },
+  {
+   "split": "heldout",
+   "kind": "sp",
+   "valid": true,
+   "q": "Graph with weighted edges A-B 6, B-C 2, C-D 9, C-A 4, D-A 6. Find the shortest distance from B to D (Dijkstra).",
+   "expect": 11
+  },
+  {
+   "split": "heldout",
+   "kind": "mst",
+   "valid": true,
+   "q": "For the graph with edges A-B 6, B-C 2, C-D 9, C-A 4, D-A 6, find the total weight of its MST.",
+   "expect": 12
+  },
+  {
+   "split": "heldout",
+   "kind": "sort",
+   "valid": true,
+   "q": "Put these in sorted order, ascending: 24, 39, 34, 17, 33, 55, -10",
+   "expect": [
+    -10,
+    17,
+    24,
+    33,
+    34,
+    39,
+    55
+   ]
+  },
+  {
+   "split": "heldout",
+   "kind": "sortd",
+   "valid": true,
+   "q": "List these from largest to smallest (descending): 24, 39, 34, 17, 33, 55, -10",
+   "expect": [
+    55,
+    39,
+    34,
+    33,
+    24,
+    17,
+    -10
+   ]
+  },
+  {
+   "split": "heldout",
+   "kind": "bs",
+   "valid": true,
+   "q": "Binary search the list [-10, 17, 24, 33, 34, 39, 55] for -10. At which index (0-based)?",
+   "expect": 0
+  },
+  {
+   "split": "heldout",
+   "kind": "sp",
+   "valid": true,
+   "q": "Graph with weighted edges A-B 6, B-C 4, C-D 3, D-E 4. Find the shortest distance from E to B (Dijkstra).",
+   "expect": 11
+  },
+  {
+   "split": "heldout",
+   "kind": "mst",
+   "valid": true,
+   "q": "For the graph with edges A-B 6, B-C 4, C-D 3, D-E 4, find the total weight of its MST.",
+   "expect": 17
+  },
+  {
+   "split": "heldout",
+   "kind": "sort",
+   "valid": true,
+   "q": "Put these in sorted order, ascending: 59, 32, 15, 24, -13, 0, 4, -10, 39",
+   "expect": [
+    -13,
+    -10,
+    0,
+    4,
+    15,
+    24,
+    32,
+    39,
+    59
+   ]
+  },
+  {
+   "split": "heldout",
+   "kind": "sortd",
+   "valid": true,
+   "q": "List these from largest to smallest (descending): 59, 32, 15, 24, -13, 0, 4, -10, 39",
+   "expect": [
+    59,
+    39,
+    32,
+    24,
+    15,
+    4,
+    0,
+    -10,
+    -13
+   ]
+  },
+  {
+   "split": "heldout",
+   "kind": "bs",
+   "valid": true,
+   "q": "Binary search the list [-13, -10, 0, 4, 15, 24, 32, 39, 59] for -10. At which index (0-based)?",
+   "expect": 1
+  },
+  {
+   "split": "heldout",
+   "kind": "sp",
+   "valid": true,
+   "q": "Graph with weighted edges A-B 2, B-C 2, C-D 1, D-E 2, E-F 6. Find the shortest distance from B to C (Dijkstra).",
+   "expect": 2
+  },
+  {
+   "split": "heldout",
+   "kind": "mst",
+   "valid": true,
+   "q": "For the graph with edges A-B 2, B-C 2, C-D 1, D-E 2, E-F 6, find the total weight of its MST.",
+   "expect": 13
+  },
+  {
+   "split": "heldout",
+   "kind": "sort",
+   "valid": true,
+   "q": "Put these in sorted order, ascending: 10, 47, 52, 40, 37, 41, 38, 33",
+   "expect": [
+    10,
+    33,
+    37,
+    38,
+    40,
+    41,
+    47,
+    52
+   ]
+  },
+  {
+   "split": "heldout",
+   "kind": "sortd",
+   "valid": true,
+   "q": "List these from largest to smallest (descending): 10, 47, 52, 40, 37, 41, 38, 33",
+   "expect": [
+    52,
+    47,
+    41,
+    40,
+    38,
+    37,
+    33,
+    10
+   ]
+  },
+  {
+   "split": "heldout",
+   "kind": "bs",
+   "valid": true,
+   "q": "Binary search the list [10, 33, 37, 38, 40, 41, 47, 52] for 10. At which index (0-based)?",
+   "expect": 0
+  },
+  {
+   "split": "heldout",
+   "kind": "sp",
+   "valid": true,
+   "q": "Graph with weighted edges A-B 8, B-C 8, C-D 9, D-E 6, E-F 7, F-D 5, B-D 1. Find the shortest distance from F to A (Dijkstra).",
+   "expect": 14
+  },
+  {
+   "split": "heldout",
+   "kind": "mst",
+   "valid": true,
+   "q": "For the graph with edges A-B 8, B-C 8, C-D 9, D-E 6, E-F 7, F-D 5, B-D 1, find the total weight of its MST.",
+   "expect": 28
+  },
+  {
+   "split": "heldout",
+   "kind": "sort",
+   "valid": true,
+   "q": "Put these in sorted order, ascending: -14, 25, 46, 45, 57",
+   "expect": [
+    -14,
+    25,
+    45,
+    46,
+    57
+   ]
+  },
+  {
+   "split": "heldout",
+   "kind": "sortd",
+   "valid": true,
+   "q": "List these from largest to smallest (descending): -14, 25, 46, 45, 57",
+   "expect": [
+    57,
+    46,
+    45,
+    25,
+    -14
+   ]
+  },
+  {
+   "split": "heldout",
+   "kind": "bs",
+   "valid": true,
+   "q": "Binary search the list [-14, 25, 45, 46, 57] for 25. At which index (0-based)?",
+   "expect": 1
+  },
+  {
+   "split": "heldout",
+   "kind": "sp",
+   "valid": true,
+   "q": "Graph with weighted edges A-B 7, B-C 5, C-D 9, B-D 9, A-C 8. Find the shortest distance from B to D (Dijkstra).",
+   "expect": 9
+  },
+  {
+   "split": "heldout",
+   "kind": "mst",
+   "valid": true,
+   "q": "For the graph with edges A-B 7, B-C 5, C-D 9, B-D 9, A-C 8, find the total weight of its MST.",
+   "expect": 21
+  },
+  {
+   "split": "heldout",
+   "kind": "sort",
+   "valid": true,
+   "q": "Put these in sorted order, ascending: 12, 11, -9, 35, 22, 37",
+   "expect": [
+    -9,
+    11,
+    12,
+    22,
+    35,
+    37
+   ]
+  },
+  {
+   "split": "heldout",
+   "kind": "sortd",
+   "valid": true,
+   "q": "List these from largest to smallest (descending): 12, 11, -9, 35, 22, 37",
+   "expect": [
+    37,
+    35,
+    22,
+    12,
+    11,
+    -9
+   ]
+  },
+  {
+   "split": "heldout",
+   "kind": "bs",
+   "valid": true,
+   "q": "Binary search the list [-9, 11, 12, 22, 35, 37] for 35. At which index (0-based)?",
+   "expect": 4
+  },
+  {
+   "split": "heldout",
+   "kind": "decline",
+   "valid": false,
+   "q": "Binary search the list [5, 1, 8, 3, 9] for 8. At which index?",
+   "expect": "decline"
+  },
+  {
+   "split": "heldout",
+   "kind": "decline",
+   "valid": false,
+   "q": "Graph with weighted edges A-B 2, B-C 5, A-C 9. Find the shortest distance.",
+   "expect": "decline"
+  }
+ ]
+}
