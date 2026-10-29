@@ -13,6 +13,9 @@ use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use std::rc::Rc;
 use std::time::Instant;
 
+pub mod rooted;
+pub use rooted::{evaluate_rooted, RootedRequest, RootedResponse, Roots, Strategy};
+
 pub type Node = u32;
 type Pair = (Node, Node);
 
@@ -35,6 +38,8 @@ pub struct Limits {
     pub max_output_events_per_epoch: u64,
     /// Checked between worker steps; an individual step is not preempted.
     pub max_elapsed_ms: u64,
+    /// Fresh strategy adjacency examinations, updates and BFS visits per epoch.
+    pub max_fresh_work_per_epoch: u64,
 }
 
 /// Fixed byte admission used by the JSON and CLI boundaries.
@@ -54,6 +59,7 @@ impl Default for Limits {
             max_steps_per_epoch: 1_000_000,
             max_output_events_per_epoch: 2_000_000,
             max_elapsed_ms: 10_000,
+            max_fresh_work_per_epoch: 2_000_000,
         }
     }
 }
@@ -191,6 +197,15 @@ struct Prepared {
 /// Preflight the complete history before constructing a dataflow. Mutation order
 /// within an epoch is checked, but intermediate states are never published.
 fn prepare(request: &Request, limits: &Limits) -> Result<Vec<Prepared>, Error> {
+    let bound = request.nodes.len().checked_mul(request.nodes.len());
+    prepare_with_pair_bound(request, limits, bound)
+}
+
+fn prepare_with_pair_bound(
+    request: &Request,
+    limits: &Limits,
+    pair_bound: Option<usize>,
+) -> Result<Vec<Prepared>, Error> {
     if request.scope.is_empty() || request.scope.len() > limits.max_id_bytes {
         return Err(error(
             "invalid_scope",
@@ -213,14 +228,10 @@ fn prepare(request: &Request, limits: &Limits) -> Result<Vec<Prepared>, Error> {
             None,
         ));
     }
-    if nodes
-        .len()
-        .checked_mul(nodes.len())
-        .is_none_or(|n| n > limits.max_relation_pairs)
-    {
+    if pair_bound.is_none_or(|n| n > limits.max_relation_pairs) {
         return Err(error(
             "state_limit",
-            "node universe squared exceeds admitted pair bound",
+            "possible retained relation exceeds admitted pair bound",
             None,
         ));
     }
@@ -368,12 +379,38 @@ fn response(scope: String, provider: &str, epochs: Vec<EpochResult>) -> Response
 /// Fixed-policy JSON boundary for native and Python callers. Request fields
 /// cannot raise admission limits or select an unbounded reference backend.
 pub fn call_json(request_json: &str) -> String {
+    call_json_with_strategy(request_json, Strategy::Fresh)
+}
+
+/// The host chooses a rooted-v2 strategy; request JSON cannot override it.
+/// Legacy all-pairs requests retain their original differential implementation.
+pub fn call_json_with_strategy(request_json: &str, strategy: Strategy) -> String {
+    #[derive(Deserialize)]
+    struct Dispatch {
+        operation: Option<String>,
+    }
     let result = if request_json.len() > MAX_REQUEST_BYTES {
         Err(error("request_bytes_limit", "JSON exceeds 1 MiB", None))
     } else {
-        serde_json::from_str::<Request>(request_json)
-            .map_err(|e| error("invalid_json", e.to_string(), None))
-            .and_then(|request| evaluate(request, Limits::default()))
+        match serde_json::from_str::<Dispatch>(request_json) {
+            Err(e) => Err(error("invalid_json", e.to_string(), None)),
+            Ok(dispatch) if dispatch.operation.is_some() => {
+                serde_json::from_str::<RootedRequest>(request_json)
+                    .map_err(|e| error("invalid_json", e.to_string(), None))
+                    .and_then(|request| evaluate_rooted(request, Limits::default(), strategy))
+                    .and_then(|response| {
+                        serde_json::to_value(response)
+                            .map_err(|e| error("serialization", e.to_string(), None))
+                    })
+            }
+            Ok(_) => serde_json::from_str::<Request>(request_json)
+                .map_err(|e| error("invalid_json", e.to_string(), None))
+                .and_then(|request| evaluate(request, Limits::default()))
+                .and_then(|response| {
+                    serde_json::to_value(response)
+                        .map_err(|e| error("serialization", e.to_string(), None))
+                }),
+        }
     };
     let envelope = match result {
         Ok(result) => serde_json::json!({"status":"ok", "result":result}),
@@ -390,6 +427,10 @@ pub fn catalog() -> serde_json::Value {
         "provider":"oracle-incremental",
         "schema":1,
         "operations":["insert", "retract", "reachable", "impact"],
+        "versioned_operations":["rooted_v2"],
+        "rooted_default_strategy":"fresh",
+        "rooted_strategy_selection":"explicit host policy only; legacy all-pairs unchanged",
+        "rooted_relation":"union of paths from downstream roots and paths to upstream roots",
         "directions":["downstream", "upstream"],
         "input":"one scope, complete node universe, finite strictly ordered epochs",
         "edge_orientation":"prerequisite_to_dependent",

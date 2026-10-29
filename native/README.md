@@ -5,6 +5,10 @@ symbolic/dimensional, scientific and incremental-reasoning providers. They have
 Rust libraries, CLIs and feature-gated PyO3 calls; their experimental status and
 remaining hosted boundaries are explicit.
 
+The [standalone native service](docs/STANDALONE.md) exposes these computations
+through discovery and direct HTTP calls, sharing bounded workers across tenants.
+It runs and tests without any minidregg dependency or public Oracle dataset.
+
 This is the Rust and PyO3 foundation for the next Oracle appliance. It builds a
 release's knowledge base once, executes structured query plans over shared
 indexes, and persists a conversation's selection and exact replies together.
@@ -25,7 +29,9 @@ map](docs/MIGRATION.md) identifies those surfaces and the practical Python
 boundaries. The [development roadmap](docs/ROADMAP.md) sets out the shared
 runtime design, extracted-code strategy, candidate specialist libraries and
 performance evidence needed for an upstream proposal. There are no new
-specialist-panel or theorem claims.
+specialist-panel scores. The separate [extracted graph checker](../src/extract/discrete-certificate/README.md)
+connects supplied connected-tree candidates to specific Isabelle theorems; it
+does not confer formal assurance on the Rust runtime or other computations.
 
 ## What runs
 

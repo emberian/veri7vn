@@ -3,6 +3,8 @@
 //! model validation, statistical uncertainty estimate, or Mini registration.
 #![forbid(unsafe_code)]
 
+pub mod thermal;
+
 use faer::diag::Diag;
 use faer::dyn_stack::{MemBuffer, MemStack};
 use faer::linalg::svd::{svd, svd_scratch, ComputeSvdVectors};
@@ -514,6 +516,12 @@ pub fn call(request: &str, limits: &Limits, cancel: &AtomicBool) -> Result<Strin
     }
     let request: Request = serde_json::from_str(request)?;
     let operation = match request.operation.as_str() {
+        "science.thermal_network" => {
+            let input = serde_json::from_str(request.arguments.get())?;
+            return Ok(serde_json::to_string(&thermal::thermal_network(
+                &input, limits, cancel,
+            )?)?);
+        }
         "science.solve_linear" => Operation::SolveLinear,
         "science.least_squares" => Operation::LeastSquares,
         _ => return Err(Error::Invalid("unknown scientific operation".into())),
@@ -527,10 +535,11 @@ pub fn catalog() -> serde_json::Value {
     serde_json::json!({
         "schema": SCHEMA,
         "assurance": "experimental floating-point; no Isabelle theorem or physical-model validation",
-        "operations": ["science.solve_linear", "science.least_squares"],
+        "operations": ["science.solve_linear", "science.least_squares", "science.thermal_network"],
         "arguments": {"matrix": "row-major finite f64 coefficients", "rhs": "one finite value per row", "model": "description, variable_units, row_units, normalization, assumptions", "tolerances": "optional rank_relative and consistency_relative"},
         "limits": {"request_bytes": MAX_REQUEST_BYTES, "rows": MAX_ROWS, "columns": MAX_COLUMNS, "work_estimate": MAX_WORK, "svd_scratch_bytes": MAX_SCRATCH_BYTES, "threads": 1},
         "cancellation": "cooperative before/after SVD; decomposition is not interruptible",
+        "thermal_network": {"arguments": "description, assumptions, reference_temperature_k, nodes[{id, applied_heat_w, fixed_temperature_k?}], links[{from,to,conductance_w_per_k}], power_tolerance_w?, tolerances?", "nodes": thermal::MAX_NODES, "links": thermal::MAX_LINKS, "model": "steady passive linear conductance network; fixed nodes exchange heat with ideal reservoirs; no transient, radiation, inferred geometry or automatic HVAC model"},
         "hosting": "pure library and one-request CLI; no Mini registration or hard containment"
     })
 }

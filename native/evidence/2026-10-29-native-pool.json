@@ -1,0 +1,935 @@
+{
+  "schema": "oracle-native-pool-evaluation-v1",
+  "platform": "Linux-6.11.0-29-generic-x86_64-with-glibc2.40",
+  "python": "3.12.7",
+  "extension_sha256": "4d8a9f4471eac2c01e0b9913fc5ffc9e28fccd02f538f20b89daa7bac41c365f",
+  "scope": "actual native features in bounded subprocesses; no Mini, HTTP, persistent state or specialist-panel claim",
+  "before": {
+    "host_kib": {
+      "Rss": 22040,
+      "Pss": 16650,
+      "Private_Clean": 4856,
+      "Private_Dirty": 10988
+    },
+    "children_kib": [],
+    "workers": 0,
+    "pool": {
+      "ready": true,
+      "workers": 2,
+      "busy": 0,
+      "resident": 0,
+      "poisoned": 0,
+      "queue": 0,
+      "threads_created": 0
+    }
+  },
+  "catalogs": {
+    "reasoning": {
+      "milliseconds": 25.882573,
+      "catalog": {
+        "assurance": "independent Rust checks; not Isabelle-verified",
+        "hosting": "pure library/CLI; no Mini registration or hard containment",
+        "limits": {
+          "coefficient_bits": 4096,
+          "edges": 100000,
+          "egraph_nodes": 10000,
+          "expression_depth": 32,
+          "expression_nodes": 128,
+          "iterations": 12,
+          "polynomial_terms": 512,
+          "polynomial_work": 1000000,
+          "request_bytes": 4194304,
+          "search_ms": 50,
+          "vertices": 10000
+        },
+        "operations": [
+          {
+            "arguments": {
+              "edges": "list of [source, target, weight]; edge ID is list position",
+              "vertices": "nonnegative integer; vertex IDs are 0..vertices-1"
+            },
+            "domain": "supplied undirected multigraph, exact i64 edge weights",
+            "id": "graph.minimum_spanning_forest"
+          },
+          {
+            "arguments": {
+              "expression": "prefix expression: i64 literals, ASCII variables, binary + - *; no division or floating-point semantics"
+            },
+            "domain": "dimensionless commutative polynomials with integer coefficients",
+            "id": "algebra.optimize_polynomial"
+          },
+          {
+            "arguments": {
+              "expression": "prefix expression",
+              "output_dimension": "optional seven SI integer exponents",
+              "variables": "list of {name, dimension: seven SI integer exponents, kind?: linear|affine}; affine refused"
+            },
+            "dimension_order": [
+              "length",
+              "mass",
+              "time",
+              "electric_current",
+              "temperature",
+              "amount",
+              "luminous_intensity"
+            ],
+            "domain": "exact polynomials over normalized linear SI quantities; dimensions checked, physical law not established",
+            "id": "algebra.optimize_dimensional_polynomial",
+            "max_exponent": 64
+          }
+        ],
+        "schema": "oracle-reasoning-experimental-v1"
+      }
+    },
+    "science": {
+      "milliseconds": 0.158148,
+      "catalog": {
+        "arguments": {
+          "matrix": "row-major finite f64 coefficients",
+          "model": "description, variable_units, row_units, normalization, assumptions",
+          "rhs": "one finite value per row",
+          "tolerances": "optional rank_relative and consistency_relative"
+        },
+        "assurance": "experimental floating-point; no Isabelle theorem or physical-model validation",
+        "cancellation": "cooperative before/after SVD; decomposition is not interruptible",
+        "hosting": "pure library and one-request CLI; no Mini registration or hard containment",
+        "limits": {
+          "columns": 128,
+          "request_bytes": 1048576,
+          "rows": 512,
+          "svd_scratch_bytes": 33554432,
+          "threads": 1,
+          "work_estimate": 8388608
+        },
+        "operations": [
+          "science.solve_linear",
+          "science.least_squares",
+          "science.thermal_network"
+        ],
+        "schema": "oracle-science-experimental-v1",
+        "thermal_network": {
+          "arguments": "description, assumptions, reference_temperature_k, nodes[{id, applied_heat_w, fixed_temperature_k?}], links[{from,to,conductance_w_per_k}], power_tolerance_w?, tolerances?",
+          "links": 1024,
+          "model": "steady passive linear conductance network; fixed nodes exchange heat with ideal reservoirs; no transient, radiation, inferred geometry or automatic HVAC model",
+          "nodes": 128
+        }
+      }
+    },
+    "incremental": {
+      "milliseconds": 0.232197,
+      "catalog": {
+        "coverage": "only_the_complete_supplied_graph_at_each_version",
+        "dependencies": {
+          "differential-dataflow": "0.25.1",
+          "timely": "0.31.0"
+        },
+        "directions": [
+          "downstream",
+          "upstream"
+        ],
+        "edge_orientation": "prerequisite_to_dependent",
+        "evidence": "unverified_rust_computation",
+        "hard_cpu_or_rss_limit": false,
+        "input": "one scope, complete node universe, finite strictly ordered epochs",
+        "isolation": "all arrangements and capabilities destroyed before return",
+        "limits": {
+          "max_elapsed_ms": 10000,
+          "max_epochs": 256,
+          "max_fresh_work_per_epoch": 2000000,
+          "max_id_bytes": 128,
+          "max_live_facts": 2048,
+          "max_mutations": 16384,
+          "max_nodes": 128,
+          "max_output_events_per_epoch": 2000000,
+          "max_queries": 4096,
+          "max_relation_pairs": 16384,
+          "max_response_items": 262144,
+          "max_steps_per_epoch": 1000000
+        },
+        "limits_kind": "input/state cardinality admission plus cooperative step/event/time checks",
+        "max_request_bytes": 1048576,
+        "operations": [
+          "insert",
+          "retract",
+          "reachable",
+          "impact"
+        ],
+        "provider": "oracle-incremental",
+        "rooted_default_strategy": "fresh",
+        "rooted_relation": "union of paths from downstream roots and paths to upstream roots",
+        "rooted_strategy_selection": "explicit host policy only; legacy all-pairs unchanged",
+        "schema": 1,
+        "semantics": "nonempty directed paths; independently identified duplicate supports",
+        "settlement": "actual timely output frontier strictly beyond requested version",
+        "threads_created": 0,
+        "versioned_operations": [
+          "rooted_v2"
+        ],
+        "worker_model": "one temporary graph on caller thread per admitted batch"
+      }
+    }
+  },
+  "containment": {
+    "rlimits": {
+      "RLIMIT_CORE": {
+        "soft": 0,
+        "hard": 0
+      },
+      "RLIMIT_FSIZE": {
+        "soft": 0,
+        "hard": 0
+      },
+      "RLIMIT_NOFILE": {
+        "soft": 64,
+        "hard": 64
+      },
+      "RLIMIT_CPU": {
+        "soft": 30,
+        "hard": 30
+      },
+      "RLIMIT_AS": {
+        "soft": 2147483648,
+        "hard": 2147483648
+      }
+    },
+    "memory_limit": "linux_virtual_address_space",
+    "cpu_scope": "whole_worker_lifetime",
+    "rss_limit": false,
+    "filesystem_network_sandbox": false
+  },
+  "after_catalogs": {
+    "host_kib": {
+      "Rss": 22048,
+      "Pss": 14361,
+      "Private_Clean": 568,
+      "Private_Dirty": 10996
+    },
+    "children_kib": [
+      {
+        "Rss": 19616,
+        "Pss": 11672,
+        "Private_Clean": 60,
+        "Private_Dirty": 8808
+      }
+    ],
+    "workers": 1,
+    "pool": {
+      "ready": true,
+      "workers": 2,
+      "busy": 0,
+      "resident": 1,
+      "poisoned": 0,
+      "queue": 0,
+      "threads_created": 0
+    }
+  },
+  "sequential": {
+    "calls": 96,
+    "tenants": 48,
+    "median_ms": 0.3049775,
+    "samples_ms": [
+      0.216904,
+      0.629122,
+      0.300922,
+      0.134091,
+      0.33787,
+      0.278061,
+      0.129055,
+      0.517808,
+      0.265414,
+      0.133543,
+      0.340904,
+      0.285072,
+      0.126558,
+      0.330935,
+      0.230864,
+      0.124811,
+      0.338273,
+      0.275246,
+      0.123786,
+      0.325043,
+      0.225452,
+      0.120405,
+      0.326377,
+      0.282929,
+      0.117504,
+      0.312771,
+      0.220055,
+      0.117286,
+      0.313345,
+      0.279783,
+      0.119943,
+      0.331195,
+      0.222002,
+      0.117667,
+      0.316008,
+      0.28325,
+      0.121449,
+      0.323737,
+      0.22968,
+      0.125247,
+      0.355706,
+      0.302059,
+      0.130195,
+      0.353422,
+      0.261201,
+      0.136855,
+      0.375761,
+      0.351921,
+      0.154062,
+      0.407292,
+      0.304732,
+      0.163119,
+      0.488114,
+      0.396781,
+      0.173923,
+      0.474561,
+      0.332851,
+      0.174238,
+      0.472698,
+      0.442882,
+      0.17192,
+      0.483663,
+      0.326642,
+      0.164001,
+      0.465266,
+      0.396371,
+      0.163821,
+      0.46863,
+      0.321545,
+      0.173128,
+      0.478771,
+      0.38458,
+      0.161206,
+      0.426636,
+      0.305223,
+      0.162007,
+      0.444189,
+      0.385347,
+      0.170367,
+      0.477757,
+      0.317799,
+      0.164352,
+      0.458271,
+      0.815552,
+      0.179419,
+      0.4516,
+      0.309473,
+      0.168848,
+      0.47947,
+      0.610137,
+      0.167857,
+      0.461309,
+      0.308384,
+      0.161022,
+      0.43964,
+      0.385088
+    ]
+  },
+  "after_sequential": {
+    "host_kib": {
+      "Rss": 22116,
+      "Pss": 14429,
+      "Private_Clean": 568,
+      "Private_Dirty": 11064
+    },
+    "children_kib": [
+      {
+        "Rss": 21088,
+        "Pss": 13144,
+        "Private_Clean": 60,
+        "Private_Dirty": 10280
+      }
+    ],
+    "workers": 1,
+    "pool": {
+      "ready": true,
+      "workers": 2,
+      "busy": 0,
+      "resident": 1,
+      "poisoned": 0,
+      "queue": 0,
+      "threads_created": 0
+    }
+  },
+  "burst": {
+    "client_threads": 8,
+    "attempts": 96,
+    "outcomes": [
+      {
+        "status": "answered",
+        "milliseconds": 0.64833
+      },
+      {
+        "status": "answered",
+        "milliseconds": 27.922589
+      },
+      {
+        "status": "answered",
+        "milliseconds": 1.867149
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.092895
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.10861
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.142038
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.080152
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.136012
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.23132
+      },
+      {
+        "status": "answered",
+        "milliseconds": 1.021138
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.1519
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.122667
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.092205
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.105467
+      },
+      {
+        "status": "answered",
+        "milliseconds": 6.603425
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.091045
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.097799
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.092577
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.055958
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.089925
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.093232
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.054924
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.079999
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.086195
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.049664
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.08528
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.081334
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.047029
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.07652
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.075743
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.045613
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.077048
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.079124
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.045922
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.06961
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.072042
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.12864
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.073192
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.068583
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.040373
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.063457
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.066085
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.03985
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.063107
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.065893
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.041283
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.062322
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.065321
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.040708
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.06127
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.062691
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.038093
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.059114
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.070252
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.038516
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.062465
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.061686
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.037881
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.058874
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.066078
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.041493
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.146192
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.063441
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.037702
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.058598
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.062391
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.037477
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.059729
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.071446
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.03838
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.058849
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.061188
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.037007
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.0608
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.061929
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.036909
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.058075
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.060683
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.037005
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.057446
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.06201
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.038678
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.063717
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.061824
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.036821
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.058629
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 1.021216
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.064013
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.086493
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.084727
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.048738
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.072558
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.074622
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.044759
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.070129
+      },
+      {
+        "status": "pool_busy",
+        "milliseconds": 0.073813
+      }
+    ],
+    "counts": {
+      "answered": 5,
+      "pool_busy": 91
+    }
+  },
+  "after_burst": {
+    "host_kib": {
+      "Rss": 22608,
+      "Pss": 13985,
+      "Private_Clean": 564,
+      "Private_Dirty": 11428
+    },
+    "children_kib": [
+      {
+        "Rss": 21088,
+        "Pss": 11418,
+        "Private_Clean": 4,
+        "Private_Dirty": 8504
+      },
+      {
+        "Rss": 19504,
+        "Pss": 9894,
+        "Private_Clean": 12,
+        "Private_Dirty": 6980
+      }
+    ],
+    "workers": 2,
+    "pool": {
+      "ready": true,
+      "workers": 2,
+      "busy": 0,
+      "resident": 2,
+      "poisoned": 0,
+      "queue": 0,
+      "threads_created": 0
+    }
+  },
+  "mst_candidates": [
+    {
+      "graph": {
+        "vertices": 3,
+        "edges": [
+          [
+            0,
+            1,
+            4
+          ],
+          [
+            1,
+            2,
+            -2
+          ],
+          [
+            0,
+            2,
+            9
+          ]
+        ]
+      },
+      "candidate": {
+        "build_us": 0,
+        "check": "independent Rust forest coverage and cycle-optimality check; not an Isabelle certificate",
+        "check_us": 1,
+        "components": 1,
+        "connected": true,
+        "edge_ids": [
+          0,
+          1
+        ],
+        "schema": "oracle-minimum-spanning-forest-v1",
+        "search_us": 1,
+        "total_weight": "2"
+      }
+    },
+    {
+      "graph": {
+        "vertices": 2,
+        "edges": [
+          [
+            0,
+            0,
+            -100
+          ],
+          [
+            0,
+            1,
+            4
+          ],
+          [
+            0,
+            1,
+            -2
+          ],
+          [
+            0,
+            1,
+            -2
+          ]
+        ]
+      },
+      "candidate": {
+        "build_us": 0,
+        "check": "independent Rust forest coverage and cycle-optimality check; not an Isabelle certificate",
+        "check_us": 1,
+        "components": 1,
+        "connected": true,
+        "edge_ids": [
+          2
+        ],
+        "schema": "oracle-minimum-spanning-forest-v1",
+        "search_us": 0,
+        "total_weight": "-2"
+      }
+    },
+    {
+      "graph": {
+        "vertices": 3,
+        "edges": [
+          [
+            0,
+            1,
+            -9223372036854775808
+          ],
+          [
+            1,
+            2,
+            -9223372036854775808
+          ],
+          [
+            0,
+            2,
+            9223372036854775807
+          ]
+        ]
+      },
+      "candidate": {
+        "build_us": 0,
+        "check": "independent Rust forest coverage and cycle-optimality check; not an Isabelle certificate",
+        "check_us": 1,
+        "components": 1,
+        "connected": true,
+        "edge_ids": [
+          0,
+          1
+        ],
+        "schema": "oracle-minimum-spanning-forest-v1",
+        "search_us": 0,
+        "total_weight": "-18446744073709551616"
+      }
+    },
+    {
+      "graph": {
+        "vertices": 4,
+        "edges": [
+          [
+            0,
+            1,
+            1
+          ],
+          [
+            2,
+            3,
+            2
+          ]
+        ]
+      },
+      "candidate": {
+        "build_us": 0,
+        "check": "independent Rust forest coverage and cycle-optimality check; not an Isabelle certificate",
+        "check_us": 1,
+        "components": 2,
+        "connected": false,
+        "edge_ids": [
+          0,
+          1
+        ],
+        "schema": "oracle-minimum-spanning-forest-v1",
+        "search_us": 1,
+        "total_weight": "3"
+      }
+    }
+  ],
+  "after_close": {
+    "ready": false,
+    "workers": 2,
+    "busy": 0,
+    "resident": 0,
+    "poisoned": 0,
+    "queue": 0,
+    "threads_created": 0
+  }
+}

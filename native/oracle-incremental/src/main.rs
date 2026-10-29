@@ -1,5 +1,7 @@
 //! Finite JSON provider and deliberately small comparison harness.
-use oracle_incremental::{catalog, evaluate, recompute, Limits, Request, MAX_REQUEST_BYTES};
+use oracle_incremental::{
+    call_json, catalog, evaluate, recompute, Limits, Request, MAX_REQUEST_BYTES,
+};
 use serde_json::json;
 use std::io::{Read, Write};
 use std::time::Instant;
@@ -33,14 +35,13 @@ fn main() {
                 Ok(_) if bytes.len() > MAX_REQUEST_BYTES => {
                     json!({"status":"refused", "error":{"code":"request_bytes_limit", "detail":"JSON exceeds 1 MiB"}})
                 }
-                Ok(_) => match serde_json::from_slice::<Request>(&bytes) {
+                Ok(_) => match std::str::from_utf8(&bytes) {
                     Err(error) => {
                         json!({"status":"refused", "error":{"code":"invalid_json", "detail":error.to_string()}})
                     }
-                    Ok(request) => match evaluate(request, Limits::default()) {
-                        Ok(value) => json!({"status":"ok", "result":value}),
-                        Err(error) => json!({"status":"refused", "error":error}),
-                    },
+                    Ok(text) => {
+                        serde_json::from_str(&call_json(text)).expect("provider JSON envelope")
+                    }
                 },
             }
         }

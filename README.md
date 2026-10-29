@@ -68,6 +68,12 @@ The [migration map](native/docs/MIGRATION.md) separates native capabilities from
 remaining Python providers, and the [tracker](project/lanes/NATIVE-FOUNDATION-2026-10-28.md)
 records measured progress and remaining work.
 
+The optional native computations also have a [standalone service](native/docs/STANDALONE.md)
+with operation discovery, direct calls and shared bounded workers. Graph,
+symbolic, scientific and dependency operations run and can be tested without
+minidregg or a public dataset. This pure-computation service is separate from
+the signed conversational package and makes no durable-conversation claim.
+
 Start with the [shared-hosting checkpoint](project/HOSTED-2026-10-27.md),
 the [Mini appliance overview](https://github.com/emberian/minidregg/blob/main/docs/oracle-appliance.md),
 the [materialization tools](deploy/appliance/README.md), and the

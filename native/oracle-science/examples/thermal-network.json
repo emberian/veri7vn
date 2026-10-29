@@ -1,0 +1,18 @@
+{
+  "operation": "science.thermal_network",
+  "arguments": {
+    "description": "two heated nodes coupled to each other and a 300 K reservoir",
+    "assumptions": ["steady state; fixed linear passive conductances; all heat inputs and reservoir connections supplied"],
+    "reference_temperature_k": 300,
+    "nodes": [
+      {"id": "ambient", "applied_heat_w": 0, "fixed_temperature_k": 300},
+      {"id": "a", "applied_heat_w": 20},
+      {"id": "b", "applied_heat_w": 10}
+    ],
+    "links": [
+      {"from": "a", "to": "b", "conductance_w_per_k": 1},
+      {"from": "a", "to": "ambient", "conductance_w_per_k": 2},
+      {"from": "b", "to": "ambient", "conductance_w_per_k": 1}
+    ]
+  }
+}

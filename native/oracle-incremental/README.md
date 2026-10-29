@@ -190,3 +190,120 @@ and [timely 0.31.0](https://docs.rs/timely/0.31.0/timely/), particularly recursi
 `iterate`, `distinct`, input-session flushing, frontier probes and explicit graph
 destruction. Runtime resource containment and Oracle integration remain host
 contracts.
+
+## Rooted-v2: choose a smaller view and an explicit execution strategy
+
+The first central experiment was correct but unfavorable: the 48-node,
+80-version all-pairs workload took 74.234 ms with differential dataflow versus
+7.556 ms with fresh BFS; median epochs were 846 µs versus 90 µs. These measured
+numbers motivate a new operation rather than a speedup claim. The original
+all-pairs request and response remain compatible.
+
+Use the versioned wire operation to name **fixed** roots once for the batch:
+
+```json
+{
+  "operation": "rooted_v2",
+  "roots": {"downstream": [0], "upstream": [3]},
+  "graph": {
+    "scope": "private/revision-window",
+    "nodes": [0, 1, 2, 3],
+    "epochs": [
+      {"version": 4,
+       "mutations": [
+         {"op": "insert", "fact_id": "lesson", "from": 0, "to": 1},
+         {"op": "insert", "fact_id": "answer", "from": 1, "to": 3}],
+       "queries": [{"op": "reachable", "from": 0, "to": 3}]}
+    ]
+  }
+}
+```
+
+This view contains the union of directed reachable pairs whose source belongs
+to `downstream` or whose target belongs to `upstream`. A pair visible from both
+sets appears once. `delta` and `reachable_pairs` describe this smaller view, so
+schema 2 cannot silently replace the old all-pairs response. Query answers retain
+their original meaning: a reachability query needs its source among downstream
+roots or its target among upstream roots; every root in an impact query must
+belong to the corresponding direction's fixed set. An untracked query is refused
+before execution, rather than answered from an incomplete view. Roots cannot
+change mid-batch. Empty root sets produce an empty view.
+
+The schema-2 result includes `roots`, `strategy`, `settlement`, a conservative
+`possible_pairs_bound`, fresh work counters and the original response structure
+under `result`. Both engines return the same settled versions, answers, directed
+view deltas, support/edge counts and pair counts. Timing, work and settlement
+metadata identify the actual execution. Fresh BFS completes a logical version
+without a timely dataflow; its frontier `[version + 1]` is a logical closed
+version, and `settlement` explicitly says `fresh_recomputation_complete`.
+Maintained execution reports the actual timely probe frontier and says
+`timely_output_frontier`. Neither engine publishes partial batches on refusal.
+
+`call_json` and the CLI default **rooted-v2** to fresh recomputation. The host can
+select maintained dataflow using `call_json_with_strategy(text,
+Strategy::Differential)` or `evaluate_rooted(request, limits, strategy)`. No
+strategy or budget field is accepted from request JSON. This is an explicit
+host policy, with no automatic crossover heuristic. Legacy all-pairs requests
+continue to use the original maintained implementation. A host should choose a
+strategy for its admitted workload after measurement, not make tenants pay for
+both on every live request.
+
+The rooted admission bound is `(downstream roots + upstream roots) × nodes`,
+instead of unconditional nodes squared; overlap is conservatively charged twice.
+With R fixed roots and V nodes, live demanded view cardinality is O(RV). The
+maintained graph keeps orientation-tagged root labels and distinct edge support;
+its recursive operator graph is shared between directions. It never computes
+all-pairs closure then filters it. The wrapper applies consolidated changes
+straight to the current view, without rescanning/cloning the whole view to
+recover an already-known delta. Edge arrangements remain O(E), with extra
+iteration/timestamp storage and transient join work beyond the cardinality bound.
+There is no byte-accurate retained-memory measurement yet.
+
+Fresh execution retains O(E) live support counts, rebuilds dense integer adjacency
+once per epoch, and uses generation-marked node visits for every demanded root.
+It does not allocate a V² adjacency matrix or run BFS for unrequested roots.
+Sparse external u32 IDs are remapped to dense temporary indices. Input supports
+remain identified and weighted, so both engines handle duplicate withdrawal,
+last support removal, cycles and atomic replacements consistently.
+
+Both strategies honor the same node/support/history/view/response cardinality
+admission, output limits and elapsed deadline. Fresh checks at most 2,000,000
+work units per epoch (`max_fresh_work_per_epoch`): support updates, adjacency
+edge examinations, root starts and BFS dequeues including duplicates. Time is
+checked at epoch boundaries, after answer construction, and every 256 fresh
+work units. Maintained execution checks time and at most 1,000,000 worker steps,
+and 2,000,000 observed output events per epoch. Fresh has no internal update
+stream, so its output limit charges actual delta rows; differential charges
+observed events including cancellation. These limits have different work units;
+they do not promise that equal numbers admit equal CPU costs. Deadline accounting
+starts before validation/setup and is checked after it, though that work and
+individual allocation/operator steps are not preempted. Serialization and graph
+teardown remain outside the cooperative checks. Hard containment still belongs
+to the host.
+
+Eight new focused checks compare both engines to the projection of independent
+all-pairs BFS, not only to each other. Cases include duplicate supports, removing
+cycles, overlapping directional roots, random updates, empty roots, sparse IDs,
+512-node root-based admission, out-of-view query refusal, explicit host selection,
+legacy duplicate-field rejection, work limits and cleanup after refusals.
+
+Run the targeted checks and crossover experiment centrally:
+
+```sh
+CARGO_BUILD_JOBS=2 cargo test -p oracle-incremental --test semantics --test rooted
+CARGO_BUILD_JOBS=2 cargo run --release -p oracle-incremental --example crossover
+```
+
+The crossover harness compares both engines on seven finite workloads: a small
+chain and shallow graphs with 1,024/4,096 nodes, 1–32 roots, and unrelated edge,
+affected edge or duplicate-support revisions. It checks every answer/delta/count
+before reporting cold total time, first-epoch time, warm median/p95 and per-epoch
+times, output counts and admitted work. Larger rows use explicit **host** limits
+printed in the report. Every call starts from an empty provider; cold totals
+include cloning, validation, setup, output and destruction. Warm timings exclude
+setup/preflight/destruction. It runs one trial per row and does not measure RSS;
+it is a crossover investigation, not a production load test or automatic policy
+calibration. Small graphs and short revision histories can lose to simple BFS
+because retained arrangements and scheduling have fixed costs. High root counts
+and many unrelated/duplicate revisions are intended to test whether the smaller
+maintained view can amortize those costs, rather than assume that it does.

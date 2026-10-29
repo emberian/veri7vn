@@ -1,0 +1,218 @@
+{
+  "schema": "oracle-rust-extracted-mst-evaluation-v1",
+  "scope": "Linux PyO3 candidates passed unchanged to macOS extracted checker; no combined latency or full forest proof claim",
+  "producer_extension_sha256": "4d8a9f4471eac2c01e0b9913fc5ffc9e28fccd02f538f20b89daa7bac41c365f",
+  "cases": [
+    {
+      "request": {
+        "schema": "veri7vn-mst-certificate-request-v1",
+        "graph": {
+          "vertices": 3,
+          "edges": [
+            [
+              0,
+              1,
+              4
+            ],
+            [
+              1,
+              2,
+              -2
+            ],
+            [
+              0,
+              2,
+              9
+            ]
+          ]
+        },
+        "edge_ids": [
+          0,
+          1
+        ]
+      },
+      "result": {
+        "schema": "veri7vn-mst-certificate-result-v1",
+        "id": null,
+        "input_sha256": "5228ca34bb6619041403252562afd6ef344597fcff74f4e5af8ce443242ea4f5",
+        "vertices": 3,
+        "edges": 3,
+        "components": 1,
+        "edge_ids": [
+          0,
+          1
+        ],
+        "total_weight": "2",
+        "status": "accepted",
+        "evidence": {
+          "kind": "extracted_hol_connected_mst",
+          "scope": "connected_mst_only",
+          "predicate": "Mst_Certificate_Export.external_mst_cert",
+          "session": "Veri7vn_Discrete_Certificate",
+          "theorems": [
+            "Mst_Certificate_Export.external_mst_cert_spans",
+            "Mst_Certificate_Export.external_mst_cert_minimal"
+          ],
+          "checker_sha256": "f2aac97da7964ee71ddc47e2a8226268046f0899d5835fd8c562b3b22f8b9385",
+          "adapter": "untrusted JSON, edge-ID projection and process framing"
+        }
+      }
+    },
+    {
+      "request": {
+        "schema": "veri7vn-mst-certificate-request-v1",
+        "graph": {
+          "vertices": 2,
+          "edges": [
+            [
+              0,
+              0,
+              -100
+            ],
+            [
+              0,
+              1,
+              4
+            ],
+            [
+              0,
+              1,
+              -2
+            ],
+            [
+              0,
+              1,
+              -2
+            ]
+          ]
+        },
+        "edge_ids": [
+          2
+        ]
+      },
+      "result": {
+        "schema": "veri7vn-mst-certificate-result-v1",
+        "id": null,
+        "input_sha256": "c36e94cbeeeec86282aa274db7a1a9befa115bb03c653d1c66fd336c93b56db5",
+        "vertices": 2,
+        "edges": 4,
+        "components": 1,
+        "edge_ids": [
+          2
+        ],
+        "total_weight": "-2",
+        "status": "accepted",
+        "evidence": {
+          "kind": "extracted_hol_connected_mst",
+          "scope": "connected_mst_only",
+          "predicate": "Mst_Certificate_Export.external_mst_cert",
+          "session": "Veri7vn_Discrete_Certificate",
+          "theorems": [
+            "Mst_Certificate_Export.external_mst_cert_spans",
+            "Mst_Certificate_Export.external_mst_cert_minimal"
+          ],
+          "checker_sha256": "f2aac97da7964ee71ddc47e2a8226268046f0899d5835fd8c562b3b22f8b9385",
+          "adapter": "untrusted JSON, edge-ID projection and process framing"
+        }
+      }
+    },
+    {
+      "request": {
+        "schema": "veri7vn-mst-certificate-request-v1",
+        "graph": {
+          "vertices": 3,
+          "edges": [
+            [
+              0,
+              1,
+              -9223372036854775808
+            ],
+            [
+              1,
+              2,
+              -9223372036854775808
+            ],
+            [
+              0,
+              2,
+              9223372036854775807
+            ]
+          ]
+        },
+        "edge_ids": [
+          0,
+          1
+        ]
+      },
+      "result": {
+        "schema": "veri7vn-mst-certificate-result-v1",
+        "id": null,
+        "input_sha256": "670028c8c706a8ff311ae6bbd9426d81da9470cedb806d407252286c68ae7a9d",
+        "vertices": 3,
+        "edges": 3,
+        "components": 1,
+        "edge_ids": [
+          0,
+          1
+        ],
+        "total_weight": "-18446744073709551616",
+        "status": "accepted",
+        "evidence": {
+          "kind": "extracted_hol_connected_mst",
+          "scope": "connected_mst_only",
+          "predicate": "Mst_Certificate_Export.external_mst_cert",
+          "session": "Veri7vn_Discrete_Certificate",
+          "theorems": [
+            "Mst_Certificate_Export.external_mst_cert_spans",
+            "Mst_Certificate_Export.external_mst_cert_minimal"
+          ],
+          "checker_sha256": "f2aac97da7964ee71ddc47e2a8226268046f0899d5835fd8c562b3b22f8b9385",
+          "adapter": "untrusted JSON, edge-ID projection and process framing"
+        }
+      }
+    },
+    {
+      "request": {
+        "schema": "veri7vn-mst-certificate-request-v1",
+        "graph": {
+          "vertices": 4,
+          "edges": [
+            [
+              0,
+              1,
+              1
+            ],
+            [
+              2,
+              3,
+              2
+            ]
+          ]
+        },
+        "edge_ids": [
+          0,
+          1
+        ]
+      },
+      "result": {
+        "schema": "veri7vn-mst-certificate-result-v1",
+        "id": null,
+        "input_sha256": "e400f94dea58590327ce023064e79b1db4572b4fea6072c837ff78bea6241b45",
+        "vertices": 4,
+        "edges": 2,
+        "components": 2,
+        "edge_ids": [
+          0,
+          1
+        ],
+        "total_weight": "3",
+        "status": "unsupported",
+        "reason": "requires a connected graph with at least two declared vertices",
+        "evidence": {
+          "kind": "none",
+          "scope": "connected_mst_only"
+        }
+      }
+    }
+  ]
+}

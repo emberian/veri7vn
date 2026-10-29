@@ -1,0 +1,47 @@
+{
+  "schema": "oracle-provider-host-validation-v1",
+  "date": "2026-10-29",
+  "scope": "second optional provider checkpoint; no new shipped specialist panel or signed Mini qualification",
+  "source_manifest": "2026-10-29-provider-host-sources.json",
+  "extension_sha256": "4d8a9f4471eac2c01e0b9913fc5ffc9e28fccd02f538f20b89daa7bac41c365f",
+  "rust": {
+    "science_existing_tests_passed": 19,
+    "thermal_tests_passed": 17,
+    "incremental_existing_tests_passed": 10,
+    "rooted_tests_passed": 8,
+    "warnings_denied_clippy": "passed for science, incremental, combined Python targets with all three optional features",
+    "final_changed_tests": "rooted8 and thermal17 rerun after metadata/refactor fixes; passed"
+  },
+  "standalone": {
+    "minidregg_dependencies": false,
+    "macos_pool_tests_passed": 15,
+    "linux_pool_tests_passed": 15,
+    "macos_service_tests_passed": 9,
+    "macos_service_tests_skipped": 1,
+    "linux_service_tests_passed": 10,
+    "linux_actual_cli_journey": "actual compiled extension; launch/discover/solve/fit/thermal/graph/dependencies/rooted/shutdown twice",
+    "pool_evaluation": "2026-10-29-native-pool.json",
+    "saturation": "Immediate busy, no queue; burst rejected91 of96 attempts. This is bounded admission, not a sustained throughput or fairness result.",
+    "restart": "pure service recomputes; no retained conversation, effects or exact-reply replay"
+  },
+  "extracted": {
+    "session": "Veri7vn_Discrete_Certificate",
+    "managed_build_status": "passed",
+    "source_digest": "c8c5470aacc1e215999f9f8cc51ba332d7c54dbd7c844fe26e4239c3c493328f",
+    "marker": "VERI7VN_DISCRETE_CERTIFICATE PASS theorems=4 oracles=0",
+    "export_sha256": {
+      "Veri7vn_Discrete_Certificate.Mst_Certificate_Export/code/mst_certificate.ML": "2e4837f4e651f885ef984e906fd00e3a4866c9742f30eadcdbbeb073a4a65b50"
+    },
+    "adapter_tests_passed": 13,
+    "checker_binary_sha256": "f2aac97da7964ee71ddc47e2a8226268046f0899d5835fd8c562b3b22f8b9385",
+    "rust_candidate_composition": "2026-10-29-extracted-mst.json",
+    "scope": "connected graph >=2 declared vertices covered by edges; spans and minimal among spanning trees; disconnected/isolated/singleton unsupported; JSON/SML framing untrusted"
+  },
+  "incremental_crossover": "2026-10-29-rooted-crossover.json",
+  "limitations": [
+    "Numerical residuals and dimensions do not establish physical model truth.",
+    "Extension hash is not interpreter/dependency attestation.",
+    "Worker virtual memory limit is Linux only; no RSS or filesystem/network sandbox claim.",
+    "Raw chemistry/composition next-lane edits are excluded from this checkpoint."
+  ]
+}

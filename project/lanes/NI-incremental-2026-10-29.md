@@ -87,3 +87,62 @@ this implementation. See crate README for source links and boundaries.
 All ten semantics tests passed on hbox. The actual PyO3 call passed the support/cycle example. The 48-node/80-version benchmark matched every delta and answer but took 74.234 ms versus 7.556 ms for fresh BFS; no incremental speedup is claimed.
 
 See [central validation](../../native/evidence/2026-10-29-validation.json).
+
+## Second batch: fixed-root views and bounded strategy selection
+
+The measured first benchmark (74.234 ms maintained vs 7.556 ms fresh; 846 vs 90 µs
+median epochs) supports keeping fresh execution as the new rooted operation's
+default. It does not support automatically choosing dataflow by graph size.
+
+Added `src/rooted.rs`, `tests/rooted.rs` and `examples/crossover.rs`; changed
+`src/lib.rs`, `src/main.rs` and README. The legacy all-pairs wire shape and
+semantics are preserved. New `operation: rooted_v2` explicitly fixes downstream
+and upstream root sets. Its schema-2 view is the union of reachable pairs from
+those sources or to those targets; deltas/counts are explicitly root-restricted.
+Queries requiring untracked roots are refused before work. The maintained
+operator graph carries only root labels, rather than computing all pairs and
+filtering them. State admission is R×V, plus O(E) edge state and unmeasured
+internal arrangements/history. Fresh uses dense adjacency and generation-marked
+BFS for requested roots only, with O(E) live support counts.
+
+`evaluate_rooted(request, limits, Strategy::{Fresh,Differential})` and
+`call_json_with_strategy(text, strategy)` expose explicit host selection.
+`call_json` defaults rooted-v2 to Fresh; no request policy/budget override exists.
+Both engines preserve identified supports, cycles, retractions, complete settled
+answers and no partial batch escape. Common view/response limits and elapsed
+admission apply to both. Fresh also charges an admitted work budget (default
+2 million support updates/edge examinations/root starts/BFS dequeues per epoch),
+checking time every 256 units and epoch boundaries. Maintained keeps its
+step/event limits and actual probe frontier. Fresh reports logical version
+closure with explicit `fresh_recomputation_complete` metadata; no fabricated
+probe claim. No hard CPU/RSS deadline is added.
+
+Eight new focused tests compare both engines to independent all-pairs BFS's
+projected view and full admitted query answers. They cover duplicate/last support,
+broken cycles, directional overlap, mixed histories, empty roots, sparse IDs,
+root-based admission with 512 nodes, untracked-query refusal, host-only strategy,
+legacy duplicate JSON rejection and both engines' budget paths.
+
+Exact central commands, with no lane builds/tests:
+
+`CARGO_BUILD_JOBS=2 cargo test -p oracle-incremental --test semantics --test rooted`
+
+`CARGO_BUILD_JOBS=2 cargo run --release -p oracle-incremental --example crossover`
+
+The seven-row crossover matrix varies 48–4,096 nodes, 1–32 fixed roots, unrelated
+updates, affected updates and duplicate supports over 80/128 revisions. It
+compares full deltas/answers/counts, includes cold initialization/destruction,
+and reports first/warm epochs and work/output counts. Explicit larger host
+limits are emitted with each row. No RSS measurement, statistical load claim,
+automatic policy or new specialist-panel numbers. Central results are pending.
+No workspace, lockfile, bindings, upstream files or other lane paths changed.
+
+Root reports all 18 incremental tests passed centrally and all seven crossover
+rows matched. The large case was approximately 91 ms maintained versus 1.1 s
+fresh; tiny workloads favored fresh. These observations support the explicit
+host policy and do not yet calibrate an automatic crossover threshold.
+
+Clippy repair: `append_epoch` now takes an `EpochTelemetry` struct containing
+frontier, start instant, worker steps and output-event count, replacing four
+separate telemetry arguments. Response semantics and measurement boundaries
+are unchanged. Rustfmt ran; no lane build/test was run after this repair.

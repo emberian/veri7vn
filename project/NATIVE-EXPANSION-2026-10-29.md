@@ -56,6 +56,43 @@ not prove the caller's physical model.
    provider contributions, reproducible cases, unaffected-head controls and
    explicit implementation/data versions.
 
+## Standalone service checkpoint
+
+The [native service](../native/docs/STANDALONE.md) now runs independently of
+minidregg. It exposes the three reasoning operations, numerical solve/fit and
+thermal networks, and two finite dependency interfaces through actual catalog
+discovery and direct calls. One global process pool shares an admitted extension
+snapshot and reuses workers across profiles. It has no per-tenant engine or data
+load. Cancellation, saturation, failure retirement and process ownership are
+tested; this is a private pure-computation service, not authenticated public
+hosting or the complete durable conversational runtime.
+
+Root central evidence: 54 focused Rust tests, warnings-denied Clippy, 15 process
+tests on each of macOS/Linux, 10 Linux service tests including the actual CLI
+launch/call/restart journey, nine macOS service fixtures with one Linux-extension
+skip. The extracted MST session passed its four-theorem zero-oracle marker;
+the two new wrapper statements establish spanning and weight minimality for the
+supplied candidate. All 13 binary adapter tests passed, and actual Rust graph
+candidates composed with the extracted checker. Disconnected forests remain
+explicitly unsupported by that proof interface.
+
+The [rooted crossover](../native/evidence/2026-10-29-rooted-crossover.json)
+shows why demand matters: the 4,096-node affected-update batch took 90.5 ms with
+maintained execution versus 1,109 ms fresh, including setup and teardown.
+Fresh remained faster for the 48-node chain. These are single-trial synthetic
+workloads with exact answer/delta agreement; no automatic crossover is inferred.
+The [pool exercise](../native/evidence/2026-10-29-native-pool.json) ran 96 mixed
+sequential calls across 48 tenant identities at 0.305 ms median, using one child.
+After a burst, the parent plus two children occupied about 34.5 MiB PSS.
+The burst immediately refused 91 of 96 attempts: a capacity-bound test, not
+a throughput or fairness success claim. See [the validation receipt](../native/evidence/2026-10-29-provider-host-validation.json).
+
+Next implementation batch: exact charge/isotope-conserving reaction balance and
+learned fragment/outer-template composition for the native language reader.
+Both Sol lanes have authored source; root review, consumer wiring and central
+qualification remain. Continue broader routing, durable state, representations,
+specialist panels and upstream contributions alongside domain expansion.
+
 ## Upstream and active second batch
 
 Checkpoint `b6481309b776407b0791ea1546cce58e16c5a7db` is committed and pushed.
@@ -64,11 +101,10 @@ on 29 October (comment `6ae2cd22050e230f92d13066`), linking the exact commit,
 integration program and validation, including both performance results and
 unfinished hosting boundaries. No PR or upstream merge is implied.
 
-Four implementation lanes are active after that checkpoint: demand-driven
-incremental views and bounded fresh execution; a supplied thermal-network model
-using the scientific solver; the external extracted MST certificate interface;
-and a globally bounded native-provider process pool. Root integrates and runs
-central checks. Their unfinished source is not qualified by the first receipt.
+The second implementation batch completed demand-driven incremental views,
+bounded fresh execution, thermal networks, the external extracted certificate,
+shared process containment and standalone service integration. Its evidence is
+separate from the first provider receipt.
 
 The first Sol batch owned incremental reasoning, scientific solving, dimensional
 symbolics and the host adapter. Root owned graph/algebra, interfaces, centralized

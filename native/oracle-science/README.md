@@ -1,4 +1,4 @@
-# Supplied linear models
+# Scientific linear and thermal models
 
 This optional provider solves small, dense systems of supplied linear equations
 and fits supplied observations. It can support coupled heat or force balances,
@@ -6,6 +6,11 @@ concentration estimates from linear measurements, and fitted scientific
 parameters. It does not infer equations from prose or decide whether the
 equations describe the world. It is experimental floating-point Rust, with no
 Isabelle theorem, Mini registration, or specialist-panel score yet.
+
+`science.thermal_network` is a concrete domain consumer: give it nodes, signed
+heat inputs, passive conductances and fixed boundary temperatures. It constructs
+the balance equations and reports temperatures, edge heat flow and each node's
+power balance. See [the thermal model and examples](THERMAL.md).
 
 The current family consumers inspected were `energy/Calorimetry.thy` and
 `energy/Thermo.thy`, `mechanics/Mechanics.thy`, `chemistry/Chemistry.thy`, and
@@ -28,6 +33,7 @@ After root adds the package to the workspace and builds it:
 cargo run -p oracle-science -- --catalog
 cargo run -p oracle-science < oracle-science/examples/heat-balance.json
 cargo run -p oracle-science < oracle-science/examples/spring-fit.json
+cargo run -p oracle-science < oracle-science/examples/thermal-network.json
 ```
 
 Run those commands from `native/`. On this project builds run centrally on the

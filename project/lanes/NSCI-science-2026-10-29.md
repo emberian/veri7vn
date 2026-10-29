@@ -61,9 +61,10 @@ descriptive-statistics operations. Coupled thermal balances, linear equilibrium,
 linear concentration estimates and finite-design parameter fits are useful
 extensions once a consumer constructs and validates the matrix.
 
-Root must add this package to the workspace and lockfile, then build/test on
-hbox under its two-job resource policy. Python/provider catalog exposure is a
-root integration choice; it must preserve model declarations and every outcome.
+Root added this package to the workspace/lockfile and optional Python exposure
+in checkpoint `b648130`; its hbox check passed all 19 initial science tests and
+the combined PyO3 heat/spring examples. Further Python/provider integration
+must preserve model declarations and every outcome.
 No automatic natural-language parser or replacement of exact family arithmetic
 is included. A family adapter must handle units, sign conventions, independent
 constraints, physical inequalities and refusal/rendering behavior, and run the
@@ -102,3 +103,92 @@ must be explicit because they change rank, minimum norm or the fit objective.
 The RawValue repair passed all 17 contracts and two numerical unit tests on hbox. Heat-balance and spring-fit examples also passed through the combined PyO3 extension. No specialist-panel or hosted deployment claim.
 
 See [central validation](../../native/evidence/2026-10-29-validation.json).
+
+## Domain consumer: steady thermal networks
+
+The second increment adds `science.thermal_network` through the same optional
+JSON catalog/dispatch and a typed `thermal::thermal_network` API. The consumer
+constructs the matrix itself from named nodes, signed applied heat in W,
+strictly positive passive conductances in W/K, and optional fixed absolute
+boundary temperatures in K. It solves free-node temperature intervals around
+a declared reference. The reference is a coordinate choice, never an extra
+boundary condition. Existing matrix/fit operations retain their interfaces.
+
+Changed files in this increment:
+
+- `native/oracle-science/src/thermal.rs`: typed network input and result,
+  validation, connected components, free-node Laplacian construction, expected
+  rank from topology, existing serial SVD candidate generation, original-node
+  power evidence and explicit outcomes.
+- `native/oracle-science/src/lib.rs`: new operation dispatch and catalog entry.
+- `native/oracle-science/tests/thermal.rs`: 17 authored domain cases.
+- `native/oracle-science/examples/thermal-network.json`: two coupled heated
+  nodes and an ideal reservoir, with known temperatures and heat flows.
+- `native/oracle-science/THERMAL.md`, `README.md`: model, actual example,
+  temperature/heat sign conventions, outcome meanings and integration limits.
+- This lane report. No dependency or root-owned file changed in this increment.
+
+The equations are `q_ij = G_ij*(T_i-T_j)` and, at each free node,
+`sum_j q_ij = applied_heat_w`. Fixed nodes are ideal reservoirs whose additional
+exchange is computed as `outgoing_link_heat_w - applied_heat_w`. Their exchange
+is not an independently measured quantity or a finite heater-capacity check.
+There are no transient storage, radiation, advection or active heat-pump
+equations. The caller must justify any fixed-conductance approximation and
+completeness of sources and paths. A concrete thermo/HVAC consumer now exists,
+while prose routing, material/property inference and shipped-specialist
+admission remain outside this increment.
+
+For connected positive-conductance networks, each floating component supplies
+one additive temperature freedom; grounded components have full free-node rank
+in exact arithmetic. The implementation checks expected rank against the
+numerical SVD result and exposes a numerical-rank refusal when they differ.
+This is mathematical reasoning supporting the adapter, not a theorem about its
+Rust implementation. No theorem statement or formal assurance claim was added.
+
+Accepted grounded nodes expose absolute temperatures. Floating nodes expose
+only candidate offsets and differences, with absolute temperature fields absent.
+The consumer distinguishes solved, underdetermined, inconsistent, numerically
+unresolved and below-absolute-zero candidate outcomes. Diagnostic candidates
+remain labelled and are not promoted to accepted temperatures on a refusal.
+Duplicate node definitions, duplicate unordered links, unknown endpoints,
+self-links and zero/negative/nonfinite conductances are rejected. Deliberate
+parallel conductances must be combined explicitly; a missing link is omitted.
+
+Every result retains component grounding/source balance, each original link's
+heat flow, each node's power residual/tolerance, ideal-reservoir exchanges,
+global external heat balance and internal-link cancellation. It repeats the
+model/tolerances, maps linear rows/columns to node IDs, and retains the original
+linear diagnostics. Grounded link evidence uses reconstructed candidate
+temperatures and original fixed temperatures, so a pathological reference
+cannot hide a lost boundary temperature behind a small transformed residual.
+Original-node acceptance adds the declared absolute W tolerance (default
+`1e-8`) to the existing relative policy; this avoids false contradiction from
+roundoff at zero-source equilibrium. It does not turn residuals into model truth.
+
+Network inputs are capped at 128 total nodes and 1024 links. Existing JSON,
+work, scratch and cancellation boundaries still apply; topology work respects
+the operator's work limit too. No new threads or worker pools are created.
+
+### Domain validation receipt
+
+Root reported a central hbox `cargo test` result of **19 initial science tests
+and 17 thermal tests passing**, within its combined 54-case science/incremental
+run. No build or test process was started by this lane. The 17 thermal cases
+include the exact two-free-node example, a four-free-node chain, positive and
+negative sources, floating balanced and unbalanced networks, a disconnected
+island, an isolated free node, all-fixed reservoirs, two different reservoirs,
+reference changes, equal-temperature equilibrium, a pathological-reference
+power failure, below-zero candidates, numerical rank loss, conflicting inputs,
+conductance validation, JSON dispatch, cancellation and size caps. Formatting
+completed successfully.
+
+For the example, `a=b=310 K`; the free nodes send 20 W and 10 W to the 300 K
+reservoir, which exchanges -30 W. The larger 2 W/K chain with 20 W at its
+far end has temperatures `[300,310,320,330,340] K` and 20 W through every link.
+These analytical expectations are authored independently of the solver.
+
+The final output-only `model`, `tolerances`, and `linear_unknown_node_ids`
+metadata fields were added just before root took integration ownership and
+were called out to root for inclusion in its final build. No algorithm changes
+followed root's passing thermal receipt. No specialist-panel numbers, Mini-live
+registration, production limit measurements or deployment claims were added.

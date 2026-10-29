@@ -1,0 +1,6 @@
+(* A small external-candidate export above the existing checked discrete heap.
+   No candidate-producing code is called by the new driver. *)
+session Veri7vn_Discrete_Certificate = Veri7vn_Discrete +
+  options [document = false, threads = 2]
+  theories
+    Mst_Certificate_Export
