@@ -1,15 +1,20 @@
 """Actual optional PyO3 domain contracts; no specialist panel or theorem claim.
 
-Run on a bio,statistics build. Set ORACLE_NATIVE_EXPECT_DOMAINS=absent only
-when checking a default build, where all four optional exports must be absent.
+Run on a bio,statistics build. ORACLE_NATIVE_EXPECT_DOMAINS=absent checks a
+default build. Values bio/statistics check each independently enabled feature,
+including one actual call and absence of the other domain's exports.
 """
 import json
 import math
 import os
+import sys
 import unittest
 import oracle_native as native
 
-ENABLED = os.environ.get("ORACLE_NATIVE_EXPECT_DOMAINS", "present") != "absent"
+EXPECTED = os.environ.get("ORACLE_NATIVE_EXPECT_DOMAINS", "present")
+if EXPECTED not in ("present", "absent", "bio", "statistics"):
+    raise ValueError("unsupported ORACLE_NATIVE_EXPECT_DOMAINS mode")
+ENABLED = EXPECTED == "present"
 ALIGN = {"query": "ACGT", "reference": "ACGT", "mode": "global",
          "scoring": {"match_score": 2, "mismatch_score": -1, "gap_open": -3, "gap_extend": -1}}
 REGRESSION = {"features": [[], [], []], "response": [1, 2, 3], "intercept": True,
@@ -24,12 +29,43 @@ def call(profile, operation, arguments):
 
 class DomainExports(unittest.TestCase):
     def test_optional_exports(self):
-        for export in ("bio_call", "bio_catalog", "statistics_call", "statistics_catalog"):
-            self.assertEqual(callable(getattr(native, export, None)), ENABLED, export)
+        for profile in ("bio", "statistics"):
+            for action in ("call", "catalog"):
+                export = profile + "_" + action
+                self.assertEqual(callable(getattr(native, export, None)), EXPECTED in ("present", profile), export)
+        self.assertEqual(callable(getattr(native, "NativeRequestError", None)), EXPECTED != "absent")
+        if EXPECTED == "bio":
+            result = call("bio", "bio.align_pairwise", ALIGN)
+            self.assertEqual(result["candidate"]["score"], 8)
+        if EXPECTED == "statistics":
+            result = call("statistics", "statistics.linear_regression", REGRESSION)
+            self.assertAlmostEqual(result["coefficient_candidate"][0], 2)
 
 
-@unittest.skipUnless(ENABLED, "default build verifies export absence only")
+@unittest.skipUnless(ENABLED, "combined domain calculations require both features")
 class ActualDomains(unittest.TestCase):
+    def test_typed_admission_failures_remain_value_errors(self):
+        self.assertTrue(issubclass(native.NativeRequestError, ValueError))
+        for profile, operation, arguments, code in [
+                ("bio", "bio.align_pairwise", {**ALIGN, "query": "N"}, "invalid_input"),
+                ("bio", "bio.align_pairwise", {**ALIGN, "query": "A" * 4097}, "resource_limit"),
+                ("statistics", "statistics.linear_regression", {**REGRESSION, "response": [1, 2]}, "invalid_input"),
+                ("statistics", "statistics.linear_regression", {**REGRESSION, "features": [[]] * 513,
+                  "response": [1] * 513}, "resource_limit")]:
+            with self.subTest(profile=profile, code=code), self.assertRaises(ValueError) as caught:
+                call(profile, operation, arguments)
+            self.assertIs(type(caught.exception), native.NativeRequestError)
+            self.assertEqual(caught.exception.args[0], code)
+            self.assertEqual(len(caught.exception.args), 2)
+            self.assertIsInstance(caught.exception.args[1], str)
+
+    def test_parse_and_numerical_failures_are_not_typed_safe(self):
+        for invoke in [lambda: native.bio_call("{bad"), lambda: call("statistics", "statistics.linear_regression",
+                {**REGRESSION, "relative_precisions": [sys.float_info.max, sys.float_info.min, 1]})]:
+            with self.assertRaises(ValueError) as caught:
+                invoke()
+            self.assertIs(type(caught.exception), ValueError)
+
     def test_alignment_modes_score_and_ambiguity(self):
         catalog = json.loads(native.bio_catalog())
         self.assertIn("bio.align_pairwise", [row["id"] for row in catalog["operations"]])

@@ -1,6 +1,16 @@
 //! Explicit optional providers; not enabled in the admitted-runtime registry.
 use pyo3::prelude::*;
 
+// Only explicitly classified admission failures use this boundary. An ordinary
+// ValueError, numerical failure, cancellation or candidate-check error does not
+// promise that a hosting process can safely remain resident.
+#[cfg(any(feature = "bio", feature = "statistics"))]
+pyo3::create_exception!(
+    oracle_native,
+    NativeRequestError,
+    pyo3::exceptions::PyValueError
+);
+
 #[cfg(feature = "bio")]
 #[pyfunction]
 fn bio_call(py: Python<'_>, request: &str) -> PyResult<String> {
@@ -11,7 +21,12 @@ fn bio_call(py: Python<'_>, request: &str) -> PyResult<String> {
             &std::sync::atomic::AtomicBool::new(false),
         )
     })
-    .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))
+    .map_err(|e| match e {
+        oracle_bio::Error::Invalid(_) | oracle_bio::Error::Limit(_) => {
+            NativeRequestError::new_err((e.code(), e.to_string()))
+        }
+        _ => pyo3::exceptions::PyValueError::new_err(e.to_string()),
+    })
 }
 #[cfg(feature = "bio")]
 #[pyfunction]
@@ -29,7 +44,12 @@ fn statistics_call(py: Python<'_>, request: &str) -> PyResult<String> {
             &std::sync::atomic::AtomicBool::new(false),
         )
     })
-    .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))
+    .map_err(|e| match e {
+        oracle_statistics::Error::Invalid(_) | oracle_statistics::Error::Limit(_) => {
+            NativeRequestError::new_err((e.code(), e.to_string()))
+        }
+        _ => pyo3::exceptions::PyValueError::new_err(e.to_string()),
+    })
 }
 #[cfg(feature = "statistics")]
 #[pyfunction]
@@ -67,6 +87,8 @@ fn incremental_catalog() -> String {
 }
 
 pub(crate) fn register(module: &Bound<'_, PyModule>) -> PyResult<()> {
+    #[cfg(any(feature = "bio", feature = "statistics"))]
+    module.add("NativeRequestError", module.py().get_type::<NativeRequestError>())?;
     #[cfg(feature = "bio")]
     {
         module.add_function(wrap_pyfunction!(bio_call, module)?)?;

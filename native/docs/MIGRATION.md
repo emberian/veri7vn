@@ -194,6 +194,15 @@ predeclared 100-question extension, with zero wrong answers or errors. Median
 latency rises from 2.08 to 10.0 ms. This is a bounded migration check, with no
 full-language, specialist-panel or Mini claim.
 
+The [lexical performance checkpoint](../evidence/2026-10-29-native-performance-reader.json)
+shares normalization and indexed raw lexical rows across modes within one reader
+request; option guards and complete alternatives remain. Saturated caches stream
+full source rows. The balanced current-control/new experiment preserves all 100
+results and interpretation counts while lowering query CPU/wall on this sample.
+Known typed DNA/statistics request refusals also preserve the shared worker;
+unclassified failures retain process retirement. This adds no durable hosting,
+complete route cascade or dialogue adapter.
+
 ## Evidence needed to finish
 
 Component/consumer checks and bounded real program/language runs are retained

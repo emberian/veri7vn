@@ -22,6 +22,36 @@ PROFILES = {"reasoning": ("reasoning_call", "reasoning_catalog"),
             "statistics": ("statistics_call", "statistics_catalog"),
             "incremental": ("incremental_call", "incremental_catalog")}
 
+# Host policy, never supplied in a request or by the extension's catalog. Other
+# profiles retain the conservative fault boundary until explicitly reviewed.
+SAFE_REQUEST_FAILURES = {profile: frozenset(("invalid_input", "resource_limit"))
+                         for profile in ("bio", "statistics")}
+REQUEST_ERROR_EXPORT = "NativeRequestError"
+REQUEST_ERROR_DETAIL_BYTES = 512
+
+
+def request_failure(error, profile, declared_type):
+    """Recognize an exact, compiled admission-error type with bounded metadata.
+
+    Old artifacts without the export remain usable, but receive no reuse
+    exemption. Ordinary ValueError and subclasses of the declared type do not
+    imply that a computation ended at a known safe admission boundary.
+    """
+    if (declared_type is None or declared_type is ValueError or type(error) is not declared_type
+            or profile not in SAFE_REQUEST_FAILURES):
+        return None
+    if (len(error.args) != 2 or not isinstance(error.args[0], str)
+            or error.args[0] not in SAFE_REQUEST_FAILURES[profile] or not isinstance(error.args[1], str)):
+        return None
+    if len(error.args[1]) > REQUEST_ERROR_DETAIL_BYTES:
+        return None
+    try:
+        if len(error.args[1].encode("utf-8")) > REQUEST_ERROR_DETAIL_BYTES:
+            return None
+    except UnicodeError:
+        return None
+    return {"code": error.args[0], "detail": error.args[1]}
+
 
 def decode(raw):
     def pairs(rows):
@@ -128,6 +158,11 @@ def main():
                      for profile in profiles}
         if not all(callable(fn) for pair in functions.values() for fn in pair):
             raise ImportError("native profile feature absent")
+        request_error_type = getattr(module, REQUEST_ERROR_EXPORT, None)
+        if request_error_type is not None and (request_error_type is ValueError
+                                              or not isinstance(request_error_type, type)
+                                              or not issubclass(request_error_type, ValueError)):
+            raise ImportError("invalid native request-error declaration")
         _write({"ready": True, "profiles": profiles, "extension_sha256": args.sha256,
                 "containment": containment}, maximum)
     except BaseException as error:
@@ -153,8 +188,12 @@ def main():
                 pair = functions[request["profile"]]
                 result = pair[0](payload) if request["action"] == "call" else pair[1]()
             except ValueError as error:
-                reply = {"id": request["id"], "outcome": "refused", "error": "native_refused",
-                         "detail": str(error)[:512]}
+                expected = request_failure(error, request["profile"], request_error_type) if request["action"] == "call" else None
+                if expected is not None:
+                    reply = {"id": request["id"], "outcome": "request_refused", "error": "native_refused", **expected}
+                else:
+                    reply = {"id": request["id"], "outcome": "refused", "error": "native_refused",
+                             "detail": str(error)[:512]}
             except Exception:
                 reply = {"id": request["id"], "outcome": "error", "error": "native_execution_failed"}
             else:

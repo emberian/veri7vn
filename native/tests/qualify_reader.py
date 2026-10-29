@@ -169,6 +169,7 @@ def installed_provenance(native):
 
 def observe(tenant, native, case):
     started = time.perf_counter()
+    cpu_started = time.process_time()
     try:
         result = json.loads(tenant.read_whole(case["question"], native.Cancellation()))
         if result.get("coverage") != COVERAGE:
@@ -193,13 +194,15 @@ def observe(tenant, native, case):
                 "matched_programs": result.get("matched_programs"), "successful_readings": len(result.get("readings", [])),
                 "unsupported_programs": result.get("unsupported_programs"),
                 "ambiguous_executions": result.get("ambiguous_executions"),
-                "seconds": time.perf_counter() - started}
+                "seconds": time.perf_counter() - started,
+                "cpu_seconds": time.process_time() - cpu_started}
     except Exception as error:
         # Budget and operational failures remain errors, not unknown/refusal.
         return {"source_index": case["source_index"], "terminal": case["terminal"], "outcome": "errors",
                 "native_status": None, "reason": "execution_error", "answer": clip(None),
                 "error_type": type(error).__name__, "error": clip(str(error)),
-                "seconds": time.perf_counter() - started}
+                "seconds": time.perf_counter() - started,
+                "cpu_seconds": time.process_time() - cpu_started}
 
 
 def native_child(args):
@@ -265,6 +268,8 @@ def native_child(args):
                "all_query_timings": timings([row["seconds"] for row in observations]),
                "completed_query_timings": timings([row["seconds"] for row in observations if row["outcome"] != "errors"]),
                "error_query_timings": timings([row["seconds"] for row in observations if row["outcome"] == "errors"]),
+               "query_cpu_clock": "time.process_time; native/Python/SQLite CPU in this process, excluding descheduling and waits",
+               "all_query_cpu_timings": timings([row["cpu_seconds"] for row in observations]),
                "before_import_memory": before, "after_import_memory": import_memory,
                "ready_memory": ready_memory, "after_queries_memory": after_queries,
                "after_handles_memory": after_handles, "after_scope_reads_memory": memory(),

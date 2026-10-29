@@ -1,0 +1,105 @@
+{
+  "schema": "oracle-native-performance-validation-v1",
+  "date": "2026-10-29",
+  "base_commit": "3efc58a",
+  "source_manifest": "2026-10-29-native-performance-sources.json",
+  "scope": "Lexical request-local reuse and explicitly typed bio/statistics request refusal; separate durable runtime host not included. No new specialist-panel, theorem or Mini qualification.",
+  "build": {
+    "host": "hbox",
+    "CARGO_BUILD_JOBS": 2,
+    "locked": true,
+    "changed_sources_touched": true,
+    "combined_features": [
+      "reasoning",
+      "science",
+      "incremental",
+      "bio",
+      "statistics"
+    ]
+  },
+  "artifacts": {
+    "control": {
+      "path": "/tank/lanes/o7-native-20261028/binding-checkpoint-20261029/oracle_native.so",
+      "sha256": "8c838fe3f2764446f26b5a65c622fd79072f73e710756e2e597df1c1b0d36538"
+    },
+    "new": {
+      "path": "/tank/lanes/o7-native-20261028/binding-performance-20261029/oracle_native.so",
+      "sha256": "8324a59da075d16a7d3c7c07bb7fe85690479c65e1baf416741d5373b010e8b0"
+    }
+  },
+  "feature_only_artifacts": {
+    "absent": {
+      "sha256": "9b580c29cc71e409edc5b969d9b5a31db67332f5e8792a8dc3a1bad8e07d622f",
+      "path": "/tank/lanes/o7-native-20261028/binding-performance-absent-20261029/oracle_native.so",
+      "profile": "debug",
+      "passed": 1,
+      "intentional_combined_only_skips": 7,
+      "check": "Export matrix plus actual enabled-domain call in bio/statistics modes; default has no domain exports or NativeRequestError."
+    },
+    "bio": {
+      "sha256": "de7164a0ab1ce14dfc65217768cceeb94eded1dc7ce814d5e2423f52283bb2ba",
+      "path": "/tank/lanes/o7-native-20261028/binding-performance-bio-20261029/oracle_native.so",
+      "profile": "debug",
+      "passed": 1,
+      "intentional_combined_only_skips": 7,
+      "check": "Export matrix plus actual enabled-domain call in bio/statistics modes; default has no domain exports or NativeRequestError."
+    },
+    "statistics": {
+      "sha256": "6e64237dcc1773dd8df56a7dda37e0b7697f1ca615403c3221b82e95ec7bda7f",
+      "path": "/tank/lanes/o7-native-20261028/binding-performance-statistics-20261029/oracle_native.so",
+      "profile": "debug",
+      "passed": 1,
+      "intentional_combined_only_skips": 7,
+      "check": "Export matrix plus actual enabled-domain call in bio/statistics modes; default has no domain exports or NativeRequestError."
+    }
+  },
+  "rust": {
+    "passed": 46,
+    "composition_contract": 12,
+    "lexicon_contract": 17,
+    "lexicon_workspace_contract": 5,
+    "reader_contract": 10,
+    "runtime_language_contract": 2,
+    "clippy": "core and Python all targets with all five optional features, -D warnings passed"
+  },
+  "python": {
+    "actual_bindings": 17,
+    "real_process_pool": 20,
+    "actual_existing_service": 10,
+    "actual_domain_service": 6,
+    "feature_export_checks": 3,
+    "feature_combined_only_skips": 21
+  },
+  "expected_refusal": "Only exact exported NativeRequestError for reviewed bio/statistics Rust Invalid/Limit variants and fixed invalid_input/resource_limit codes permits reuse. Worker and parent validate bounded UTF-8 metadata, id, action, profile and exact frame fields. Generic ValueError/subclasses, parse/numerical failures, malformed frames, deadlines/cancellation remain conservative retirements.",
+  "actual_journey": "Both Invalid/Limit codes for each domain keep the same child PID and immutable snapshot, release the refused tenant lease, and allow another tenant/profile to succeed. Actual numerical failure retires/reaps and a subsequent valid call replaces the worker. CLI repeats after fresh startup.",
+  "reader_evidence": "2026-10-29-native-performance-reader.json",
+  "prior_receipt_boundary": "Prior checkpoint tested combined and default exports. This checkpoint also fixes and tests the previously masked bio-only/statistics-only provider-module cfg gate. Prior evidence is retained unchanged.",
+  "logs_sha256": {
+    "var/performance-20261029/abba.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "var/performance-20261029/native.log": "a1cbd47b4c7a565dcb3378be9f226c68b8ab7c15fb8287f19968a11eb0fcbad4",
+    "var/performance-20261029/python.log": "7cc82002734b2411f83f710ac733620cc7e2d01130a5ffb5c08d40b467f8415d",
+    "var/performance-20261029/remote-logs/domain-service-contracts.log": "7d3048809af96b10255707ae97890e42df79e7a62a4b57a751d6884c11557b45",
+    "var/performance-20261029/remote-logs/build-bio.log": "64385d115aca1ca867d88bb53a0dbf4cf43355607e718838815e24ee3069b1ec",
+    "var/performance-20261029/remote-logs/reader-abba-B1.log": "ddece52bd034ce7281a114a47f04075e5a515d4c1fb3e648c316a420a864f08b",
+    "var/performance-20261029/remote-logs/build-statistics.log": "752c6fbd8f9346ebf5bd1e1e2a8169a59598e3d93593aa00a0be260e1dfd43c5",
+    "var/performance-20261029/remote-logs/clippy.log": "2e4be831e705905d5de990604debc3eb774418ce849464e5dcd0b3a843e0b2a0",
+    "var/performance-20261029/remote-logs/reader-abba-B2.log": "16c6f233f8b95821f144878c2e84795f70a01fa3890b3ba7caa36ca873d737a4",
+    "var/performance-20261029/remote-logs/service-contracts.log": "782bb06641bf24ec05c8611e1f83f6139d54ba9bc7159adc34e9f1d023a3c5d0",
+    "var/performance-20261029/remote-logs/exports-bio.log": "21d5acdcba4dd7b01cfe6b3786a59c57cc4caaea3feccb60e2c3eb9cf443f7cf",
+    "var/performance-20261029/remote-logs/build-absent.log": "3d779f1b61c97cffc5105e6418076cad22963592b6bb25e40717ec313b56c84d",
+    "var/performance-20261029/remote-logs/release-build.log": "94bbbf3cadb2c51c7755dcc748e1fdcba58fd0c33282cb132d5fab9d04d1e726",
+    "var/performance-20261029/remote-logs/exports-absent.log": "faa24bdfd5f8485d4a2f6975738c6221e4a74fb4e7e140e22180cdf1c03461a5",
+    "var/performance-20261029/remote-logs/exports-statistics.log": "6ad3dd9a121f45128eb508dd275fc9ccf89743b29651fda6e855e1d0f00b5ce4",
+    "var/performance-20261029/remote-logs/reader-abba-A2.log": "06b75de4d416fbafa2f93dc8c98aaea4d666297feb41e8f0d2648549303e373a",
+    "var/performance-20261029/remote-logs/pool-contracts.log": "cb46538d39ee4b2a8cf7ed2c39cd8f01b502c24470960ab09e1c5952f53c2ec7",
+    "var/performance-20261029/remote-logs/reader.log": "47bf6b5438062165f5e8898c29e051aa883a1eafa1058e74963de9c253b06ffa",
+    "var/performance-20261029/remote-logs/reader-abba-A1.log": "bba57b58a8eab698ad677cad4cbe194e45365848fa3856d3681fe2d87bd62b02",
+    "var/performance-20261029/remote-logs/core-contracts.log": "51d4ba3c553ec8459620a3dd8ff99be6e4538f5af06f1b437a038606a42ce6b0",
+    "var/performance-20261029/remote-logs/python-contracts.log": "758d4e0cce2ea5961bdfae2572df678ebf3b2fd01bf5c734c1b09641c4820828"
+  },
+  "remaining": [
+    "Broader routing/dialogue/effects/retention and durable Runtime host integration remain separate.",
+    "No throughput/fairness or general-language-equivalence claim from100 fixed questions.",
+    "Typed reuse applies only to the reviewed bio/statistics boundary; other providers and old artifacts retain conservative failure handling."
+  ]
+}

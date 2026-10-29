@@ -152,3 +152,40 @@ separate from the first provider receipt.
 The first Sol batch owned incremental reasoning, scientific solving, dimensional
 symbolics and the host adapter. Root owned graph/algebra, interfaces, centralized
 checks, integration and upstream communication. Lanes did not build or commit.
+
+
+## Lexical reuse and expected request refusals
+
+The [next focused checkpoint](../native/evidence/2026-10-29-native-performance-validation.json)
+shares normalization/word boundaries and ordered indexed lexical rows, including
+negative probes, within one request. All option projections, alternatives and
+bounds remain. Optional retained-cache estimates and output scratch are separate
+envelopes; cache saturation falls back to complete streaming, without a hard RSS
+claim. Five new workspace contracts include mode/normalization/limit differential
+checks and a warmed zero-SQL-work check. All 46 focused Rust contracts, combined
+Clippy, 17 actual bindings, 20 pool checks and 16 service checks pass.
+
+A first overloaded run looked slower (median 12.95 ms/p95 91.39 ms) at host load
+32.55 versus the historical control's 6.30; it is retained. One approved balanced
+control/new/new/control experiment then used the exact same 100 questions and
+configuration with process CPU instrumentation on both artifacts. Every answer,
+status and interpretation count remains identical: 36 correct, four refused,
+60 unknown, zero wrong/errors. Query medians are 10.88–11.45 ms control versus
+4.10–4.48 ms new; p95 is 33.44–34.72 versus 28.10–31.33 ms. Per-case CPU and wall
+ratios have median 0.475 new/control; summed CPU ratio is 0.742. Matched-program
+cases improve less (median CPU ratio 0.869) than cases with no matched program
+(0.392). This is one bounded experiment, not a throughput or general-language
+claim. Full reports, per-case ratios, hashes and the overloaded run are retained.
+
+Only the exact compiled `NativeRequestError` for reviewed bio/statistics Invalid
+or Limit variants, with fixed codes and bounded UTF-8 metadata, permits reuse.
+Actual mixed-tenant valid/refused/valid calls retain the same PID/snapshot and
+release the refused tenant lease. An actual unclassified numerical failure still
+retires/reaps the worker and allows replacement. Generic ValueError and malformed
+frames receive no reuse exemption. Independent bio-only/statistics-only builds
+also repair and verify the provider-module feature gate masked by the earlier
+combined build; default absence remains tested.
+
+The durable Runtime host files are a separate following checkpoint and remain
+outside this source manifest and qualification. Broader routes, dialogue,
+retention, effects, specialist panels and Mini integration remain active work.

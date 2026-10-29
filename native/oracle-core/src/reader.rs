@@ -177,6 +177,7 @@ fn evaluate_inner(
     };
     let mut result = ReaderResult::empty(identity, ReaderReason::NoTemplate);
     let mut shared = LanguageWorkspace::new(db)?;
+    let mut lexical_workspace = lexicon::LexicalWorkspace::new(db, raw_question);
     let mut total_bytes = 0usize;
     let mut selection = None::<Selection>;
     let mut same_selection = true;
@@ -194,7 +195,7 @@ fn evaluate_inner(
             plural: false,
             max_words: reader_limits.max_name_words,
         };
-        let candidates = lexicon::candidates(db, raw_question, &options, &lexical_limits, budget)?;
+        let candidates = lexical_workspace.candidates(&options, &lexical_limits, budget)?;
         let spans: Vec<_> = candidates
             .spans
             .into_iter()
@@ -228,7 +229,7 @@ fn evaluate_inner(
                 plural: true,
                 max_words: reader_limits.max_name_words,
             };
-            let lexical = lexicon::candidates(db, raw_question, &options, &lexical_limits, budget)?;
+            let lexical = lexical_workspace.candidates(&options, &lexical_limits, budget)?;
             let spans: Vec<_> = lexical
                 .spans
                 .into_iter()

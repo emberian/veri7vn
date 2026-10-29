@@ -1,7 +1,12 @@
 #![forbid(unsafe_code)]
 use oracle_runtime_core as core;
 mod kernel;
-#[cfg(any(feature = "science", feature = "incremental"))]
+#[cfg(any(
+    feature = "science",
+    feature = "incremental",
+    feature = "bio",
+    feature = "statistics"
+))]
 mod providers;
 #[cfg(feature = "reasoning")]
 mod reasoning;
@@ -302,7 +307,12 @@ fn operation_catalog() -> PyResult<String> {
 
 #[pymodule]
 fn oracle_native(py: Python<'_>, module: &Bound<'_, PyModule>) -> PyResult<()> {
-    #[cfg(any(feature = "science", feature = "incremental"))]
+    #[cfg(any(
+        feature = "science",
+        feature = "incremental",
+        feature = "bio",
+        feature = "statistics"
+    ))]
     providers::register(module)?;
     #[cfg(feature = "reasoning")]
     reasoning::register(module)?;

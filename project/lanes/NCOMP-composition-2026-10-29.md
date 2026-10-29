@@ -195,3 +195,56 @@ and [central domain validation](../../native/evidence/2026-10-29-language-chemis
 No new theorem or specialist-panel score is claimed. The real Image/Runtime
 language consumer is integrated; segment/nested/fallback/analogy and clause/date
 coverage remain outstanding.
+
+## Lexical workspace performance follow-up
+
+Owner: native_composition. The committed shared-execution checkpoint remains the
+control: paired-100 median 10.0 ms and p95 30.7 ms. The current authored follow-up
+removes repeated indexed lexical work across the six whole/fragment/outer and
+level-0/1 calls in each reader request; it does not select an early answer or
+change the set of parse alternatives.
+
+`lexicon::LexicalWorkspace` is bound to one raw question and image connection.
+It shares normalization and word boundaries per normalization profile, then
+option-independent indexed surface rows and singular-concept rows, including
+empty lookup results. Each mode still applies the same alias precedence,
+function-word guards, level-2 kinds, outer exclusions, first-successful plural
+inference, numeric aliases, span order and per-result bounds. Whole modes are
+not derived by filtering compositional modes, whose alias and plural rules differ.
+
+The old `lexicon::candidates` entrypoint is an uncached source feeding the same
+projection implementation. The reader supplies one workspace across all six
+calls. Cache keys distinguish Reader4 and Reader7 normalization and retain exact
+row ordering and canonical ambiguity. Output projection, cancellation and fuel
+checks run on cache hits. The cache is local memory only and disappears on drop.
+It does not write SQLite state or persist learned plural interpretations.
+
+Retained cache storage has its own aggregate bound, with normalized vectors,
+string keys, row vectors and negative entries accounted in a conservative storage
+estimate. CandidateSet output scratch keeps the existing independent per-call
+bound; these are separate envelopes, not a hard bound on total process RSS. Cache admission is optional:
+when a complete rowset cannot fit, the indexed source continues streaming and
+nothing is truncated or refused merely because caching was unavailable. Errors
+never commit a partially read rowset. Tightening a cache bound discards only
+this request's optimization data and preserves the original output-limit errors.
+
+Changed files for this follow-up: `native/oracle-core/src/lexicon.rs`,
+`native/oracle-core/src/reader.rs`, new
+`native/oracle-core/tests/lexicon_workspace_contract.rs`, and this report.
+Five authored contracts compare all 96 option combinations (including both
+normalizers and three span widths) over ambiguous/plural/Unicode inputs, require
+zero SQL VM work on warmed lookups including negative results, check saturation
+fallback, exact limit/cancellation behavior, request-local cleanup, and absence
+of partial-rowset cache admission after an error.
+
+Rustfmt succeeded. No builds or tests ran in this deputy. Central next commands:
+
+```
+cargo test -p oracle-runtime-core --test lexicon_workspace_contract
+cargo test -p oracle-runtime-core --test lexicon_contract
+```
+
+Central integration also retains composition, reader, release, language-guard
+and Clippy checks. The paired predeclared 100 questions must compare the newly
+rebuilt extension with the committed shared-execution control on identical cases,
+image and limits. Output and timing results for this follow-up are pending.

@@ -82,7 +82,14 @@ conversation, subscription, effect or exact-reply journal. Restarting the servic
 does not need a history replay. This does not replace the separate durable core
 runtime or qualify the signed Mini package.
 
-Worker cancellation and wall deadlines terminate and reap the owned process.
+Reviewed DNA/statistics `invalid_input` and `resource_limit` failures can retain
+the worker through an exact `NativeRequestError` boundary. Both the child and
+parent validate the fixed codes and bounded metadata. The actual mixed-tenant
+journey keeps one PID and snapshot through valid calls, these refusals and later
+valid calls. Generic/parse/numerical failures and malformed frames retain the
+conservative retirement rule; cancellation and wall deadlines also terminate and
+reap the owned process. Old extensions without the typed export keep the older
+failure handling. See [the focused receipt](../evidence/2026-10-29-native-performance-validation.json).
 Linux applies a virtual-address-space limit; macOS reports memory containment as
 unsupported. Neither is an RSS limit or filesystem/network sandbox. CPU limits
 apply to the whole resident worker lifetime, so eventual worker retirement can

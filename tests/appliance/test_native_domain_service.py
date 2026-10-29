@@ -131,13 +131,63 @@ class ActualDomainStandaloneJourney(unittest.TestCase):
             self.assertEqual(service.pool.registry["bio"]["snapshot"], service.pool.registry["statistics"]["snapshot"])
             worker = service.pool.slots[0].worker
             pid = worker.process.pid
-            for operation, arguments in [("bio.align_pairwise", ALIGN), ("statistics.linear_regression", REGRESSION)]:
-                status, result = service.request(TENANT, N.encode(envelope(operation, arguments)), "/invoke")
+            snapshot = service.pool.registry["bio"]["snapshot"]
+            for operation, arguments, tenant in [("bio.align_pairwise", ALIGN, TENANT),
+                    ("statistics.linear_regression", REGRESSION, "c" * 64)]:
+                status, result = service.request(tenant, N.encode(envelope(operation, arguments)), "/invoke")
                 self.assertEqual(status, 200, result)
                 self.assertEqual(result["reply"]["status"], "answered", result)
                 self.assertIs(service.pool.slots[0].worker, worker)
                 self.assertEqual(worker.process.pid, pid)
+            for profile, arguments, code in [
+                    ("bio", {**ALIGN, "query": "N"}, "invalid_input"),
+                    ("bio", {**ALIGN, "query": "A" * 4097}, "resource_limit"),
+                    ("statistics", {**REGRESSION, "response": [1, 2]}, "invalid_input"),
+                    ("statistics", {**REGRESSION, "features": [[]] * 513, "response": [1] * 513}, "resource_limit")]:
+                operation = "bio.align_pairwise" if profile == "bio" else "statistics.linear_regression"
+                with self.subTest(profile=profile, code=code), self.assertRaises(N.NativePoolError) as caught:
+                    service.pool.execute("refused-tenant", profile, {"operation": operation, "arguments": arguments})
+                self.assertEqual(caught.exception.code, "native_refused")
+                self.assertEqual(caught.exception.request_code, code)
+                self.assertIs(service.pool.slots[0].worker, worker)
+                self.assertEqual(worker.process.pid, pid)
+                self.assertEqual(service.pool.registry[profile]["snapshot"], snapshot)
+                self.assertEqual(service.health()["busy"], 0)
+                self.assertNotIn("refused-tenant", service.pool.tenants)
+                # The refused tenant lease is released, and another tenant
+                # can use a different profile in the same resident process.
+                other = "statistics.linear_regression" if profile == "bio" else "bio.align_pairwise"
+                args = REGRESSION if profile == "bio" else ALIGN
+                status, result = service.request("c" * 64, N.encode(envelope(other, args)), "/invoke")
+                self.assertEqual(status, 200, result)
+                self.assertEqual(result["reply"]["status"], "answered", result)
+                self.assertEqual(result["reply"]["classification"], "numerical_fit_with_conditional_inference"
+                                 if profile == "bio" else "integer_alignment_with_independent_score_checks")
+                self.assertIs(service.pool.slots[0].worker, worker)
+                self.assertEqual(worker.process.pid, pid)
             self.assertEqual(service.health()["resident"], 1)
+        finally:
+            service.close()
+
+    def test_actual_unclassified_numerical_failure_still_retires_worker(self):
+        extension, digest = self.artifact()
+        service = N.NativeService([N.NativeProvider(profile, extension, digest, profile)
+                                   for profile in ("bio", "statistics")], N.NativeLimits(workers=1))
+        try:
+            worker = service.pool.slots[0].worker
+            previous_pid = worker.process.pid
+            bad = {**REGRESSION, "relative_precisions": [sys.float_info.max, sys.float_info.min, 1]}
+            status, result = service.request(TENANT, N.encode(envelope("statistics.linear_regression", bad)), "/invoke")
+            self.assertEqual(status, 200, result)
+            self.assertEqual(result["reply"]["status"], "withheld")
+            self.assertEqual(result["reply"]["reason"], "native_request_refused")
+            self.assertEqual(service.health()["resident"], 0)
+            with self.assertRaises(ChildProcessError):
+                os.waitpid(previous_pid, os.WNOHANG)
+            status, result = service.request("c" * 64, N.encode(envelope("bio.align_pairwise", ALIGN)), "/invoke")
+            self.assertEqual(status, 200, result)
+            self.assertEqual(result["reply"]["status"], "answered")
+            self.assertIsNot(service.pool.slots[0].worker, worker)
         finally:
             service.close()
 
@@ -177,17 +227,17 @@ class ActualDomainStandaloneJourney(unittest.TestCase):
                     self.assertEqual(status, 200, result)
                     self.assertEqual(result["reply"]["status"], "answered")
                     self.assertIsNone(result["reply"]["result"]["inference"])
+                    self.assertEqual(result["reply"]["classification"], "numerical_fit_without_inference")
                     for operation, arguments in [("bio.align_pairwise", {**ALIGN, "query": "N"}),
                             ("statistics.linear_regression", {**REGRESSION, "response": [1, 2]})]:
                         status, result = http(port, "/invoke", envelope(operation, arguments))
                         self.assertEqual(status, 200, result)
                         self.assertEqual(result["reply"]["status"], "withheld")
                         self.assertEqual(result["reply"]["reason"], "native_request_refused")
-                        # The existing pool retires workers on every
-                        # non-completed native outcome, including refusal.
-                        self.assertEqual(http(port, "/health")[1]["resident"], 0)
-                    # A later admitted computation recreates a worker and
-                    # both profiles remain usable through the same pool.
+                        # Explicit typed admission failures preserve a healthy
+                        # resident process. Other failures still retire it.
+                        self.assertEqual(http(port, "/health")[1]["resident"], 1)
+                    # Both profiles remain usable through the shared pool.
                     for operation, arguments in [("bio.align_pairwise", ALIGN),
                             ("statistics.linear_regression", REGRESSION)]:
                         status, result = http(port, "/invoke", envelope(operation, arguments))

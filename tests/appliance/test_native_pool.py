@@ -19,6 +19,7 @@ from unittest.mock import patch
 APPLIANCE = Path(__file__).resolve().parents[2] / "tools/appliance"
 sys.path.insert(0, str(APPLIANCE))
 import native_pool as N
+import native_worker as W
 
 
 FIXTURE = r'''
@@ -70,6 +71,13 @@ for line in sys.stdin:
     if action == "wrong-id": result["id"] += 1
     if action == "refuse":
         result = dict(id=request["id"], outcome="refused", error="native_refused", detail="fixture refusal")
+    if action == "expected":
+        result = dict(id=request["id"], outcome="request_refused", error="native_refused",
+                      code=payload.get("code", "invalid_input"), detail=payload.get("detail", "fixture invalid input"))
+        if payload.get("extra"): result["reusable"] = True
+        if payload.get("bad_unicode"): result["detail"] = chr(0xD800)
+    if action == "fault":
+        result = dict(id=request["id"], outcome="error", error="native_execution_failed")
     encoded = json.dumps(result, separators=(",", ":"))+"\n"
     if action == "partial":
         for c in encoded:
@@ -79,6 +87,38 @@ for line in sys.stdin:
     else:
         sys.stdout.write(encoded); sys.stdout.flush()
 '''
+
+
+class WorkerRequestFailureContract(unittest.TestCase):
+    def test_exact_declared_type_and_fixed_profile_codes_only(self):
+        class Declared(ValueError):
+            pass
+        class Subclass(Declared):
+            pass
+        error = Declared("invalid_input", "bad supplied row")
+        self.assertEqual(W.request_failure(error, "bio", Declared),
+                         {"code": "invalid_input", "detail": "bad supplied row"})
+        for exception, profile, declaration in [
+                (ValueError("invalid_input", "same text"), "bio", Declared),
+                (ValueError("invalid_input", "same text"), "bio", ValueError),
+                (Subclass("invalid_input", "same args"), "bio", Declared),
+                (error, "reasoning", Declared), (error, "bio", None),
+                (Declared("numerical_failure", "SVD failure"), "statistics", Declared),
+                (Declared("candidate_check_failed", "score disagreement"), "bio", Declared),
+                (Declared("cancelled", "stop"), "bio", Declared),
+                (Declared("invalid_input"), "bio", Declared),
+                (Declared("invalid_input", 42), "bio", Declared)]:
+            self.assertIsNone(W.request_failure(exception, profile, declaration))
+
+    def test_typed_detail_is_bounded_in_utf8_bytes(self):
+        class Declared(ValueError):
+            pass
+        detail = W.request_failure(Declared("resource_limit", "🧬" * 128), "bio", Declared)
+        self.assertEqual(detail["code"], "resource_limit")
+        self.assertEqual(len(detail["detail"].encode("utf-8")), W.REQUEST_ERROR_DETAIL_BYTES)
+        self.assertIsNone(W.request_failure(Declared("resource_limit", "🧬" * 129), "bio", Declared))
+        self.assertIsNone(W.request_failure(Declared("resource_limit", "x" * 513), "bio", Declared))
+        self.assertIsNone(W.request_failure(Declared("resource_limit", "\ud800"), "bio", Declared))
 
 
 @unittest.skipUnless(os.name == "posix", "POSIX process groups required")
@@ -192,6 +232,60 @@ class NativePoolTests(unittest.TestCase):
         self.assertEqual(len(list(Path(pool.snapshots.name).rglob("oracle_native*"))), 1)
         self.assertEqual(second.reply["profile"], "science")
         self.assertEqual(third.reply["profile"], "incremental")
+
+    def test_expected_request_refusals_keep_child_across_tenants_and_profiles(self):
+        pool = self.pool([self.provider("bio", "bio"), self.provider("statistics", "statistics"),
+                          self.provider("science", "science")])
+        first = pool.execute("tenant-a", "bio", {})
+        worker = pool.slots[0].worker
+        for index, (profile, code) in enumerate((("bio", "invalid_input"), ("statistics", "resource_limit"))):
+            with self.assertRaises(N.NativePoolError) as caught:
+                pool.execute("tenant-b", profile, {"test": "expected", "code": code})
+            self.assertEqual(caught.exception.code, "native_refused")
+            self.assertEqual(caught.exception.request_code, code)
+            self.assertEqual(pool.health()["resident"], 1)
+            self.assertEqual(pool.health()["busy"], 0)
+            self.assertEqual(pool.health()["poisoned"], 0)
+            after = pool.execute("tenant-c", "science", {})
+            self.assertIs(pool.slots[0].worker, worker)
+            self.assertEqual(after.reply["pid"], first.reply["pid"])
+            self.assertEqual(after.reply["snapshot_sha256"], self.sha)
+            self.assertEqual(after.reply["count"], 3 + 2 * index)
+        self.assertEqual(len(pool.artifacts), 1)
+
+    def test_invalid_safe_failure_frames_and_unclassified_faults_retire(self):
+        pool = self.pool([self.provider("bio", "bio"), self.provider("science", "science")])
+        cases = [("bio", {"test": "expected", "code": "numerical_failure"}),
+                 ("bio", {"test": "expected", "code": ["invalid_input"]}),
+                 ("bio", {"test": "expected", "extra": True}),
+                 ("bio", {"test": "expected", "detail": "🧬" * 129}),
+                 ("bio", {"test": "expected", "bad_unicode": True}),
+                 ("science", {"test": "expected"})]
+        for profile, payload in cases:
+            previous = pool.execute("tenant-a", "bio", {})
+            self.assert_error("worker_protocol_error", lambda: pool.execute("tenant-b", profile, payload))
+            self.assertEqual(pool.health()["resident"], 0)
+            with self.assertRaises(ChildProcessError):
+                os.waitpid(previous.reply["pid"], os.WNOHANG)
+        for action, code in (("refuse", "native_refused"), ("fault", "native_execution_failed")):
+            pool.execute("tenant-a", "bio", {})
+            self.assert_error(code, lambda: pool.execute("tenant-b", "bio", {"test": action}))
+            self.assertEqual(pool.health()["resident"], 0)
+            self.assertEqual(pool.execute("tenant-c", "bio", {}).reply["count"], 1)
+
+    def test_catalog_cannot_claim_request_refusal_reuse(self):
+        class TypedCatalogWorker(self.pool_class._worker_class):
+            def exchange(self, payload, checkpoint, deadline):
+                if payload is not None and json.loads(payload)["action"] == "catalog":
+                    return {"id": json.loads(payload)["id"], "outcome": "request_refused",
+                            "error": "native_refused", "code": "invalid_input", "detail": "not a call"}
+                return super().exchange(payload, checkpoint, deadline)
+        class TypedCatalogPool(self.pool_class):
+            _worker_class = TypedCatalogWorker
+        pool = self.pool([self.provider("bio", "bio")], cls=TypedCatalogPool)
+        pool.execute("tenant-a", "bio", {})
+        self.assert_error("worker_protocol_error", lambda: pool.catalog("tenant-b", "bio"))
+        self.assertEqual(pool.health()["resident"], 0)
 
     def test_artifact_change_reaps_previous_child_before_replacement(self):
         other = self.root / ("other" + importlib.machinery.EXTENSION_SUFFIXES[0])

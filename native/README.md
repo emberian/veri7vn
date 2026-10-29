@@ -285,3 +285,21 @@ The extra coverage costs time: median 10.0 ms versus 2.08 ms, p95 30.7 ms versus
 lexical analysis and prefix probes remain a performance target. The earlier
 [regressions](evidence/2026-10-29-language-chemistry-reader-history.json) are
 retained; bounds were not raised and alternatives were not discarded.
+
+The [lexical reuse and worker checkpoint](evidence/2026-10-29-native-performance-validation.json)
+passes 46 focused Rust checks, combined Clippy, 17 binding checks, 20 process-pool
+checks and 16 service checks. Independent default, DNA-only and statistics-only
+builds verify their actual exports; each enabled single-domain build also calls
+its operation. Known typed DNA/statistics input or resource refusals now preserve
+a healthy worker and release its tenant lease. Unclassified failures still retire
+it, with actual numerical-failure/replacement coverage.
+
+In one balanced [control/new/new/control exercise](evidence/2026-10-29-native-performance-reader.json),
+the same 100 questions retain every answer and interpretation count. Control
+query medians are 10.88–11.45 ms; new medians are 4.10–4.48 ms. CPU timing follows
+wall timing. Per-question new/control ratios have median 0.475 for both clocks;
+summed query CPU is 0.742 of control. The 41 questions with matched programs
+benefit less than the 59 without one. The earlier overloaded run is retained.
+These are bounded workload measurements, without a throughput or universal
+latency claim. Optional cache retention and output scratch have separate bounded
+estimates; neither is a hard RSS ceiling.

@@ -10,7 +10,8 @@ use crate::{Budget, Error, Result};
 use rusqlite::{params, Connection, OptionalExtension};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
+use std::sync::Arc;
 
 pub const VERSION: &str = "oracle-lexicon-v1";
 const SCHEMA: &str = "
@@ -24,7 +25,7 @@ CREATE TABLE oracle_lexicon_concepts(
 ";
 const FUNC: &str = "a an the of in on at to for by with from is are was were be been being did does do has have had that which who whom whose what when where how this these those it its as and or than";
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Normalization {
     Reader4,
@@ -573,6 +574,313 @@ impl Scratch<'_> {
     }
 }
 
+#[derive(Clone)]
+struct IndexedReading {
+    kind: LexicalKind,
+    canonical: String,
+    alias: bool,
+}
+struct NormalizedQuestion {
+    text: String,
+    words: Vec<(usize, usize)>,
+}
+fn check_normalized(question: &NormalizedQuestion, limits: &LexiconLimits) -> Result<()> {
+    if question.text.len() > limits.question_bytes
+        || question.text.len() > limits.materialized_bytes
+    {
+        return Err(Error::Limit("lexical normalized bytes"));
+    }
+    if question.words.len() > limits.question_tokens {
+        return Err(Error::Limit("lexical question tokens"));
+    }
+    Ok(())
+}
+fn normalized_question(
+    raw: &str,
+    profile: Normalization,
+    limits: &LexiconLimits,
+    budget: &Budget,
+) -> Result<Arc<NormalizedQuestion>> {
+    budget.spend(raw.len() as u64 + 1)?;
+    let text = normalize(raw, profile);
+    if text.len() > limits.question_bytes || text.len() > limits.materialized_bytes {
+        return Err(Error::Limit("lexical normalized bytes"));
+    }
+    let mut words = Vec::new();
+    let mut offset = 0;
+    for word in text.split_whitespace() {
+        if words.len() >= limits.question_tokens {
+            return Err(Error::Limit("lexical question tokens"));
+        }
+        words.push((offset, offset + word.len()));
+        offset += word.len() + 1;
+    }
+    Ok(Arc::new(NormalizedQuestion { text, words }))
+}
+trait LexicalSource {
+    fn normalized(
+        &mut self,
+        profile: Normalization,
+        limits: &LexiconLimits,
+        budget: &Budget,
+    ) -> Result<Arc<NormalizedQuestion>>;
+    fn readings(
+        &mut self,
+        profile: Normalization,
+        surface: &str,
+        limits: &LexiconLimits,
+        visit: impl FnMut(&IndexedReading) -> Result<()>,
+    ) -> Result<()>;
+    fn concepts(
+        &mut self,
+        profile: Normalization,
+        surface: &str,
+        limits: &LexiconLimits,
+        visit: impl FnMut(&str) -> Result<()>,
+    ) -> Result<()>;
+}
+struct IndexedSource<'a> {
+    db: &'a Connection,
+    raw: &'a str,
+}
+impl LexicalSource for IndexedSource<'_> {
+    fn normalized(
+        &mut self,
+        profile: Normalization,
+        limits: &LexiconLimits,
+        budget: &Budget,
+    ) -> Result<Arc<NormalizedQuestion>> {
+        normalized_question(self.raw, profile, limits, budget)
+    }
+    fn readings(
+        &mut self,
+        profile: Normalization,
+        surface: &str,
+        limits: &LexiconLimits,
+        mut visit: impl FnMut(&IndexedReading) -> Result<()>,
+    ) -> Result<()> {
+        let mut statement=self.db.prepare_cached("SELECT kind,canonical,alias,length(CAST(canonical AS BLOB)) FROM oracle_lexicon WHERE profile=?1 AND surface=?2 ORDER BY kind,alias DESC,canonical")?;
+        let mut rows = statement.query(params![profile.key(), surface])?;
+        while let Some(row) = rows.next()? {
+            let kind = LexicalKind::parse(&row.get::<_, String>(0)?)?;
+            let size: i64 = row.get(3)?;
+            if size < 0 || size as u64 > limits.materialized_bytes as u64 {
+                return Err(Error::Limit("lexical canonical bytes"));
+            }
+            visit(&IndexedReading {
+                kind,
+                canonical: row.get(1)?,
+                alias: row.get(2)?,
+            })?;
+        }
+        Ok(())
+    }
+    fn concepts(
+        &mut self,
+        profile: Normalization,
+        surface: &str,
+        limits: &LexiconLimits,
+        mut visit: impl FnMut(&str) -> Result<()>,
+    ) -> Result<()> {
+        let mut statement=self.db.prepare_cached("SELECT canonical,length(CAST(canonical AS BLOB)) FROM oracle_lexicon_concepts WHERE profile=?1 AND surface=?2 ORDER BY canonical")?;
+        let mut rows = statement.query(params![profile.key(), surface])?;
+        while let Some(row) = rows.next()? {
+            let size: i64 = row.get(1)?;
+            if size < 0 || size as u64 > limits.materialized_bytes as u64 {
+                return Err(Error::Limit("lexical canonical bytes"));
+            }
+            visit(&row.get::<_, String>(0)?)?;
+        }
+        Ok(())
+    }
+}
+
+/// Request-local immutable-image lexical workspace. Raw indexed rows, including
+/// negative probes, are shared across modes; option guards and every output bound
+/// still run on each call. Cache admission is optional and bounded: saturation
+/// continues streaming indexed rows, never truncates alternatives or fails solely
+/// because an optimization did not fit. Drop releases all request-local state.
+/// Use one workspace only with this question and its exclusively leased image DB.
+pub struct LexicalWorkspace<'a> {
+    source: IndexedSource<'a>,
+    normalized: BTreeMap<Normalization, Arc<NormalizedQuestion>>,
+    readings: BTreeMap<Normalization, BTreeMap<String, Vec<IndexedReading>>>,
+    concepts: BTreeMap<Normalization, BTreeMap<String, Vec<String>>>,
+    retained_bytes: usize,
+    cache_bound: usize,
+}
+impl<'a> LexicalWorkspace<'a> {
+    pub fn new(db: &'a Connection, raw: &'a str) -> Self {
+        Self {
+            source: IndexedSource { db, raw },
+            normalized: BTreeMap::new(),
+            readings: BTreeMap::new(),
+            concepts: BTreeMap::new(),
+            retained_bytes: 0,
+            cache_bound: 0,
+        }
+    }
+    pub fn candidates(
+        &mut self,
+        options: &CandidateOptions,
+        limits: &LexiconLimits,
+        budget: &Budget,
+    ) -> Result<CandidateSet> {
+        // A caller may tighten limits between modes. Retention is an optional
+        // optimization; discard only our cache if its old admission no longer fits.
+        self.cache_bound = limits.materialized_bytes;
+        if self.retained_bytes > self.cache_bound {
+            self.normalized.clear();
+            self.readings.clear();
+            self.concepts.clear();
+            self.retained_bytes = 0;
+        }
+        candidates_from(self.source.raw, self, options, limits, budget)
+    }
+    /// Bounded retained-cache storage estimate, independent of output scratch.
+    /// This does not promise a bound on allocator RSS or combined output storage.
+    pub fn retained_bytes(&self) -> usize {
+        self.retained_bytes
+    }
+}
+impl LexicalSource for LexicalWorkspace<'_> {
+    fn normalized(
+        &mut self,
+        profile: Normalization,
+        limits: &LexiconLimits,
+        budget: &Budget,
+    ) -> Result<Arc<NormalizedQuestion>> {
+        if let Some(question) = self.normalized.get(&profile) {
+            budget.check()?;
+            check_normalized(question, limits)?;
+            return Ok(Arc::clone(question));
+        }
+        let question = self.source.normalized(profile, limits, budget)?;
+        let bytes = question
+            .text
+            .capacity()
+            .saturating_add(
+                question
+                    .words
+                    .capacity()
+                    .saturating_mul(std::mem::size_of::<(usize, usize)>()),
+            )
+            .saturating_add(512);
+        if self.retained_bytes.saturating_add(bytes) <= self.cache_bound {
+            self.retained_bytes += bytes;
+            self.normalized.insert(profile, Arc::clone(&question));
+        }
+        Ok(question)
+    }
+    fn readings(
+        &mut self,
+        profile: Normalization,
+        surface: &str,
+        limits: &LexiconLimits,
+        mut visit: impl FnMut(&IndexedReading) -> Result<()>,
+    ) -> Result<()> {
+        if let Some(rows) = self
+            .readings
+            .get(&profile)
+            .and_then(|surfaces| surfaces.get(surface))
+        {
+            for row in rows {
+                if row.canonical.len() > limits.materialized_bytes {
+                    return Err(Error::Limit("lexical canonical bytes"));
+                }
+                visit(row)?;
+            }
+            return Ok(());
+        }
+        let mut retained = Some(Vec::new());
+        let mut bytes = surface.len().saturating_add(1024);
+        let available = self.cache_bound.saturating_sub(self.retained_bytes);
+        self.source.readings(profile, surface, limits, |row| {
+            visit(row)?;
+            bytes = bytes
+                .saturating_add(row.canonical.len())
+                .saturating_add(std::mem::size_of::<IndexedReading>());
+            if bytes <= available {
+                if let Some(rows) = &mut retained {
+                    rows.push(row.clone());
+                }
+            } else {
+                retained = None;
+            }
+            Ok(())
+        })?;
+        if bytes <= available {
+            if let Some(rows) = retained {
+                let bytes = bytes.saturating_add(
+                    (rows.capacity() - rows.len())
+                        .saturating_mul(std::mem::size_of::<IndexedReading>()),
+                );
+                if bytes <= available {
+                    self.retained_bytes += bytes;
+                    self.readings
+                        .entry(profile)
+                        .or_default()
+                        .insert(surface.to_string(), rows);
+                }
+            }
+        }
+        Ok(())
+    }
+    fn concepts(
+        &mut self,
+        profile: Normalization,
+        surface: &str,
+        limits: &LexiconLimits,
+        mut visit: impl FnMut(&str) -> Result<()>,
+    ) -> Result<()> {
+        if let Some(rows) = self
+            .concepts
+            .get(&profile)
+            .and_then(|surfaces| surfaces.get(surface))
+        {
+            for row in rows {
+                if row.len() > limits.materialized_bytes {
+                    return Err(Error::Limit("lexical canonical bytes"));
+                }
+                visit(row)?;
+            }
+            return Ok(());
+        }
+        let mut retained = Some(Vec::new());
+        let mut bytes = surface.len().saturating_add(1024);
+        let available = self.cache_bound.saturating_sub(self.retained_bytes);
+        self.source.concepts(profile, surface, limits, |row| {
+            visit(row)?;
+            bytes = bytes
+                .saturating_add(row.len())
+                .saturating_add(std::mem::size_of::<String>());
+            if bytes <= available {
+                if let Some(rows) = &mut retained {
+                    rows.push(row.to_string());
+                }
+            } else {
+                retained = None;
+            }
+            Ok(())
+        })?;
+        if bytes <= available {
+            if let Some(rows) = retained {
+                let bytes = bytes.saturating_add(
+                    (rows.capacity() - rows.len()).saturating_mul(std::mem::size_of::<String>()),
+                );
+                if bytes <= available {
+                    self.retained_bytes += bytes;
+                    self.concepts
+                        .entry(profile)
+                        .or_default()
+                        .insert(surface.to_string(), rows);
+                }
+            }
+        }
+        Ok(())
+    }
+}
+
 /// All lexical spans in start/longest-first order, retaining overlaps and every
 /// canonical ambiguity. No combinatorial span selection is done here. Unlike
 /// Python's silent first-400 reading cap, bounds fail the entire request.
@@ -584,27 +892,25 @@ pub fn candidates(
     limits: &LexiconLimits,
     budget: &Budget,
 ) -> Result<CandidateSet> {
+    candidates_from(raw, &mut IndexedSource { db, raw }, options, limits, budget)
+}
+fn candidates_from(
+    source_raw: &str,
+    source: &mut impl LexicalSource,
+    options: &CandidateOptions,
+    limits: &LexiconLimits,
+    budget: &Budget,
+) -> Result<CandidateSet> {
     budget.check()?;
     if options.max_words == 0 || options.max_words > limits.max_name_words {
         return Err(Error::Invalid("lexical max words".into()));
     }
-    if raw.len() > limits.question_bytes {
+    if source_raw.len() > limits.question_bytes {
         return Err(Error::Limit("lexical question bytes"));
     }
-    budget.spend(raw.len() as u64 + 1)?;
-    let normalized = normalize(raw, options.normalization);
-    if normalized.len() > limits.question_bytes || normalized.len() > limits.materialized_bytes {
-        return Err(Error::Limit("lexical normalized bytes"));
-    }
-    let mut words = Vec::new();
-    let mut offset = 0;
-    for word in normalized.split_whitespace() {
-        if words.len() >= limits.question_tokens {
-            return Err(Error::Limit("lexical question tokens"));
-        }
-        words.push((offset, offset + word.len()));
-        offset += word.len() + 1;
-    }
+    let question = source.normalized(options.normalization, limits, budget)?;
+    let normalized = &question.text;
+    let words = &question.words;
     let mut scratch = Scratch {
         limits,
         budget,
@@ -615,8 +921,6 @@ pub fn candidates(
         return Err(Error::Limit("lexical materialized bytes"));
     }
     let mut spans = Vec::new();
-    let mut statement = db.prepare_cached("SELECT kind,canonical,alias,length(CAST(canonical AS BLOB)) FROM oracle_lexicon WHERE profile=?1 AND surface=?2 ORDER BY kind,alias DESC,canonical")?;
-    let mut concepts = db.prepare_cached("SELECT canonical,length(CAST(canonical AS BLOB)) FROM oracle_lexicon_concepts WHERE profile=?1 AND surface=?2 ORDER BY canonical")?;
     for i in 0..words.len() {
         for j in (i + 1..=words.len().min(i.saturating_add(options.max_words))).rev() {
             budget.spend(1)?;
@@ -628,15 +932,10 @@ pub fn candidates(
             let mut readings = Vec::new();
             let mut aliases = BTreeSet::new();
             let mut names = false;
-            let mut rows = statement.query(params![options.normalization.key(), surface])?;
-            while let Some(row) = rows.next()? {
+            source.readings(options.normalization, surface, limits, |row| {
                 budget.spend(1)?;
-                let kind = LexicalKind::parse(&row.get::<_, String>(0)?)?;
-                let alias: bool = row.get(2)?;
-                let size: i64 = row.get(3)?;
-                if size < 0 || size as u64 > limits.materialized_bytes as u64 {
-                    return Err(Error::Limit("lexical canonical bytes"));
-                }
+                let kind = row.kind;
+                let alias = row.alias;
                 if matches!(kind, LexicalKind::E | LexicalKind::C) && !alias {
                     names = true;
                 }
@@ -646,37 +945,30 @@ pub fn candidates(
                         && !alias
                         && matches!(kind, LexicalKind::E | LexicalKind::C | LexicalKind::V))
                 {
-                    continue;
+                    return Ok(());
                 }
                 if alias {
                     aliases.insert(kind);
                 }
                 if !alias && aliases.contains(&kind) {
-                    continue;
+                    return Ok(());
                 }
-                let canonical: String = row.get(1)?;
-                scratch.reading(&mut readings, kind, &canonical, alias)?;
-            }
+                scratch.reading(&mut readings, kind, &row.canonical, alias)
+            })?;
             if reader7 && options.plural && !options.outer && !fw && !names {
                 for singular in singulars(surface) {
                     budget.spend(1)?;
-                    let mut rows =
-                        concepts.query(params![options.normalization.key(), singular])?;
                     let mut any = false;
-                    while let Some(row) = rows.next()? {
-                        let size: i64 = row.get(1)?;
-                        if size < 0 || size as u64 > limits.materialized_bytes as u64 {
-                            return Err(Error::Limit("lexical canonical bytes"));
-                        }
-                        let canonical: String = row.get(0)?;
-                        // Reader7's inferred singular replaces an existing C
-                        // alias for this phrase. Keep that precedence locally.
+                    source.concepts(options.normalization, &singular, limits, |canonical| {
+                        // Reader7 singular inference replaces the local C alias,
+                        // preserving first matching singular precedence.
                         if !any {
                             readings.retain(|r| r.kind != LexicalKind::C);
                         }
-                        scratch.reading(&mut readings, LexicalKind::C, &canonical, true)?;
+                        scratch.reading(&mut readings, LexicalKind::C, canonical, true)?;
                         any = true;
-                    }
+                        Ok(())
+                    })?;
                     if any {
                         break;
                     } // Preserve Reader7's first matching singular rule.
@@ -708,5 +1000,8 @@ pub fn candidates(
         }
     }
     budget.check()?;
-    Ok(CandidateSet { normalized, spans })
+    Ok(CandidateSet {
+        normalized: normalized.clone(),
+        spans,
+    })
 }

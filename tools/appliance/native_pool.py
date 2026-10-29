@@ -29,7 +29,7 @@ import tempfile
 import threading
 import time
 
-from native_worker import PROFILES, decode, encode
+from native_worker import PROFILES, SAFE_REQUEST_FAILURES, REQUEST_ERROR_DETAIL_BYTES, decode, encode
 
 
 IDENTIFIER = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,159}\Z")
@@ -37,8 +37,9 @@ POLL_SECONDS = 0.01
 
 
 class NativePoolError(Exception):
-    def __init__(self, code, detail=None):
+    def __init__(self, code, detail=None, *, request_code=None):
         self.code, self.detail = code, detail
+        self.request_code = request_code
         super().__init__(code)
 
 
@@ -352,7 +353,7 @@ class NativePool:
             self.tenants.add(tenant)
             self.sequence += 1
             sequence = self.sequence
-        success = False
+        reusable = False
         try:
             admitted = self.registry[provider_id]
             if slot.worker is not None and slot.worker.admitted["sha256"] != admitted["sha256"]:
@@ -366,8 +367,25 @@ class NativePool:
                             "payload": normalized}, self.limits.request_bytes + 256)
             result = slot.worker.exchange(frame, check, deadline)
             if (type(result.get("id")) is not int or result["id"] != sequence
-                    or result.get("outcome") not in ("completed", "refused", "error")):
+                    or result.get("outcome") not in ("completed", "request_refused", "refused", "error")):
                 raise NativePoolError("worker_protocol_error")
+            if result["outcome"] == "request_refused":
+                # Validate the typed boundary independently. No worker-provided
+                # reusable flag, generic ValueError or catalog action grants it.
+                if (set(result) != {"id", "outcome", "error", "code", "detail"}
+                        or action != "call" or admitted["profile"] not in SAFE_REQUEST_FAILURES
+                        or result["error"] != "native_refused" or not isinstance(result["code"], str)
+                        or result["code"] not in SAFE_REQUEST_FAILURES[admitted["profile"]]
+                        or not isinstance(result["detail"], str)):
+                    raise NativePoolError("worker_protocol_error")
+                try:
+                    detail_bytes = len(result["detail"].encode("utf-8"))
+                except UnicodeError as error:
+                    raise NativePoolError("worker_protocol_error") from error
+                if detail_bytes > REQUEST_ERROR_DETAIL_BYTES:
+                    raise NativePoolError("worker_protocol_error")
+                reusable = True
+                raise NativePoolError("native_refused", result["detail"], request_code=result["code"])
             if result["outcome"] != "completed":
                 if (set(result) - {"id", "outcome", "error", "detail"}
                         or not isinstance(result.get("error"), str) or len(result["error"]) > 80
@@ -376,11 +394,11 @@ class NativePool:
                 raise NativePoolError(result["error"], result.get("detail"))
             if set(result) != {"id", "outcome", "reply"} or not isinstance(result["reply"], dict):
                 raise NativePoolError("worker_protocol_error")
-            success = True
+            reusable = True
             return NativeReply(result["reply"], self._receipt(admitted), copy.deepcopy(slot.worker.containment))
         finally:
             try:
-                if not success:
+                if not reusable:
                     self._retire(slot)
             finally:
                 with self.condition:
