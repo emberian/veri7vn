@@ -1,9 +1,9 @@
 //! Bounded transport for operator-admitted, stateless extracted specialists.
 //!
 //! This is untrusted process/framing code, not a Rust reimplementation or a new
-//! proof. The audited wire implementations are src/extract/{acoustics,quantity}/
-//! main.sml: one JSON object in, one flushed JSON object out, repeatedly until
-//! EOF. Their session field is ignored. Stateful families are not admitted here.
+//! proof. Acoustics/quantity use JSONL. The MST certificate uses its fixed
+//! bounded ASCII line protocol. All are resident and stateless across requests;
+//! specialist session fields are ignored. Stateful families are not admitted.
 //! A digest binds the bytes copied at admission; it does not attest a build,
 //! theorem, parser, manifest acceptance rule, or answer's correctness.
 //!
@@ -34,6 +34,8 @@ const POLL: Duration = Duration::from_millis(2);
 #[serde(rename_all = "snake_case", deny_unknown_fields)]
 pub enum KernelFamily {
     Acoustics,
+    /// Bounded ASCII occurrence-ID certificate protocol, not a question answerer.
+    MstCertificate,
     Quantity {
         specialist: Option<QuantitySpecialist>,
     },
@@ -70,6 +72,7 @@ pub struct KernelDescriptor {
     executable: PathBuf,
     sha256: String,
     family: KernelFamily,
+    compiled_receipt: Option<(PathBuf, String)>,
 }
 impl KernelDescriptor {
     pub fn new(
@@ -83,7 +86,19 @@ impl KernelDescriptor {
             executable: executable.into(),
             sha256: trusted_sha256.into(),
             family,
+            compiled_receipt: None,
         }
+    }
+
+    /// Operator-approved compiler receipt and its trusted digest, never tenant
+    /// input. Admission checks the receipt's binary/proof/export bindings.
+    pub fn with_compiled_receipt(
+        mut self,
+        path: impl Into<PathBuf>,
+        sha256: impl Into<String>,
+    ) -> Self {
+        self.compiled_receipt = Some((path.into(), sha256.into()));
+        self
     }
 }
 
@@ -120,6 +135,9 @@ pub struct KernelAdmission {
     pub family: KernelFamily,
     pub executable_sha256: String,
     pub executable_bytes: u64,
+    /// Present only after checking an operator-admitted compiled proof receipt.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub compiled_receipt_sha256: Option<String>,
 }
 struct Admitted {
     receipt: KernelAdmission,
@@ -132,6 +150,55 @@ pub struct KernelReply {
     /// The complete reply, including the producer's unmodified evidence fields.
     pub reply: Value,
     pub admission: KernelAdmission,
+    /// Owned resident PID, for host reuse/retirement diagnostics.
+    pub worker_pid: u32,
+}
+
+/// Complete supplied graph. Edge IDs index this exact, ordered multigraph.
+/// Signed weights deserialize as i64; fractions, booleans and overflow fail.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct MstGraph {
+    pub vertices: usize,
+    pub edges: Vec<(usize, usize, i64)>,
+}
+impl MstGraph {
+    pub fn validate_candidate(&self, ids: &[usize]) -> Result<usize> {
+        if self.vertices > 64
+            || self.edges.len() > 256
+            || ids.len() > self.vertices.saturating_sub(1)
+        {
+            return Err(Error::Limit("MST certificate graph/candidate size"));
+        }
+        let mut parent: Vec<_> = (0..self.vertices).collect();
+        fn root(parent: &[usize], mut i: usize) -> usize {
+            while parent[i] != i {
+                i = parent[i];
+            }
+            i
+        }
+        for &(a, b, _) in &self.edges {
+            if a >= self.vertices || b >= self.vertices {
+                return Err(Error::Invalid(
+                    "edge endpoint outside declared vertices".into(),
+                ));
+            }
+            let x = root(&parent, a);
+            let y = root(&parent, b);
+            parent[x] = y;
+        }
+        let mut seen = HashSet::new();
+        if ids
+            .iter()
+            .any(|&i| i >= self.edges.len() || !seen.insert(i))
+        {
+            return Err(Error::Invalid("unknown/repeated candidate edge ID".into()));
+        }
+        Ok((0..self.vertices)
+            .map(|v| root(&parent, v))
+            .collect::<HashSet<_>>()
+            .len())
+    }
 }
 
 struct Slot {
@@ -245,6 +312,11 @@ impl KernelExecutor {
             .sequence
             .try_update(Ordering::Relaxed, Ordering::Relaxed, |n| n.checked_add(1))
             .map_err(|_| Error::Limit("kernel request ids"))?;
+        if admitted.receipt.family == KernelFamily::MstCertificate {
+            return Err(Error::Invalid(
+                "use check_mst for certificate kernels".into(),
+            ));
+        }
         let request = json!({"id": id, "q": question, "session": "native-stateless"});
         let mut encoded = CappedWriter {
             bytes: Vec::new(),
@@ -255,6 +327,154 @@ impl KernelExecutor {
         encoded
             .write_all(b"\n")
             .map_err(|_| Error::Limit("kernel request bytes"))?;
+        self.execute_wire(
+            tenant,
+            kernel_id,
+            admitted,
+            encoded.bytes,
+            id,
+            budget,
+            deadline,
+            None,
+        )
+    }
+
+    /// Start one deadline before composing a native producer and checker.
+    pub fn request_budget(&self, cancellation: Cancellation) -> Result<Budget> {
+        Budget::new(
+            &Limits {
+                timeout_ms: self.limits.timeout_ms,
+                ..Limits::default()
+            },
+            cancellation,
+        )
+    }
+
+    pub fn check_mst(
+        &self,
+        tenant: &str,
+        kernel_id: &str,
+        graph: &MstGraph,
+        ids: &[usize],
+        cancellation: Cancellation,
+    ) -> Result<KernelReply> {
+        let budget = Budget::new(
+            &Limits {
+                timeout_ms: self.limits.timeout_ms,
+                ..Limits::default()
+            },
+            cancellation,
+        )?;
+        self.check_mst_with_budget(tenant, kernel_id, graph, ids, &budget)
+    }
+
+    /// Uses the same bounded leases, snapshot, I/O, and cleanup as specialists.
+    /// Candidate production may pass its original budget through this method.
+    pub fn check_mst_with_budget(
+        &self,
+        tenant: &str,
+        kernel_id: &str,
+        graph: &MstGraph,
+        ids: &[usize],
+        budget: &Budget,
+    ) -> Result<KernelReply> {
+        budget.check()?;
+        let components = graph.validate_candidate(ids)?;
+        let admitted = self
+            .registry
+            .get(kernel_id)
+            .ok_or_else(|| Error::Invalid("unregistered kernel identity".into()))?;
+        if admitted.receipt.family != KernelFamily::MstCertificate || !valid_id(tenant) {
+            return Err(Error::Invalid(
+                "MST certificate family/tenant mismatch".into(),
+            ));
+        }
+        let deadline = Instant::now()
+            .checked_add(Duration::from_millis(self.limits.timeout_ms))
+            .ok_or_else(|| Error::Invalid("kernel deadline overflow".into()))?;
+        let id = self
+            .sequence
+            .try_update(Ordering::Relaxed, Ordering::Relaxed, |n| n.checked_add(1))
+            .map_err(|_| Error::Limit("kernel request ids"))?;
+        let mut text = format!(
+            "mst-cert-v2 {id} {} {} {}",
+            graph.vertices,
+            graph.edges.len(),
+            ids.len()
+        );
+        use std::fmt::Write as _;
+        for &(a, b, w) in &graph.edges {
+            write!(&mut text, " {a} {b} {w}").expect("String writer");
+        }
+        for i in ids {
+            write!(&mut text, " {i}").expect("String writer");
+        }
+        text.push('\n');
+        if text.len() > self.limits.request_bytes.min(65536) {
+            return Err(Error::Limit("kernel request bytes"));
+        }
+        let mut result = self.execute_wire(
+            tenant,
+            kernel_id,
+            admitted,
+            text.into_bytes(),
+            id,
+            budget,
+            deadline,
+            Some(graph.vertices >= 2 && components == 1),
+        )?;
+        // Bind outcomes to the complete supplied universe, independently of the
+        // producer. Never allow an unsupported graph to inherit the tree scope.
+        let supported = graph.vertices >= 2 && components == 1;
+        let status = result.reply["status"]
+            .as_str()
+            .expect("validated status")
+            .to_owned();
+        if (status == "unsupported") == supported {
+            // Defense in depth: exchange checks this before releasing its lease.
+            return Err(Error::Format("certificate scope mismatch".into()));
+        }
+        result.reply["vertices"] = json!(graph.vertices);
+        result.reply["edges"] = json!(graph.edges.len());
+        result.reply["components"] = json!(components);
+        result.reply["edge_ids"] = json!(ids);
+        result.reply["total_weight"] = json!(ids
+            .iter()
+            .map(|&i| i128::from(graph.edges[i].2))
+            .sum::<i128>()
+            .to_string());
+        result.reply["input_sha256"] = json!(crate::digest(&serde_json::to_vec(
+            &json!({"graph":graph,"edge_ids":ids})
+        )?));
+        result.reply["evidence"] = if status == "accepted"
+            && admitted.receipt.compiled_receipt_sha256.is_some()
+        {
+            json!({"kind":"extracted_hol_connected_mst", "scope":"connected_mst_only",
+                "predicate":"Mst_Certificate_Export.external_mst_cert",
+                "session":"Veri7vn_Discrete_Certificate",
+                "theorems":["Mst_Certificate_Export.external_mst_cert_spans", "Mst_Certificate_Export.external_mst_cert_minimal"],
+                "compiled_receipt_sha256":admitted.receipt.compiled_receipt_sha256,
+                "checker_sha256":admitted.receipt.executable_sha256,
+                "trust":"operator-admitted compiler receipt; JSON/framing/compiler remain untrusted"})
+        } else {
+            json!({"kind":"none", "predicate_outcome":status,
+                "reason":"HOL scope requires acceptance and an operator-admitted compiled receipt"})
+        };
+        Ok(result)
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn execute_wire(
+        &self,
+        tenant: &str,
+        kernel_id: &str,
+        admitted: &Admitted,
+        request: Vec<u8>,
+        id: u64,
+        budget: &Budget,
+        deadline: Instant,
+        expected_mst_supported: Option<bool>,
+    ) -> Result<KernelReply> {
         {
             let mut tenants = crate::lock(&self.tenants)?;
             if tenants.len() >= self.limits.workers || !tenants.insert(tenant.to_owned()) {
@@ -294,10 +514,18 @@ impl KernelExecutor {
                     slot.worker = Some(Worker::start(admitted, &self.limits, budget, deadline)?);
                 }
                 let worker = slot.worker.as_mut().expect("worker just started");
-                let reply = worker.exchange(encoded.bytes, id, budget, deadline)?;
+                let reply = worker.exchange(
+                    request,
+                    id,
+                    budget,
+                    deadline,
+                    &admitted.receipt.family,
+                    expected_mst_supported,
+                )?;
                 Ok(KernelReply {
                     reply,
                     admission: admitted.receipt.clone(),
+                    worker_pid: worker.child.as_ref().expect("owned live child").id(),
                 })
             })();
             if result.is_err() {
@@ -313,6 +541,23 @@ impl KernelExecutor {
             Err(Error::Busy)
         }
     }
+}
+
+fn parse_mst_reply(bytes: &[u8], id: u64) -> Result<Value> {
+    for (wire, status) in [
+        ("accept", "accepted"),
+        ("reject", "rejected"),
+        ("unsupported", "unsupported"),
+    ] {
+        if bytes == format!("mst-cert-v2 {id} {wire}\n").as_bytes() {
+            return Ok(
+                json!({"id":id,"status":status,"response":wire,"path":"certificate:external_mst_cert"}),
+            );
+        }
+    }
+    Err(Error::Format(
+        "invalid/cross-request MST certificate reply".into(),
+    ))
 }
 
 fn valid_id(id: &str) -> bool {
@@ -411,15 +656,113 @@ fn admit(descriptor: KernelDescriptor, limits: &KernelLimits) -> Result<Admitted
     let (writable, executable) = snapshot.into_parts();
     drop(writable);
     drop(source);
+    let compiled_receipt_sha256 = admit_compiled_receipt(&descriptor, total)?;
     Ok(Admitted {
         receipt: KernelAdmission {
             id: descriptor.id,
             family: descriptor.family,
             executable_sha256: descriptor.sha256,
             executable_bytes: total,
+            compiled_receipt_sha256,
         },
         executable,
     })
+}
+
+// This checks deployment evidence, not a proof of compiler/framing correctness.
+// The digest comes from an authenticated operator. A tenant cannot register its
+// own executable/receipt or confer proof scope by returning JSON declarations.
+fn admit_compiled_receipt(
+    descriptor: &KernelDescriptor,
+    binary_bytes: u64,
+) -> Result<Option<String>> {
+    let Some((path, expected)) = &descriptor.compiled_receipt else {
+        return Ok(None);
+    };
+    if descriptor.family != KernelFamily::MstCertificate
+        || !path.is_absolute()
+        || !valid_sha256(expected)
+    {
+        return Err(Error::Invalid("invalid compiled receipt admission".into()));
+    }
+    let bytes = bounded_receipt(path)?;
+    if crate::digest(&bytes) != *expected {
+        return Err(Error::Format("compiled receipt hash mismatch".into()));
+    }
+    let record: Value = serde_json::from_slice(&bytes)?;
+    let proof = &record["session_receipt"]["record"];
+    let remote = &proof["remote"];
+    let export = "Veri7vn_Discrete_Certificate.Mst_Certificate_Export/code/mst_certificate.ML";
+    let generated = record["generated_sha256"].as_str().unwrap_or("");
+    let driver = "src/extract/discrete-certificate/main.sml";
+    let driver_sha = crate::digest(include_bytes!(
+        "../../../src/extract/discrete-certificate/main.sml"
+    ));
+    if record["schema_version"] != 1
+        || record["compile_ok"] != true
+        || record["compiler_exit"] != 0
+        || record["family"] != "discrete-certificate"
+        || record["session"] != "Veri7vn_Discrete_Certificate"
+        || record["binary_sha256"] != descriptor.sha256
+        || record["binary_bytes"] != binary_bytes
+        || record["generated_export"] != export
+        || !valid_sha256(generated)
+        || proof["export_sha256"][export] != generated
+        || record["source_sha256"][driver] != driver_sha
+        || !record["proof_dependency_sha256"]
+            .as_object()
+            .is_some_and(|m| !m.is_empty())
+        || proof["status"] != "passed"
+        || proof["exit_code"] != 0
+        || proof["session"] != "Veri7vn_Discrete_Certificate"
+        || proof["expect"] != "VERI7VN_DISCRETE_CERTIFICATE PASS theorems=4 oracles=0"
+        || remote["exit_code"] != 0
+        || remote.get("cancelled").is_some_and(|v| v != false)
+        || proof["source_digest"]
+            .as_str()
+            .is_none_or(|v| !valid_sha256(v))
+        || proof["source_digest"] != remote["source_digest"]
+        || (remote.get("build_completed").is_some()
+            && (remote["build_completed"] != true || remote["build_exit"] != 0))
+    {
+        return Err(Error::Format(
+            "compiled MST receipt does not bind admitted binary, driver and passed proof export"
+                .into(),
+        ));
+    }
+    let proof_path = record["session_receipt"]["path"]
+        .as_str()
+        .ok_or_else(|| Error::Format("missing proof receipt path".into()))?;
+    let proof_bytes = bounded_receipt(Path::new(proof_path))?;
+    let proof_sha = record["session_receipt"]["sha256"].as_str().unwrap_or("");
+    if !Path::new(proof_path).is_absolute()
+        || !valid_sha256(proof_sha)
+        || crate::digest(&proof_bytes) != proof_sha
+        || serde_json::from_slice::<Value>(&proof_bytes)? != *proof
+    {
+        return Err(Error::Format(
+            "compiled/proof receipt binding mismatch".into(),
+        ));
+    }
+    Ok(Some(expected.clone()))
+}
+fn valid_sha256(text: &str) -> bool {
+    text.len() == 64
+        && text
+            .bytes()
+            .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+}
+fn bounded_receipt(path: &Path) -> Result<Vec<u8>> {
+    let source = File::open(path)?;
+    if !source.metadata()?.is_file() {
+        return Err(Error::Invalid("receipt must be a regular file".into()));
+    }
+    let mut bytes = Vec::new();
+    source.take(1024 * 1024 + 1).read_to_end(&mut bytes)?;
+    if bytes.len() > 1024 * 1024 {
+        return Err(Error::Limit("compiled receipt bytes"));
+    }
+    Ok(bytes)
 }
 
 fn retire(slot: &mut Slot) -> Result<()> {
@@ -562,6 +905,8 @@ impl Worker {
         id: u64,
         budget: &Budget,
         deadline: Instant,
+        family: &KernelFamily,
+        expected_mst_supported: Option<bool>,
     ) -> Result<Value> {
         self.input
             .as_ref()
@@ -591,7 +936,17 @@ impl Worker {
             if reply.is_none() {
                 match self.output.try_recv() {
                     Ok(Output::Line(bytes)) => {
-                        let value: Value = serde_json::from_slice(&bytes)?;
+                        let value: Value = if *family == KernelFamily::MstCertificate {
+                            let value = parse_mst_reply(&bytes, id)?;
+                            if expected_mst_supported.is_some_and(|supported| {
+                                (value["status"] == "unsupported") == supported
+                            }) {
+                                return Err(Error::Format("certificate scope mismatch".into()));
+                            }
+                            value
+                        } else {
+                            serde_json::from_slice(&bytes)?
+                        };
                         if value.get("id").and_then(Value::as_u64) != Some(id)
                             || !value.get("status").is_some_and(Value::is_string)
                             || !value.get("response").is_some_and(Value::is_string)

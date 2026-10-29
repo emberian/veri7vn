@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Untrusted fixed-profile child for pure native JSON calls, not Mini authority.
+"""Untrusted fixed-profile native child, not Mini authority or authentication.
 
 Only host argv selects the extension and profile. Requests select neither code
 nor paths. Resource limits are process limits, not a filesystem/network sandbox.
@@ -20,7 +20,8 @@ PROFILES = {"reasoning": ("reasoning_call", "reasoning_catalog"),
             "science": ("science_call", "science_catalog"),
             "bio": ("bio_call", "bio_catalog"),
             "statistics": ("statistics_call", "statistics_catalog"),
-            "incremental": ("incremental_call", "incremental_catalog")}
+            "incremental": ("incremental_call", "incremental_catalog"),
+            "runtime": ("Runtime", "Image")}
 
 # Host policy, never supplied in a request or by the extension's catalog. Other
 # profiles retain the conservative fault boundary until explicitly reviewed.
@@ -109,7 +110,7 @@ def apply_limits(settings):
         applied[name] = {"soft": soft, "hard": hard}
 
     limit("RLIMIT_CORE", 0)
-    limit("RLIMIT_FSIZE", 0)
+    limit("RLIMIT_FSIZE", settings.get("file_size_bytes", 0))
     limit("RLIMIT_NOFILE", settings["file_descriptors"])
     if settings["cpu_seconds"] is not None:
         limit("RLIMIT_CPU", settings["cpu_seconds"])
@@ -131,6 +132,7 @@ def main():
     parser.add_argument("--sha256", required=True)
     parser.add_argument("--profiles", required=True)
     parser.add_argument("--limits", required=True)
+    parser.add_argument("--runtime-config")
     args = parser.parse_args()
     settings = decode(args.limits)
     maximum = settings["reply_bytes"]
@@ -156,6 +158,21 @@ def main():
         spec.loader.exec_module(module)
         functions = {profile: tuple(getattr(module, name, None) for name in PROFILES[profile])
                      for profile in profiles}
+        runtime = None
+        if "runtime" in profiles:
+            if args.runtime_config is None:
+                raise ValueError("runtime operator configuration absent")
+            # -I excludes the script directory. Add only this fixed deployed
+            # source directory, never a request-selected import path.
+            sys.path.insert(0, str(Path(__file__).resolve().parent))
+            from native_runtime import RuntimeProfile, RuntimeOperations
+            with Path(args.runtime_config).open("rb") as stream:
+                raw_config = stream.read(8 * 1024 * 1024 + 16385)
+            if len(raw_config) > 8 * 1024 * 1024 + 16384:
+                raise ValueError("runtime operator configuration exceeds bound")
+            runtime = RuntimeOperations(module, RuntimeProfile.from_dict(decode(raw_config)), args.sha256)
+        elif args.runtime_config is not None:
+            raise ValueError("runtime configuration without runtime profile")
         if not all(callable(fn) for pair in functions.values() for fn in pair):
             raise ImportError("native profile feature absent")
         request_error_type = getattr(module, REQUEST_ERROR_EXPORT, None)
@@ -163,21 +180,29 @@ def main():
                                               or not isinstance(request_error_type, type)
                                               or not issubclass(request_error_type, ValueError)):
             raise ImportError("invalid native request-error declaration")
-        _write({"ready": True, "profiles": profiles, "extension_sha256": args.sha256,
-                "containment": containment}, maximum)
+        ready = {"ready": True, "profiles": profiles, "extension_sha256": args.sha256,
+                 "containment": containment}
+        if runtime is not None:
+            ready["resource_identity"] = runtime.resource_identity
+        _write(ready, maximum)
     except BaseException as error:
         _write({"ready": False, "error": "native_start_failed", "error_type": type(error).__name__}, maximum)
         return 1
 
     while True:
-        raw = sys.stdin.buffer.readline(settings["request_bytes"] + 257)
+        raw = sys.stdin.buffer.readline(settings["request_bytes"] + 1025)
         if not raw:
             return 0
-        if not raw.endswith(b"\n") or len(raw) > settings["request_bytes"] + 256:
+        if not raw.endswith(b"\n") or len(raw) > settings["request_bytes"] + 1024:
             return 2
         try:
             request = decode(raw)
-            if (not isinstance(request, dict) or set(request) != {"id", "profile", "action", "payload"}
+            if not isinstance(request, dict):
+                return 2
+            expected_keys = {"id", "profile", "action", "payload"}
+            if request.get("profile") == "runtime" and request.get("action") == "call":
+                expected_keys.add("host_context")
+            if (set(request) != expected_keys
                     or type(request["id"]) is not int or request["id"] < 0
                     or not isinstance(request["profile"], str) or request["profile"] not in functions
                     or request["action"] not in ("call", "catalog")
@@ -186,7 +211,12 @@ def main():
             payload = encode(request["payload"], settings["request_bytes"] + 1)[:-1].decode("utf-8")
             try:
                 pair = functions[request["profile"]]
-                result = pair[0](payload) if request["action"] == "call" else pair[1]()
+                if request["profile"] == "runtime":
+                    result = (runtime.call(request["payload"], request["host_context"])
+                              if request["action"] == "call" else runtime.catalog())
+                    result = encode(result, maximum + 1)[:-1].decode("utf-8")
+                else:
+                    result = pair[0](payload) if request["action"] == "call" else pair[1]()
             except ValueError as error:
                 expected = request_failure(error, request["profile"], request_error_type) if request["action"] == "call" else None
                 if expected is not None:
@@ -194,8 +224,17 @@ def main():
                 else:
                     reply = {"id": request["id"], "outcome": "refused", "error": "native_refused",
                              "detail": str(error)[:512]}
-            except Exception:
-                reply = {"id": request["id"], "outcome": "error", "error": "native_execution_failed"}
+            except Exception as error:
+                # Only exact declared core error classes carry runtime routing
+                # metadata. They do not grant the pure typed-refusal exemption.
+                code = "native_execution_failed"
+                if request["profile"] == "runtime":
+                    for name, candidate in (("ConflictError", "runtime_conflict"),
+                                            ("BusyError", "runtime_busy"), ("BudgetError", "runtime_budget")):
+                        if type(error) is getattr(module, name, None):
+                            code = candidate
+                            break
+                reply = {"id": request["id"], "outcome": "error", "error": code}
             else:
                 if not isinstance(result, str) or len(result.encode("utf-8")) > maximum:
                     reply = {"id": request["id"], "outcome": "error", "error": "native_reply_too_large"}

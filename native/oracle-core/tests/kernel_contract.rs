@@ -370,3 +370,398 @@ fn real_quantity_resident_protocol() {
     }
     assert_eq!(executor.active_workers(), 0);
 }
+
+impl Fixture {
+    fn mst() -> Self {
+        let directory = tempfile::tempdir().unwrap();
+        let path = directory.path().join("mst-checker");
+        // Deliberately untrusted protocol fixture, not an extracted predicate.
+        // Exhaustive tiny-graph scoring avoids merely echoing chosen edge IDs.
+        let script = r##"#!/usr/bin/python3
+import itertools, sys, time
+for line in sys.stdin:
+    fields = line.rstrip('\n').split(' ')
+    assert fields[0] == 'mst-cert-v2'
+    rid, n, m, k = map(int, fields[1:5])
+    numbers = list(map(int, fields[5:]))
+    edges = [numbers[i:i+3] for i in range(0, 3*m, 3)]
+    ids = numbers[3*m:]
+    assert len(ids) == k
+    assert all(0 <= a < n and 0 <= b < n for a,b,w in edges)
+    assert len(set(ids)) == k and all(0 <= i < m for i in ids)
+    if edges and edges[0][2] == 1001:
+        while True: time.sleep(1)
+    if edges and edges[0][2] == 1002:
+        print('x' * 200000, flush=True)
+        while True: time.sleep(1)
+    if edges and edges[0][2] == 1003:
+        print('mst-cert-v2 wrong accept', flush=True); continue
+    if edges and edges[0][2] == 1004:
+        print('mst-cert-v2 %d unsupported' % rid, flush=True); continue
+    def component_count(selected):
+        parent = list(range(n))
+        def root(i):
+            while i != parent[i]: i = parent[i]
+            return i
+        for i in selected:
+            a,b,w = edges[i]
+            parent[root(a)] = root(b)
+        return len(set(root(i) for i in range(n)))
+    if n < 2 or component_count(range(m)) != 1: status = 'unsupported'
+    else:
+        candidates = [sum(edges[i][2] for i in c)
+                      for c in itertools.combinations(range(m), n-1)
+                      if component_count(c) == 1]
+        status = ('accept' if k == n-1 and component_count(ids) == 1
+                  and sum(edges[i][2] for i in ids) == min(candidates) else 'reject')
+    print('mst-cert-v2 %d %s' % (rid, status), flush=True)
+"##;
+        fs::write(&path, script).unwrap();
+        let sha = format!("{:x}", Sha256::digest(script.as_bytes()));
+        Self {
+            _directory: directory,
+            path,
+            sha,
+        }
+    }
+    fn mst_executor(&self, limits: KernelLimits) -> KernelExecutor {
+        KernelExecutor::new(
+            vec![KernelDescriptor::new(
+                "mst",
+                &self.path,
+                &self.sha,
+                KernelFamily::MstCertificate,
+            )],
+            limits,
+        )
+        .unwrap()
+    }
+}
+
+#[test]
+fn mst_resident_exact_ids_weights_and_unsupported_reuse_do_not_confer_proof_scope() {
+    use oracle_runtime_core::kernel::MstGraph;
+    let f = Fixture::mst();
+    let executor = f.mst_executor(KernelLimits {
+        workers: 1,
+        ..KernelLimits::default()
+    });
+    let graph = MstGraph {
+        vertices: 3,
+        edges: vec![(0, 1, i64::MIN), (1, 2, i64::MIN), (0, 2, i64::MAX)],
+    };
+    let first = executor
+        .check_mst("tenant", "mst", &graph, &[0, 1], Cancellation::default())
+        .unwrap();
+    assert_eq!(first.reply["status"], "accepted");
+    assert_eq!(first.reply["total_weight"], "-18446744073709551616");
+    assert_eq!(first.reply["evidence"]["kind"], "none");
+    assert!(first.admission.compiled_receipt_sha256.is_none());
+    let bad = executor
+        .check_mst("tenant", "mst", &graph, &[0, 2], Cancellation::default())
+        .unwrap();
+    assert_eq!(bad.reply["status"], "rejected");
+    assert_eq!(bad.worker_pid, first.worker_pid);
+    for (vertices, edges, ids) in [
+        (4, vec![(0, 1, 1), (2, 3, 2)], vec![0, 1]),
+        (3, vec![(0, 1, 1)], vec![0]),
+        (1, vec![], vec![]),
+        (0, vec![], vec![]),
+    ] {
+        let reply = executor
+            .check_mst(
+                "other",
+                "mst",
+                &MstGraph { vertices, edges },
+                &ids,
+                Cancellation::default(),
+            )
+            .unwrap();
+        assert_eq!(reply.reply["status"], "unsupported");
+        assert_eq!(reply.reply["evidence"]["kind"], "none");
+        assert_eq!(reply.worker_pid, first.worker_pid);
+    }
+    let parallel = MstGraph {
+        vertices: 2,
+        edges: vec![(0, 1, 4), (0, 1, -2), (0, 1, -2), (0, 0, -100)],
+    };
+    for id in [1, 2] {
+        let reply = executor
+            .check_mst("tenant", "mst", &parallel, &[id], Cancellation::default())
+            .unwrap();
+        assert_eq!(reply.reply["status"], "accepted");
+        assert_eq!(reply.reply["edge_ids"], serde_json::json!([id]));
+        assert_eq!(reply.worker_pid, first.worker_pid);
+    }
+    let again = executor
+        .check_mst("tenant", "mst", &graph, &[0, 1], Cancellation::default())
+        .unwrap();
+    assert_eq!(again.worker_pid, first.worker_pid);
+    assert_eq!(again.reply["input_sha256"], first.reply["input_sha256"]);
+}
+
+#[test]
+fn mst_universe_and_candidate_validation_precedes_start_and_hashes_full_edge_order() {
+    use oracle_runtime_core::kernel::MstGraph;
+    let f = Fixture::mst();
+    let executor = f.mst_executor(KernelLimits::default());
+    let graph = MstGraph {
+        vertices: 3,
+        edges: vec![(0, 1, 1), (1, 2, 2), (0, 2, 9)],
+    };
+    for ids in [vec![0, 0], vec![0, 3], vec![0, 1, 2]] {
+        assert!(executor
+            .check_mst("tenant", "mst", &graph, &ids, Cancellation::default())
+            .is_err());
+    }
+    assert!(executor
+        .check_mst(
+            "tenant",
+            "mst",
+            &MstGraph {
+                vertices: 2,
+                edges: vec![(0, 2, 1)]
+            },
+            &[0],
+            Cancellation::default()
+        )
+        .is_err());
+    assert!(executor
+        .execute(
+            "tenant",
+            "mst",
+            "not a certificate",
+            Cancellation::default()
+        )
+        .is_err());
+    let first = executor
+        .check_mst("tenant", "mst", &graph, &[0, 1], Cancellation::default())
+        .unwrap();
+    let reordered = MstGraph {
+        vertices: 3,
+        edges: vec![(1, 2, 2), (0, 1, 1), (0, 2, 9)],
+    };
+    let second = executor
+        .check_mst(
+            "tenant",
+            "mst",
+            &reordered,
+            &[1, 0],
+            Cancellation::default(),
+        )
+        .unwrap();
+    assert_ne!(first.reply["input_sha256"], second.reply["input_sha256"]);
+    assert_eq!(first.worker_pid, second.worker_pid);
+    assert!(serde_json::from_str::<MstGraph>(r#"{"vertices":2,"edges":[[0,1,1.0]]}"#).is_err());
+    assert!(serde_json::from_str::<MstGraph>(
+        r#"{"vertices":2,"edges":[[0,1,9223372036854775808]]}"#
+    )
+    .is_err());
+}
+
+#[test]
+fn mst_timeout_oversized_malformed_and_wrong_scope_replies_retire_owned_worker() {
+    use oracle_runtime_core::kernel::MstGraph;
+    let f = Fixture::mst();
+    let executor = f.mst_executor(KernelLimits {
+        workers: 1,
+        reply_bytes: 128,
+        timeout_ms: 150,
+        ..KernelLimits::default()
+    });
+    let graph = MstGraph {
+        vertices: 2,
+        edges: vec![(0, 1, 4)],
+    };
+    let mut pid = executor
+        .check_mst("tenant", "mst", &graph, &[0], Cancellation::default())
+        .unwrap()
+        .worker_pid;
+    for weight in [1001, 1002, 1003, 1004] {
+        let attack = MstGraph {
+            vertices: 2,
+            edges: vec![(0, 1, weight)],
+        };
+        let reply = executor.check_mst("tenant", "mst", &attack, &[0], Cancellation::default());
+        match weight {
+            1001 => assert!(matches!(reply, Err(Error::Deadline))),
+            1002 => assert!(matches!(reply, Err(Error::Limit("kernel reply bytes")))),
+            _ => assert!(matches!(reply, Err(Error::Format(_)))),
+        }
+        assert_eq!(executor.active_workers(), 0);
+        assert_eq!(
+            nix::sys::signal::kill(nix::unistd::Pid::from_raw(pid as i32), None),
+            Err(nix::errno::Errno::ESRCH)
+        );
+        let recovered = executor
+            .check_mst("tenant", "mst", &graph, &[0], Cancellation::default())
+            .unwrap();
+        assert_ne!(recovered.worker_pid, pid);
+        pid = recovered.worker_pid;
+    }
+}
+
+#[test]
+fn mst_request_bytes_and_forged_compiler_receipts_are_rejected() {
+    use oracle_runtime_core::kernel::MstGraph;
+    let f = Fixture::mst();
+    let executor = f.mst_executor(KernelLimits {
+        request_bytes: 20,
+        ..KernelLimits::default()
+    });
+    assert!(matches!(
+        executor.check_mst(
+            "tenant",
+            "mst",
+            &MstGraph {
+                vertices: 2,
+                edges: vec![(0, 1, 4)]
+            },
+            &[0],
+            Cancellation::default()
+        ),
+        Err(Error::Limit("kernel request bytes"))
+    ));
+    let path = f._directory.path().join("compile-inputs.json");
+    let forged = serde_json::json!({"compile_ok":true,"binary_sha256":f.sha,"session":"Veri7vn_Discrete_Certificate"}).to_string();
+    fs::write(&path, &forged).unwrap();
+    let descriptor = KernelDescriptor::new("mst", &f.path, &f.sha, KernelFamily::MstCertificate)
+        .with_compiled_receipt(&path, format!("{:x}", Sha256::digest(forged.as_bytes())));
+    assert!(matches!(
+        KernelExecutor::new(vec![descriptor], KernelLimits::default()),
+        Err(Error::Format(_))
+    ));
+}
+
+/// Actual extracted artifact; root supplies new v2 compiled bytes and optionally
+/// an operator-admitted compiler receipt. No mock gains HOL scope in this test.
+#[test]
+#[ignore = "requires an explicitly supplied current resident extracted MST artifact"]
+fn real_mst_resident_protocol() {
+    use oracle_runtime_core::kernel::MstGraph;
+    let path = std::env::var("ORACLE_TEST_MST_BIN").expect("absolute MST binary");
+    let sha = std::env::var("ORACLE_TEST_MST_SHA256").expect("trusted MST SHA-256");
+    let mut descriptor = KernelDescriptor::new("mst", path, sha, KernelFamily::MstCertificate);
+    let receipt = std::env::var("ORACLE_TEST_MST_COMPILED_RECEIPT").ok();
+    if let Some(path) = &receipt {
+        descriptor = descriptor.with_compiled_receipt(
+            path,
+            std::env::var("ORACLE_TEST_MST_COMPILED_RECEIPT_SHA256")
+                .expect("trusted receipt digest"),
+        );
+    }
+    let executor = KernelExecutor::new(
+        vec![descriptor],
+        KernelLimits {
+            workers: 1,
+            ..KernelLimits::default()
+        },
+    )
+    .unwrap();
+    let graph = MstGraph {
+        vertices: 3,
+        edges: vec![(0, 1, 4), (1, 2, 1), (0, 2, 7)],
+    };
+    let accepted = executor
+        .check_mst(
+            "qualification",
+            "mst",
+            &graph,
+            &[0, 1],
+            Cancellation::default(),
+        )
+        .unwrap();
+    assert_eq!(accepted.reply["status"], "accepted");
+    assert_eq!(
+        accepted.reply["evidence"]["kind"],
+        if receipt.is_some() {
+            "extracted_hol_connected_mst"
+        } else {
+            "none"
+        }
+    );
+    let rejected = executor
+        .check_mst(
+            "qualification",
+            "mst",
+            &graph,
+            &[0, 2],
+            Cancellation::default(),
+        )
+        .unwrap();
+    assert_eq!(rejected.reply["status"], "rejected");
+    let unsupported = executor
+        .check_mst(
+            "qualification",
+            "mst",
+            &MstGraph {
+                vertices: 4,
+                edges: graph.edges.clone(),
+            },
+            &[0, 1],
+            Cancellation::default(),
+        )
+        .unwrap();
+    assert_eq!(unsupported.reply["status"], "unsupported");
+    let final_reply = executor
+        .check_mst(
+            "qualification",
+            "mst",
+            &graph,
+            &[0, 1],
+            Cancellation::default(),
+        )
+        .unwrap();
+    assert_eq!(accepted.worker_pid, rejected.worker_pid);
+    assert_eq!(accepted.worker_pid, unsupported.worker_pid);
+    assert_eq!(accepted.worker_pid, final_reply.worker_pid);
+}
+
+#[test]
+fn mst_cancellation_uses_shared_admission_and_reaps_before_recovery() {
+    use oracle_runtime_core::kernel::MstGraph;
+    let f = Fixture::mst();
+    let executor = Arc::new(f.mst_executor(KernelLimits {
+        workers: 1,
+        timeout_ms: 5000,
+        ..KernelLimits::default()
+    }));
+    let normal = MstGraph {
+        vertices: 2,
+        edges: vec![(0, 1, 4)],
+    };
+    let first = executor
+        .check_mst("tenant", "mst", &normal, &[0], Cancellation::default())
+        .unwrap();
+    let token = Cancellation::default();
+    let cancel = token.clone();
+    let run = executor.clone();
+    let thread = thread::spawn(move || {
+        run.check_mst(
+            "tenant",
+            "mst",
+            &MstGraph {
+                vertices: 2,
+                edges: vec![(0, 1, 1001)],
+            },
+            &[0],
+            cancel,
+        )
+    });
+    wait_active(&executor);
+    assert!(matches!(
+        executor.check_mst("other", "mst", &normal, &[0], Cancellation::default()),
+        Err(Error::Busy)
+    ));
+    token.cancel();
+    assert!(matches!(thread.join().unwrap(), Err(Error::Cancelled)));
+    assert_eq!(executor.active_workers(), 0);
+    assert_eq!(
+        nix::sys::signal::kill(nix::unistd::Pid::from_raw(first.worker_pid as i32), None),
+        Err(nix::errno::Errno::ESRCH)
+    );
+    let next = executor
+        .check_mst("tenant", "mst", &normal, &[0], Cancellation::default())
+        .unwrap();
+    assert_ne!(next.worker_pid, first.worker_pid);
+}

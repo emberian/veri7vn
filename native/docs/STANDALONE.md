@@ -1,9 +1,11 @@
 # Run the native appliance independently
 
-The optional native computations have a standalone HTTP service. It needs
-Python 3.12 or newer, the built PyO3 extension, and this repository's Python
-adapters. It needs no minidregg checkout, daemon, Store, genesis, account or
-public Oracle dataset. The same service can later sit behind a hosted bridge.
+The native appliance has a standalone HTTP service. It needs Python 3.12 or
+newer, the built PyO3 extension and this repository's Python adapters. It needs
+no minidregg checkout, daemon, Store, genesis or account. Supplied-argument
+profiles need no public Oracle dataset. An optional [durable data runtime](RUNTIME-HOST.md)
+serves an operator-admitted image, KQA programs and bounded learned language
+turns through the same discovery and invocation boundary.
 
 The service exposes supplied-graph optimization, exact polynomial and dimensional
 rewriting, exact charge/isotope-conserving [reaction balancing](CHEMISTRY.md),
@@ -52,7 +54,9 @@ python3 tools/appliance/native_service.py --config /operator/native.json
 It prints its loopback address after checking all configured catalogs. Port zero
 selects an available port. There is one global worker cap. All profiles of one
 artifact share one private snapshot and can reuse the same child process; tenant
-identities do not create processes or load a dataset. Requests beyond available
+identities do not create processes or load a dataset. Runtime profiles also bind
+worker reuse to their image, state path, release and resource configuration;
+the operator's persistent state survives retirement. Requests beyond available
 capacity receive an immediate busy result, with no internal work queue.
 
 ## Call it locally
@@ -74,13 +78,17 @@ metadata, **not authentication**. A hosting bridge must assign it and isolate
 this private loopback service from untrusted local processes. Browser-origin
 requests are refused. An Internet-facing authenticated gateway is not included.
 
-These operations are pure computations. `request_id` and `conversation_id` are
-correlation labels; repeating a request computes it again. This includes
+The supplied-argument profiles configured above perform pure computations.
+Their `request_id` and `conversation_id` are correlation labels; repeating a
+request computes it again. This includes
 `chemistry.balance_reaction`, which balances only the supplied species and
 inventories and does not infer chemical feasibility. There is no retained
 conversation, subscription, effect or exact-reply journal. Restarting the service
-does not need a history replay. This does not replace the separate durable core
-runtime or qualify the signed Mini package.
+does not need a history replay. The optional [runtime profile](RUNTIME-HOST.md)
+connects the durable native core through six fixed operations and exact native
+reply replay. It requires an independently admitted release and image; pure
+calls retain their existing retry semantics. Neither profile qualifies the
+signed Mini package.
 
 Reviewed DNA/statistics `invalid_input` and `resource_limit` failures can retain
 the worker through an exact `NativeRequestError` boundary. Both the child and
@@ -120,3 +128,7 @@ identities, profile reuse, and immediate saturation rejection. It is a synthetic
 supplied-model exercise, not a specialist panel or sustained throughput result.
 The [retained run](../evidence/2026-10-29-native-pool.json) includes all timings,
 resource settings and the exact extension digest.
+
+Durable runtime qualification uses manufactured tiny KB/reader images and the
+actual extension through direct and CLI HTTP calls. See the [runtime host contract](RUNTIME-HOST.md#qualification)
+for cancellation, lost-response replay, tenant/resource separation and restart checks.

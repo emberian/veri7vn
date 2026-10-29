@@ -100,6 +100,24 @@ impl Runtime {
             runtime_artifact_sha256,
         )
     }
+    /// Authenticated host maintenance. Permanently closes this namespace and
+    /// discards its local replay, conversation and completed-effect payloads.
+    /// This method is deliberately absent from the tenant handle.
+    fn retire_namespace(
+        &self,
+        py: Python<'_>,
+        tenant: &str,
+        cancellation: &Cancellation,
+    ) -> PyResult<()> {
+        let cancel = cancellation.0.clone();
+        py.detach(|| self.0.retire_namespace(tenant, cancel))
+            .map_err(error)
+    }
+    /// Host inspection of the permanent durable retirement fence.
+    fn namespace_is_retired(&self, py: Python<'_>, tenant: &str) -> PyResult<bool> {
+        py.detach(|| self.0.namespace_is_retired(tenant))
+            .map_err(error)
+    }
     /// Only the authenticated host should mint these scoped handles.
     fn tenant(&self, identity: String) -> Tenant {
         Tenant {

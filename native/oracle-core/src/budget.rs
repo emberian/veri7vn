@@ -24,6 +24,8 @@ pub struct Limits {
     pub mmap_bytes: u64,
     pub sessions: u64,
     pub journal_entries: u64,
+    /// Permanent namespace tombstones; exhaustion refuses further retirement.
+    pub retired_namespaces: u64,
 }
 
 impl Default for Limits {
@@ -42,6 +44,7 @@ impl Default for Limits {
             mmap_bytes: 256 * 1024 * 1024,
             sessions: 100_000,
             journal_entries: 1_000_000,
+            retired_namespaces: 65_536,
         }
     }
 }
@@ -60,9 +63,11 @@ impl Limits {
             || self.sqlite_cache_kib == 0
             || self.sessions == 0
             || self.journal_entries == 0
+            || self.retired_namespaces == 0
             || self.mmap_bytes > i64::MAX as u64
             || self.sessions > i64::MAX as u64
             || self.journal_entries > i64::MAX as u64
+            || self.retired_namespaces > i64::MAX as u64
         {
             return Err(Error::Invalid("invalid resource limits".into()));
         }

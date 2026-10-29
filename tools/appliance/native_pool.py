@@ -1,9 +1,10 @@
-"""Untrusted shared process boundary for optional pure native JSON providers.
+"""Untrusted shared process boundary for operator-admitted native providers.
 
 One fixed global slot cap serves host-assigned tenants, with immediate admission
 and no work queue. execute()/catalog() use the host's existing bounded scheduler
 threads; this pool creates no Python threads. It supplies no authentication,
-durable state, replay journal, filesystem/network sandbox or Mini admission.
+filesystem/network sandbox or Mini admission. Operator runtime profiles add
+native durable state/replay; pure providers retain correlation-only IDs.
 
 Wall deadlines/cancellation cover nonblocking I/O and native execution. Process
 creation, signaling, reaping and filesystem I/O remain OS operations, not hard
@@ -29,6 +30,7 @@ import tempfile
 import threading
 import time
 
+from native_runtime import RuntimeProfile, DEFAULT_CORE_LIMITS, OUTER_ID
 from native_worker import PROFILES, SAFE_REQUEST_FAILURES, REQUEST_ERROR_DETAIL_BYTES, decode, encode
 
 
@@ -50,6 +52,7 @@ class NativeProvider:
     extension: Path
     sha256: str
     profile: str
+    runtime: RuntimeProfile | None = None
 
 
 @dataclass(frozen=True)
@@ -92,10 +95,16 @@ class _Worker:
     def command(self):
         settings = {key: getattr(self.limits, key) for key in
                     ("request_bytes", "reply_bytes", "cpu_seconds", "memory_bytes", "file_descriptors")}
-        return [sys.executable, "-I", "-B", str(Path(__file__).with_name("native_worker.py")),
+        runtime = self.admitted.get("runtime")
+        self.profiles = [p for p in self.admitted["artifact"]["profiles"] if p != "runtime" or runtime is not None]
+        settings["file_size_bytes"] = 0 if runtime is None else runtime.state_file_bytes
+        command = [sys.executable, "-I", "-B", str(Path(__file__).with_name("native_worker.py")),
                 "--extension", str(self.admitted["snapshot"]), "--sha256", self.admitted["sha256"],
-                "--profiles", json.dumps(self.admitted["artifact"]["profiles"]),
+                "--profiles", json.dumps(self.profiles),
                 "--limits", json.dumps(settings, separators=(",", ":"))]
+        if runtime is not None:
+            command.extend(["--runtime-config", str(self.admitted["runtime_snapshot"])])
+        return command
 
     def start(self, checkpoint, deadline):
         checkpoint(deadline)
@@ -112,9 +121,13 @@ class _Worker:
         if ready.get("ready") is False:
             kind = ready.get("error_type")
             raise NativePoolError("native_start_failed", kind[:128] if isinstance(kind, str) else None)
+        expected_keys = {"ready", "profiles", "extension_sha256", "containment"}
+        if self.admitted.get("runtime") is not None:
+            expected_keys.add("resource_identity")
         if (not isinstance(ready, dict) or ready.get("ready") is not True
-                or set(ready) != {"ready", "profiles", "extension_sha256", "containment"}
-                or ready["profiles"] != self.admitted["artifact"]["profiles"]
+                or set(ready) != expected_keys
+                or ready["profiles"] != getattr(self, "profiles", self.admitted["artifact"]["profiles"])
+                or ready.get("resource_identity") != self.admitted.get("resource_identity")
                 or ready["extension_sha256"] != self.admitted["sha256"]
                 or not isinstance(ready["containment"], dict)):
             raise NativePoolError("native_start_failed")
@@ -256,7 +269,32 @@ class NativePool:
                         or not IDENTIFIER.fullmatch(provider.id) or provider.id in self.registry
                         or not isinstance(provider.profile, str) or provider.profile not in PROFILES):
                     raise ValueError("invalid or duplicate native provider")
-                self.registry[provider.id] = self._admit(provider)
+                if provider.profile == "runtime":
+                    if not isinstance(provider.runtime, RuntimeProfile):
+                        raise ValueError("runtime provider requires operator RuntimeProfile")
+                    runtime = RuntimeProfile.from_dict(provider.runtime.to_dict())
+                    if runtime.declaration.get("runtime_artifact_sha256") != provider.sha256:
+                        raise ValueError("operator release/extension mismatch")
+                    core = {**DEFAULT_CORE_LIMITS, **runtime.core_limits}
+                    # Exact native JSON is carried as one escaped JSON string.
+                    # At most one extra escape byte per original byte, plus
+                    # bounded host metadata/receipts at each transport layer.
+                    if 2 * core["result_bytes"] + 16384 > limits.reply_bytes:
+                        raise ValueError("runtime result_bytes cannot fit reply_bytes with exact JSON framing")
+                elif provider.runtime is not None:
+                    raise ValueError("runtime resources require runtime profile")
+                else:
+                    runtime = None
+                admitted = self._admit(provider)
+                if runtime is not None:
+                    admitted["runtime"] = runtime
+                    admitted["resource_identity"] = runtime.identity
+                    runtime_path = Path(self.snapshots.name) / ("runtime-" + runtime.identity + ".json")
+                    if not runtime_path.exists():
+                        runtime_path.write_text(json.dumps(runtime.to_dict(), ensure_ascii=False, allow_nan=False), encoding="utf-8")
+                        runtime_path.chmod(0o400)
+                    admitted["runtime_snapshot"] = runtime_path
+                self.registry[provider.id] = admitted
             for artifact in self.artifacts.values():
                 artifact["profiles"] = sorted(artifact["profiles"])
         except BaseException:
@@ -308,23 +346,33 @@ class NativePool:
         if time.monotonic() >= deadline:
             raise NativePoolError("deadline_exceeded")
 
-    def execute(self, tenant, provider_id, request, *, cancellation=None, deadline=None):
+    def execute(self, tenant, provider_id, request, *, cancellation=None, deadline=None, host_context=None):
         """Run supplied provider data. Tenant/provider identity is host assigned."""
         if not isinstance(request, dict):
             raise ValueError("native request must be an object")
         # These are not provider data or authority-bearing transport options.
         if set(request).intersection({"module", "path", "extension", "extension_path", "extension_sha256", "authority", "profile", "backend"}):
             raise ValueError("native requests cannot configure execution authority")
-        return self._execute(tenant, provider_id, "call", request, cancellation, deadline)
+        return self._execute(tenant, provider_id, "call", request, cancellation, deadline, host_context)
 
     def catalog(self, tenant, provider_id, *, cancellation=None, deadline=None):
         return self._execute(tenant, provider_id, "catalog", {}, cancellation, deadline)
 
-    def _execute(self, tenant, provider_id, action, request, cancellation, deadline):
+    def _execute(self, tenant, provider_id, action, request, cancellation, deadline, host_context=None):
         if not isinstance(tenant, str) or not IDENTIFIER.fullmatch(tenant):
             raise ValueError("host tenant identity is invalid")
         if not isinstance(provider_id, str) or provider_id not in self.registry:
             raise ValueError("native provider is not registered")
+        runtime = self.registry[provider_id].get("runtime")
+        if runtime is not None and action == "call":
+            if (not isinstance(host_context, dict) or set(host_context) != {"tenant", "request_id", "conversation_id"}
+                    or host_context.get("tenant") != tenant
+                    or any(not isinstance(host_context.get(k), str) or not OUTER_ID.fullmatch(host_context[k])
+                           for k in ("request_id", "conversation_id"))):
+                raise ValueError("runtime call requires canonical outer host context")
+            host_context = dict(host_context)
+        elif host_context is not None:
+            raise ValueError("host runtime context requires runtime invocation")
         if cancellation is not None and not isinstance(cancellation, threading.Event):
             raise ValueError("cancellation must be a host threading.Event")
         now = time.monotonic()
@@ -345,7 +393,7 @@ class NativePool:
                 raise NativePoolError("tenant_busy")
             available = [entry for entry in self.slots if not entry.busy and not entry.poisoned]
             slot = next((entry for entry in available if entry.worker is not None
-                         and entry.worker.admitted["sha256"] == self.registry[provider_id]["sha256"]),
+                         and self._compatible(entry.worker.admitted, self.registry[provider_id])),
                         available[0] if available else None)
             if slot is None:
                 raise NativePoolError("pool_unavailable" if all(s.poisoned for s in self.slots) else "pool_busy")
@@ -356,15 +404,17 @@ class NativePool:
         reusable = False
         try:
             admitted = self.registry[provider_id]
-            if slot.worker is not None and slot.worker.admitted["sha256"] != admitted["sha256"]:
+            if slot.worker is not None and not self._compatible(slot.worker.admitted, admitted):
                 self._retire(slot)
             if slot.worker is None:
                 # Store ownership before spawning; even startup/FD setup errors
                 # are cleaned up through the same reserved slot.
                 slot.worker = self._worker_class(admitted, self.limits)
                 slot.worker.start(check, min(deadline, time.monotonic() + self.limits.startup_seconds))
-            frame = encode({"id": sequence, "profile": admitted["profile"], "action": action,
-                            "payload": normalized}, self.limits.request_bytes + 256)
+            document = {"id": sequence, "profile": admitted["profile"], "action": action, "payload": normalized}
+            if runtime is not None and action == "call":
+                document["host_context"] = host_context
+            frame = encode(document, self.limits.request_bytes + 1024)
             result = slot.worker.exchange(frame, check, deadline)
             if (type(result.get("id")) is not int or result["id"] != sequence
                     or result.get("outcome") not in ("completed", "request_refused", "refused", "error")):
@@ -417,8 +467,14 @@ class NativePool:
         slot.poisoned = False
 
     @staticmethod
+    def _compatible(resident, requested):
+        return (resident["sha256"] == requested["sha256"]
+                and (requested.get("runtime") is None
+                     or resident.get("resource_identity") == requested.get("resource_identity")))
+
+    @staticmethod
     def _receipt(admitted):
-        return {key: value for key, value in admitted.items() if key not in ("snapshot", "artifact")}
+        return {key: value for key, value in admitted.items() if key not in ("snapshot", "artifact", "runtime", "runtime_snapshot")}
 
     def admissions(self):
         return [self._receipt(value) for value in self.registry.values()]

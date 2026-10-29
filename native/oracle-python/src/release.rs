@@ -45,7 +45,12 @@ pub(super) fn open(
                     && operation.version == 1
                     && (matches!(
                         operation.id.as_str(),
-                        "graph.query" | "graph.execute" | "kqa.query" | "kqa.execute"
+                        "graph.query"
+                            | "graph.execute"
+                            | "kqa.query"
+                            | "kqa.execute"
+                            | "host.retention.retire"
+                            | "host.retention.inspect"
                     ) || (matches!(operation.id.as_str(), "reader.whole" | "reader.execute")
                         && image.capabilities.reader.is_some()))
             })

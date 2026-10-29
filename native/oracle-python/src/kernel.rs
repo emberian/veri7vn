@@ -89,6 +89,68 @@ impl KernelTenant {
         })
         .map_err(error)
     }
+
+    /// Check supplied occurrence IDs against this exact bounded graph. Producer
+    /// declarations never confer HOL scope; admission metadata controls that.
+    fn check_mst(
+        &self,
+        py: Python<'_>,
+        kernel_id: &str,
+        graph_json: &str,
+        edge_ids_json: &str,
+        cancellation: &Cancellation,
+    ) -> PyResult<String> {
+        if graph_json.len() > 65536 || edge_ids_json.len() > 1024 {
+            return Err(PyValueError::new_err("MST request exceeds byte bound"));
+        }
+        let cancel = cancellation.0.clone();
+        py.detach(|| {
+            let graph: native::MstGraph = serde_json::from_str(graph_json)?;
+            let ids: Vec<usize> = serde_json::from_str(edge_ids_json)?;
+            let result =
+                self.executor
+                    .check_mst(&self.identity, kernel_id, &graph, &ids, cancel)?;
+            Ok(serde_json::to_string(&result)?)
+        })
+        .map_err(error)
+    }
+
+    /// Actual Rust candidate production + independent Rust forest check +
+    /// resident extracted connected-tree check under the original deadline.
+    /// The returned forest remains useful when the HOL scope is unsupported.
+    #[cfg(feature = "reasoning")]
+    fn minimum_spanning_forest(
+        &self,
+        py: Python<'_>,
+        kernel_id: &str,
+        graph_json: &str,
+        cancellation: &Cancellation,
+    ) -> PyResult<String> {
+        if graph_json.len() > 65536 {
+            return Err(PyValueError::new_err("MST request exceeds byte bound"));
+        }
+        let cancel = cancellation.0.clone();
+        py.detach(|| {
+            let budget = self.executor.request_budget(cancel)?;
+            let graph: native::MstGraph = serde_json::from_str(graph_json)?;
+            graph.validate_candidate(&[])?;
+            budget.check()?;
+            let input = oracle_reasoning::graph::GraphInput {
+                vertices: graph.vertices, edges: graph.edges.clone(),
+            };
+            let limits = oracle_reasoning::Limits { vertices:64, edges:256,
+                ..oracle_reasoning::Limits::default() };
+            let forest = oracle_reasoning::graph::minimum_spanning_forest(&input, &limits)
+                .map_err(|e| core::Error::Invalid(e.to_string()))?;
+            budget.check()?;
+            let certificate = self.executor.check_mst_with_budget(
+                &self.identity, kernel_id, &graph, &forest.edge_ids, &budget)?;
+            Ok(serde_json::to_string(&serde_json::json!({
+                "rust_forest":forest, "certificate":certificate,
+                "scope":"supplied graph; HOL scope only for receipt-admitted accepted connected trees"
+            }))?)
+        }).map_err(error)
+    }
 }
 
 fn operator_descriptors(text: &str, cap: usize) -> core::Result<Vec<native::KernelDescriptor>> {
@@ -105,13 +167,11 @@ fn operator_descriptors(text: &str, cap: usize) -> core::Result<Vec<native::Kern
             let fields = item.as_object().ok_or_else(|| {
                 core::Error::Invalid("kernel descriptor must be an object".into())
             })?;
-            if fields.len() != 4
-                || !fields
-                    .keys()
-                    .all(|key| ["id", "executable", "sha256", "family"].contains(&key.as_str()))
+            if !["id", "executable", "sha256", "family"].iter().all(|k| fields.contains_key(*k))
+                || !fields.keys().all(|key| ["id", "executable", "sha256", "family", "compiled_receipt"].contains(&key.as_str()))
             {
                 return Err(core::Error::Invalid(
-                    "kernel descriptor requires exactly id, executable, sha256, family".into(),
+                    "kernel descriptor requires id, executable, sha256, family and optional compiled_receipt".into(),
                 ));
             }
             let string = |key: &str| -> core::Result<String> {
@@ -124,12 +184,18 @@ fn operator_descriptors(text: &str, cap: usize) -> core::Result<Vec<native::Kern
                     })
             };
             let family: native::KernelFamily = serde_json::from_value(fields["family"].clone())?;
-            Ok(native::KernelDescriptor::new(
-                string("id")?,
-                PathBuf::from(string("executable")?),
-                string("sha256")?,
-                family,
-            ))
+            let descriptor = native::KernelDescriptor::new(
+                string("id")?, PathBuf::from(string("executable")?), string("sha256")?, family,
+            );
+            if let Some(receipt) = fields.get("compiled_receipt") {
+                let object = receipt.as_object().ok_or_else(|| core::Error::Invalid("compiled_receipt must be an object".into()))?;
+                if object.len() != 2 || !object.contains_key("path") || !object.contains_key("sha256") {
+                    return Err(core::Error::Invalid("compiled_receipt requires path and sha256".into()));
+                }
+                let path = object["path"].as_str().ok_or_else(|| core::Error::Invalid("compiled_receipt path must be a string".into()))?;
+                let sha = object["sha256"].as_str().ok_or_else(|| core::Error::Invalid("compiled_receipt sha256 must be a string".into()))?;
+                Ok(descriptor.with_compiled_receipt(path, sha))
+            } else { Ok(descriptor) }
         })
         .collect()
 }

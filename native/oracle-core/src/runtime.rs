@@ -12,6 +12,67 @@ use std::sync::{Arc, Condvar, Mutex, Weak};
 
 const STORE_ID: i64 = 0x4f375331;
 
+// Persistent fences apply even to an already-open older runtime. This is a data
+// integrity boundary, not a sandbox against a writer authorized to change DDL.
+fn initialize_retention(tx: &rusqlite::Transaction<'_>) -> Result<()> {
+    tx.execute_batch(
+        "CREATE TABLE retirement_usage(
+            singleton INTEGER PRIMARY KEY CHECK(singleton=1),
+            entries INTEGER NOT NULL CHECK(entries>=0));
+         INSERT INTO retirement_usage VALUES(1,0);
+         CREATE TABLE retired_namespaces(
+            tenant TEXT PRIMARY KEY NOT NULL CHECK(length(CAST(tenant AS BLOB)) BETWEEN 1 AND 128)
+                CHECK(tenant NOT GLOB '*[^A-Za-z0-9_-]*')) WITHOUT ROWID;
+         CREATE TRIGGER retirement_duplicate BEFORE INSERT ON retired_namespaces
+            WHEN EXISTS(SELECT 1 FROM retired_namespaces WHERE tenant=NEW.tenant) BEGIN
+            SELECT RAISE(ABORT,'namespace already retired');
+         END;
+         CREATE TRIGGER retirement_insert_usage AFTER INSERT ON retired_namespaces BEGIN
+            UPDATE retirement_usage SET entries=entries+1 WHERE singleton=1;
+         END;
+         CREATE TRIGGER retirement_effects BEFORE INSERT ON retired_namespaces
+            WHEN EXISTS(SELECT 1 FROM effect_intents WHERE tenant=NEW.tenant AND state!='completed') BEGIN
+            SELECT RAISE(ABORT,'namespace has unresolved effects');
+         END;
+         CREATE TRIGGER retirement_immutable_update BEFORE UPDATE ON retired_namespaces BEGIN
+            SELECT RAISE(ABORT,'retired namespaces are permanent');
+         END;
+         CREATE TRIGGER retirement_immutable_delete BEFORE DELETE ON retired_namespaces BEGIN
+            SELECT RAISE(ABORT,'retired namespaces are permanent');
+         END;
+         CREATE TRIGGER retired_session_insert BEFORE INSERT ON sessions
+            WHEN EXISTS(SELECT 1 FROM retired_namespaces WHERE tenant=NEW.tenant) BEGIN
+            SELECT RAISE(ABORT,'namespace retired');
+         END;
+         CREATE TRIGGER retired_session_update BEFORE UPDATE ON sessions
+            WHEN EXISTS(SELECT 1 FROM retired_namespaces WHERE tenant IN (OLD.tenant,NEW.tenant)) BEGIN
+            SELECT RAISE(ABORT,'namespace retired');
+         END;
+         CREATE TRIGGER retired_request_insert BEFORE INSERT ON requests
+            WHEN EXISTS(SELECT 1 FROM retired_namespaces WHERE tenant=NEW.tenant) BEGIN
+            SELECT RAISE(ABORT,'namespace retired');
+         END;
+         CREATE TRIGGER retired_request_update BEFORE UPDATE ON requests
+            WHEN EXISTS(SELECT 1 FROM retired_namespaces WHERE tenant IN (OLD.tenant,NEW.tenant)) BEGIN
+            SELECT RAISE(ABORT,'namespace retired');
+         END;
+         CREATE TRIGGER retired_effect_insert BEFORE INSERT ON effect_intents
+            WHEN EXISTS(SELECT 1 FROM retired_namespaces WHERE tenant=NEW.tenant) BEGIN
+            SELECT RAISE(ABORT,'namespace retired');
+         END;
+         CREATE TRIGGER retired_effect_update BEFORE UPDATE ON effect_intents
+            WHEN EXISTS(SELECT 1 FROM retired_namespaces WHERE tenant IN (OLD.tenant,NEW.tenant)) BEGIN
+            SELECT RAISE(ABORT,'namespace retired');
+         END;
+         CREATE TRIGGER effect_delete_usage AFTER DELETE ON effect_intents BEGIN
+            UPDATE effect_usage SET entries=entries-1,
+                value_bytes=value_bytes-length(OLD.payload)-coalesce(length(OLD.result),0)-length(OLD.evidence)
+                WHERE singleton=1;
+         END;",
+    )?;
+    Ok(())
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Execution {
     pub version: i64,
@@ -313,14 +374,18 @@ impl Runtime {
                 INSERT INTO counts VALUES(1,0,0);")?;
             tx.pragma_update(None, "application_id", STORE_ID)?;
             crate::effects::initialize(&tx)?;
-            tx.pragma_update(None, "user_version", 2)?;
+            initialize_retention(&tx)?;
+            tx.pragma_update(None, "user_version", 3)?;
             tx.commit()?;
-        } else if app == STORE_ID && version == 1 {
+        } else if app == STORE_ID && (version == 1 || version == 2) {
             let tx = db.transaction_with_behavior(TransactionBehavior::Immediate)?;
-            crate::effects::initialize(&tx)?;
-            tx.pragma_update(None, "user_version", 2)?;
+            if version == 1 {
+                crate::effects::initialize(&tx)?;
+            }
+            initialize_retention(&tx)?;
+            tx.pragma_update(None, "user_version", 3)?;
             tx.commit()?;
-        } else if app != STORE_ID || version != 2 {
+        } else if app != STORE_ID || version != 3 {
             return Err(Error::Format("state schema".into()));
         }
         db.execute_batch(
@@ -334,6 +399,102 @@ impl Runtime {
         })
     }
 
+    fn require_active_namespace(db: &Connection, tenant: &str) -> Result<()> {
+        let retired: bool = db.query_row(
+            "SELECT EXISTS(SELECT 1 FROM retired_namespaces WHERE tenant=?1)",
+            [tenant],
+            |r| r.get(0),
+        )?;
+        if retired {
+            return Err(Error::Conflict("namespace retired"));
+        }
+        Ok(())
+    }
+
+    /// Authenticated-host maintenance only; never a tenant operation. This
+    /// permanently closes a namespace and discards its replay, conversation and
+    /// completed-effect audit payloads. The host must mint a fresh namespace for
+    /// future work. Unresolved effects refuse retirement. Cancellation before
+    /// commit rolls everything back; cancellation during commit may be too late.
+    pub fn retire_namespace(&self, tenant: &str, cancellation: Cancellation) -> Result<()> {
+        self.require_operation("host.retention.retire")?;
+        identifier(tenant)?;
+        let budget = Budget::new(&self.image.limits, cancellation)?;
+        let mut db = self.state.acquire(&budget)?;
+        let progress = budget.clone();
+        db.progress_handler(1000, Some(move || progress.check().is_err()));
+        let outcome = (|| -> Result<()> {
+            let tx = db.transaction_with_behavior(TransactionBehavior::Immediate)?;
+            let retired: bool = tx.query_row(
+                "SELECT EXISTS(SELECT 1 FROM retired_namespaces WHERE tenant=?1)",
+                [tenant],
+                |r| r.get(0),
+            )?;
+            if retired {
+                // Idempotence does not consume capacity or recreate any payload.
+                budget.check()?;
+                return Ok(());
+            }
+            let unresolved: bool = tx.query_row(
+                "SELECT EXISTS(SELECT 1 FROM effect_intents WHERE tenant=?1 AND state!='completed')",
+                [tenant],
+                |r| r.get(0),
+            )?;
+            if unresolved {
+                return Err(Error::Conflict("namespace has unresolved effects"));
+            }
+            let retired_count: u64 = tx.query_row(
+                "SELECT entries FROM retirement_usage WHERE singleton=1",
+                [],
+                |r| r.get(0),
+            )?;
+            if retired_count >= self.image.limits.retired_namespaces {
+                return Err(Error::Limit("retired namespace capacity"));
+            }
+            budget.check()?;
+            tx.execute("INSERT INTO retired_namespaces VALUES(?1)", [tenant])?;
+            // The tombstone and all deletes share the IMMEDIATE write transaction.
+            // The SQL fences remain after deletion, including on stale connections.
+            tx.execute("DELETE FROM effect_intents WHERE tenant=?1", [tenant])?;
+            let sessions = tx.execute("DELETE FROM sessions WHERE tenant=?1", [tenant])?;
+            let requests = tx.execute("DELETE FROM requests WHERE tenant=?1", [tenant])?;
+            let updated = tx.execute(
+                "UPDATE counts SET sessions=sessions-?1,requests=requests-?2
+                 WHERE id=1 AND sessions>=?1 AND requests>=?2",
+                params![sessions as u64, requests as u64],
+            )?;
+            if updated != 1 {
+                return Err(Error::Format("state counts inconsistent".into()));
+            }
+            budget.check()?;
+            tx.commit()?;
+            Ok(())
+        })();
+        db.progress_handler(0, None::<fn() -> bool>);
+        match outcome {
+            // Preserve the commit boundary: cancellation during a successful
+            // fsync does not turn a durable retirement into a reported failure.
+            Ok(()) => Ok(()),
+            Err(error) => {
+                budget.check()?;
+                Err(error)
+            }
+        }
+    }
+
+    /// Host inspection only. This checks the durable fence, not a process cache.
+    pub fn namespace_is_retired(&self, tenant: &str) -> Result<bool> {
+        self.require_operation("host.retention.inspect")?;
+        identifier(tenant)?;
+        let db = self.state.try_acquire()?;
+        db.query_row(
+            "SELECT EXISTS(SELECT 1 FROM retired_namespaces WHERE tenant=?1)",
+            [tenant],
+            |r| r.get(0),
+        )
+        .map_err(Into::into)
+    }
+
     fn replay(
         db: &Connection,
         tenant: &str,
@@ -341,6 +502,7 @@ impl Runtime {
         expected_digest: &str,
         max_bytes: usize,
     ) -> Result<Option<String>> {
+        Self::require_active_namespace(db, tenant)?;
         let found: Option<(String, Option<String>)> = db
             .query_row(
                 "SELECT digest,CASE WHEN length(CAST(reply AS BLOB))<=?3 THEN reply ELSE NULL END FROM requests WHERE tenant=?1 AND id=?2",
@@ -517,6 +679,7 @@ impl Runtime {
         };
         let (mut envelope, previous_text) = {
             let db = self.state.acquire(&budget)?;
+            Self::require_active_namespace(&db, tenant)?;
             let stored: Option<(String, i64, Option<String>)> = db
                 .query_row(
                     "SELECT image,version,CASE WHEN length(CAST(state AS BLOB))<=?3 THEN state ELSE NULL END FROM sessions WHERE tenant=?1 AND id=?2",

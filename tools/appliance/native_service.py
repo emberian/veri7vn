@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Untrusted private-loopback service for explicitly admitted pure native exports.
+"""Untrusted private-loopback service for explicitly admitted native exports.
 
 Run: python3 tools/appliance/native_service.py --config /operator/native.json
 The trusted bridge MUST isolate loopback from untrusted local processes and
 supply X-Mini-Oracle-Tenant itself. That header is routing, not authentication.
-No Engine, tenant worker, public data load, durable conversation or replay journal
-is created. Reusing request_id does fresh computation. Only the operator config
+Pure profiles compute supplied arguments. Runtime profiles add operator-fixed
+images and durable native conversations/replay without a Python Engine. Only operator config
 selects artifact paths, hashes, profiles and limits; requests cannot enable code.
 """
 from __future__ import annotations
@@ -21,6 +21,7 @@ import types
 
 from native_pool import NativePool, NativeProvider, NativeLimits, NativePoolError
 from native_worker import decode
+from native_runtime import RuntimeProfile
 from operations import Operations, OperationError
 from serve import Server, TENANT_KEY, IDENTIFIER, encode, failure
 
@@ -30,6 +31,7 @@ from oracle_components.native_science import NativeScienceOperations
 from oracle_components.native_incremental import NativeIncrementalOperations
 from oracle_components.native_bio import NativeBioOperations
 from oracle_components.native_statistics import NativeStatisticsOperations
+from oracle_components.native_runtime_adapter import NativeRuntimeOperations
 from oracle_components.reasoning import create_reasoning_operations
 
 _CONTEXT = ContextVar("native_service_request", default=None)
@@ -52,6 +54,7 @@ class NativeService:
         self.pool = pool_factory(providers, limits)
         admitted = []
         self.admissions = []
+        self.pool_provider_profiles = {provider.id: provider.profile for provider in providers}
         try:
             for provider in providers:
                 catalog_reply = self.pool.catalog("operator-startup", provider.id, cancellation=self.cancellation)
@@ -75,6 +78,8 @@ class NativeService:
                     adapter = NativeBioOperations(catalog, call, identity)
                 elif provider.profile == "statistics":
                     adapter = NativeStatisticsOperations(catalog, call, identity)
+                elif provider.profile == "runtime":
+                    adapter = NativeRuntimeOperations(catalog, call, identity)
                 else:
                     raise ValueError("unknown native profile")
                 # Only actual callable exports enter discovery. A malformed or
@@ -85,6 +90,9 @@ class NativeService:
                 admitted.append((adapter, declarations))
             if not admitted:
                 raise ValueError("at least one native provider is required")
+            self.runtime_operations = {declaration["id"] for adapter, declarations in admitted
+                                       if isinstance(adapter, NativeRuntimeOperations) for declaration in declarations}
+            self.stateful_operations = self.runtime_operations.intersection({"graph.execute", "kqa.execute", "reader.execute"})
             self.operations = Operations(None, self.config)
             for adapter, declarations in admitted:
                 self.operations.register_provider(adapter, declarations=declarations)
@@ -98,8 +106,10 @@ class NativeService:
             if context is None:
                 raise RuntimeError("host request context required")
             try:
-                result = self.pool.execute(context["tenant"], provider_id, request,
-                                           cancellation=self.cancellation)
+                options = {"cancellation": self.cancellation}
+                if self.pool_provider_profiles[provider_id] == "runtime":
+                    options["host_context"] = {key: context[key] for key in ("tenant", "request_id", "conversation_id")}
+                result = self.pool.execute(context["tenant"], provider_id, request, **options)
             except NativePoolError as error:
                 # Existing reasoning adapter converts exceptions to withholding;
                 # preserve host admission failures for the outer HTTP boundary.
@@ -114,22 +124,29 @@ class NativeService:
         if not isinstance(tenant, str) or not TENANT_KEY.fullmatch(tenant):
             raise OperationError("host_tenant_required", 400)
 
+    @property
+    def backend(self):
+        return "native_runtime_and_providers" if self.runtime_operations else "pure_native_providers"
+
     def health(self):
         pool_health = self.pool.health()
         return {**pool_health, "ready": pool_health["ready"] and not self.stopping,
-                "backend": "pure_native_providers", "durable_replay": False}
+                "backend": self.backend, "durable_replay": bool(self.stateful_operations)}
 
     def capabilities(self, tenant):
         try:
             self._tenant(tenant)
         except OperationError as error:
             return error.status, failure(error.code)
-        return 200, {"protocol": "oracle-appliance-v1", "backend": "pure_native_providers",
+        return 200, {"protocol": "oracle-appliance-v1", "backend": self.backend,
             "operation_discovery": {"protocol": "oracle-operations-v1", "list": "/operations",
                 "detail": "/operations/{operation_id}", "invoke": "/invoke", "state": "ready",
                 "counts": {"live_direct": len(self.operations.items), "text_only": 0, "unavailable": 0}},
-            "scope": "pure computations on supplied arguments; host-assigned tenant admission",
-            "durable_conversations": False, "durable_replay": False, "request_id_semantics": "correlation only; retries recompute",
+            "scope": "operator-admitted native operations; host-assigned tenant admission",
+            "durable_conversations": bool(self.stateful_operations), "durable_replay": bool(self.stateful_operations),
+            "durable_operations": sorted(self.stateful_operations),
+            "request_id_semantics": ("stateful native turns: exact core reply replay; pure calls: correlation only"
+                                     if self.stateful_operations else "correlation only; retries recompute"),
             "tenant_header_authentication": False, "mini_qualified": False,
             "providers": self.admissions}
 
@@ -163,22 +180,29 @@ class NativeService:
             return 400, failure("invalid_request")
         if self.stopping:
             return 503, failure("service_stopping")
-        context = {"tenant": tenant, "receipts": [], "errors": []}
+        context = {"tenant": tenant, "request_id": request["request_id"], "conversation_id": request["conversation_id"],
+                   "receipts": [], "errors": []}
+        stateful = request["operation_id"] in self.stateful_operations
         token = _CONTEXT.set(context)
         try:
             reply = self.operations.invoke(request["operation_id"], request["arguments"], request["conversation_id"])
             if context["errors"]:
                 raise context["errors"][0]
             result = {"outcome": "completed", "operation_id": request["operation_id"], "reply": reply,
-                      "native_execution": context["receipts"], "durable_replay": False}
+                      "native_execution": context["receipts"], "durable_replay": stateful}
             if len(encode(result)) > self.config.max_reply_bytes:
-                return 502, failure("reply_too_large", execution_completed=True, state_may_have_changed=False)
+                return 502, failure("reply_too_large", execution_completed=True, state_may_have_changed=stateful,
+                                    retryable=stateful, exact_retry_required=stateful)
             return 200, result
         except OperationError as error:
+            if request["operation_id"] in self.runtime_operations and context["receipts"]:
+                return 502, failure("native_adapter_invalid_reply", state_may_have_changed=stateful,
+                                    retryable=stateful, exact_retry_required=stateful)
             return error.status, failure(error.code, **error.details)
         except NativePoolError as error:
-            status = 429 if error.code in ("pool_busy", "tenant_busy") else 503
-            if error.code == "native_refused":
+            status = (409 if error.code == "runtime_conflict" else
+                      429 if error.code in ("pool_busy", "tenant_busy", "runtime_busy") else 503)
+            if error.code == "native_refused" and request["operation_id"] not in self.runtime_operations:
                 withheld = {"status": "withheld", "operation_id": request["operation_id"],
                             "reason": "native_request_refused"}
                 if error.detail is not None:
@@ -187,9 +211,12 @@ class NativeService:
                     withheld["authority"] = "computation_only"
                 return 200, {"outcome": "completed", "operation_id": request["operation_id"],
                              "reply": withheld, "durable_replay": False}
-            return status, failure(error.code, retryable=status == 429, state_may_have_changed=False)
+            uncertain = stateful and error.code not in ("pool_busy", "tenant_busy", "runtime_busy", "runtime_conflict", "native_start_failed")
+            return status, failure(error.code, retryable=status == 429 or uncertain,
+                                   state_may_have_changed=uncertain, exact_retry_required=uncertain)
         except (ValueError, TypeError, UnicodeError, RecursionError):
-            return 502, failure("native_adapter_invalid_reply", state_may_have_changed=False)
+            return 502, failure("native_adapter_invalid_reply", state_may_have_changed=stateful,
+                                retryable=stateful, exact_retry_required=stateful)
         finally:
             _CONTEXT.reset(token)
 
@@ -215,11 +242,16 @@ def read_config(path):
         raise ValueError("invalid provider list")
     providers = []
     for row in rows:
-        if not isinstance(row, dict) or set(row) != {"id", "extension", "sha256", "profile"} or any(not isinstance(v, str) for v in row.values()):
+        required = {"id", "extension", "sha256", "profile"}
+        if (not isinstance(row, dict) or set(row) not in (required, required | {"runtime"})
+                or any(not isinstance(row[k], str) for k in required)):
             raise ValueError("invalid provider declaration")
         if not Path(row["extension"]).is_absolute():
             raise ValueError("operator extension path must be absolute")
-        providers.append(NativeProvider(**{**row, "extension": Path(row["extension"])}))
+        if (row["profile"] == "runtime") != ("runtime" in row):
+            raise ValueError("runtime provider requires operator runtime configuration")
+        runtime = RuntimeProfile.from_dict(row["runtime"]) if "runtime" in row else None
+        providers.append(NativeProvider(**{**row, "extension": Path(row["extension"]), "runtime": runtime}))
     options = document.get("limits", {})
     if not isinstance(options, dict):
         raise ValueError("invalid limits")
@@ -246,7 +278,7 @@ def main():
         signal.signal(signal.SIGTERM, stop)
         signal.signal(signal.SIGINT, stop)
         print(json.dumps({"listening": f"http://127.0.0.1:{server.server_port}",
-                          "backend": "pure_native_providers", "durable_replay": False}), flush=True)
+                          "backend": service.backend, "durable_replay": bool(service.stateful_operations)}), flush=True)
         server.serve_forever(poll_interval=0.2)
     finally:
         service.cancellation.set()

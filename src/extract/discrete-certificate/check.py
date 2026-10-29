@@ -2,17 +2,18 @@
 """UNTRUSTED JSONL/process adapter for the extracted external MST predicate.
 
 Schema validation, graph classification, edge-ID projection, hashes and evidence
-framing here are not proved in Isabelle. Only a successful extracted predicate
-supports the connected-tree theorem described in README.md. No candidate is
-computed or repaired here. Resource containment beyond the timeout is the host's.
+framing here are not proved in Isabelle. The native host owns process reuse,
+deadline, cancellation and cleanup. A predicate success gets HOL scope only with
+an operator-admitted compiled proof receipt. No candidate is repaired here.
 """
 from __future__ import annotations
 
 import argparse
+import importlib.util
+import os
 import hashlib
 import json
 from pathlib import Path
-import subprocess
 import sys
 from typing import Any
 
@@ -21,8 +22,6 @@ RESULT = "veri7vn-mst-certificate-result-v1"
 MAX_VERTICES = 64
 MAX_EDGES = 256
 MAX_LINE_BYTES = 65536
-THEOREMS = ["Mst_Certificate_Export.external_mst_cert_spans",
-            "Mst_Certificate_Export.external_mst_cert_minimal"]
 
 
 class Invalid(ValueError):
@@ -90,41 +89,84 @@ def validate(request: Any) -> tuple[int, list, list[int], int]:
     return n, edges, ids, len({find(a) for a in range(n)})
 
 
-def check(request: Any, checker: Path, timeout: float = 10.0) -> dict:
-    n, edges, ids, components = validate(request)
-    bound = json.dumps({"graph": request["graph"], "edge_ids": ids},
-                       sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode()
-    result = {"schema": RESULT, "id": request.get("id"),
-              "input_sha256": hashlib.sha256(bound).hexdigest(),
-              "vertices": n, "edges": len(edges), "components": components,
-              "edge_ids": ids, "total_weight": str(sum(edges[i][2] for i in ids))}
-    if n < 2 or components != 1:
-        return result | {"status": "unsupported", "reason": "requires a connected graph with at least two declared vertices",
-                         "evidence": {"kind": "none", "scope": "connected_mst_only"}}
-    protocol = f"mst-cert-v1 {n} {len(edges)} {len(ids)}\n"
-    protocol += "".join(f"{a} {b} {w}\n" for a, b, w in edges)
-    protocol += "".join(f"{i}\n" for i in ids)
-    # Bind the file consumed at invocation time. Hosts must keep executables
-    # immutable while running; a path/hash is evidence framing, not attestation.
-    binary_sha = hashlib.sha256(checker.read_bytes()).hexdigest()
-    try:
-        run = subprocess.run([str(checker)], input=protocol, text=True,
-                             capture_output=True, timeout=timeout, check=False)
-    except subprocess.TimeoutExpired:
-        return result | {"status": "error", "reason": "extracted checker timeout",
-                         "evidence": {"kind": "none"}}
-    if run.returncode != 0 or run.stdout not in ("accept\n", "reject\n"):
-        return result | {"status": "error", "reason": "extracted checker failed or returned malformed output",
-                         "evidence": {"kind": "none"}}
-    accepted = run.stdout == "accept\n"
-    return result | {"status": "accepted" if accepted else "rejected",
-                     "evidence": {"kind": "extracted_hol_connected_mst" if accepted else "certificate_rejected",
-                                  "scope": "connected_mst_only",
-                                  "predicate": "Mst_Certificate_Export.external_mst_cert",
-                                  "session": "Veri7vn_Discrete_Certificate",
-                                  "theorems": THEOREMS if accepted else [],
-                                  "checker_sha256": binary_sha,
-                                  "adapter": "untrusted JSON, edge-ID projection and process framing"}}
+def load_native():
+    """Load an operator-selected extension, or the normally installed module."""
+    extension = os.environ.get("ORACLE_NATIVE_EXTENSION")
+    if extension:
+        spec = importlib.util.spec_from_file_location("oracle_native", extension)
+        if spec is None or spec.loader is None:
+            raise Invalid("cannot load native extension")
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
+    import oracle_native
+    return oracle_native
+
+
+def observed_binary_sha256(path: Path) -> str:
+    """Observe bounded binary bytes without treating their digest as a proof."""
+    digest = hashlib.sha256()
+    total = 0
+    with path.open("rb") as source:
+        while chunk := source.read(16384):
+            total += len(chunk)
+            if total > 32 * 1024 * 1024:
+                raise Invalid("checker exceeds native executable byte bound")
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+class ResidentChecker:
+    """UNTRUSTED JSON facade; native host owns all process containment/reuse.
+
+    Construct once for a stream/batch. The observed default binary digest is
+    byte identity only. HOL evidence additionally requires a compiled receipt
+    explicitly selected and hash-admitted by an authenticated operator.
+    """
+    def __init__(self, checker: Path, timeout: float = 10.0, *,
+                 checker_sha256: str | None = None,
+                 compiled_receipt: Path | None = None,
+                 compiled_receipt_sha256: str | None = None):
+        if not 0 < timeout <= 60:
+            raise Invalid("timeout must be in (0, 60]")
+        checker = checker.resolve()
+        descriptor = {"id": "mst", "executable": str(checker),
+                      "sha256": checker_sha256 or observed_binary_sha256(checker),
+                      "family": "mst_certificate"}
+        if (compiled_receipt is None) != (compiled_receipt_sha256 is None):
+            raise Invalid("compiled receipt path and operator-trusted SHA-256 must be supplied together")
+        if compiled_receipt is not None:
+            descriptor["compiled_receipt"] = {"path": str(compiled_receipt.resolve()),
+                                               "sha256": compiled_receipt_sha256}
+        self.native = load_native()
+        self.executor = self.native.KernelExecutor(json.dumps([descriptor]), json.dumps(
+            {"workers": 1, "timeout_ms": max(1, int(timeout * 1000)),
+             "request_bytes": MAX_LINE_BYTES, "reply_bytes": 128}))
+        self.tenant = self.executor.tenant("certificate-cli")
+
+    def check(self, request: Any) -> dict:
+        validate(request)  # Independent JSON/universe/ID check; native repeats it.
+        wire = self.tenant.check_mst("mst", json.dumps(request["graph"], separators=(",", ":")),
+                                     json.dumps(request["edge_ids"]), self.native.Cancellation())
+        result = json.loads(wire)
+        return result["reply"] | {"schema": RESULT, "id": request.get("id"),
+                                  "admission": result["admission"],
+                                  "worker_pid": result["worker_pid"]}
+
+    def minimum_spanning_forest(self, graph: dict) -> dict:
+        """Use the real Rust producer/checker and the same resident HOL checker.
+
+        Requires the extension's optional reasoning feature. A disconnected
+        forest retains Rust checking and an unsupported HOL scope result.
+        """
+        validate({"schema": SCHEMA, "graph": graph, "edge_ids": []})
+        return json.loads(self.tenant.minimum_spanning_forest(
+            "mst", json.dumps(graph, separators=(",", ":")), self.native.Cancellation()))
+
+
+def check(request: Any, checker: ResidentChecker) -> dict:
+    """Check with an already constructed resident host; never fork per request."""
+    return checker.check(request)
 
 
 def error(reason: str) -> dict:
@@ -137,10 +179,19 @@ def main() -> int:
     ap.add_argument("--checker", type=Path, default=Path(__file__).resolve().parents[3] /
                     "var/discrete-certificate/bin/mst-certificate")
     ap.add_argument("--timeout", type=float, default=10.0)
+    ap.add_argument("--checker-sha256", help="operator-trusted executable digest; default observes bytes only")
+    ap.add_argument("--compiled-receipt", type=Path)
+    ap.add_argument("--compiled-receipt-sha256", help="operator-trusted managed compiler receipt digest")
     args = ap.parse_args()
     if not 0 < args.timeout <= 60:
         ap.error("timeout must be in (0, 60]")
-    checker = args.checker.resolve()
+    try:
+        checker = ResidentChecker(args.checker, args.timeout, checker_sha256=args.checker_sha256,
+                                  compiled_receipt=args.compiled_receipt,
+                                  compiled_receipt_sha256=args.compiled_receipt_sha256)
+    except (ValueError, OSError, ImportError, RuntimeError) as exc:
+        print(json.dumps(error(str(exc)), separators=(",", ":")), flush=True)
+        return 1
     while True:
         raw = sys.stdin.buffer.readline(MAX_LINE_BYTES + 1)
         if not raw:
@@ -153,8 +204,8 @@ def main() -> int:
             continue
         else:
             try:
-                response = check(parse(raw), checker, args.timeout)
-            except (ValueError, TypeError, UnicodeError, OSError, RecursionError) as exc:
+                response = check(parse(raw), checker)
+            except (ValueError, TypeError, UnicodeError, OSError, RuntimeError, RecursionError) as exc:
                 response = error(str(exc))
         print(json.dumps(response, separators=(",", ":"), ensure_ascii=True), flush=True)
     return 0

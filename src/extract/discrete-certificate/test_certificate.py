@@ -1,4 +1,8 @@
-"""Focused integration tests; require the managed, compiled checker. No mock acceptor."""
+"""Focused integration tests; require the v2 checker and actual PyO3 extension.
+
+Set ORACLE_NATIVE_EXTENSION for an explicit extension path. Optional reasoning
+feature exercises actual Rust candidate composition; no mock confers HOL scope.
+"""
 import importlib.util
 import json
 import os
@@ -20,12 +24,19 @@ def request(n, edges, ids):
 
 
 class CertificateTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        receipt = os.environ.get("MST_COMPILED_RECEIPT")
+        cls.checker = adapter.ResidentChecker(CHECKER,
+            compiled_receipt=Path(receipt) if receipt else None,
+            compiled_receipt_sha256=os.environ.get("MST_COMPILED_RECEIPT_SHA256"))
+
     def check_candidate(self, n, edges, ids, status):
-        result = adapter.check(request(n, edges, ids), CHECKER)
+        result = adapter.check(request(n, edges, ids), self.checker)
         self.assertEqual(result["status"], status, result)
         self.assertEqual(result["total_weight"], str(sum(edges[i][2] for i in ids)))
         self.assertEqual(result["edge_ids"], ids)
-        if status == "accepted":
+        if status == "accepted" and os.environ.get("MST_COMPILED_RECEIPT"):
             self.assertEqual(result["evidence"]["kind"], "extracted_hol_connected_mst")
             self.assertEqual(len(result["evidence"]["theorems"]), 2)
         else:
@@ -50,7 +61,7 @@ class CertificateTests(unittest.TestCase):
 
     def test_forged_edge_id(self):
         with self.assertRaises(adapter.Invalid):
-            adapter.check(request(2, [[0, 1, 4]], [1]), CHECKER)
+            adapter.check(request(2, [[0, 1, 4]], [1]), self.checker)
 
     def test_negative_weights(self):
         self.check_candidate(3, [[0, 1, -9], [1, 2, -3], [0, 2, 0]], [0, 1], "accepted")
@@ -78,16 +89,53 @@ class CertificateTests(unittest.TestCase):
                     request(2, [[0, 2, 1]], [0]),
                     request(65, [], [])):
             with self.assertRaises(adapter.Invalid):
-                adapter.check(bad, CHECKER)
+                adapter.check(bad, self.checker)
         with self.assertRaises(adapter.Invalid):
             adapter.parse(b'{"schema":"x","schema":"y"}')
 
-    def test_explicit_vertex_coverage_in_extracted_predicate(self):
-        # Bypass Python classification: the HOL wrapper itself must reject an
-        # explicitly declared isolated vertex omitted from edge-derived nodes.
-        run = subprocess.run([str(CHECKER)], input="mst-cert-v1 3 1 1\n0 1 4\n0\n",
-                             text=True, capture_output=True, check=True)
-        self.assertEqual(run.stdout, "reject\n")
+    def test_explicit_vertex_coverage_in_resident_adapter(self):
+        run = subprocess.run([str(CHECKER)],
+            input="mst-cert-v2 9 3 1 1 0 1 4 0\n", text=True, capture_output=True, check=True)
+        self.assertEqual(run.stdout, "mst-cert-v2 9 unsupported\n")
+
+    def test_valid_bad_unsupported_and_valid_use_same_owned_pid(self):
+        graph = [[0, 1, 4], [1, 2, 1], [0, 2, 7]]
+        responses = [self.check_candidate(3, graph, [0,1], "accepted"),
+                     self.check_candidate(3, graph, [0,2], "rejected"),
+                     self.check_candidate(4, graph, [0,1], "unsupported"),
+                     self.check_candidate(3, graph, [0,1], "accepted")]
+        self.assertEqual(len({r["worker_pid"] for r in responses}), 1)
+
+    def test_malformed_oversized_and_unterminated_native_frames_exit(self):
+        for raw in ["mst-cert-v2 0 2 1 1 0 1 4 0",  # missing delimiter
+                    "mst-cert-v2 0 2 1 1 0 1 4 0 extra\n",
+                    "mst-cert-v2 0 2 1 1 0 1 4 0\t\n",
+                    "mst-cert-v2 0 2 1 1 0 1 +4 0\n",
+                    "mst-cert-v2 0 2 1 1 0 1 4 1\n",  # forged ID
+                    "x" * 65536 + "\n"]:
+            run = subprocess.run([str(CHECKER)], input=raw, text=True,
+                                 capture_output=True, timeout=10)
+            self.assertNotEqual(run.returncode, 0)
+            self.assertEqual(run.stdout, "")
+
+    def test_actual_rust_candidates_compose_with_same_checker(self):
+        if not hasattr(self.checker.tenant, "minimum_spanning_forest"):
+            self.skipTest("requires the native extension reasoning feature")
+        pid = None
+        for graph, status in [
+            ({"vertices":3,"edges":[[0,1,4],[1,2,-2],[0,2,9]]}, "accepted"),
+            ({"vertices":2,"edges":[[0,1,4],[0,1,-2],[0,1,-2]]}, "accepted"),
+            ({"vertices":4,"edges":[[0,1,4],[2,3,1]]}, "unsupported"),
+            ({"vertices":3,"edges":[[0,1,-(1 << 63)],[1,2,-(1 << 63)],[0,2,0]]}, "accepted")]:
+            result = self.checker.minimum_spanning_forest(graph)
+            forest, certificate = result["rust_forest"], result["certificate"]
+            self.assertIn("independent Rust", forest["check"])
+            self.assertEqual(certificate["reply"]["edge_ids"], forest["edge_ids"])
+            self.assertEqual(certificate["reply"]["total_weight"], forest["total_weight"])
+            self.assertEqual(certificate["reply"]["status"], status)
+            if pid is None:
+                pid = certificate["worker_pid"]
+            self.assertEqual(certificate["worker_pid"], pid)
 
     def test_jsonl_consumer_keeps_working_after_bad_input(self):
         good = request(2, [[0, 1, 9223372036854775807]], [0])
