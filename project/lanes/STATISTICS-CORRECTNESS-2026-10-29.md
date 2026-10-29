@@ -42,7 +42,9 @@ suite, `binomial-probability-binding.patch` and `pr-description.md`.
 Current Hugging Face main was checked with `git ls-remote` and the 15 source,
 panel, manifest and scorer files fetched at
 `c473d28914e480425adb29b4f7f42485b8cfb4e3`. Tracked UPSTREAM lane reports had no
-statistics repair. No public message, PR or commit has been made by this lane.
+statistics repair. Root published [upstream PR #9](https://huggingface.co/psiloceyeben/oracle7-slim/discussions/9)
+after review, commit `cdd14607b000fcaff5a3e317ee4c7bd3c6ec42a6`. It is open;
+upstream acceptance is not claimed. Publication receipt: `published.json`.
 The original `upstream/` remains read-only.
 
 ## Upstream checks and exact panel counts
@@ -86,5 +88,5 @@ Root promoted artifact `d02e017b383f54e8fbc69dfde24b990d23ffbdf6ad80688e6142c1b2
 to the registered local consumer `var/geostats/bin/geostats`, preserving the old
 binary under `var/geostats/promotions/20261029-binomial-binding/`. Evidence:
 `native/evidence/2026-10-29-geostats-binding.json`. Existing packaged appliances
-have not been rebuilt by this promotion. Publishing the upstream draft remains
-separate; no whole Engine/fleet qualification is claimed.
+have not been rebuilt by this promotion. The upstream patch is published separately as PR #9; no whole Engine/fleet
+qualification is claimed.

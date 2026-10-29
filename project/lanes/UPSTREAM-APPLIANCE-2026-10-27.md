@@ -96,3 +96,18 @@ Which parts would be most useful to standardize upstream, and is there a
 preferred route for submitting small independently reviewable repairs and
 qualification cases? We can keep host-specific Mini policy separate while
 making the Oracle-facing contracts and checks reusable elsewhere.
+
+## Native checkpoint update — 29 October 2026
+
+Posted the committed native/appliance cut `6cc653b` to the existing
+[discussion #5](https://huggingface.co/psiloceyeben/oracle7-slim/discussions/5),
+comment `6ae2e824fff971cffcad0d1b`. The update links the standalone service,
+provider examples, source-bound validation and reader ABBA measurements. It
+separates the qualified pure-provider service and durable core from the runtime
+HTTP, nested-reader, resident-checker and retention work still being integrated.
+No full Oracle Engine replacement or fresh Mini qualification is claimed.
+
+Body and publication receipt remain under `var/upstream-native-20261029/`
+(`update-6cc653b.md`, `update-6cc653b-posted.json`). Reviewable correctness fixes
+are separate PRs: [biology direction #8](https://huggingface.co/psiloceyeben/oracle7-slim/discussions/8)
+and [binomial probability binding #9](https://huggingface.co/psiloceyeben/oracle7-slim/discussions/9).
