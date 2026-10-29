@@ -35,7 +35,7 @@ Current `tools/` adapters are repository source, not that upstream snapshot.
 
 | Capability and actual source | Native direction and authored code | Integration and qualification still required |
 | --- | --- | --- |
-| KQA records, concepts and relations: `swarm/steps_kb.py::KQA` materializes JSON as Python objects. | Shared indexed SQLite image in `image.rs`; complete query graphs and explicit worker scratch in `query.rs`. No per-tenant corpus graph. | Initial relation/concept subset has the retained comparison above. Rebuild and compare the new indexes, attributes and complete programs on the same admitted real data. |
+| KQA records, concepts and relations: `swarm/steps_kb.py::KQA` materializes JSON as Python objects. | Shared indexed SQLite image in `image.rs`; complete query graphs and explicit worker scratch in `query.rs`. No per-tenant corpus graph. | The initial relation/concept comparison and subsequent complete-program receipt cover bounded real-data samples. Wider semantic coverage and sustained concurrent serving remain to be qualified. |
 | Typed values, statement qualifiers and scalar queries: `steps_kb.py::Value`, `parse_input`, `compare` and KQA methods. | `value.rs` has bounded exact rational quantities, units and calendar precision. `query.rs` has typed attribute/qualifier evidence, unique projections, verification and selection. | Source is authored and consumed by the query compiler. Independent cases and the bounded complete-program comparison now run through these APIs. Ambiguous values, ties and incompatible units deliberately refuse rather than select an arbitrary first value. No theorem claim attaches to handwritten Rust. |
 | Complete structured programs: KQA's named `function/dependencies/inputs` lists. | `program.rs` maps every operation in the pinned 27-operation source interface into one checked graph; dependencies, types, arities and scalar syntax are explicit. | Distinct program APIs and original-byte/dialect retry binding are integrated. The retained gold-program comparison exercises every pinned operation; this does not qualify every natural-language specialist. [Program report](../../project/lanes/NP-program.md) names deliberate differences and the authored qualification tool. |
 | Release vocabulary: Reader4's repeated KB scans, Reader7's aliases/plurals and normalization. | `lexicon.rs` builds an indexed typed vocabulary once, streams bounded records, preserves canonical spelling alternatives, and returns overlapping lexical spans. | Builder/open/whole-reader consumers are integrated and tested. The real-corpus receipt measures memory separately from manufacturing. Possessive normalization runs once; collisions retain alternatives. [Lexicon report](../../project/lanes/NL-lexicon.md). |
@@ -134,8 +134,9 @@ restart replay without evaluation; changed code/profile/data/declaration
 refusal for both retained replies and sessions; image/profile/required-schema
 mismatch before state-file creation; unavailable/offline/contained operation
 gates before evaluation or replay; and refusal to reuse release-bound history
-through the data-only development constructor. These are authored tests,
-not retained passing results. Fixture deployment measurements are synthetic;
+through the data-only development constructor. Passing results are retained in
+the [serving validation](../evidence/2026-10-28-serving-validation.json).
+Fixture deployment measurements are synthetic;
 they do not independently attest runtime executables.
 
 The optional `appliance_receipt_sha256` binds the exact existing `APPLIANCE.json`

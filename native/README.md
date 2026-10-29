@@ -17,7 +17,10 @@ This is not the complete Oracle Engine and is not installed in signed v7.
 Compositional language readers, the full route cascade and dialogue adapters,
 additional specialists and real effect executors remain. The [migration
 map](docs/MIGRATION.md) identifies those surfaces and the practical Python
-boundaries. There are no new specialist-panel or theorem claims.
+boundaries. The [development roadmap](docs/ROADMAP.md) sets out the shared
+runtime design, extracted-code strategy, candidate specialist libraries and
+performance evidence needed for an upstream proposal. There are no new
+specialist-panel or theorem claims.
 
 ## What runs
 
