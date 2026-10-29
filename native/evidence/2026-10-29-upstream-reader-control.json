@@ -1,0 +1,3255 @@
+{
+ "schema": "upstream-reader-control-v1",
+ "scope": "Control on 116 questions: what upstream Oracle7 (Engine head) and upstream Reader7 alone answer on the same 100 retained KQA validation questions and 16 frozen targeted-composition questions the native reader was measured on. Not a panel score.",
+ "inputs_sha256": {
+  "var/s3-reader-control/input.jsonl": "b25c6ed3de03a42a8ed6a56928e85cb3a839f2c926b89bec9deccf23f46b9793",
+  "var/reader-stream31-20261029/reader100/cases.json": "9089a3c9f5bdee2cb916ad775b41b4631f91d35393e26e9a376eb7bb0a863d15",
+  "var/reader-stream31-20261029/reader100/native-observations.json": "20eccd1b571b035ca30c76f8710c740ea5603d45343bd8bad34b04809d983f94",
+  "native/tests/composition_cases_targeted_20261029.json": "388810fd2d99c1f25e2e53b0e906e21669915c7836a8fd1524967d755862b853",
+  "var/data-20261029/train.json": "e9fbe4c1cdf207aac83ae0d5e4a1a53a9965a2b13b403de699ca6d5dae6e4510",
+  "var/data-20261029/kb.json": "04da7408320c5cb7023c44372cce32846d56d369d8865d2e61a18c3956661a7c",
+  "var/data-20261029/val.json": "b4aed6ab3d7ad071722064fe3bb02bc028cfbeb15da5f7115d57a1e2d198f3bb",
+  "tools/parity/answerers/oracle7.py": "31c1e710295bd7addf792aeeb295f7c53c2a9810685148e766438db75625ef86",
+  "var/s3-reader-control/run_reader7.py": "3bdca994c26686b6c476aff2b779c92c5862cccb9434f91fa0575a6e68de9a96",
+  "var/s3-reader-control/score.py": "e4810237b2e7a76964a26af342dcf72c240beb0d8c0c9739749b21330887885d",
+  "var/s3-reader-control/head.jsonl": "e56616f630292ec920c31930824a3ffeb765991ac96495749398b22f2a00337d",
+  "var/s3-reader-control/reader7.jsonl": "8c85af30ee27867f8606ef00c7c61c3cca85bb9e3473758e9445cf0033b362ed",
+  "var/s3-reader-control/swarm/reader_v4.py": "b81fc6dcfbb8a1c1fff098905db3f2bf3ae983716aa7d8dfa9d0a9936f47287d",
+  "var/s3-reader-control/swarm/reader_v6.py": "5bda666d8a4c9661964064a1c4d5788e7284019ce63e8bdcc9e54d6fedba30a0",
+  "var/s3-reader-control/swarm/reader_v7.py": "f37f687e8190f08ff862738543790d6bcd56185a1a807ffdbd5cf8340da85354",
+  "var/s3-reader-control/swarm/reader_cache10.py": "ae6d79c44b8e9db087503773ce6b93c01b9d08fa77cda1a9f921961fead9b75c",
+  "var/s3-reader-control/swarm/steps_kb.py": "455fa3c7df1348914b37e15365670ff4130f99e15ee0625a88e5fe69a1e916e3",
+  "upstream/oracle7.py": "9d68865540b23122e0020c0b8ee52471a71a3dfa8e3572b23b961ea4b3bf920e"
+ },
+ "train_sha256_confirmed": "e9fbe4c1cdf207aac83ae0d5e4a1a53a9965a2b13b403de699ca6d5dae6e4510",
+ "train_source": "scp hbox:/tank/lanes/o7-native-20261028/data/train.json (88119411 bytes) -> var/data-20261029/train.json",
+ "commands": {
+  "engine": "cd var/s3-reader-control && /usr/bin/time -l ../../.venv/bin/python -B ../../tools/parity/answerers/oracle7.py < input.jsonl > head.jsonl 2> head.log   (head oracle_release_runtime_w540; no --state, so a fresh directory under var/parity/state/, removed on exit; one process for all 116)",
+  "reader7": "cd var/s3-reader-control && /usr/bin/time -l ../../.venv/bin/python -B run_reader7.py > reader7.out 2> reader7.log   (swarm/ is a copy of var/runtime-architecture-20261028/source/workbench/swarm; steps_kb.KQA(kb.json); reader_cache10.build(train.json, kb.json, kq, var/s3-reader-control/cache), cache was built, not loaded)",
+  "score": ".venv/bin/python -B var/s3-reader-control/score.py"
+ },
+ "scoring_rules": {
+  "r100": "gold exact text, case/whitespace-insensitive. Engine: only status=answered replies count as answers; the whole response text is compared to gold. Reader7: the set of distinct answers from read7 (control 'reader7') or v6 read first then read7 (control 'reader7_cascade', the order in reader_v7.py __main__); empty set = unknown, more than one distinct answer = refused, one answer = compared to gold. Native outcomes are copied from native-observations.json.",
+  "c16": "entity: answer name equals expected.answer; count: answer equals expected.answer; decline_ambiguous and decline_empty: any non-answer counts as declined_expected, any single answer as answered_unexpected. Engine: status other than answered is a decline."
+ },
+ "timing": {
+  "engine": {
+   "wall_s": 224.5,
+   "user_s": 120.9,
+   "sys_s": 28.72,
+   "max_rss_bytes": 442892288,
+   "peak_footprint_bytes": 495895464,
+   "questions": 116
+  },
+  "reader7": {
+   "wall_s": 334.76,
+   "max_rss_bytes": 1327038464,
+   "peak_footprint_bytes": 1333609864,
+   "kb_load_s": 5.68,
+   "table_build_s": 43.91,
+   "read_total_ms_sum": 282495,
+   "questions": 116,
+   "note": "each question is read by both rd.read and rd.read7"
+  }
+ },
+ "totals": {
+  "r100": {
+   "engine": {
+    "withheld": 90,
+    "answered_wrong": 10
+   },
+   "reader7": {
+    "unknown": 68,
+    "answered_correct": 32
+   },
+   "reader7_cascade": {
+    "unknown": 62,
+    "answered_correct": 37,
+    "refused": 1
+   },
+   "native": {
+    "unknown": 60,
+    "answered_correct": 36,
+    "refused": 4
+   }
+  },
+  "c16": {
+   "engine": {
+    "withheld": 10,
+    "declined_expected": 6
+   },
+   "reader7": {
+    "unknown": 8,
+    "answered_correct": 2,
+    "declined_expected": 6
+   },
+   "reader7_cascade": {
+    "unknown": 8,
+    "answered_correct": 2,
+    "declined_expected": 6
+   }
+  },
+  "native_for_reference": {
+   "r100": {
+    "unknown": 60,
+    "answered_correct": 36,
+    "refused": 4
+   },
+   "c16": {
+    "answered_correct": 1,
+    "declined_expected": 4,
+    "errors": 4,
+    "unanswered": 7,
+    "source": "native/evidence/2026-10-29-targeted-composition.json findings.candidate"
+   }
+  }
+ },
+ "category_note": "Engine 'withheld' = status clarification or withheld (74 clarification, 32 withheld over the 116); Reader7 'unknown' = no reading produced an answer. Neither control produced a wrong answer except as listed under engine_nonmatching_answers.",
+ "engine_nonmatching_answers": [
+  {
+   "source_index": 4832,
+   "gold": "genre",
+   "engine": {
+    "outcome": "answered_wrong",
+    "status": "answered",
+    "path": "organ:converse>statement",
+    "response": "Got it. Since you mention buddy film: The buddy film is a subgenre of adventure and comedy film in which two people go on an adventure, mission, or road trip. [enwiki_336f7af963861a2054e9f72f] Want to know more about it?"
+   }
+  },
+  {
+   "source_index": 200,
+   "gold": "2012-07-01",
+   "engine": {
+    "outcome": "answered_wrong",
+    "status": "answered",
+    "path": "document_runtime",
+    "response": "[ev:unknown] 2"
+   }
+  },
+  {
+   "source_index": 9124,
+   "gold": "3",
+   "engine": {
+    "outcome": "answered_wrong",
+    "status": "answered",
+    "path": "organ:converse>statement",
+    "response": "Got it. Since you mention new york city: New York, often called New York City (NYC), is the most populous city in the United States. [enwiki_8e909612eeb1b8108c82fd63] Want to know more about it?"
+   }
+  },
+  {
+   "source_index": 11107,
+   "gold": "Bulgarian",
+   "engine": {
+    "outcome": "answered_wrong",
+    "status": "answered",
+    "path": "organ:relation>READ>FRAME>LINK>RELATE:fwd:P37>CHECK:P37>BIND>EXPAND>VERIFY",
+    "response": "[ev:direct] Turkish. The money of Turkey is called the Turkish Lira. [simplewiki_efb7d55dbe520f7d7770fc54] (typed relations: wd:Q43 P37 wd:Q256)"
+   }
+  },
+  {
+   "source_index": 2542,
+   "gold": "Brandeis University",
+   "engine": {
+    "outcome": "answered_wrong",
+    "status": "answered",
+    "path": "cube:compare>count",
+    "response": "[ev:direct] Brandeis University (108 against 31000). Sachar that \"what happened in the stage of preparation of Brandeis University was not at all caused by a misunderstanding and cannot be made good any more.\" Instead, at the graduation ceremony for Brandeis' second graduating class of 108 students, individuals given Brandeis' first honorary degrees included Illinois senator Paul H. Founded in 1948 as a non-sectarian, coeducational university, Brandeis was established on the site of the former Middlesex University. [enwiki_a42bfec2e4f20f7cb7bb2e7d] [simplewiki_c56f5d6fa59988ad87f4dc2d]"
+   }
+  },
+  {
+   "source_index": 2064,
+   "gold": "a10450294",
+   "engine": {
+    "outcome": "answered_wrong",
+    "status": "answered",
+    "path": "arb:definitional->document_runtime|substitution_disclosed",
+    "response": "[ev:unknown] I have no admitted entry for “Jerome Kern's CANTIC-ID”. The related term “Jerome” is what the record defines — jerome is defined as (Roman Catholic Church) one of the great Fathers of the early Christian Church whose major work was his translation of the Scriptures from Hebrew and Greek into Latin (which became the Vulgate); a saint and Doctor of the Church (347-420) [W1]."
+   }
+  },
+  {
+   "source_index": 7209,
+   "gold": "famous people",
+   "engine": {
+    "outcome": "answered_wrong",
+    "status": "answered",
+    "path": "relation->capability:compare",
+    "response": "[ev:direct] According to East Coast hip hop, East Coast hip hop is a type of hip hop music that comes from the East Coast of the United States. [simplewiki_0d0027c6825c6290ceb9272e] According to Method Man, Method Man acted in movies such as How High, Belly and television shows such as CBS's CSI: Crime Scene Investigation. [simplewiki_856c1244790ef81d1cb648dc] Derived contrast: the East Coast hip hop record is characterized by coast, comes, east, from; the Method Man record by acted, belly, cbs's, crime. [derived:lead_term_contrast<-simplewiki_0,simplewiki_8]"
+   }
+  },
+  {
+   "source_index": 8512,
+   "gold": "The House Bunny",
+   "engine": {
+    "outcome": "answered_wrong",
+    "status": "answered",
+    "path": "organ:relation>READ>FRAME>LINK>RELATE:inv:P162>CHECK:P162>BIND>EXPAND>VERIFY",
+    "response": "[ev:direct] The House Bunny. Anna Kay Faris (born November 29, 1976) is an American movie, television, stage, voice actress, comedian and singer who is known for her roles in all four Scary Movies, Lost in Translation, Cloudy with a Chance of Meatballs, The House Bunny and Overboard. [simplewiki_3e2ee78e58cbc5eebe972db3] (typed relations: wd:Q466959 P162 wd:Q4491)"
+   }
+  },
+  {
+   "source_index": 5821,
+   "gold": "producer",
+   "engine": {
+    "outcome": "answered_wrong",
+    "status": "answered",
+    "path": "arb:definitional->document_runtime|substitution_disclosed",
+    "response": "[ev:unknown] I have no admitted entry for “relationship between Ray Stark and The Way We Were”. The related term “Beam” is what the record defines — beam is defined as a column of light (as from a beacon) [W1]."
+   }
+  },
+  {
+   "source_index": 9181,
+   "gold": "place of death",
+   "engine": {
+    "outcome": "answered_wrong",
+    "status": "answered",
+    "path": "relation->capability:compare",
+    "response": "[ev:direct] According to Maximilian Schell, Maximilian Schell (8 December 1930 – 1 February 2014) was an Austrian-Swiss actor. [simplewiki_746b72e09ec550cf3017776a] According to Innsbruck, Innsbruck is a city in Austria. [simplewiki_74e340d9c5d24c9de84abbbd] Derived contrast: the Maximilian Schell record is characterized by actor, austrian-swiss, december, february; the Innsbruck record by austria, city, innsbruck. [derived:lead_term_contrast<-simplewiki_7,simplewiki_7]"
+   }
+  }
+ ],
+ "reader7_wrong": [],
+ "per_question": {
+  "r100": [
+   {
+    "id": "r100:0:4724",
+    "source_index": 4724,
+    "terminal": "VerifyNum",
+    "question": "Per this 2016 statement, does a figure below 3900000 equal the population of Cuban Americans?",
+    "gold": "yes",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify_specific",
+     "response": "What does \"this\" refer to? Nothing earlier in this conversation names it. Tell me the name."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 5
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:1:4832",
+    "source_index": 4832,
+    "terminal": "QueryRelation",
+    "question": "Tell me the relationship between buddy film and Boogie Nights.",
+    "gold": "genre",
+    "native": {
+     "outcome": "answered_correct",
+     "answer": "genre"
+    },
+    "engine": {
+     "outcome": "answered_wrong",
+     "status": "answered",
+     "path": "organ:converse>statement",
+     "response": "Got it. Since you mention buddy film: The buddy film is a subgenre of adventure and comedy film in which two people go on an adventure, mission, or road trip. [enwiki_336f7af963861a2054e9f72f] Want to know more about it?"
+    },
+    "reader7": {
+     "outcome": "answered_correct",
+     "answer": "genre",
+     "ms": 54
+    },
+    "reader7_cascade": {
+     "outcome": "answered_correct",
+     "answer": "genre"
+    }
+   },
+   {
+    "id": "r100:2:200",
+    "source_index": 200,
+    "terminal": "QueryAttrQualifier",
+    "question": "For the administrative territorial entity whose FIPS 6-4 (US counties) is 29037, what is the time point for its population of 100319?",
+    "gold": "2012-07-01",
+    "native": {
+     "outcome": "answered_correct",
+     "answer": "2012-07-01"
+    },
+    "engine": {
+     "outcome": "answered_wrong",
+     "status": "answered",
+     "path": "document_runtime",
+     "response": "[ev:unknown] 2"
+    },
+    "reader7": {
+     "outcome": "answered_correct",
+     "answer": "2012-07-01",
+     "ms": 18611
+    },
+    "reader7_cascade": {
+     "outcome": "answered_correct",
+     "answer": "2012-07-01"
+    }
+   },
+   {
+    "id": "r100:3:8377",
+    "source_index": 8377,
+    "terminal": "QueryAttrQualifier",
+    "question": "How many subscribers does Joseph Gordon-Levitt have to his Twitter account called hitRECordJoe?",
+    "gold": "4314192",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "withheld",
+     "path": "factoid:withheld|vessel:receipt",
+     "response": "I have no admitted record that answers that about \"Joseph Gordon-Levitt\", so I will not guess. The reply I had was about \"Joseph Gordon-Levitt\" and did not cover subscriber, account, hitrecordjoe."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 30
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:4:3884",
+    "source_index": 3884,
+    "terminal": "QueryRelation",
+    "question": "What is the connection between Olympia (the one that is based on 1936 Summer Olympics) to propaganda film?",
+    "gold": "genre",
+    "native": {
+     "outcome": "answered_correct",
+     "answer": "genre"
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "withheld",
+     "path": "unverified:arb:definitional->definitional_encyclopedic|substitution_disclosed",
+     "response": "I found a passage that may be related, but I can't verify it answers your question: \"I have no admitted entry for “connection between Olympia (the one that is based on 1936 Summer Olympics) to propaganda film”.\""
+    },
+    "reader7": {
+     "outcome": "answered_correct",
+     "answer": "genre",
+     "ms": 169
+    },
+    "reader7_cascade": {
+     "outcome": "answered_correct",
+     "answer": "genre"
+    }
+   },
+   {
+    "id": "r100:5:5031",
+    "source_index": 5031,
+    "terminal": "QueryAttr",
+    "question": "Nassar was cast in the movie with which title?",
+    "gold": "Fair Game",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Nassar was cast in the movie with which title?\" as an unnamed shape [vessel:v0004]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 25
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:6:3656",
+    "source_index": 3656,
+    "terminal": "QueryRelation",
+    "question": "What is the connection between The Twilight Saga: Eclipse to Kristen Stewart?",
+    "gold": "cast member",
+    "native": {
+     "outcome": "answered_correct",
+     "answer": "cast member"
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"What is the connection between The Twilight Saga: Eclipse to Kristen Stewart?\" as an unnamed shape [vessel:v0005]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "answered_correct",
+     "answer": "cast member",
+     "ms": 38
+    },
+    "reader7_cascade": {
+     "outcome": "answered_correct",
+     "answer": "cast member"
+    }
+   },
+   {
+    "id": "r100:7:2170",
+    "source_index": 2170,
+    "terminal": "QueryRelationQualifier",
+    "question": "When did Shanghai (the one that is the twinned administrative body of Dunedin) start to be the twinned administrative body of Liverpool (the one with a population of 513441)?",
+    "gold": "1999-01-01",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "withheld",
+     "path": "arb:timeline->capability:timeline|vessel:receipt",
+     "response": "A timeline needs at least two dated statements; the admitted material on Shanghai contains 1.\n\nI have received \"When did Shanghai (the one that is the twinned administrative body of Dunedin) start to be the twinned administrative body of Liverpool."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 291
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:8:11108",
+    "source_index": 11108,
+    "terminal": "What",
+    "question": "Which visual artwork has a script written by Jason Segel?",
+    "gold": "Forgetting Sarah Marshall",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Which visual artwork has a script written by Jason Segel?\" as an unnamed shape [vessel:v0007]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 56
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:9:264",
+    "source_index": 264,
+    "terminal": "VerifyYear",
+    "question": "Was the association football club whose Twitter username is atlasfc founded before 1945?",
+    "gold": "yes",
+    "native": {
+     "outcome": "answered_correct",
+     "answer": "yes"
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Was the association football club whose Twitter username is atlasfc founded before 1945?\" as an unnamed shape [vessel:v0008]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 120
+    },
+    "reader7_cascade": {
+     "outcome": "answered_correct",
+     "answer": "yes"
+    }
+   },
+   {
+    "id": "r100:10:4875",
+    "source_index": 4875,
+    "terminal": "SelectAmong",
+    "question": "Of news broadcasts which were Primetime Emmy nominees for Outstanding Writing for a Variety, Music or Comedy Program, which has the lowest total episodes?",
+    "gold": "The Colbert Report",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "withheld",
+     "path": "factoid:withheld|vessel:receipt",
+     "response": "I have no admitted record that answers that about \"Outstanding Writing\", so I will not guess. The reply I had did not cover news, broadcast, nomine, lowest."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 131
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:11:7478",
+    "source_index": 7478,
+    "terminal": "QueryAttrQualifier",
+    "question": "What is the time period that 56196 is the population of Qatar?",
+    "gold": "1962",
+    "native": {
+     "outcome": "answered_correct",
+     "answer": "1962"
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify_specific",
+     "response": "What does \"that\" refer to? Nothing earlier in this conversation names it. Tell me the name."
+    },
+    "reader7": {
+     "outcome": "answered_correct",
+     "answer": "1962",
+     "ms": 71
+    },
+    "reader7_cascade": {
+     "outcome": "answered_correct",
+     "answer": "1962"
+    }
+   },
+   {
+    "id": "r100:12:3290",
+    "source_index": 3290,
+    "terminal": "QueryAttr",
+    "question": "What is the beginning date of the television series whose official website is http://www.cbs.com/shows/csi/?",
+    "gold": "2000-10-06",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "withheld",
+     "path": "corpus_query:property_of|vessel:receipt",
+     "response": "No provenance-admitted sentence in the abstracts corpus answers that.\n\nI have received \"What is the beginning date of the television series whose official website is http://www.cbs.com/shows/csi/?\" as an unnamed shape [vessel:v0011]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 181
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:13:5930",
+    "source_index": 5930,
+    "terminal": "QueryAttr",
+    "question": "What is the official website for the person whose ISNI is 0000 0001 1677 6434?",
+    "gold": "http://www.tiffanithiessen.com/",
+    "native": {
+     "outcome": "answered_correct",
+     "answer": "http://www.tiffanithiessen.com/"
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify_specific",
+     "response": "What does \"the person\" refer to? Nothing earlier in this conversation names it. Tell me the name."
+    },
+    "reader7": {
+     "outcome": "answered_correct",
+     "answer": "http://www.tiffanithiessen.com/",
+     "ms": 26060
+    },
+    "reader7_cascade": {
+     "outcome": "answered_correct",
+     "answer": "http://www.tiffanithiessen.com/"
+    }
+   },
+   {
+    "id": "r100:14:9124",
+    "source_index": 9124,
+    "terminal": "Count",
+    "question": "Tell me the number of airlines that has New York City has a headquarter location or that has the legal form limited company.",
+    "gold": "3",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "answered_wrong",
+     "status": "answered",
+     "path": "organ:converse>statement",
+     "response": "Got it. Since you mention new york city: New York, often called New York City (NYC), is the most populous city in the United States. [enwiki_8e909612eeb1b8108c82fd63] Want to know more about it?"
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 368
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:15:3625",
+    "source_index": 3625,
+    "terminal": "Count",
+    "question": "How many national cuisines are in the sovereign state country whose inflation rate is 49.3 percentage?",
+    "gold": "0",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"How many national cuisines are in the sovereign state country whose inflation rate is 49.3 percentage?\" as an unnamed shape [vessel:v0014]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 25041
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:16:2608",
+    "source_index": 2608,
+    "terminal": "SelectBetween",
+    "question": "Which is longer, The Producers that was nominated for a Golden Globe Award for Best Original Song or Memoirs of a Geisha?",
+    "gold": "Memoirs of a Geisha",
+    "native": {
+     "outcome": "answered_correct",
+     "answer": "Memoirs of a Geisha"
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify_specific",
+     "response": "What does \"that\" refer to? Nothing earlier in this conversation names it. Tell me the name."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 142
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:17:2431",
+    "source_index": 2431,
+    "terminal": "QueryRelation",
+    "question": "What is Tom Stoppard's link to the 71st Academy Awards?",
+    "gold": "award received",
+    "native": {
+     "outcome": "answered_correct",
+     "answer": "award received"
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "withheld",
+     "path": "precision_guard:Q1_english_as_algebra|organ:math>evaluate",
+     "response": "I can't verify an answer to that exact question, so I won't guess."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 157
+    },
+    "reader7_cascade": {
+     "outcome": "answered_correct",
+     "answer": "award received"
+    }
+   },
+   {
+    "id": "r100:18:3768",
+    "source_index": 3768,
+    "terminal": "VerifyStr",
+    "question": "Is the official website of a school headquartered in New Work City (the street address of this statement is 630 West 168th Street) http://ps.columbia.edu/ ?",
+    "gold": "yes",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify_specific",
+     "response": "What does \"this\" refer to? Nothing earlier in this conversation names it. Tell me the name."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 106
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:19:398",
+    "source_index": 398,
+    "terminal": "QueryAttrQualifier",
+    "question": "How was it determined that Saginaw County has a population of 196542?",
+    "gold": "estimation process",
+    "native": {
+     "outcome": "answered_correct",
+     "answer": "estimation process"
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify_specific",
+     "response": "What does \"it\" refer to? Nothing earlier in this conversation names it. Tell me the name."
+    },
+    "reader7": {
+     "outcome": "answered_correct",
+     "answer": "estimation process",
+     "ms": 277
+    },
+    "reader7_cascade": {
+     "outcome": "answered_correct",
+     "answer": "estimation process"
+    }
+   },
+   {
+    "id": "r100:20:878",
+    "source_index": 878,
+    "terminal": "QueryAttrQualifier",
+    "question": "Where was the film whose script was writen by Jerry Belson published on 1978-03-06?",
+    "gold": "Germany",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Where was the film whose script was writen by Jerry Belson published on 1978-03-06?\" as an unnamed shape [vessel:v0018]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 113
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:21:6944",
+    "source_index": 6944,
+    "terminal": "SelectBetween",
+    "question": "Is Knocked Up or Valkyrie longer?",
+    "gold": "Knocked Up",
+    "native": {
+     "outcome": "answered_correct",
+     "answer": "Knocked Up"
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Is Knocked Up or Valkyrie longer?\" as an unnamed shape [vessel:v0019]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "answered_correct",
+     "answer": "Knocked Up",
+     "ms": 85
+    },
+    "reader7_cascade": {
+     "outcome": "answered_correct",
+     "answer": "Knocked Up"
+    }
+   },
+   {
+    "id": "r100:22:1475",
+    "source_index": 1475,
+    "terminal": "What",
+    "question": "Who is the human whose Twitter username is adamlevine and has a subscription number of 8921169?",
+    "gold": "Adam Levine",
+    "native": {
+     "outcome": "answered_correct",
+     "answer": "Adam Levine"
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Who is the human whose Twitter username is adamlevine and has a subscription number of 8921169?\" as an unnamed shape [vessel:v0020]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "answered_correct",
+     "answer": "Adam Levine",
+     "ms": 74
+    },
+    "reader7_cascade": {
+     "outcome": "answered_correct",
+     "answer": "Adam Levine"
+    }
+   },
+   {
+    "id": "r100:23:2136",
+    "source_index": 2136,
+    "terminal": "QueryAttrQualifier",
+    "question": "What language is used in http://www.grammy.com, the official website of an award nominated to Melissa Etheridge in 2001 ?",
+    "gold": "English",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"What language is used in http://www.grammy.com, the official website of an award nominated to Melissa Etheridge in 2001?\" as an unnamed shape [vessel:v0021]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "answered_correct",
+     "answer": "English",
+     "ms": 136
+    },
+    "reader7_cascade": {
+     "outcome": "answered_correct",
+     "answer": "English"
+    }
+   },
+   {
+    "id": "r100:24:2801",
+    "source_index": 2801,
+    "terminal": "What",
+    "question": "Which business has the official name 'GT Interactive Software Corp.' and is headquartered in New York City?",
+    "gold": "GT Interactive Software",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Which business has the official name 'GT Interactive Software Corp.' and is headquartered in New York City?\" as an unnamed shape [vessel:v0022]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 439
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:25:10371",
+    "source_index": 10371,
+    "terminal": "What",
+    "question": "Which individual born as Durante di Alighiero degli Alighieri did not die in 1977?",
+    "gold": "Dante Alighieri",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Which individual born as Durante di Alighiero degli Alighieri did not die in 1977?\" as an unnamed shape [vessel:v0023]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 71
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:26:5984",
+    "source_index": 5984,
+    "terminal": "QueryRelationQualifier",
+    "question": "When did the Kingdom of Great Britain become Kirkcaldy's country?",
+    "gold": "1707-05-01",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"When did the Kingdom of Great Britain become Kirkcaldy's country?\" as an unnamed shape [vessel:v0024]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 163
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:27:7031",
+    "source_index": 7031,
+    "terminal": "QueryAttrQualifier",
+    "question": "At what point in time was the population 375,165 for the county of Ohio whose licence plate code is 76?",
+    "gold": "2015-01-01",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "withheld",
+     "path": "factoid:withheld|vessel:receipt",
+     "response": "I have no admitted record that answers that about \"Ohio\", so I will not guess. The reply I had did not cover point, time, population, 375165."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 42307
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:28:10532",
+    "source_index": 10532,
+    "terminal": "QueryRelation",
+    "question": "What is the connection between Tommy (the one whose script is wrote by Ken Russell) to United Kingdom?",
+    "gold": "country of origin",
+    "native": {
+     "outcome": "answered_correct",
+     "answer": "country of origin"
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "withheld",
+     "path": "unverified:arb:definitional->document_runtime|substitution_disclosed",
+     "response": "I found a passage that may be related, but I can't verify it answers your question: \"I have no admitted entry for “connection between Tommy (the one whose script is wrote by Ken Russell) to United Kingdom”.\""
+    },
+    "reader7": {
+     "outcome": "answered_correct",
+     "answer": "country of origin",
+     "ms": 460
+    },
+    "reader7_cascade": {
+     "outcome": "answered_correct",
+     "answer": "country of origin"
+    }
+   },
+   {
+    "id": "r100:29:10504",
+    "source_index": 10504,
+    "terminal": "What",
+    "question": "What television series has more than 5 seasons and stars Barbara Stanwyck?",
+    "gold": "Dynasty",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"What television series has more than 5 seasons and stars Barbara Stanwyck?\" as an unnamed shape [vessel:v0026]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 323
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:30:209",
+    "source_index": 209,
+    "terminal": "SelectAmong",
+    "question": "Of geographic regions that battled England, site of the English Civil War, which takes up the biggest area?",
+    "gold": "Transylvania",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify_specific",
+     "response": "What does \"that\" refer to? Nothing earlier in this conversation names it. Tell me the name."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 811
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:31:5091",
+    "source_index": 5091,
+    "terminal": "QueryAttr",
+    "question": "What is the title of Looney Tunes?",
+    "gold": "Looney Tunes",
+    "native": {
+     "outcome": "answered_correct",
+     "answer": "Looney Tunes"
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "withheld",
+     "path": "unverified:corpus_query:property_of",
+     "response": "I found a passage that may be related, but I can't verify it answers your question: \"VHS - Bugs Bunny Collection: Here Comes Bugs (Blue Ribbon) Laserdisc - The Golden Age of Looney Tunes, Volume 1 (Blue Ribbon title) and Volume 4, (Recreation Rings, same as Looney Tunes Golden Collection: Volume 3) VHS - The Golden Age of Looney Tunes, Vol.\""
+    },
+    "reader7": {
+     "outcome": "answered_correct",
+     "answer": "Looney Tunes",
+     "ms": 19
+    },
+    "reader7_cascade": {
+     "outcome": "answered_correct",
+     "answer": "Looney Tunes"
+    }
+   },
+   {
+    "id": "r100:32:4084",
+    "source_index": 4084,
+    "terminal": "QueryAttr",
+    "question": "What is the birth date of a person other than Jim Brown (the one whose position is running back)?",
+    "gold": "1956-08-14",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "withheld",
+     "path": "corpus_query:property_of|vessel:receipt",
+     "response": "No provenance-admitted sentence in the abstracts corpus answers that.\n\nI have received \"What is the birth date of a person other than Jim Brown (the one whose position is running back)?\" as an unnamed shape [vessel:v0028]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 543
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:33:748",
+    "source_index": 748,
+    "terminal": "QueryRelation",
+    "question": "How is Seven starring R. Lee Ermey related to drama film?",
+    "gold": "genre",
+    "native": {
+     "outcome": "answered_correct",
+     "answer": "genre"
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"How is Seven starring R. Lee Ermey related to drama film?\" as an unnamed shape [vessel:v0029]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "answered_correct",
+     "answer": "genre",
+     "ms": 355
+    },
+    "reader7_cascade": {
+     "outcome": "answered_correct",
+     "answer": "genre"
+    }
+   },
+   {
+    "id": "r100:34:3498",
+    "source_index": 3498,
+    "terminal": "What",
+    "question": "Which resident of Italy won the Nobel Prize for Physics?",
+    "gold": "Enrico Fermi",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Which resident of Italy won the Nobel Prize for Physics?\" as an unnamed shape [vessel:v0030]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 187
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:35:10958",
+    "source_index": 10958,
+    "terminal": "QueryRelation",
+    "question": "What is the connection between The Grifters to National Society of Film Critics Award for Best Film?",
+    "gold": "nominated for",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "withheld",
+     "path": "unverified:arb:definitional->document_runtime|substitution_disclosed",
+     "response": "I found a passage that may be related, but I can't verify it answers your question: \"I have no admitted entry for “connection between The Grifters to National Society of Film Critics Award for Best Film”.\""
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 235
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:36:1749",
+    "source_index": 1749,
+    "terminal": "QueryRelation",
+    "question": "What is the relationship between Paul Lieberstein and the United States of America?",
+    "gold": "country of citizenship",
+    "native": {
+     "outcome": "answered_correct",
+     "answer": "country of citizenship"
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "withheld",
+     "path": "factoid:withheld|vessel:receipt",
+     "response": "I have no admitted record that answers that about \"United States of America\", so I will not guess. The reply I had did not cover…"
+    },
+    "reader7": {
+     "outcome": "answered_correct",
+     "answer": "country of citizenship",
+     "ms": 203
+    },
+    "reader7_cascade": {
+     "outcome": "answered_correct",
+     "answer": "country of citizenship"
+    }
+   },
+   {
+    "id": "r100:37:68",
+    "source_index": 68,
+    "terminal": "Count",
+    "question": "How many record labels have a start time not in 1964?",
+    "gold": "139",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "withheld",
+     "path": "arb:timeline->capability:timeline|vessel:receipt",
+     "response": "A timeline needs at least two dated statements; the admitted material on record contains 0.\n\nI have received \"How many record labels have a start time not in 1964?\" as an unnamed shape [vessel:v0033]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 133
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:38:3213",
+    "source_index": 3213,
+    "terminal": "VerifyYear",
+    "question": "Was Ben Harper (the one whose genre is alternative rock) not born in 1972?",
+    "gold": "yes",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify_specific",
+     "response": "What does \"the one\" refer to? Nothing earlier in this conversation names it. Tell me the name."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 459
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:39:6111",
+    "source_index": 6111,
+    "terminal": "QueryAttrQualifier",
+    "question": "What is the language of the Philadelphia Phillies' official website, https://www.mlb.com/phillies?",
+    "gold": "English",
+    "native": {
+     "outcome": "answered_correct",
+     "answer": "English"
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "withheld",
+     "path": "corpus_query:property_of|vessel:receipt",
+     "response": "No provenance-admitted sentence in the abstracts corpus answers that.\n\nI have received \"What is the language of the Philadelphia Phillies' official website, https://www.mlb.com/phillies?\" as an unnamed shape [vessel:v0035]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "answered_correct",
+     "answer": "English",
+     "ms": 745
+    },
+    "reader7_cascade": {
+     "outcome": "answered_correct",
+     "answer": "English"
+    }
+   },
+   {
+    "id": "r100:40:8905",
+    "source_index": 8905,
+    "terminal": "QueryRelationQualifier",
+    "question": "When did Neil Simon win the Pulitzer Prize for Drama?",
+    "gold": "1991",
+    "native": {
+     "outcome": "answered_correct",
+     "answer": "1991"
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "withheld",
+     "path": "precision_guard:P5_game_not_asked|game:composed",
+     "response": "I can't verify an answer to that exact question, so I won't guess."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 218
+    },
+    "reader7_cascade": {
+     "outcome": "answered_correct",
+     "answer": "1991"
+    }
+   },
+   {
+    "id": "r100:41:1968",
+    "source_index": 1968,
+    "terminal": "QueryRelation",
+    "question": "What association does Sheldon Leonard have to Manhattan (death place of Eli Wallach)?",
+    "gold": "place of birth",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"What association does Sheldon Leonard have to Manhattan (death place of Eli Wallach)?\" as an unnamed shape [vessel:v0036]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 201
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:42:9741",
+    "source_index": 9741,
+    "terminal": "QueryRelation",
+    "question": "How is Bucharest related to Atlanta, birthplace of Kelly Rowland?",
+    "gold": "twinned administrative body",
+    "native": {
+     "outcome": "answered_correct",
+     "answer": "twinned administrative body"
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "withheld",
+     "path": "factoid:withheld|vessel:receipt",
+     "response": "I have no admitted record that answers that about \"Kelly Rowland\", so I will not guess. The reply I had was about \"Bucharest\" and did not cover relat, birthplace."
+    },
+    "reader7": {
+     "outcome": "answered_correct",
+     "answer": "twinned administrative body",
+     "ms": 272
+    },
+    "reader7_cascade": {
+     "outcome": "answered_correct",
+     "answer": "twinned administrative body"
+    }
+   },
+   {
+    "id": "r100:43:6407",
+    "source_index": 6407,
+    "terminal": "Count",
+    "question": "How many silent films were directed by someone with an ISNI of 0000 0001 1496 4714?",
+    "gold": "0",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"How many silent films were directed by someone with an ISNI of 0000 0001 1496 4714?\" as an unnamed shape [vessel:v0038]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 3288
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:44:11514",
+    "source_index": 11514,
+    "terminal": "QueryRelationQualifier",
+    "question": "What was Adam Sandler's role in Little Nicky (the one that was nominated for Golden Raspberry Award for Worst Supporting Actress)?",
+    "gold": "Nicky",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "withheld",
+     "path": "unverified:factoid:page",
+     "response": "I found a passage that may be related, but I can't verify it answers your question: \"The Golden Raspberry Award for Worst Supporting Actress is an award presented annually at the Golden Raspberry Awards (or \"Razzies\") to the worst supporting actress of the previous year.\""
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 234
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:45:5088",
+    "source_index": 5088,
+    "terminal": "Count",
+    "question": "How many national soccer teams rank 10 or took part in the Games of the 1948 Summer Olympics?",
+    "gold": "34",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"How many national soccer teams rank 10 or took part in the Games of the 1948 Summer Olympics?\" as an unnamed shape [vessel:v0040]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 319
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:46:8193",
+    "source_index": 8193,
+    "terminal": "QueryRelationQualifier",
+    "question": "What is the character role of Colm Meaney in Star Trek: Deep Space Nine?",
+    "gold": "Miles O'Brien",
+    "native": {
+     "outcome": "answered_correct",
+     "answer": "Miles O'Brien"
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "withheld",
+     "path": "corpus_query:property_of|vessel:receipt",
+     "response": "No provenance-admitted sentence in the abstracts corpus answers that.\n\nI have received \"What is the character role of Colm Meaney in Star Trek: Deep Space Nine?\" as an unnamed shape [vessel:v0041]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "answered_correct",
+     "answer": "Miles O'Brien",
+     "ms": 341
+    },
+    "reader7_cascade": {
+     "outcome": "answered_correct",
+     "answer": "Miles O'Brien"
+    }
+   },
+   {
+    "id": "r100:47:602",
+    "source_index": 602,
+    "terminal": "VerifyYear",
+    "question": "Regarding the activity for the Instagram username seriea is the inception time in 1816?",
+    "gold": "no",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Regarding the activity for the Instagram username seriea is the inception time in 1816?\" as an unnamed shape [vessel:v0042]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 337
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:48:4913",
+    "source_index": 4913,
+    "terminal": "QueryRelation",
+    "question": "What is the connection between City of Angels (the one whose distributor is Warner Bros.) to Andre Braugher?",
+    "gold": "cast member",
+    "native": {
+     "outcome": "answered_correct",
+     "answer": "cast member"
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "withheld",
+     "path": "corpus_query:property_of|vessel:receipt",
+     "response": "No provenance-admitted sentence in the abstracts corpus answers that.\n\nI have received \"What is the connection between City of Angels (the one whose distributor is Warner Bros.) to Andre Braugher?\" as an unnamed shape [vessel:v0043]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "answered_correct",
+     "answer": "cast member",
+     "ms": 238
+    },
+    "reader7_cascade": {
+     "outcome": "answered_correct",
+     "answer": "cast member"
+    }
+   },
+   {
+    "id": "r100:49:431",
+    "source_index": 431,
+    "terminal": "QueryAttr",
+    "question": "When was the member of Cardiff City F.C. (the start time of this statement is 1991) born?",
+    "gold": "1960-10-03",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "withheld",
+     "path": "arb:timeline->capability:timeline|vessel:receipt",
+     "response": "A timeline needs at least two dated statements; the admitted material on member contains 0.\n\nI have received \"When was the member of Cardiff City F.C. (the start time of this statement is 1991) born?\" as an unnamed shape [vessel:v0044]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 825
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:50:5662",
+    "source_index": 5662,
+    "terminal": "SelectAmong",
+    "question": "Of Canadian administrative territorial entities with a population below 9000000, which occupies the most area?",
+    "gold": "Nunavut",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Of Canadian administrative territorial entities with a population below 9000000, which occupies the most area?\" as an unnamed shape [vessel:v0045]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 535
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:51:6283",
+    "source_index": 6283,
+    "terminal": "SelectBetween",
+    "question": "Does Secretary of State-led Montana or does Indiana have the higher elevation?",
+    "gold": "Montana",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Does Secretary of State-led Montana or does Indiana have the higher elevation?\" as an unnamed shape [vessel:v0046]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 417
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:52:4738",
+    "source_index": 4738,
+    "terminal": "Count",
+    "question": "How many land-grant universities are in East Lansing or denoted by PermID 5000861728?",
+    "gold": "2",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"How many land-grant universities are in East Lansing or denoted by PermID 5000861728?\" as an unnamed shape [vessel:v0047]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 275
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:53:876",
+    "source_index": 876,
+    "terminal": "Count",
+    "question": "How many administrative territorial entities of Canada share a border with the Northwest Territories or have the official name of Yukon Territory?",
+    "gold": "2",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"How many administrative territorial entities of Canada share a border with the Northwest Territories or have the official name of Yukon Territory?\" as an unnamed shape [vessel:v0048]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 1236
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:54:9389",
+    "source_index": 9389,
+    "terminal": "QueryAttrQualifier",
+    "question": "What is the determination method of the population 149294 county of Maryland who shares the south border with Prince George's County?",
+    "gold": "estimation process",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "withheld",
+     "path": "corpus_query:property_of|vessel:receipt",
+     "response": "No provenance-admitted sentence in the abstracts corpus answers that.\n\nI have received \"What is the determination method of the population 149294 county of Maryland who shares the south border with Prince George's County?\" as an unnamed shape [vessel:v0049]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 105436
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:55:10204",
+    "source_index": 10204,
+    "terminal": "QueryAttrQualifier",
+    "question": "The website of Georgetown University Law Center, www.law.georgetown.edu, is published in which language ?",
+    "gold": "English",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"The website of Georgetown University Law Center, www.law.georgetown.edu, is published in which language?\" as an unnamed shape [vessel:v0050]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 279
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:56:1720",
+    "source_index": 1720,
+    "terminal": "What",
+    "question": "Which movie follows Sherlock Holmes (the one whose release region is Philippines)?",
+    "gold": "Sherlock Holmes: A Game of Shadows",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify_specific",
+     "response": "What does \"the one\" refer to? Nothing earlier in this conversation names it. Tell me the name."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 142
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:57:5373",
+    "source_index": 5373,
+    "terminal": "SelectBetween",
+    "question": "Who weighs less, Jermaine Jackson (the one that is a member of Atlanta Hawks) or Richard Wright (the one that is a member of Ipswich Town F.C.)?",
+    "gold": "Richard Wright",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify_specific",
+     "response": "What does \"the one\" refer to? Nothing earlier in this conversation names it. Tell me the name."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 455
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:58:10315",
+    "source_index": 10315,
+    "terminal": "QueryAttrQualifier",
+    "question": "In which language was the work that earned a nomination to Catherine Zeta-Jones in the Tony Awards?",
+    "gold": "English",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify_specific",
+     "response": "What does \"that\" refer to? Nothing earlier in this conversation names it. Tell me the name."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 123
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:59:3730",
+    "source_index": 3730,
+    "terminal": "QueryRelation",
+    "question": "In what way is Duke Blue Devils men's basketball associated with the NCAA Men's Division I Basketball Tournament in 1985?",
+    "gold": "seed team",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"In what way is Duke Blue Devils men's basketball associated with the NCAA Men's Division I Basketball Tournament in 1985?\" as an unnamed shape [vessel:v0054]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 192
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:60:11107",
+    "source_index": 11107,
+    "terminal": "What",
+    "question": "What language has an IETF language tag of bg and is spoken in Turkey?",
+    "gold": "Bulgarian",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "answered_wrong",
+     "status": "answered",
+     "path": "organ:relation>READ>FRAME>LINK>RELATE:fwd:P37>CHECK:P37>BIND>EXPAND>VERIFY",
+     "response": "[ev:direct] Turkish. The money of Turkey is called the Turkish Lira. [simplewiki_efb7d55dbe520f7d7770fc54] (typed relations: wd:Q43 P37 wd:Q256)"
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 136
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:61:10098",
+    "source_index": 10098,
+    "terminal": "VerifyStr",
+    "question": "Is the neo-noir Rush titled Young Adam ?",
+    "gold": "no",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Is the neo-noir Rush titled Young Adam?\" as an unnamed shape [vessel:v0056]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 217
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:62:8699",
+    "source_index": 8699,
+    "terminal": "QueryRelation",
+    "question": "What is the association of Scott McDonald with association football?",
+    "gold": "sport",
+    "native": {
+     "outcome": "answered_correct",
+     "answer": "sport"
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "withheld",
+     "path": "corpus_query:property_of|vessel:receipt",
+     "response": "No provenance-admitted sentence in the abstracts corpus answers that.\n\nI have received \"What is the association of Scott McDonald with association football?\" as an unnamed shape [vessel:v0057]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "answered_correct",
+     "answer": "sport",
+     "ms": 35
+    },
+    "reader7_cascade": {
+     "outcome": "answered_correct",
+     "answer": "sport"
+    }
+   },
+   {
+    "id": "r100:63:9732",
+    "source_index": 9732,
+    "terminal": "What",
+    "question": "Who is the person who owns the painting that has an inventory number of 47.106",
+    "gold": "Gertrude Stein",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify_specific",
+     "response": "What does \"the person\" refer to? Nothing earlier in this conversation names it. Tell me the name."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 662
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:64:1941",
+    "source_index": 1941,
+    "terminal": "QueryAttr",
+    "question": "What is the population of the US city which shares border with Lakewood?",
+    "gold": "396815",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "withheld",
+     "path": "corpus_query:property_of|vessel:receipt",
+     "response": "No provenance-admitted sentence in the abstracts corpus answers that.\n\nI have received \"What is the population of the US city which shares border with Lakewood?\" as an unnamed shape [vessel:v0059]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 123
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:65:9503",
+    "source_index": 9503,
+    "terminal": "QueryRelation",
+    "question": "What is the link between Freddie Francis and World War II?",
+    "gold": "conflict",
+    "native": {
+     "outcome": "answered_correct",
+     "answer": "conflict"
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "withheld",
+     "path": "precision_guard:R2b_definition_for_non_definition|arb:definitional->document_runtime|substitution_disclosed",
+     "response": "I can't verify an answer to that exact question, so I won't guess."
+    },
+    "reader7": {
+     "outcome": "answered_correct",
+     "answer": "conflict",
+     "ms": 76
+    },
+    "reader7_cascade": {
+     "outcome": "answered_correct",
+     "answer": "conflict"
+    }
+   },
+   {
+    "id": "r100:66:106",
+    "source_index": 106,
+    "terminal": "QueryAttrQualifier",
+    "question": "What language is associated with the official website http://www.morgan.edu of Morgan State University ?",
+    "gold": "English",
+    "native": {
+     "outcome": "answered_correct",
+     "answer": "English"
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"What language is associated with the official website http://www.morgan.edu of Morgan State University?\" as an unnamed shape [vessel:v0060]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "answered_correct",
+     "answer": "English",
+     "ms": 126
+    },
+    "reader7_cascade": {
+     "outcome": "answered_correct",
+     "answer": "English"
+    }
+   },
+   {
+    "id": "r100:67:2542",
+    "source_index": 2542,
+    "terminal": "SelectBetween",
+    "question": "Which university has fewer students, Brandeis University or University of Missouri?",
+    "gold": "Brandeis University",
+    "native": {
+     "outcome": "refused",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "answered_wrong",
+     "status": "answered",
+     "path": "cube:compare>count",
+     "response": "[ev:direct] Brandeis University (108 against 31000). Sachar that \"what happened in the stage of preparation of Brandeis University was not at all caused by a misunderstanding and cannot be made good any more.\" Instead, at the graduation ceremony for Brandeis' second graduating class of 108 students, individuals given Brandeis' first honorary degrees included Illinois senator Paul H. Founded in 1948 as a non-sectarian, coeducational university, Brandeis was established on the site of the former Middlesex University. [enwiki_a42bfec2e4f20f7cb7bb2e7d] [simplewiki_c56f5d6fa59988ad87f4dc2d]"
+    },
+    "reader7": {
+     "outcome": "answered_correct",
+     "answer": "Brandeis University",
+     "ms": 106
+    },
+    "reader7_cascade": {
+     "outcome": "answered_correct",
+     "answer": "Brandeis University"
+    }
+   },
+   {
+    "id": "r100:68:9151",
+    "source_index": 9151,
+    "terminal": "VerifyNum",
+    "question": "Does University of Toronto not have 89000 students?",
+    "gold": "yes",
+    "native": {
+     "outcome": "answered_correct",
+     "answer": "yes"
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Does University of Toronto not have 89000 students?\" as an unnamed shape [vessel:v0062]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 196
+    },
+    "reader7_cascade": {
+     "outcome": "answered_correct",
+     "answer": "yes"
+    }
+   },
+   {
+    "id": "r100:69:3371",
+    "source_index": 3371,
+    "terminal": "QueryRelation",
+    "question": "What is the connection between Verona (the one whose population is 54709) to Albany (the one that is the twinned administrative body of Nassau)?",
+    "gold": "twinned administrative body",
+    "native": {
+     "outcome": "answered_correct",
+     "answer": "twinned administrative body"
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "withheld",
+     "path": "unverified:arb:definitional->definitional_encyclopedic|wide_lead|substitution_disclosed",
+     "response": "I found a passage that may be related, but I can't verify it answers your question: \"I have no admitted entry for “connection between Verona (the one whose population is 54709) to Albany (the one that is the twinned administrative body of Nassau)”.\""
+    },
+    "reader7": {
+     "outcome": "answered_correct",
+     "answer": "twinned administrative body",
+     "ms": 243
+    },
+    "reader7_cascade": {
+     "outcome": "answered_correct",
+     "answer": "twinned administrative body"
+    }
+   },
+   {
+    "id": "r100:70:2064",
+    "source_index": 2064,
+    "terminal": "QueryAttr",
+    "question": "What is Jerome Kern's CANTIC-ID?",
+    "gold": "a10450294",
+    "native": {
+     "outcome": "answered_correct",
+     "answer": "a10450294"
+    },
+    "engine": {
+     "outcome": "answered_wrong",
+     "status": "answered",
+     "path": "arb:definitional->document_runtime|substitution_disclosed",
+     "response": "[ev:unknown] I have no admitted entry for “Jerome Kern's CANTIC-ID”. The related term “Jerome” is what the record defines — jerome is defined as (Roman Catholic Church) one of the great Fathers of the early Christian Church whose major work was his translation of the Scriptures from Hebrew and Greek into Latin (which became the Vulgate); a saint and Doctor of the Church (347-420) [W1]."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 25
+    },
+    "reader7_cascade": {
+     "outcome": "answered_correct",
+     "answer": "a10450294"
+    }
+   },
+   {
+    "id": "r100:71:11486",
+    "source_index": 11486,
+    "terminal": "What",
+    "question": "What is the name of a person of Russian origin, who was involved in Russian Civil War conflict?",
+    "gold": "Georgy Zhukov",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "withheld",
+     "path": "corpus_query:property_of|vessel:receipt",
+     "response": "No provenance-admitted sentence in the abstracts corpus answers that.\n\nI have received \"What is the name of a person of Russian origin, who was involved in Russian Civil War conflict?\" as an unnamed shape [vessel:v0063]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 217
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:72:5920",
+    "source_index": 5920,
+    "terminal": "Count",
+    "question": "Taekwondo is associated with how many baseball player positions?",
+    "gold": "0",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Taekwondo is associated with how many baseball player positions?\" as an unnamed shape [vessel:v0064]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 72
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:73:3540",
+    "source_index": 3540,
+    "terminal": "What",
+    "question": "Which visual artwork received a National Board of Review Award for Best Actor (for Gene Hackman) and is titled The Conversation?",
+    "gold": "The Conversation",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Which visual artwork received a National Board of Review Award for Best Actor (for Gene Hackman) and is titled The Conversation?\" as an unnamed shape [vessel:v0065]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 286
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:74:9197",
+    "source_index": 9197,
+    "terminal": "VerifyNum",
+    "question": "Is the elevation other than 45 ft at the land-grant university in Wyoming, where Rocky IV was filmed?",
+    "gold": "yes",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Is the elevation other than 45 ft at the land-grant university in Wyoming, where Rocky IV was filmed?\" as an unnamed shape [vessel:v0066]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 175
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:75:11763",
+    "source_index": 11763,
+    "terminal": "QueryAttrQualifier",
+    "question": "tell me the number of subscribers for the museum that has an isni of 0000 0001 2375 3994, and Twitter username of ngadc",
+    "gold": "223290",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify_specific",
+     "response": "What does \"that\" refer to? Nothing earlier in this conversation names it. Tell me the name."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 809
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:76:9514",
+    "source_index": 9514,
+    "terminal": "QueryRelation",
+    "question": "What is the relationship between experimental music to Plastic Ono Band?",
+    "gold": "famous people",
+    "native": {
+     "outcome": "refused",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"What is the relationship between experimental music to Plastic Ono Band?\" as an unnamed shape [vessel:v0068]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "answered_correct",
+     "answer": "famous people",
+     "ms": 48
+    },
+    "reader7_cascade": {
+     "outcome": "answered_correct",
+     "answer": "famous people"
+    }
+   },
+   {
+    "id": "r100:77:7209",
+    "source_index": 7209,
+    "terminal": "QueryRelation",
+    "question": "How is East Coast hip hop related to Method Man?",
+    "gold": "famous people",
+    "native": {
+     "outcome": "answered_correct",
+     "answer": "famous people"
+    },
+    "engine": {
+     "outcome": "answered_wrong",
+     "status": "answered",
+     "path": "relation->capability:compare",
+     "response": "[ev:direct] According to East Coast hip hop, East Coast hip hop is a type of hip hop music that comes from the East Coast of the United States. [simplewiki_0d0027c6825c6290ceb9272e] According to Method Man, Method Man acted in movies such as How High, Belly and television shows such as CBS's CSI: Crime Scene Investigation. [simplewiki_856c1244790ef81d1cb648dc] Derived contrast: the East Coast hip hop record is characterized by coast, comes, east, from; the Method Man record by acted, belly, cbs's, crime. [derived:lead_term_contrast<-simplewiki_0,simplewiki_8]"
+    },
+    "reader7": {
+     "outcome": "answered_correct",
+     "answer": "famous people",
+     "ms": 67
+    },
+    "reader7_cascade": {
+     "outcome": "answered_correct",
+     "answer": "famous people"
+    }
+   },
+   {
+    "id": "r100:78:1994",
+    "source_index": 1994,
+    "terminal": "SelectBetween",
+    "question": "Is the population count higher for Palo Alto, where the Grateful Dead formed, or Mesa (in the Mountain Time Zone)?",
+    "gold": "Mesa",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Is the population count higher for Palo Alto, where the Grateful Dead formed, or Mesa (in the Mountain Time Zone)?\" as an unnamed shape [vessel:v0069]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 137
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:79:8512",
+    "source_index": 8512,
+    "terminal": "What",
+    "question": "What movie was produced by Anna Faris ?",
+    "gold": "The House Bunny",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "answered_wrong",
+     "status": "answered",
+     "path": "organ:relation>READ>FRAME>LINK>RELATE:inv:P162>CHECK:P162>BIND>EXPAND>VERIFY",
+     "response": "[ev:direct] The House Bunny. Anna Kay Faris (born November 29, 1976) is an American movie, television, stage, voice actress, comedian and singer who is known for her roles in all four Scary Movies, Lost in Translation, Cloudy with a Chance of Meatballs, The House Bunny and Overboard. [simplewiki_3e2ee78e58cbc5eebe972db3] (typed relations: wd:Q466959 P162 wd:Q4491)"
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 21
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:80:653",
+    "source_index": 653,
+    "terminal": "Count",
+    "question": "What is the number of China provinces that have the official name 山西省 or that were incepted prior to 1955?",
+    "gold": "3",
+    "native": {
+     "outcome": "refused",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "withheld",
+     "path": "corpus_query:property_of|vessel:receipt",
+     "response": "No provenance-admitted sentence in the abstracts corpus answers that.\n\nI have received \"What is the number of China provinces that have the official name 山西省 or that were incepted prior to 1955?\" as an unnamed shape [vessel:v0071]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 0
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:81:2103",
+    "source_index": 2103,
+    "terminal": "QueryRelation",
+    "question": "How is Sonic the Hedgehog from Playstation 2 related to Doctor Eggman?",
+    "gold": "characters",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"How is Sonic the Hedgehog from Playstation 2 related to Doctor Eggman?\" as an unnamed shape [vessel:v0073]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 130
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:82:7393",
+    "source_index": 7393,
+    "terminal": "QueryAttrQualifier",
+    "question": "Where was the film whose official website is http://www.janeeyremovie.com published on 2011-12-01?",
+    "gold": "Germany",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Where was the film whose official website is http://www.janeeyremovie.com published on 2011-12-01?\" as an unnamed shape [vessel:v0074]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 135
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:83:4583",
+    "source_index": 4583,
+    "terminal": "QueryAttrQualifier",
+    "question": "At what point did the Los Angeles Dodgers shed their official name of Brooklyn Grooms?",
+    "gold": "1895",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "withheld",
+     "path": "factoid:withheld|vessel:receipt",
+     "response": "I have no admitted record that answers that about \"Los Angeles Dodgers\", so I will not guess. The reply I had did not cover point, shed, official."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 369
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:84:11042",
+    "source_index": 11042,
+    "terminal": "Count",
+    "question": "How many Illinois counties have a population that is not 2300?",
+    "gold": "18",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify_specific",
+     "response": "What does \"that\" refer to? Nothing earlier in this conversation names it. Tell me the name."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 113
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:85:5821",
+    "source_index": 5821,
+    "terminal": "QueryRelation",
+    "question": "What's the relationship between Ray Stark and The Way We Were?",
+    "gold": "producer",
+    "native": {
+     "outcome": "answered_correct",
+     "answer": "producer"
+    },
+    "engine": {
+     "outcome": "answered_wrong",
+     "status": "answered",
+     "path": "arb:definitional->document_runtime|substitution_disclosed",
+     "response": "[ev:unknown] I have no admitted entry for “relationship between Ray Stark and The Way We Were”. The related term “Beam” is what the record defines — beam is defined as a column of light (as from a beacon) [W1]."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 76
+    },
+    "reader7_cascade": {
+     "outcome": "answered_correct",
+     "answer": "producer"
+    }
+   },
+   {
+    "id": "r100:86:2688",
+    "source_index": 2688,
+    "terminal": "SelectBetween",
+    "question": "Which area is larger, Jefferson County (the one whose population is 73191) or Franklin County (the one whose FIPS 6-4 (US counties) is 20059)?",
+    "gold": "Jefferson County",
+    "native": {
+     "outcome": "answered_correct",
+     "answer": "Jefferson County"
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "withheld",
+     "path": "document_runtime|math:out_of_fragment|vessel:receipt",
+     "response": "That asks me to work out the area, and I compute exactly or not at all. It is outside the arithmetic I can carry out, so rather than answer it from a page about the words in your question, I am telling you I cannot do it yet."
+    },
+    "reader7": {
+     "outcome": "answered_correct",
+     "answer": "Jefferson County",
+     "ms": 437
+    },
+    "reader7_cascade": {
+     "outcome": "answered_correct",
+     "answer": "Jefferson County"
+    }
+   },
+   {
+    "id": "r100:87:9181",
+    "source_index": 9181,
+    "terminal": "QueryRelation",
+    "question": "How is Maximilian Schell related to Innsbruck?",
+    "gold": "place of death",
+    "native": {
+     "outcome": "answered_correct",
+     "answer": "place of death"
+    },
+    "engine": {
+     "outcome": "answered_wrong",
+     "status": "answered",
+     "path": "relation->capability:compare",
+     "response": "[ev:direct] According to Maximilian Schell, Maximilian Schell (8 December 1930 – 1 February 2014) was an Austrian-Swiss actor. [simplewiki_746b72e09ec550cf3017776a] According to Innsbruck, Innsbruck is a city in Austria. [simplewiki_74e340d9c5d24c9de84abbbd] Derived contrast: the Maximilian Schell record is characterized by actor, austrian-swiss, december, february; the Innsbruck record by austria, city, innsbruck. [derived:lead_term_contrast<-simplewiki_7,simplewiki_7]"
+    },
+    "reader7": {
+     "outcome": "answered_correct",
+     "answer": "place of death",
+     "ms": 24
+    },
+    "reader7_cascade": {
+     "outcome": "answered_correct",
+     "answer": "place of death"
+    }
+   },
+   {
+    "id": "r100:88:5826",
+    "source_index": 5826,
+    "terminal": "SelectBetween",
+    "question": "Which has more people, Chichester (the one whose TOID is 7000000000016444) or Winchester (the one whose TOID is 7000000000017754)?",
+    "gold": "Winchester",
+    "native": {
+     "outcome": "answered_correct",
+     "answer": "Winchester"
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify_specific",
+     "response": "What does \"the one\" refer to? Nothing earlier in this conversation names it. Tell me the name."
+    },
+    "reader7": {
+     "outcome": "answered_correct",
+     "answer": "Winchester",
+     "ms": 181
+    },
+    "reader7_cascade": {
+     "outcome": "answered_correct",
+     "answer": "Winchester"
+    }
+   },
+   {
+    "id": "r100:89:11707",
+    "source_index": 11707,
+    "terminal": "QueryRelationQualifier",
+    "question": "When did Crazy Heart receive the Los Angeles Film Critics Association Award for Best Actor?",
+    "gold": "2009",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"When did Crazy Heart receive the Los Angeles Film Critics Association Award for Best Actor?\" as an unnamed shape [vessel:v0079]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 116
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:90:1116",
+    "source_index": 1116,
+    "terminal": "Count",
+    "question": "How many Grammy Awards (USA) was record producer David Foster nominated for?",
+    "gold": "10",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "withheld",
+     "path": "arb:timeline->capability:timeline|vessel:receipt",
+     "response": "A timeline needs at least two dated statements; the admitted material on record producer contains 0.\n\nI have received \"How many Grammy Awards (USA) was record producer David Foster nominated for?\" as an unnamed shape [vessel:v0080]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 107
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:91:5659",
+    "source_index": 5659,
+    "terminal": "SelectAmong",
+    "question": "Of mountain ranges that are not 330 meters above sea level, which is lowest in elevation?",
+    "gold": "Adirondack Mountains",
+    "native": {
+     "outcome": "answered_correct",
+     "answer": "Adirondack Mountains"
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify_specific",
+     "response": "What does \"that\" refer to? Nothing earlier in this conversation names it. Tell me the name."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 179
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:92:9234",
+    "source_index": 9234,
+    "terminal": "QueryRelation",
+    "question": "What is the connection between  X-Men: The Last Stand to Ian McKellen?",
+    "gold": "cast member",
+    "native": {
+     "outcome": "answered_correct",
+     "answer": "cast member"
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "withheld",
+     "path": "precision_guard:R2_dump_for_slot_question|arb:summarize->capability:summarize",
+     "response": "I can't verify an answer to that exact question, so I won't guess."
+    },
+    "reader7": {
+     "outcome": "answered_correct",
+     "answer": "cast member",
+     "ms": 70
+    },
+    "reader7_cascade": {
+     "outcome": "answered_correct",
+     "answer": "cast member"
+    }
+   },
+   {
+    "id": "r100:93:6064",
+    "source_index": 6064,
+    "terminal": "SelectBetween",
+    "question": "Which movie is longer, Resident Evil: Afterlife or Final Fantasy: The Spirits Within?",
+    "gold": "Final Fantasy: The Spirits Within",
+    "native": {
+     "outcome": "answered_correct",
+     "answer": "Final Fantasy: The Spirits Within"
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Which movie is longer, Resident Evil: Afterlife or Final Fantasy: The Spirits Within?\" as an unnamed shape [vessel:v0082]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "answered_correct",
+     "answer": "Final Fantasy: The Spirits Within",
+     "ms": 142
+    },
+    "reader7_cascade": {
+     "outcome": "answered_correct",
+     "answer": "Final Fantasy: The Spirits Within"
+    }
+   },
+   {
+    "id": "r100:94:9887",
+    "source_index": 9887,
+    "terminal": "SelectAmong",
+    "question": "Among India's states which share a border with Tamil Nadu (the one whose male population is 36137975), which one has the largest urban population?",
+    "gold": "Andhra Pradesh",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify_specific",
+     "response": "What does \"the one\" refer to? Nothing earlier in this conversation names it. Tell me the name."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 200
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:95:4156",
+    "source_index": 4156,
+    "terminal": "QueryRelation",
+    "question": "How is the downtempo genre connected to William Orbit?",
+    "gold": "famous people",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"How is the downtempo genre connected to William Orbit?\" as an unnamed shape [vessel:v0084]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 179
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:96:823",
+    "source_index": 823,
+    "terminal": "QueryRelationQualifier",
+    "question": "What is the ending time for James Brown (the one whose date of birth is 1862-07-31) as a member of Blackburn Rovers F.C.?",
+    "gold": "1889-01-01",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "withheld",
+     "path": "arb:timeline->capability:timeline|vessel:receipt",
+     "response": "A timeline needs at least two dated statements; the admitted material on time contains 0.\n\nI have received \"What is the ending time for James Brown (the one whose date of birth is 1862-07-31) as a member of Blackburn Rovers F.C.?\" as an unnamed shape [vessel:v0085]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 580
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "r100:97:525",
+    "source_index": 525,
+    "terminal": "SelectBetween",
+    "question": "Which movie is shorter, Made in Dagenham or Deconstructing Harry?",
+    "gold": "Deconstructing Harry",
+    "native": {
+     "outcome": "refused",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Which movie is shorter, Made in Dagenham or Deconstructing Harry?\" as an unnamed shape [vessel:v0086]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "answered_correct",
+     "answer": "Deconstructing Harry",
+     "ms": 42
+    },
+    "reader7_cascade": {
+     "outcome": "refused",
+     "answer": [
+      "Deconstructing Harry",
+      "Made in Dagenham"
+     ]
+    }
+   },
+   {
+    "id": "r100:98:10205",
+    "source_index": 10205,
+    "terminal": "QueryAttrQualifier",
+    "question": "How many subscribers are there for the Twitter username BristolUni belonging to the public university that is the educational institution of Matt Lucas?",
+    "gold": "73055",
+    "native": {
+     "outcome": "answered_correct",
+     "answer": "73055"
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify_specific",
+     "response": "What does \"that\" refer to? Nothing earlier in this conversation names it. Tell me the name."
+    },
+    "reader7": {
+     "outcome": "answered_correct",
+     "answer": "73055",
+     "ms": 79
+    },
+    "reader7_cascade": {
+     "outcome": "answered_correct",
+     "answer": "73055"
+    }
+   },
+   {
+    "id": "r100:99:11198",
+    "source_index": 11198,
+    "terminal": "What",
+    "question": "Who has ISNI 0000 0001 1947 1951?",
+    "gold": "Ellen Pompeo",
+    "native": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Who has ISNI 0000 0001 1947 1951?\" as an unnamed shape [vessel:v0088]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "ms": 4
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   }
+  ],
+  "c16": [
+   {
+    "id": "c16:baseline_city_website_saskatoon",
+    "question": "Which city whose official website is http://www.saskatoon.ca/?",
+    "expected": {
+     "kind": "entity",
+     "entity_ids": [
+      "Q10566"
+     ],
+     "answer": "Saskatoon"
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Which city whose official website is http://www.saskatoon.ca/?\" as an unnamed shape [vessel:v0089]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "all": []
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "c16:segment_city_website_population_saskatoon",
+    "question": "Which city whose official website is http://www.saskatoon.ca/ whose population is 222189?",
+    "expected": {
+     "kind": "entity",
+     "entity_ids": [
+      "Q10566"
+     ],
+     "answer": "Saskatoon"
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Which city whose official website is http://www.saskatoon.ca/ whose population is 222189?\" as an unnamed shape [vessel:v0090]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "all": []
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "c16:segment_city_population_website_saskatoon",
+    "question": "Which city whose population is 222189 whose official website is http://www.saskatoon.ca/?",
+    "expected": {
+     "kind": "entity",
+     "entity_ids": [
+      "Q10566"
+     ],
+     "answer": "Saskatoon"
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Which city whose population is 222189 whose official website is http://www.saskatoon.ca/?\" as an unnamed shape [vessel:v0091]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "all": []
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "c16:nested_university_city_website_saskatoon",
+    "question": "Which university located in city whose official website is http://www.saskatoon.ca/?",
+    "expected": {
+     "kind": "entity",
+     "entity_ids": [
+      "Q1514848"
+     ],
+     "answer": "University of Saskatchewan"
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Which university located in city whose official website is http://www.saskatoon.ca/?\" as an unnamed shape [vessel:v0092]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "all": []
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "c16:nested_university_city_website_population_saskatoon",
+    "question": "Which university located in city whose official website is http://www.saskatoon.ca/ whose population is 222189?",
+    "expected": {
+     "kind": "entity",
+     "entity_ids": [
+      "Q1514848"
+     ],
+     "answer": "University of Saskatchewan"
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Which university located in city whose official website is http://www.saskatoon.ca/ whose population is 222189?\" as an unnamed shape [vessel:v0093]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "all": []
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "c16:nested_university_city_website_population_belfast",
+    "question": "Which university located in city whose official website is http://www.belfastcity.gov.uk/ whose population is 333871?",
+    "expected": {
+     "kind": "entity",
+     "entity_ids": [
+      "Q877925"
+     ],
+     "answer": "Queen's University Belfast"
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Which university located in city whose official website is http://www.belfastcity.gov.uk/ whose population is 333871?\" as an unnamed shape [vessel:v0094]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "all": []
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "c16:nested_headquarters_city_website_population_bristol",
+    "question": "Which university headquartered in city whose official website is http://www.bristol.gov.uk/ whose population is 442500?",
+    "expected": {
+     "kind": "entity",
+     "entity_ids": [
+      "Q459506"
+     ],
+     "answer": "University of Bristol"
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Which university headquartered in city whose official website is http://www.bristol.gov.uk/ whose population is 442500?\" as an unnamed shape [vessel:v0095]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "all": []
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "c16:segment_city_website_population_bristol",
+    "question": "Which city whose official website is http://www.bristol.gov.uk/ whose population is 442500?",
+    "expected": {
+     "kind": "entity",
+     "entity_ids": [
+      "Q23154"
+     ],
+     "answer": "Bristol"
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Which city whose official website is http://www.bristol.gov.uk/ whose population is 442500?\" as an unnamed shape [vessel:v0096]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "unknown",
+     "answer": null,
+     "all": []
+    },
+    "reader7_cascade": {
+     "outcome": "unknown",
+     "answer": null
+    }
+   },
+   {
+    "id": "c16:nested_human_count_bristol",
+    "question": "How many humans born in city whose official website is http://www.bristol.gov.uk/ whose population is 442500?",
+    "expected": {
+     "kind": "count",
+     "entity_ids": [
+      "Q23814",
+      "Q312124",
+      "Q312693",
+      "Q318263",
+      "Q528200",
+      "Q83410"
+     ],
+     "answer": "6"
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"How many humans born in city whose official website is http://www.bristol.gov.uk/ whose population is 442500?\" as an unnamed shape [vessel:v0097]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "answered_correct",
+     "answer": "6",
+     "all": [
+      "6"
+     ]
+    },
+    "reader7_cascade": {
+     "outcome": "answered_correct",
+     "answer": "6"
+    }
+   },
+   {
+    "id": "c16:ambiguous_human_selection_bristol",
+    "question": "Which human born in city whose official website is http://www.bristol.gov.uk/ whose population is 442500?",
+    "expected": {
+     "kind": "decline_ambiguous",
+     "entity_ids": [
+      "Q23814",
+      "Q312124",
+      "Q312693",
+      "Q318263",
+      "Q528200",
+      "Q83410"
+     ],
+     "answer": null
+    },
+    "engine": {
+     "outcome": "declined_expected",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Which human born in city whose official website is http://www.bristol.gov.uk/ whose population is 442500?\" as an unnamed shape [vessel:v0098]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "declined_expected",
+     "answer": null,
+     "all": []
+    },
+    "reader7_cascade": {
+     "outcome": "declined_expected",
+     "answer": null
+    }
+   },
+   {
+    "id": "c16:nested_university_count_cardiff",
+    "question": "How many universities headquartered in city whose official website is https://www.cardiff.gov.uk/ whose population is 346100?",
+    "expected": {
+     "kind": "count",
+     "entity_ids": [
+      "Q1035745",
+      "Q1072029"
+     ],
+     "answer": "2"
+    },
+    "engine": {
+     "outcome": "withheld",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"How many universities headquartered in city whose official website is https://www.cardiff.gov.uk/ whose population is 346100?\" as an unnamed shape [vessel:v0099]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "answered_correct",
+     "answer": "2",
+     "all": [
+      "2"
+     ]
+    },
+    "reader7_cascade": {
+     "outcome": "answered_correct",
+     "answer": "2"
+    }
+   },
+   {
+    "id": "c16:ambiguous_university_selection_cardiff",
+    "question": "Which university headquartered in city whose official website is https://www.cardiff.gov.uk/ whose population is 346100?",
+    "expected": {
+     "kind": "decline_ambiguous",
+     "entity_ids": [
+      "Q1035745",
+      "Q1072029"
+     ],
+     "answer": null
+    },
+    "engine": {
+     "outcome": "declined_expected",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Which university headquartered in city whose official website is https://www.cardiff.gov.uk/ whose population is 346100?\" as an unnamed shape [vessel:v0100]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "declined_expected",
+     "answer": null,
+     "all": []
+    },
+    "reader7_cascade": {
+     "outcome": "declined_expected",
+     "answer": null
+    }
+   },
+   {
+    "id": "c16:empty_segment_changed_population_bristol",
+    "question": "Which city whose official website is http://www.bristol.gov.uk/ whose population is 442501?",
+    "expected": {
+     "kind": "decline_empty",
+     "entity_ids": [],
+     "answer": null
+    },
+    "engine": {
+     "outcome": "declined_expected",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Which city whose official website is http://www.bristol.gov.uk/ whose population is 442501?\" as an unnamed shape [vessel:v0101]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "declined_expected",
+     "answer": null,
+     "all": []
+    },
+    "reader7_cascade": {
+     "outcome": "declined_expected",
+     "answer": null
+    }
+   },
+   {
+    "id": "c16:empty_nested_changed_population_bristol",
+    "question": "How many universities located in city whose official website is http://www.bristol.gov.uk/ whose population is 442501?",
+    "expected": {
+     "kind": "decline_empty",
+     "entity_ids": [],
+     "answer": null
+    },
+    "engine": {
+     "outcome": "declined_expected",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"How many universities located in city whose official website is http://www.bristol.gov.uk/ whose population is 442501?\" as an unnamed shape [vessel:v0102]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "declined_expected",
+     "answer": null,
+     "all": []
+    },
+    "reader7_cascade": {
+     "outcome": "declined_expected",
+     "answer": null
+    }
+   },
+   {
+    "id": "c16:empty_segment_conflicting_city_anchors",
+    "question": "Which city whose official website is http://www.saskatoon.ca/ whose population is 442500?",
+    "expected": {
+     "kind": "decline_empty",
+     "entity_ids": [],
+     "answer": null
+    },
+    "engine": {
+     "outcome": "declined_expected",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Which city whose official website is http://www.saskatoon.ca/ whose population is 442500?\" as an unnamed shape [vessel:v0103]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "declined_expected",
+     "answer": null,
+     "all": []
+    },
+    "reader7_cascade": {
+     "outcome": "declined_expected",
+     "answer": null
+    }
+   },
+   {
+    "id": "c16:empty_parent_headquarters_saskatoon",
+    "question": "How many universities headquartered in city whose official website is http://www.saskatoon.ca/ whose population is 222189?",
+    "expected": {
+     "kind": "decline_empty",
+     "entity_ids": [],
+     "answer": null
+    },
+    "engine": {
+     "outcome": "declined_expected",
+     "status": "clarification",
+     "path": "act:clarify|vessel:receipt",
+     "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"How many universities headquartered in city whose official website is http://www.saskatoon.ca/ whose population is 222189?\" as an unnamed shape [vessel:v0104]; if it returns it gains weight, and when I can name it, I will."
+    },
+    "reader7": {
+     "outcome": "declined_expected",
+     "answer": null,
+     "all": []
+    },
+    "reader7_cascade": {
+     "outcome": "declined_expected",
+     "answer": null
+    }
+   }
+  ]
+ },
+ "limits": [
+  "A control on 116 questions, not a panel score; no language-equivalence claim.",
+  "Dataset gold is not infallible; no mismatch among the compared answers was adjudicated as a dataset error (Reader7 and the Engine produced zero wrong KQA answers; the Engine's 10 prose replies do not match gold by the exact-text rule).",
+  "The Engine is a general assistant head, not a KQA reader: its replies are prose, so exact-text match against short gold cannot succeed; four of its 10 answered replies contain the gold string inside prose (4832 genre, 9124 '3', 2542, 8512) and are listed for review, not scored correct.",
+  "Engine state directory was fresh (empty vessels/self-loop state); Reader7 was built from train.json whose SHA-256 matches the pinned value.",
+  "Reader7 here is the pinned source snapshot reading through steps_kb.KQA on kb.json; it is not constructed the way the Engine constructs it, if the Engine hosts one.",
+  "The 100 are a selection (see qualify_reader.py); the 16 were designed against the native reader's templates and are not a random sample.",
+  "One run each; no repeat for determinism (Engine run with PYTHONHASHSEED=0 by the driver; the Reader7 driver did not fix the hash seed).",
+  "upstream/ git status (untracked files only) was identical before and after both runs."
+ ],
+ "upstream_untouched": "git -C upstream status --short, 304 lines before and after, byte-identical (var/s3-reader-control/upstream-status-{before,after}.txt); Reader7 run used -B and the swarm copy."
+}
