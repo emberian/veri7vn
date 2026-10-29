@@ -1,0 +1,94 @@
+diff --git a/root/wander-train/date_precision_v1.py b/root/wander-train/date_precision_v1.py
+index e4fa33c..67566cb 100644
+--- a/root/wander-train/date_precision_v1.py
++++ b/root/wander-train/date_precision_v1.py
+@@ -3,15 +3,6 @@
+ Legacy timestamps are not precision declarations. A versioned sidecar binds an
+ entity/property/literal to same-revision Wikidata JSON and RDF statements. Missing,
+ invalid or conflicting metadata is exposed, never guessed from day/month digits.
+-
+-Maintainer amendment (10.1): a pair the sidecar does not cover is rendered from its
+-digits only as far as the digits can carry. Wikidata serialises a coarser precision
+-with day 01 (month) or 01-01 (year), so a day other than the 1st can only come from a
+-day-precision statement, while a 1st may be a placeholder. From 1583 on, the stored
+-value is a Gregorian date: a day other than the 1st is given whole, a 1st gives the
+-month and year, and 1 January gives the year. Earlier and BCE values decline, because
+-their calendar and precision cannot be read from the digits. A pair the sidecar does
+-cover but whose literal it cannot bind still declines.
+ """
+ import json
+ import os
+@@ -215,9 +206,7 @@ def _render(value, question='', subject=None, property=None):
+         return value
+     statements = selected(value, subject, property, requested_calendar(question))
+     if not statements:
+-        if (_qid(subject, 'Q'), _qid(property, 'P')) in _load():
+-            return None
+-        return _from_digits(value, question)
++        return None
+     try:
+         rendered = []
+         for statement in statements:
+@@ -235,27 +224,6 @@ def _render(value, question='', subject=None, property=None):
+         return None
+ 
+ 
+-def _from_digits(value, question=''):
+-    """Maintainer amendment (10.1): an uncovered pair, read only as far as its digits can carry."""
+-    match = TIME.fullmatch(value)
+-    if not match or match[1] == '-' or requested_calendar(question) not in (None, 'http://www.wikidata.org/entity/Q1985727'):
+-        return None
+-    year, month, day = int(match[2]), int(match[3]), int(match[4])
+-    if year < 1583 or not 1 <= month <= 12 or not 1 <= day <= 31:
+-        return None
+-    wants_year = bool(re.search(r'\b(?:what|which) year\b|\bin what year\b|\byear (?:was|did|of)\b', question, re.I))
+-    wants_month = bool(re.search(r'\b(?:what|which) month\b', question, re.I))
+-    if wants_year:
+-        return f'{year} (Gregorian calendar)'
+-    if month == 1 and day == 1:
+-        return f'{year} (Gregorian calendar; month and day not recorded in this store)'
+-    if day == 1:
+-        return f'{MONTHS[month-1]} {year} (Gregorian calendar; day not recorded in this store)'
+-    if wants_month:
+-        return f'{MONTHS[month-1]} {year} (Gregorian calendar)'
+-    return f'{day} {MONTHS[month-1]} {year} (Gregorian calendar)'
+-
+-
+ def render(value, question='', subject=None, property=None):
+     result = _render(value, question, subject, property)
+     return result if result is not None else f'date precision and calendar unavailable (stored timestamp: {value})'
+@@ -296,23 +264,6 @@ def _time_interval(time):
+     return time['calendarmodel'], low, high
+ 
+ 
+-def _interval_from_digits(value):
+-    """Maintainer amendment (10.1): bounds for an uncovered stored date, as wide as its digits leave open."""
+-    match = TIME.fullmatch(value) if isinstance(value, str) else None
+-    if not match or match[1] == '-':
+-        return None
+-    year, month, day = int(match[2]), int(match[3]), int(match[4])
+-    if year < 1583 or not 1 <= month <= 12 or not 1 <= day <= 31:
+-        return None
+-    gregorian = 'http://www.wikidata.org/entity/Q1985727'
+-    if month == 1 and day == 1:
+-        return gregorian, (year, 1, 1), (year, 12, 31)
+-    if day == 1:
+-        last = (31, 29 if year % 4 == 0 and (year % 100 != 0 or year % 400 == 0) else 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)[month-1]
+-        return gregorian, (year, month, 1), (year, month, last)
+-    return gregorian, (year, month, day), (year, month, day)
+-
+-
+ def interval(value, subject, property):
+     """Conservative bounds for ordering; uncertain/unknown qualifiers never prove order.
+ 
+@@ -322,9 +273,7 @@ def interval(value, subject, property):
+     """
+     records = selected(value, subject, property)
+     if not records:
+-        if subject is None or property is None or (_qid(subject, 'Q'), _qid(property, 'P')) in _load():
+-            return None
+-        return _interval_from_digits(value)
++        return None
+     intervals = []
+     try:
+         for record in records:

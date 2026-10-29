@@ -29,7 +29,11 @@ from urllib.parse import parse_qs, urlsplit
 sys.dont_write_bytecode = True
 from operations import Operations, OperationError, ID as OPERATION_ID
 
-REVISION = "083e3a6c0e2cfc131e62bdc16cb4ec1346194635"
+REVISION_4_9 = "083e3a6c0e2cfc131e62bdc16cb4ec1346194635"
+REVISION_10_1 = "c473d28914e480425adb29b4f7f42485b8cfb4e3"
+REVISION = REVISION_10_1
+# 4.9 candidates (U3-U7) run with --source-revision REVISION_4_9.
+SUPPORTED_REVISIONS = (REVISION_10_1, REVISION_4_9)
 PH = Path("fable-content/oracle-m-series-2026-08-15")
 IDENTIFIER = re.compile(r"[A-Za-z0-9_-]{1,80}\Z")
 TENANT_HEADER = "X-Mini-Oracle-Tenant"
@@ -164,8 +168,8 @@ def validate_paths(config):
 
 def preflight(config):
     """Check presence/size only. Deployment separately verifies content hashes."""
-    if config.source_revision != REVISION:
-        raise ValueError("this adapter supports only Oracle7 slim revision " + REVISION)
+    if config.source_revision not in SUPPORTED_REVISIONS:
+        raise ValueError("this adapter supports only Oracle7 slim revisions " + ", ".join(SUPPORTED_REVISIONS))
     if not (config.runtime / "oracle7.py").is_file():
         raise ValueError("missing oracle7.py")
     manifest = json.loads((config.runtime / "PACK_MANIFEST.json").read_text())

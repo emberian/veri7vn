@@ -1,7 +1,8 @@
 # Oracle computation service
 
-This untrusted Python adapter serves the pinned Oracle7 slim revision
-`083e3a6c0e2cfc131e62bdc16cb4ec1346194635`. It calls the release's `Engine.chat`
+This untrusted Python adapter serves a pinned Oracle7 slim revision: 10.1
+`c473d28914e480425adb29b4f7f42485b8cfb4e3` by default, or 4.9
+`083e3a6c0e2cfc131e62bdc16cb4ec1346194635` for the earlier candidates. It calls the release's `Engine.chat`
 and preserves every field of a successful reply, including unfamiliar evidence.
 An Oracle label such as `proved` remains an upstream claim. This service does
 not implement Mini admission, resource authority, or proof checking.
@@ -84,7 +85,7 @@ provide seamless conversation restoration. Tenant processes separate ordinary
 runtime state, but are not a sandbox for malicious code running under the same
 OS user. The host remains responsible for memory, disk and process-tree limits.
 
-`--source-revision` accepts only the pinned revision. It records the expected
+`--source-revision` accepts only those two revisions and must match `APPLIANCE.json`. It records the expected
 release; it does not independently attest all source bytes. The adapter checks
 store existence and declared sizes. Deployment verifies their hashes. The
 launcher normally auto-unpacks stores under its code directory, ignoring

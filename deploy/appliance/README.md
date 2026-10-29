@@ -1,18 +1,27 @@
 # Oracle7 appliance provisioning
 
-This materializer prepares the complete Oracle7 slim 4.9 runtime at
-`083e3a6c0e2cfc131e62bdc16cb4ec1346194635`, including its knowledge stores.
-It does not run queries, install a service, or grant Mini authority. The query
-adapter is documented in [`tools/appliance/README.md`](../../tools/appliance/README.md).
+This materializer prepares a complete Oracle7 slim runtime, including its
+knowledge stores. It does not run queries, install a service, or grant Mini
+authority. The query adapter is documented in
+[`tools/appliance/README.md`](../../tools/appliance/README.md).
 
-The latest checked local composition is **U5 v2**, still based on that pinned
-4.9 source. Its [recipe](candidate-u5-v2.recipe.json) lists the complete ordered
-patch set and component locks; its [receipt](../../docs/deploy/appliance-u5-v2-2026-10-27.json)
-and [Engine results](../../project/lanes/U5-service.md#final-u5-v2-convergence-checkpoint)
-record what was built and exercised. Use that recipe to reproduce the current
-candidate. The individual patch examples below explain the construction steps
-and earlier versions; they are not its complete patch list. Upstream's newer
-10.0 release has not yet been integrated into this candidate.
+New candidates use slim **10.1** at `c473d28914e480425adb29b4f7f42485b8cfb4e3`
+(`provision.py` `REVISION`). The latest local composition is **U8**: its
+[recipe](candidate-u8.recipe.json), [receipt](../../docs/deploy/appliance-2026-10-29.json)
+and [lane report](../../project/lanes/A1-APPLIANCE-TIP-2026-10-29.md) record what
+was built and exercised. Slim 10.1 already contains most of our 4.9 repairs
+(upstream took the correctness work into 10.0 and the usage, conversation,
+geometry, dates and Mars-year work into 10.1), so U8 applies only three patches,
+in this order: `oracle7-slim-10.1-dates-boundary.patch`,
+`oracle7-slim-10.1-operations-v3.patch` and
+`oracle7-slim-10.1-transfer-extension.patch`.
+
+The earlier candidates U3 through U7 were built from slim 4.9 at
+`083e3a6c0e2cfc131e62bdc16cb4ec1346194635` (`REVISION_4_9`). Their recipes do
+not name a revision; to rebuild one, add `--revision
+083e3a6c0e2cfc131e62bdc16cb4ec1346194635` to its argv. Signed version 7
+(U7) remains the qualified 4.9 composition. The `oracle7-slim-4.9-*` patches and
+the explanations below describe how those candidates were built.
 
 The upstream release carries 19 verified-family binaries for Linux x86-64,
 from veri7vn revision `3bf43cff8eaa1c30db2659d186cdcffe9c4f6c61`. They predate
@@ -48,13 +57,19 @@ Use Python 3.12 with `zstandard`, Git, and curl on macOS or Linux. Publication
 uses the platform atomic no-replace rename; Linux needs libc `renameat2`. The source can be a sparse
 checkout: the materializer reads the exact commit's Git archive, with LFS
 smudging disabled, and retrieves each required LFS payload itself.
+Git archive needs every ordinary blob of that commit locally. In a
+`--filter=blob:none` clone, `git checkout` fetches them; on 29 October the Hub
+answered that batch fetch for 10.1 with HTTP 500, and the U8 lane filled the
+blobs one by one from the commit's `raw/` URLs, writing each only if its Git
+blob id matched the tree. Never run `git archive` without `GIT_LFS_SKIP_SMUDGE=1`:
+with the LFS filter active it downloads every store into `.git/lfs`.
 
 ```sh
 GIT_LFS_SKIP_SMUDGE=1 git clone \
   https://huggingface.co/psiloceyeben/oracle7-slim /srv/source/oracle7-slim
 python deploy/appliance/provision.py \
   --source /srv/source/oracle7-slim \
-  --target /srv/appliances/oracle7-slim-083e3a6c \
+  --target /srv/appliances/oracle7-slim-c473d289 \
   --cache /srv/appliance-cache \
   --adapter tools/appliance \
   --reuse-from /srv/previous-oracle7
@@ -192,9 +207,9 @@ scoped proof/native/panel receipts before selecting an overlay.
 accepted. The adapter is optional for a stock-runtime comparison artifact.
 
 ```sh
-PYTHONHASHSEED=0 python /srv/appliances/oracle7-slim-083e3a6c/adapter/serve.py \
-  --runtime /srv/appliances/oracle7-slim-083e3a6c \
-  --data-root /srv/appliances/oracle7-slim-083e3a6c/root \
+PYTHONHASHSEED=0 python /srv/appliances/oracle7-slim-c473d289/adapter/serve.py \
+  --runtime /srv/appliances/oracle7-slim-c473d289 \
+  --data-root /srv/appliances/oracle7-slim-c473d289/root \
   --workspace /srv/oracle-workspaces/example \
   --port 7070
 ```
@@ -209,8 +224,8 @@ backend; a Python HTTP socket is not that authority boundary.
 A portable tar archive preserves the complete runtime and internal hardlinks:
 
 ```sh
-tar -cf oracle7-slim-083e3a6c.tar -C /srv/appliances oracle7-slim-083e3a6c
-shasum -a 256 oracle7-slim-083e3a6c.tar > oracle7-slim-083e3a6c.tar.sha256
+tar -cf oracle7-slim-c473d289.tar -C /srv/appliances oracle7-slim-c473d289
+shasum -a 256 oracle7-slim-c473d289.tar > oracle7-slim-c473d289.tar.sha256
 ```
 
 Record this repository's revision and the resolved dependency environment

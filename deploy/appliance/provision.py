@@ -18,7 +18,12 @@ import tarfile
 import tempfile
 from urllib.parse import quote
 
-REVISION = '083e3a6c0e2cfc131e62bdc16cb4ec1346194635'
+# Historical recipes (U3 through U7) were built from slim 4.9; rebuild them with
+# --revision REVISION_4_9. New candidates default to slim 10.1.
+REVISION_4_9 = '083e3a6c0e2cfc131e62bdc16cb4ec1346194635'
+REVISION_10_1 = 'c473d28914e480425adb29b4f7f42485b8cfb4e3'
+REVISION = REVISION_10_1
+PROFILES = {REVISION_4_9: 'oracle7-slim-4.9', REVISION_10_1: 'oracle7-slim-10.1'}
 REPOSITORY = 'https://huggingface.co/psiloceyeben/oracle7-slim'
 POINTER = re.compile(rb'version https://git-lfs.github.com/spec/v1\noid sha256:([0-9a-f]{64})\nsize ([0-9]+)\n?\Z')
 CHUNK = 1024 * 1024
@@ -679,7 +684,7 @@ def materialize(source, target, cache, reuse=None, patches=(), revision=REVISION
             safe_path(name)
             if '/' in name or files.get('root/specialists/_proved/bin/' + name, {}).get('sha256') != sha:
                 raise ValueError('kernel manifest hash mismatch: ' + name)
-        receipt = {'schema': 1, 'profile': 'oracle7-slim-4.9', 'source_repository': repository,
+        receipt = {'schema': 1, 'profile': PROFILES.get(actual, 'oracle7-slim-' + actual[:12]), 'source_repository': repository,
                    'source_revision': actual, 'patches': patch_records, 'adapter_files': adapter_files,
                    'components': component_receipts,
                    'kernel_overlay': overlay_record, 'kernel_family_provenance': proved.get('family_provenance', {}),
@@ -709,6 +714,7 @@ def main():
     parser.add_argument('--out', type=Path, help='new frozen component manifest path')
     parser.add_argument('--component-bundle', nargs=2, action='append', default=[], metavar=('MANIFEST', 'SHA256'))
     parser.add_argument('--source', type=Path, help='local Git checkout containing the pinned commit')
+    parser.add_argument('--revision', default=REVISION, help='exact source commit (default: slim 10.1; historical recipes use ' + REVISION_4_9 + ')')
     parser.add_argument('--target', type=Path)
     parser.add_argument('--cache', type=Path)
     parser.add_argument('--reuse-from', type=Path)
@@ -723,7 +729,7 @@ def main():
         return
     if not all((args.source, args.target, args.cache)):
         parser.error('--source, --target and --cache are required for materialization')
-    materialize(args.source, args.target, args.cache, args.reuse_from, args.patch, adapter=args.adapter,
+    materialize(args.source, args.target, args.cache, args.reuse_from, args.patch, revision=args.revision, adapter=args.adapter,
                 kernel_overlay=args.kernel_overlay, component_bundles=args.component_bundle)
 
 if __name__ == '__main__':

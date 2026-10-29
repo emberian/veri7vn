@@ -1,0 +1,408 @@
+{
+  "schema": "oracle7-materialization-receipt-v1",
+  "date": "2026-10-29",
+  "assurance": "Byte identity and composition, one smoke run, one 57-request replay per candidate, six specialist panels. No theorem, no fresh upstream admission, no Mini qualification.",
+  "candidate": "var/appliance-20261029/candidate-u8",
+  "candidate_status": "built-and-exercised-locally; not signed; not service-accepted",
+  "recipe": "deploy/appliance/candidate-u8.recipe.json",
+  "recipe_sha256": "95dc47f5f3a2753992cc5f91d0e3095fd5a0f3a2b7dc1cb382cccf0d86067282",
+  "appliance_receipt_sha256": "97286fb824bb102a24ac9e7458fc8d8426212ad0bff2b585bd00d6e0462d00a5",
+  "profile": "oracle7-slim-10.1",
+  "source_repository": "https://huggingface.co/psiloceyeben/oracle7-slim",
+  "source_revision": "c473d28914e480425adb29b4f7f42485b8cfb4e3",
+  "previous_candidate": {
+    "name": "U7 (signed version 7)",
+    "path": "var/usage-20261027/candidate-u7",
+    "source_revision": "083e3a6c0e2cfc131e62bdc16cb4ec1346194635",
+    "appliance_receipt_sha256": "78773bfb4ec72633332dfd67d9a466f4022f2457371fff32d3b673bcd499844c"
+  },
+  "head": {
+    "tip_4_9": "oracle_release_runtime_w436",
+    "tip_10_1": "oracle_release_runtime_w574",
+    "folds_added_above_4_9_tip": [
+      "oracle_release_runtime_w437",
+      "oracle_release_runtime_w572",
+      "oracle_release_runtime_w573",
+      "oracle_release_runtime_w574"
+    ],
+    "chain_length_4_9": 355,
+    "chain_length_10_1": 359
+  },
+  "patches": [
+    {
+      "name": "oracle7-slim-10.1-dates-boundary.patch",
+      "sha256": "a4bdf85e14805bb0253858f712b7b943327dcc12b4257348e1207f744c3dc338"
+    },
+    {
+      "name": "oracle7-slim-10.1-operations-v3.patch",
+      "sha256": "9d83ee0122f6897c7e901df6d72137060d09a75c251120a02e3209cbbd097350"
+    },
+    {
+      "name": "oracle7-slim-10.1-transfer-extension.patch",
+      "sha256": "55d63586cf45ab7a1c614e4d1a0e3d0873f2c9471043c9d19a8153571c8738ae"
+    }
+  ],
+  "patches_identical_to_4_9_bytes": {
+    "oracle7-slim-10.1-operations-v3.patch": "oracle7-slim-4.9-operations-v3.patch",
+    "oracle7-slim-10.1-transfer-extension.patch": "oracle7-slim-4.9-transfer-extension.patch"
+  },
+  "components": {
+    "artist": "27e4bf681ecd4555c833644a07bf69755c9598c55a36a094276760f9806649df",
+    "chameleon": "769eef0641f2f27ca0e49aa90b04ecbfd5409d8b91cc4f9305c2ccdca0e5cf7f",
+    "deepspace": "2930f52b2ff0b0872b9174ebb78f9a8117a245a17c7f645eb0c58e52ac030b0c",
+    "exam-inspection": "4042d6a4a42fe11fe310c1ce9900242d360b8dac9cc472a35da23b1a07eea399",
+    "infrastructure": "eb1cdda87854cdfe9c5501af42c7fdcf481c4718724e27e356d131d211fa4396",
+    "operations": "2e635ee330076a0d2a0efef553a66fb0511be259e6329b5317239162dbe14cd6",
+    "trafficcop": "384e33806b60e56091e03abdb060d46d069ad7413e7b538afaa689c81470c518",
+    "vision": "81def1b3670ecac01333b76271b048ade982226d40fa8273d4c9a6f8691bc705",
+    "workbench": "b6d52fe3013dba27dd5d24c1f4a5a5d88f076e831636460c00534b5acf98dc1b"
+  },
+  "component_locks": "deploy/appliance/components/locked-10.1-v1/bundles.json (re-frozen exam-inspection and operations; seven locked-u4-v2 references)",
+  "kernel_overlay_manifest_sha256": "dc629dbb008931288fed19f3da459be287fa7152da1378de98c3fa9af3a3749f",
+  "kernel_families": 20,
+  "stores": [
+    {
+      "path": "root/fable-content/oracle-m-series-2026-08-15/m13a_wordnet_build_a_v4/wordnet_specialist.sqlite3",
+      "sha256": "5f330958033a397aeb1c7e8c4ce165edd1dd2c5e2a91efdf2dcd936c6b22b9c7",
+      "size": 77045760,
+      "zst_size": 19751628
+    },
+    {
+      "path": "root/fable-content/oracle-m-series-2026-08-15/m13e5_conceptnet_build_a_v1/conceptnet_specialist.sqlite3",
+      "sha256": "5e28406c418ca1c82e5fae81ebafe826018c10094b66989c2ca5e97017913669",
+      "size": 491732992,
+      "zst_size": 98294620
+    },
+    {
+      "path": "root/fable-content/oracle-m-series-2026-08-15/m13e5_dbpedia_build_a_v2/wikipedia_specialist.sqlite3",
+      "sha256": "cdbcfc53f8d12952ad748f47107384e218b5221b32b91c2d4ae59b2bbdbcdbd3",
+      "size": 1154691072,
+      "zst_size": 508181350
+    },
+    {
+      "path": "root/fable-content/oracle-m-series-2026-08-15/m13e5_simplewiki_build_a_v1/wikipedia_specialist.sqlite3",
+      "sha256": "206020fdc40b7d3a76ce89d5b4e590a05e0772a363b254e139153a5b506e6b62",
+      "size": 816103424,
+      "zst_size": 358653251
+    },
+    {
+      "path": "root/fable-content/oracle-m-series-2026-08-15/m13e5_simplewiki_full_build_a_v1/wikipedia_specialist.sqlite3",
+      "sha256": "cdbcfc53f8d12952ad748f47107384e218b5221b32b91c2d4ae59b2bbdbcdbd3",
+      "size": 1154691072,
+      "zst_size": 508181350
+    },
+    {
+      "path": "root/fable-content/oracle-m-series-2026-08-15/m13e5_wiktionary_build_a_v1/wiktionary_specialist.sqlite3",
+      "sha256": "5ad78211433bd419be073ec60678c6df792b204f63b043cdbf28420b7ce63d1a",
+      "size": 234348544,
+      "zst_size": 76271098
+    },
+    {
+      "path": "root/fable-content/oracle-m-series-2026-08-15/m31_wordnet_corpus_v3.sqlite3",
+      "sha256": "73ec6c387676eac85d5b55e8f7c0df89c5ebf0f1f7ad183c7596e2f59dc7862c",
+      "size": 252764160,
+      "zst_size": 61367860
+    },
+    {
+      "path": "root/relstore/names_v1.sqlite3",
+      "sha256": "042f94dbe34089e70ca0ae1d3c8bf13c00610f0e22872dc4ba15360690922f2d",
+      "size": 1660297216,
+      "zst_size": 565581124
+    },
+    {
+      "path": "root/relstore/relations_v1.sqlite3",
+      "sha256": "8ef21f19237b8f977735e56a7b62e29943b37d01b5cb6778c217f9c080fbb6da",
+      "size": 3593560064,
+      "zst_size": 1113221569
+    },
+    {
+      "path": "root/relstore/relations_v2.sqlite3",
+      "sha256": "7df5c620982634e7ed6ff097f7d9082605cc879e9ee938d36d6a14af11cc4095",
+      "size": 5569425408,
+      "zst_size": 1725936675
+    }
+  ],
+  "stores_identical_to_u7": true,
+  "logical_store_bytes": 15004659712,
+  "cache_origins": {
+    "verified-cache": 46
+  },
+  "store_downloads": 0,
+  "new_lfs_payloads_downloaded": {
+    "root/organs10/kqa/kb.json": 79341787,
+    "root/organs10/kqa/train.json": 88119411,
+    "root/organs10/kqa/val.json": 11047970
+  },
+  "disk": {
+    "candidate_unshared_bytes": 362470976,
+    "stores": "hardlinked from cache objects shared with var/appliance-20261026/cache"
+  },
+  "files": 14779,
+  "smoke": {
+    "command": "deploy/appliance/smoke.py --runtime var/appliance-20261029/candidate-u8 --adapter .../adapter/serve.py --out var/appliance-20261029/smoke-u8 --patched",
+    "queries": 5,
+    "checks": {
+      "leaves_of_grass": true,
+      "exact_retry": true,
+      "changed_retry_refused": true,
+      "weather_grouped_altitude": true,
+      "compound_altitude_refused": true,
+      "austen_followup": true,
+      "restart_replay_without_new_ledger_entry": true,
+      "source_tree_unchanged": true
+    },
+    "passed": true
+  },
+  "usage_57": {
+    "scorer": "copy of var/u5-service/analyze-v2.py classification (var/appliance-20261029/usage/analyze.py); wrong answers judged by reading every differing reply",
+    "4.9_U7": {
+      "counts": {
+        "completed": 37,
+        "valid_task_incomplete": 7,
+        "appropriate_refusal_or_clarification": 13
+      },
+      "wrong_observed": 0,
+      "exact_replays_equal": true,
+      "reliability_checker": [
+        {
+          "correct_scalar": 9,
+          "needless_refusal": 2,
+          "safe_refusal": 4
+        },
+        [
+          7,
+          10
+        ]
+      ]
+    },
+    "10.1_U8": {
+      "counts": {
+        "completed": 37,
+        "valid_task_incomplete": 7,
+        "appropriate_refusal_or_clarification": 13
+      },
+      "wrong_observed": 0,
+      "exact_replays_equal": true,
+      "reliability_checker_raw": [
+        {
+          "unparsed": 6,
+          "correct_scalar": 3,
+          "needless_refusal": 2,
+          "safe_refusal": 4
+        },
+        [
+          1,
+          10
+        ]
+      ],
+      "reliability_note": "tools/usage/reliability/check_pairs.py only parses a leading [ev:derived] tag; 10.1 (w573) strips that tag. The six affected replies are byte-identical to 4.9 after the tag, so the 4.9 counts apply."
+    },
+    "reply_comparison": {
+      "identical_ignoring_latency": 43,
+      "differ_only_by_removed_ev_derived_tag": 13,
+      "differ_only_in_provenance_timing": 1,
+      "other_differences": 0
+    }
+  },
+  "panels": {
+    "harness": "tools/parity/harness.py, PARITY_UPSTREAM=candidate-u8, answerer oracle7.py --compose front --tip oracle_release_runtime_w574 via var/appliance-20261029/tools/answerer_statefix.py",
+    "scorer": "each specialist's own scorer through the harness, held-out split",
+    "run_dir": "var/appliance-20261029/parity/control-a-w574",
+    "specialists": {
+      "acoustics": {
+        "n": 69,
+        "errors": 0,
+        "head_alone_ok_fy_wrong": [
+          57,
+          2,
+          0
+        ],
+        "with_specialist_ok_fy_wrong": [
+          68,
+          1,
+          0
+        ],
+        "decision": "ADMIT",
+        "reasons": [],
+        "control_a": {
+          "head": "oracle_release_runtime_w363",
+          "head_alone_ok_fy_wrong": [
+            3,
+            1,
+            5
+          ],
+          "with_specialist_ok_fy_wrong": [
+            69,
+            0,
+            0
+          ],
+          "decision": "ADMIT"
+        }
+      },
+      "cooking-v3": {
+        "n": 228,
+        "errors": 0,
+        "head_alone_ok_fy_wrong": [
+          67,
+          3,
+          77
+        ],
+        "with_specialist_ok_fy_wrong": [
+          224,
+          0,
+          2
+        ],
+        "decision": "ADMIT",
+        "reasons": [],
+        "control_a": {
+          "head": "oracle_release_runtime_w363",
+          "head_alone_ok_fy_wrong": [
+            10,
+            0,
+            12
+          ],
+          "with_specialist_ok_fy_wrong": [
+            224,
+            0,
+            2
+          ],
+          "decision": "ADMIT"
+        }
+      },
+      "densities": {
+        "n": 51,
+        "errors": 0,
+        "head_alone_ok_fy_wrong": [
+          50,
+          0,
+          1
+        ],
+        "with_specialist_ok_fy_wrong": [
+          51,
+          0,
+          0
+        ],
+        "decision": "NEGATIVE",
+        "reasons": [
+          "DOMAIN: gain 1, needs 3"
+        ],
+        "control_a": {
+          "head": "oracle_release_runtime_w524",
+          "head_alone_ok_fy_wrong": [
+            3,
+            0,
+            0
+          ],
+          "with_specialist_ok_fy_wrong": [
+            51,
+            0,
+            0
+          ],
+          "decision": "ADMIT"
+        }
+      },
+      "rel-actors": {
+        "n": 96,
+        "errors": 0,
+        "head_alone_ok_fy_wrong": [
+          94,
+          0,
+          0
+        ],
+        "with_specialist_ok_fy_wrong": [
+          96,
+          0,
+          0
+        ],
+        "decision": "NEGATIVE",
+        "reasons": [
+          "DOMAIN: gain 2, needs 3"
+        ],
+        "control_a": {
+          "head": "oracle_release_runtime_w525",
+          "head_alone_ok_fy_wrong": [
+            20,
+            0,
+            6
+          ],
+          "with_specialist_ok_fy_wrong": [
+            20,
+            0,
+            6
+          ],
+          "decision": "NEGATIVE"
+        }
+      },
+      "units-v3": {
+        "n": 75,
+        "errors": 0,
+        "head_alone_ok_fy_wrong": [
+          53,
+          0,
+          21
+        ],
+        "with_specialist_ok_fy_wrong": [
+          75,
+          0,
+          0
+        ],
+        "decision": "ADMIT",
+        "reasons": [],
+        "control_a": {
+          "head": "oracle_release_runtime_w363",
+          "head_alone_ok_fy_wrong": [
+            4,
+            0,
+            27
+          ],
+          "with_specialist_ok_fy_wrong": [
+            75,
+            0,
+            0
+          ],
+          "decision": "ADMIT"
+        }
+      },
+      "units": {
+        "n": 76,
+        "errors": 0,
+        "head_alone_ok_fy_wrong": [
+          51,
+          0,
+          25
+        ],
+        "with_specialist_ok_fy_wrong": [
+          76,
+          0,
+          0
+        ],
+        "decision": "ADMIT",
+        "reasons": [],
+        "control_a": {
+          "head": "oracle_release_runtime_w363",
+          "head_alone_ok_fy_wrong": [
+            5,
+            0,
+            33
+          ],
+          "with_specialist_ok_fy_wrong": [
+            76,
+            0,
+            0
+          ],
+          "decision": "ADMIT"
+        }
+      }
+    },
+    "total_with_specialist_ok_fy_wrong": [
+      590,
+      1,
+      2
+    ],
+    "control_a_total_ok_fy_wrong": [
+      515,
+      0,
+      8
+    ]
+  }
+}

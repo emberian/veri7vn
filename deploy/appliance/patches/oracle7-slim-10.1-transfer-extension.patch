@@ -1,0 +1,415 @@
+diff --git a/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w554.py b/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w554.py
+index 1b65d4f..5ca6028 100644
+--- a/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w554.py
++++ b/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w554.py
+@@ -14,6 +14,9 @@ the turn behaves exactly as the w551 -> w552 -> w553 chain whose regression, rou
+ Found by the research record (re-examination E-20261018-0043, together vs alone E-20261018-0033: answers lost when the
+ wrong specialist takes a question; #18 orbits admitted but in no standing list). Deliberate declines of a question that is
+ itself the problem (private, impossible, future, fictional, a false premise, an unknown place or body, half an answer) stand.
++Locally enabled extensions use a separate standing_extensions_v1 list after existing answers.
++They are untrusted additions, not members of the historical admitted standing lists. Only a generic
++reading decline may be filled; guards and terminal receipts stand. Qualification accompanies replies.
+ The fold imports no runtime other than its parent and changes no module state of any other fold."""
+ from __future__ import annotations
+ 
+@@ -35,6 +38,12 @@ STARS_STAND = ("private", "impossible", "future", "fiction", "premise", "unknown
+ OWNER_STANDS = STARS_STAND + ("identity", "self", "act:")
+ SPEC_IN_PATH = re.compile(r"\bspecialist:([a-z0-9][a-z0-9-]*)")
+ NUM = re.compile(r"-?\d[\d,]*(?:\.\d+)?")
++EXTENSION_CHECK = re.compile(
++    r"(?:^|[>|])(?:precision_guard:|same_name_guard|weight:|chat:unresolved|"
++    r"(?:act:)?(?:self|identity|veto)(?:[:_]|$|[>|]))"
++)
++EXTENSION_READING = ("act:clarify", "unverified:", "corpus_query", "factoid", "deliberation", "capability:",
++                     "arb:", "compose", "family_precedence:low_credit", "verified:", "cube:")
+ NUMQ = re.compile(r"^\s*(how many|how much|how long|how far|how fast|how old|convert|calculate|compute|what is the)\b|\bin [a-z]+\s*\?\s*$", re.I)
+ _S: dict = {}
+ _LOCK = threading.Lock()
+@@ -48,7 +57,9 @@ def _load(key, lists):
+             spec.loader.exec_module(mod)
+             ids = []
+             for f in lists:
+-                for s in open("%s/%s.txt" % (GATE, f), encoding="utf-8").read().split():
++                with open("%s/%s.txt" % (GATE, f), encoding="utf-8") as stream:
++                    entries = stream.read().split()
++                for s in entries:
+                     ids += [m for m in s.split("+") if m not in ids]
+             _S[key] = (mod.Family(["%s/%s/manifest.json" % (SPEC_ROOT, i) for i in ids], ["%s/%s" % (SPEC_ROOT, i) for i in ids]), mod)
+         return _S[key]
+@@ -116,6 +127,39 @@ class OracleReleaseRuntimeW554(_Base):
+         out.pop("why", None)
+         return out
+ 
++    def _local_extensions(self, text, session_id, r):
++        """Existing manifest/combiner contract; local enablement is not held-out admission."""
++        path = str(r.get("path", ""))
++        if (r.get("status") == "answered" or terminal_refusal(r) or EXTENSION_CHECK.search(path)
++                or any(k in path.lower() for k in STARS_STAND)
++                or not any(k in path for k in EXTENSION_READING)):
++            return r
++        try:
++            family, _ = _load("local_extensions", ["standing_extensions_v1"])
++            f = family.reply(text, "w554extensions" + str(session_id)[:30])
++            if not f or f.get("status") != "answered":
++                return r
++            provenance = f.get("provenance") or {}
++            if (provenance.get("trace") or {}).get("rule") != "only" or provenance.get("declined"):
++                return r
++            sid = provenance.get("specialist")
++            manifest = next(o.m for o in family.organs if o.id == sid)
++            qualification = manifest.get("qualification")
++            if (not isinstance(qualification, dict)
++                    or qualification.get("state") != "locally_enabled_unqualified"
++                    or qualification.get("fresh_heldout_admission") is not False
++                    or qualification.get("formal_proof") is not False):
++                return r
++        except Exception:  # an unavailable extension leaves the original decline intact
++            return r
++        out = replacement_reply(r)
++        out.update(status="answered", response=str(f.get("response", "")) + " [%s]" % sid,
++                   path="local_extension>specialist_call>" + str(f.get("path", "")),
++                   references=f.get("references", []),
++                   provenance={**provenance, "qualification": dict(qualification), "declined_by": path})
++        out.pop("why", None)
++        return out
++
+     def chat(self, text: str, session_id: str = "default") -> dict:
+         r = super().chat(text, session_id)
+         if not isinstance(r, dict) or r.get("status") == "answered":
+@@ -123,4 +167,7 @@ class OracleReleaseRuntimeW554(_Base):
+         r = self._stars(text, session_id, r)
+         if r.get("status") == "answered":
+             return r
+-        return self._owner(text, session_id, r)
++        r = self._owner(text, session_id, r)
++        if r.get("status") == "answered":
++            return r
++        return self._local_extensions(text, session_id, r)
+diff --git a/root/specialists/_gate/standing_extensions_v1.txt b/root/specialists/_gate/standing_extensions_v1.txt
+new file mode 100644
+index 0000000..a9407f2
+--- /dev/null
++++ b/root/specialists/_gate/standing_extensions_v1.txt
+@@ -0,0 +1 @@
++data-transfer-v1
+diff --git a/root/specialists/data-transfer-v1/README.md b/root/specialists/data-transfer-v1/README.md
+new file mode 100644
+index 0000000..44f7db7
+--- /dev/null
++++ b/root/specialists/data-transfer-v1/README.md
+@@ -0,0 +1,36 @@
++# Transfer time
++
++Locally enabled **untrusted Python**. This extension has no upstream admission,
++no fresh held-out admission, and no formal proof. Its source and tests are new
++packaging inputs; historical release/admission hashes are not rewritten.
++The U1 Workbench replay verdict belongs to different source and is not inherited.
++
++Ask `How long does it take to transfer 1GB at100Mbps?` for **80 seconds**, explicitly
++labelled an ideal estimate at 100% utilization, without startup delay. Add
++`with 80% utilization` to estimate throughput losses. Actual transfer time can
++be longer. This does not read files, measure networks, or access private state.
++
++Use `How long does it take to`, `How long to`, or `How many seconds to`, followed
++by `transfer`, `download`, or `upload`. Give one size, `at` and one sustained rate
++(or `over a RATE connection`), and optionally utilization. Extra conditions such
++as changing rates and startup delay are refused, not silently ignored.
++
++B means bytes and b means bits. Size units: B, kB, MB, GB, TB, KiB, MiB, GiB, TiB.
++Rates: bps, kbps, Mbps, Gbps, Tbps, or a size unit followed by /s. Unit spelling is
++case-sensitive. Decimal prefixes use powers of 1000; binary powers of 1024.
++Size may be zero; rate must be positive; utilization must be in (0,100].
++Inputs are bounded to 4096 characters and 18 integer plus 12 fractional digits
++per number. Fractions are exact before display rounding to 12 significant digits.
++
++The existing combiner loads the manifest through `standing_extensions_v1.txt`.
++w554 consults these local extensions only after core/star/owner answers, only on
++eligible reading declines, preserving privacy, precision and terminal guards.
++Ordinary replies carry qualification in provenance. Direct operation discovery
++uses the same standing registration and exposes source qualification; direct
++results include it too. Direct calls bypass the head's global guards and are
++labelled accordingly by the operations adapter.
++
++`panel.json` contains fresh development/domain controls, with independently
++written literal expected results. Its held-out list is empty: no new admission
++exam is represented. A full candidate Engine check remains an integration step;
++component tests do not pretend to run the complete Engine.
+diff --git a/root/specialists/data-transfer-v1/manifest.json b/root/specialists/data-transfer-v1/manifest.json
+new file mode 100644
+index 0000000..61f5022
+--- /dev/null
++++ b/root/specialists/data-transfer-v1/manifest.json
+@@ -0,0 +1,53 @@
++{
++  "id": "data-transfer-v1",
++  "name": "Transfer time (locally enabled Python extension)",
++  "sources": [
++    {
++      "name": "User-supplied size and sustained rate. Utilization supplied or explicitly assumed at 100%; no startup delay. Unit definitions: 8 bits per byte; decimal prefixes use 1000, binary prefixes 1024.",
++      "licence": "mathematical definition",
++      "url": ""
++    }
++  ],
++  "organ": {
++    "dir": "__ORACLE7_ROOT__/specialists/data-transfer-v1",
++    "module": "organ_transfer_v1",
++    "class": "Organ",
++    "init": {}
++  },
++  "accept": {
++    "kinds": [
++      "transfer_seconds"
++    ],
++    "declines_in_domain": [
++      "transfer_input"
++    ],
++    "context_regex": "\\b(?:transfer|download|upload)\\b"
++  },
++  "panel": {
++    "path": "__ORACLE7_ROOT__/specialists/data-transfer-v1/panel.json",
++    "splits": [
++      "dev"
++    ],
++    "scorer_module": "scorer",
++    "scorer_fn": "ok"
++  },
++  "budgets": {
++    "latency_p50_ms": 10
++  },
++  "routing_cues": [
++    "How long does it take to transfer 1GB at100Mbps?",
++    "How many seconds to download 600 MB over a 25 Mbps connection with 80% utilization?"
++  ],
++  "qualification": {
++    "state": "locally_enabled_unqualified",
++    "implementation": "untrusted_python",
++    "fresh_heldout_admission": false,
++    "formal_proof": false,
++    "limitations": [
++      "Locally enabled extension; no upstream admission, fresh held-out admission or formal proof.",
++      "Fresh domain controls are development evidence, not a sealed independent exam.",
++      "Ideal estimates assume 100% utilization and no startup delay; actual transfers may take longer."
++    ]
++  },
++  "notes": "U5 integration of changed transfer grammar. U1 replay admission is not copied or inherited. Historical upstream release hashes remain unchanged. Installer/package receipt must identify the new files and changed runtime."
++}
+diff --git a/root/specialists/data-transfer-v1/organ_transfer_v1.py b/root/specialists/data-transfer-v1/organ_transfer_v1.py
+new file mode 100644
+index 0000000..8170fc1
+--- /dev/null
++++ b/root/specialists/data-transfer-v1/organ_transfer_v1.py
+@@ -0,0 +1,74 @@
++"""Untrusted Python transfer-time specialist; no theorem or fresh admission claim.
++
++Complete recognized questions only. Size and sustained rate are user inputs.
++Explicit utilization models all throughput losses. Without it, report an ideal
++100%-utilization estimate, labelled as such, never a measured connection time.
++"""
++from decimal import Decimal, localcontext
++from fractions import Fraction
++import re
++
++NUMBER = r"-?\d{1,18}(?:\.\d{1,12})?"
++PREFIX = r"(?:How long|How many seconds)\s+(?:does it take to|to)\s+(?:transfer|download|upload)\s+"
++QUESTION = re.compile(
++    PREFIX + rf"(?P<size>{NUMBER})\s*(?P<size_unit>[A-Za-z]+)\s+"
++    rf"(?:at\s*|over a\s+)(?P<rate>{NUMBER})\s*(?P<rate_unit>[A-Za-z/]+)"
++    rf"(?:\s+connection)?(?:\s+with\s+(?P<util>{NUMBER})%\s+utili[sz]ation)?\??", re.I
++)
++INTENT = re.compile(PREFIX, re.I)
++BYTE_UNITS = {"B": 1, "kB": 1000, "MB": 1000**2, "GB": 1000**3, "TB": 1000**4,
++              "KiB": 1024, "MiB": 1024**2, "GiB": 1024**3, "TiB": 1024**4}
++BIT_RATES = {"bps": 1, "kbps": 1000, "Mbps": 1000**2, "Gbps": 1000**3, "Tbps": 1000**4}
++RATE_UNITS = {**BIT_RATES, **{unit + "/s": factor * 8 for unit, factor in BYTE_UNITS.items()}}
++QUALIFICATION = {"state": "locally_enabled_unqualified", "implementation": "untrusted_python",
++                 "fresh_heldout_admission": False, "formal_proof": False}
++
++
++def fmt(value):
++    with localcontext() as ctx:
++        ctx.prec = 12
++        return format(Decimal(value.numerator) / Decimal(value.denominator), "g")
++
++
++def decline(message):
++    return {"kind": "transfer_input", "status": "withheld", "response": message,
++            "qualification": dict(QUALIFICATION)}
++
++
++class Organ:
++    def answer(self, text, session='default'):
++        if not isinstance(text, str) or len(text) > 4096:
++            return None
++        text = text.strip()
++        if not INTENT.match(text):
++            return None
++        match = QUESTION.fullmatch(text)
++        if not match:
++            return decline("Give one size and one sustained rate, optionally with utilization, for example: "
++                           "How long does it take to transfer 1GB at100Mbps with 80% utilization? "
++                           "Extra delays, changing rates and additional conditions need a different model.")
++        su, ru = match['size_unit'], match['rate_unit']
++        if su not in BYTE_UNITS or ru not in RATE_UNITS:
++            return decline("Use case-sensitive units: B means bytes, b means bits; GB/MB are decimal, "
++                           "GiB/MiB binary. Supported rates include Mbps, Gbps, MB/s and MiB/s.")
++        size, rate = Fraction(match['size']), Fraction(match['rate'])
++        util = Fraction(match['util']) if match['util'] is not None else Fraction(100)
++        if size < 0 or rate <= 0 or not 0 < util <= 100:
++            return decline("Size must be nonnegative, rate positive, and utilization greater than 0% and at most 100%.")
++        bits = size * BYTE_UNITS[su] * 8
++        effective = rate * RATE_UNITS[ru] * util / 100
++        seconds = bits / effective
++        mode = 'Ideal' if match['util'] is None else 'Estimated'
++        assumption = ("Assumes 100% utilization of the supplied sustained rate; actual transfers may take longer. "
++                      if match['util'] is None else f"Uses the supplied {match['util']}% utilization throughout. ")
++        return {
++            "kind": "transfer_seconds", "status": "answered",
++            "response": f"{mode} transfer time: {fmt(seconds)} seconds. "
++                        f"{fmt(bits)} bits / {fmt(effective)} effective bits per second. "
++                        + assumption + "No startup delay is included. "
++                        "Decimal units use powers of 1000; binary units powers of 1024; 8 bits = 1 byte.",
++            "calculation": {"seconds_numerator": seconds.numerator, "seconds_denominator": seconds.denominator,
++                            "utilization_percent": str(util), "utilization_assumed": match['util'] is None,
++                            "source": "user-supplied size and rate; utilization supplied or explicitly assumed"},
++            "qualification": dict(QUALIFICATION),
++        }
+diff --git a/root/specialists/data-transfer-v1/panel.json b/root/specialists/data-transfer-v1/panel.json
+new file mode 100644
+index 0000000..625c8ea
+--- /dev/null
++++ b/root/specialists/data-transfer-v1/panel.json
+@@ -0,0 +1,106 @@
++{
++  "scope": "Fresh integration and domain controls for locally enabled untrusted Python; no held-out admission exam.",
++  "dev": [
++    {
++      "id": "compact-ideal",
++      "q": "How long does it take to transfer 1GB at100Mbps?",
++      "mode": "ideal",
++      "valid": true,
++      "a": "80"
++    },
++    {
++      "id": "compact-util",
++      "q": "How long does it take to transfer 9GB at300Mbps with 60% utilization?",
++      "mode": "estimated",
++      "valid": true,
++      "a": "400"
++    },
++    {
++      "id": "binary-ideal",
++      "q": "How long to download 2GiB at128MiB/s?",
++      "mode": "ideal",
++      "valid": true,
++      "a": "16"
++    },
++    {
++      "id": "bytes-rate",
++      "q": "How many seconds to upload 7.5MB at2.5MB/s with 50% utilization?",
++      "mode": "estimated",
++      "valid": true,
++      "a": "6"
++    },
++    {
++      "id": "small-binary",
++      "q": "How long does it take to transfer 3KiB at8kbps with 40% utilisation?",
++      "mode": "estimated",
++      "valid": true,
++      "a": "7.68"
++    },
++    {
++      "id": "large-decimal",
++      "q": "How long does it take to upload 4TB at40Gbps with 80% utilization?",
++      "mode": "estimated",
++      "valid": true,
++      "a": "1000"
++    },
++    {
++      "id": "fraction",
++      "q": "How long to transfer 1B at6bps?",
++      "mode": "ideal",
++      "valid": true,
++      "a": "1.33333333333333333333"
++    },
++    {
++      "id": "zero",
++      "q": "How long does it take to transfer 0GB at1Mbps?",
++      "mode": "ideal",
++      "valid": true,
++      "a": "0"
++    },
++    {
++      "id": "ordinary",
++      "q": "How many seconds to download 600 MB over a 25 Mbps connection with 80% utilization?",
++      "mode": "estimated",
++      "valid": true,
++      "a": "240"
++    },
++    {
++      "id": "micro-util",
++      "q": "How long does it take to transfer 1MB at1Gbps with 0.5% utilization?",
++      "mode": "estimated",
++      "valid": true,
++      "a": "1.6"
++    },
++    {
++      "id": "ambiguous",
++      "q": "How long does it take to transfer 1gb at100mbps?",
++      "valid": false
++    },
++    {
++      "id": "delay",
++      "q": "How long does it take to transfer 2GB at100Mbps with a 3 second startup delay?",
++      "valid": false
++    },
++    {
++      "id": "zero-rate",
++      "q": "How long does it take to transfer 2GB at0Mbps?",
++      "valid": false
++    },
++    {
++      "id": "repeated-rate",
++      "q": "How long does it take to transfer 2GB at100Mbps then at50Mbps?",
++      "valid": false
++    },
++    {
++      "id": "over-util",
++      "q": "How long does it take to transfer 2GB at100Mbps with 101% utilization?",
++      "valid": false
++    },
++    {
++      "id": "private",
++      "q": "How long does it take to transfer my private files?",
++      "valid": false
++    }
++  ],
++  "heldout": []
++}
+diff --git a/root/specialists/data-transfer-v1/scorer.py b/root/specialists/data-transfer-v1/scorer.py
+new file mode 100644
+index 0000000..1f768c0
+--- /dev/null
++++ b/root/specialists/data-transfer-v1/scorer.py
+@@ -0,0 +1,22 @@
++"""Literal independent expected times and unit/assumption controls; untrusted scorer."""
++from decimal import Decimal, InvalidOperation
++import re
++RESULT = re.compile(r"\A(Ideal|Estimated) transfer time: (-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?) seconds\.")
++
++
++def ok(item, reply):
++    asserted = reply.get('status') == 'answered'
++    if not item.get('valid', True):
++        return not asserted, asserted
++    if not asserted:
++        return False, False
++    match = RESULT.match(str(reply.get('response', '')))
++    if not match or match[1].lower() != item['mode']:
++        return False, True
++    if item['mode'] == 'ideal' and 'Assumes 100% utilization' not in reply['response']:
++        return False, True
++    try:
++        got, want = Decimal(match[2]), Decimal(item['a'])
++        return abs(got-want) <= max(Decimal('1e-12'), abs(want)*Decimal('1e-10')), True
++    except (InvalidOperation, KeyError):
++        return False, True

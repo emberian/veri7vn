@@ -1,0 +1,26 @@
+{
+  "adapter_files": {
+    "exam_inspection.py": {
+      "executable": false,
+      "path": "../../../../tools/oracle_workbench/exam_inspection.py",
+      "sha256": "8f5235a0fb0da786f38d032a88671ad909e5bfa0912bf260e5ff16e82d7efdfa",
+      "size": 23193
+    }
+  },
+  "execution_notes": [
+    "Loads the fixed Workbench exam module and calls status/files_sha on a bounded captured specialist folder. No specialist/scorer is imported, no exam is run, and held-out questions or answers are not returned. Recorded scores remain claims rather than newly measured results."
+  ],
+  "id": "exam-inspection",
+  "profile": "analysis",
+  "requirements": [
+    {
+      "kind": "appliance-file",
+      "name": "workbench/exam.py",
+      "sha256": "bf34eab79b6c4e88cde3bf90f8a82149e5fc6e42442b21f5181b04fa88952ecd",
+      "size": 22314
+    }
+  ],
+  "schema": "oracle7-component-bundle-v1",
+  "status": "available",
+  "unavailable_reasons": []
+}
