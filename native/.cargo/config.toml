@@ -1,0 +1,8 @@
+# macOS: a PyO3 extension module resolves CPython symbols at import time, and a
+# dependency's `rustc-cdylib-link-arg` does not reach this crate's link step, so
+# the linker flags must come from here. Linux needs nothing.
+[target.aarch64-apple-darwin]
+rustflags = ["-C", "link-arg=-undefined", "-C", "link-arg=dynamic_lookup"]
+
+[target.x86_64-apple-darwin]
+rustflags = ["-C", "link-arg=-undefined", "-C", "link-arg=dynamic_lookup"]
