@@ -189,3 +189,27 @@ combined build; default absence remains tested.
 The durable Runtime host files are a separate following checkpoint and remain
 outside this source manifest and qualification. Broader routes, dialogue,
 retention, effects, specialist panels and Mini integration remain active work.
+
+## Stable durable-host and distribution checkpoint
+
+Commit `7773163` freezes the private data Runtime, explicit host retirement,
+resident extracted MST checking and relocatable distribution. The [stable
+receipt](../native/evidence/2026-10-29-stable-appliance-validation.json) binds the
+staged-index snapshot, final extension and 140 source files. It records 115 scoped
+Rust contracts plus one actual resident case, warnings-denied Clippy and 54
+selected Python checks. Actual hosted and packaged journeys use manufactured
+data, preserve exact replies across restart and keep operator resources external.
+The retained Linux archive needs a compatible CPython/system environment.
+
+State stores 1/2 upgrade to 3 without rewriting request/reply bytes; envelopes stay 2.
+The new retirement budget affects release admission, and release-bound history
+is not silently migrated. Permanent fences reclaim stateful namespace payloads
+only under host authority; unresolved effects prevent retirement. No user store
+was retired during qualification.
+
+This cut retains the committed 6cc reader. Experimental segment/nested expansion
+first regressed the same 100 to 33 correct/three binding-limit errors; that run and
+diagnostics remain retained. Its structural repair has 30 authored contracts and
+still needs central real-case qualification. Next graph/typed-refusal additions
+are separate frozen work awaiting their own checks. Full routing, dialogue,
+external effects, retention policy and Mini integration remain unfinished.
