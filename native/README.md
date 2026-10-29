@@ -334,3 +334,19 @@ and resource refusals now retain healthy reasoning/science workers under the
 strict typed protocol, including independent single-feature builds. Other
 faults still retire workers. Pure request IDs correlate recomputation rather
 than durable replay. The reader remains unchanged in this checkpoint.
+
+The [exact segment checkpoint](evidence/2026-10-29-segment-reader-validation.json)
+qualifies `2fda9fe`: learned chains of two to four segments and one nested
+fragment pass join the existing whole/exact reader. Consumed children must be
+runnable and nonempty, and every successful interpretation still participates
+in answer agreement. Deferred child plans and streaming storage keep duplicate
+paths within the existing budgets. This accounting estimates retained storage;
+it is not a hard RSS ceiling. Deeper nesting, analogy and clause/date wrappers
+remain outside the admitted coverage.
+
+All 31 segment contracts, 55 affected/guard contracts, lint and the refreshed
+host/package journeys pass. The same 100 real questions retain 36 correct,
+four refusals, 60 unknown and no wrong answers or errors. Five questions gain
+interpretations without changing outcomes. Median query time is 8.80 ms versus
+the historical control's 4.10 ms; these separate runs establish neither a speedup
+nor new coverage gain. Earlier failed reader runs and packages remain retained.

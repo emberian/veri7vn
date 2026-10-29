@@ -1,0 +1,643 @@
+{
+  "scope": "Exact learned segment chains and one nested fragment pass through shared reader/runtime; no full Reader7, Engine, new HOL theorem or specialist-panel claim.",
+  "index_tree": "d469ae173f9b39c57a573ccca6ccf0ce3d3d2595",
+  "base": "82b93ca7d230074923689fc087acbb295da803c0",
+  "source_manifest": "2026-10-29-segment-reader-sources.json",
+  "source_manifest_sha256": "5e40a80732033b2eb25bce15b0cd2198e9f4a7a4bb9b437801e7e55c7b77160c",
+  "artifact": {
+    "path": "/tank/lanes/o7-native-20261028/binding-segment-stream31-release-20261029/oracle_native.so",
+    "sha256": "499e9e46484e2e48760def00f1acd24ebcf3d5e63d445e9f72ce39e52a9c8858",
+    "profile": "release",
+    "features": [
+      "reasoning",
+      "science",
+      "incremental",
+      "bio",
+      "statistics"
+    ],
+    "reuse": "Built and tested overlay has identical146 source hashes to final immutable staged-index snapshot; no unnecessary rebuild."
+  },
+  "checks": [
+    {
+      "command": "cargo test --locked -p oracle-runtime-core --test segments_contract",
+      "passed": 31
+    },
+    {
+      "command": "cargo test --locked --no-fail-fast -p oracle-runtime-core --test composition_contract --test reader_contract --test grammar_contract --test lexicon_workspace_contract --test runtime_language_contract --test runtime_release_contract",
+      "passed": 46,
+      "counts": {
+        "composition": 12,
+        "reader": 10,
+        "grammar": 12,
+        "lexicon_workspace": 5,
+        "runtime_language": 2,
+        "runtime_release": 5
+      }
+    },
+    {
+      "command": "cargo test --locked -p oracle-runtime-core --lib language_guard_contract",
+      "passed": 9,
+      "filtered_out": 4
+    },
+    {
+      "command": "cargo clippy --locked -p oracle-runtime-core -p oracle-runtime-python --features reasoning,science,incremental,bio,statistics --all-targets -- -D warnings",
+      "exit_code": 0
+    },
+    {
+      "command": "python -B -m unittest test_python_language test_python_release test_python_domains",
+      "passed": 17
+    },
+    {
+      "command": "python -B -m unittest test_native_runtime.ActualRuntimeContracts test_native_runtime_service.ActualRuntimeServiceJourney",
+      "passed": 11
+    },
+    {
+      "command": "python -B -m unittest test_package_native.ActualPackagedJourney",
+      "passed": 1
+    },
+    {
+      "command": "python -B native/tests/qualify_shortest_path.py --extension ARTIFACT --output reader-shortest-actual.json",
+      "actual_direct_and_http_cases": 5,
+      "invalid_binding_cases": 2,
+      "near_cap_8100_vertex_http_passed": true
+    }
+  ],
+  "reader100": {
+    "command": "PYTHONPATH=BINDING python -B native/tests/qualify_reader.py --image data/reader-image-v3.sqlite --image-receipt data/reader-image-v3-receipt.json --validation data/val.json --cases 100 --expected-coverage whole_and_exact_fragment_outer_v1+exact_segment_and_single_nested_v1 --work qualification-reader-segment-stream31-release100-20261029",
+    "report": {
+      "schema": "oracle-native-whole-reader-v1",
+      "run_status": "complete",
+      "scope": "bounded real questions through admitted native reader families under explicit coverage; no full reader/Engine or specialist-panel claim",
+      "coverage": "whole_and_exact_fragment_outer_v1+exact_segment_and_single_nested_v1",
+      "reference": {
+        "upstream_whole_reader": "not run; no upstream Reader/Engine constructed",
+        "comparison": "dataset gold exact strings; no case-folding, date/unit normalization or tolerance"
+      },
+      "python": "3.12.7 (main, Jun 18 2025, 13:16:51) [GCC 14.2.0]",
+      "platform": "Linux-6.11.0-29-generic-x86_64-with-glibc2.40",
+      "load_average": [
+        10.0986328125,
+        10.25244140625,
+        11.0048828125
+      ],
+      "validation_sha256": "b4aed6ab3d7ad071722064fe3bb02bc028cfbeb15da5f7115d57a1e2d198f3bb",
+      "image_receipt": {
+        "schema": "oracle-image-v3",
+        "image_sha256": "8fcb1db9a08e234179f66ea9e032d2633b38cdcb902f4c95d1ba2c2d49c842f4",
+        "source_sha256": "04da7408320c5cb7023c44372cce32846d56d369d8865d2e61a18c3956661a7c",
+        "nodes": 17754,
+        "edges": 435900,
+        "bytes": 260341760,
+        "capabilities": {
+          "version": 1,
+          "lexicon": "oracle-lexicon-v1",
+          "reader": "oracle-reader-tables-v1"
+        }
+      },
+      "native": {
+        "files": [
+          {
+            "path": "/tank/lanes/o7-native-20261028/binding-segment-stream31-release-20261029/oracle_native.so",
+            "sha256": "499e9e46484e2e48760def00f1acd24ebcf3d5e63d445e9f72ce39e52a9c8858"
+          }
+        ],
+        "module": "oracle_native"
+      },
+      "limits_overrides": {
+        "workers": 2,
+        "timeout_ms": 1000,
+        "fuel": 10000000
+      },
+      "sample": {
+        "seed": "oracle-native-whole-reader-20261028-v1",
+        "bound": 100,
+        "selected": 100,
+        "dataset_rows": 11797,
+        "pool_rows": 11797,
+        "pool_by_terminal": {
+          "Count": 1318,
+          "QueryAttr": 1418,
+          "QueryAttrQualifier": 1214,
+          "QueryRelation": 1786,
+          "QueryRelationQualifier": 1004,
+          "SelectAmong": 548,
+          "SelectBetween": 1604,
+          "VerifyDate": 13,
+          "VerifyNum": 258,
+          "VerifyStr": 717,
+          "VerifyYear": 459,
+          "What": 1458
+        },
+        "selected_by_terminal": {
+          "Count": 11,
+          "QueryAttr": 8,
+          "QueryAttrQualifier": 16,
+          "QueryRelation": 22,
+          "QueryRelationQualifier": 7,
+          "SelectAmong": 5,
+          "SelectBetween": 10,
+          "VerifyNum": 3,
+          "VerifyStr": 2,
+          "VerifyYear": 3,
+          "What": 13
+        },
+        "cases_sha256": "9089a3c9f5bdee2cb916ad775b41b4631f91d35393e26e9a376eb7bb0a863d15",
+        "sampling_pool_sha256": "b4aed6ab3d7ad071722064fe3bb02bc028cfbeb15da5f7115d57a1e2d198f3bb"
+      },
+      "results": {
+        "counts": {
+          "answered_correct": 36,
+          "answered_wrong": 0,
+          "refused": 4,
+          "unknown": 60,
+          "errors": 0
+        },
+        "reason_counts": {
+          "ambiguous_execution": 1,
+          "answer_disagreement": 2,
+          "answered": 36,
+          "no_template": 58,
+          "no_viable_reading": 2,
+          "unreadable_script": 1
+        },
+        "native_status_counts": {
+          "ambiguous": 3,
+          "answered": 36,
+          "refused": 1,
+          "unknown": 60
+        },
+        "error_types": {},
+        "by_gold_terminal": {
+          "Count": {
+            "answered_correct": 0,
+            "answered_wrong": 0,
+            "refused": 1,
+            "unknown": 10,
+            "errors": 0
+          },
+          "QueryAttr": {
+            "answered_correct": 3,
+            "answered_wrong": 0,
+            "refused": 0,
+            "unknown": 5,
+            "errors": 0
+          },
+          "QueryAttrQualifier": {
+            "answered_correct": 6,
+            "answered_wrong": 0,
+            "refused": 0,
+            "unknown": 10,
+            "errors": 0
+          },
+          "QueryRelation": {
+            "answered_correct": 16,
+            "answered_wrong": 0,
+            "refused": 1,
+            "unknown": 5,
+            "errors": 0
+          },
+          "QueryRelationQualifier": {
+            "answered_correct": 2,
+            "answered_wrong": 0,
+            "refused": 0,
+            "unknown": 5,
+            "errors": 0
+          },
+          "SelectAmong": {
+            "answered_correct": 1,
+            "answered_wrong": 0,
+            "refused": 0,
+            "unknown": 4,
+            "errors": 0
+          },
+          "SelectBetween": {
+            "answered_correct": 5,
+            "answered_wrong": 0,
+            "refused": 2,
+            "unknown": 3,
+            "errors": 0
+          },
+          "VerifyNum": {
+            "answered_correct": 1,
+            "answered_wrong": 0,
+            "refused": 0,
+            "unknown": 2,
+            "errors": 0
+          },
+          "VerifyStr": {
+            "answered_correct": 0,
+            "answered_wrong": 0,
+            "refused": 0,
+            "unknown": 2,
+            "errors": 0
+          },
+          "VerifyYear": {
+            "answered_correct": 1,
+            "answered_wrong": 0,
+            "refused": 0,
+            "unknown": 2,
+            "errors": 0
+          },
+          "What": {
+            "answered_correct": 1,
+            "answered_wrong": 0,
+            "refused": 0,
+            "unknown": 12,
+            "errors": 0
+          }
+        },
+        "refused_definition": "native refused and ambiguous statuses; native status counts remain separate"
+      },
+      "metrics": {
+        "scope": "one fresh native process; filesystem caches not evicted",
+        "native_import_seconds": 0.0004757419228553772,
+        "image_open_seconds": 0.3757249005138874,
+        "runtime_and_first_handle_seconds": 0.2986574061214924,
+        "import_to_ready_seconds": 0.6751399617642164,
+        "fresh_process_to_ready_seconds": 0.6780914831906557,
+        "first_query_seconds": 0.10166058875620365,
+        "fresh_process_to_first_query_completed_seconds": 0.7801845669746399,
+        "all_query_timings": {
+          "count": 100,
+          "p50_seconds": 0.008802498690783978,
+          "p95_seconds": 0.064346918836236,
+          "max_seconds": 0.10166058875620365
+        },
+        "completed_query_timings": {
+          "count": 100,
+          "p50_seconds": 0.008802498690783978,
+          "p95_seconds": 0.064346918836236,
+          "max_seconds": 0.10166058875620365
+        },
+        "error_query_timings": {
+          "count": 0,
+          "p50_seconds": null,
+          "p95_seconds": null,
+          "max_seconds": null
+        },
+        "query_cpu_clock": "time.process_time; native/Python/SQLite CPU in this process, excluding descheduling and waits",
+        "all_query_cpu_timings": {
+          "count": 100,
+          "p50_seconds": 0.008527520499999941,
+          "p95_seconds": 0.056369859999999994,
+          "max_seconds": 0.09682245
+        },
+        "before_import_memory": {
+          "pss_kib": 10637,
+          "private_clean_kib": 24,
+          "private_dirty_kib": 8876,
+          "peak_rss_kib": 19236,
+          "rss_kib": 19236,
+          "threads": 1
+        },
+        "after_import_memory": {
+          "pss_kib": 11563,
+          "private_clean_kib": 756,
+          "private_dirty_kib": 9068,
+          "peak_rss_kib": 20292,
+          "rss_kib": 20292,
+          "threads": 1
+        },
+        "ready_memory": {
+          "pss_kib": 14076,
+          "private_clean_kib": 2644,
+          "private_dirty_kib": 9656,
+          "peak_rss_kib": 22752,
+          "rss_kib": 22752,
+          "threads": 1
+        },
+        "after_queries_memory": {
+          "pss_kib": 53936,
+          "private_clean_kib": 34148,
+          "private_dirty_kib": 18004,
+          "peak_rss_kib": 62348,
+          "rss_kib": 62348,
+          "threads": 1
+        },
+        "after_handles_memory": {
+          "pss_kib": 53944,
+          "private_clean_kib": 34148,
+          "private_dirty_kib": 18012,
+          "peak_rss_kib": 62348,
+          "rss_kib": 62348,
+          "threads": 1
+        },
+        "after_scope_reads_memory": {
+          "pss_kib": 53948,
+          "private_clean_kib": 34148,
+          "private_dirty_kib": 18016,
+          "peak_rss_kib": 62348,
+          "rss_kib": 62348,
+          "threads": 1
+        },
+        "tenant_memory_check": {
+          "handles": 256,
+          "configured_workers": 2,
+          "active_workers_after": 0,
+          "same_results_across_three_scopes": true,
+          "handle_creation_growth": {
+            "pss_kib": 8,
+            "rss_kib": 0,
+            "private_dirty_kib": 8,
+            "private_clean_kib": 0,
+            "threads": 0
+          },
+          "growth_metric": "pss_kib",
+          "handle_growth_bound_kib": 8192,
+          "within_handle_growth_bound": true,
+          "samples": [
+            {
+              "handles": 1,
+              "memory": {
+                "pss_kib": 53936,
+                "private_clean_kib": 34148,
+                "private_dirty_kib": 18004,
+                "peak_rss_kib": 62348,
+                "rss_kib": 62348,
+                "threads": 1
+              },
+              "active_workers": 0
+            },
+            {
+              "handles": 16,
+              "memory": {
+                "pss_kib": 53936,
+                "private_clean_kib": 34148,
+                "private_dirty_kib": 18004,
+                "peak_rss_kib": 62348,
+                "rss_kib": 62348,
+                "threads": 1
+              },
+              "active_workers": 0
+            },
+            {
+              "handles": 64,
+              "memory": {
+                "pss_kib": 53936,
+                "private_clean_kib": 34148,
+                "private_dirty_kib": 18004,
+                "peak_rss_kib": 62348,
+                "rss_kib": 62348,
+                "threads": 1
+              },
+              "active_workers": 0
+            },
+            {
+              "handles": 256,
+              "memory": {
+                "pss_kib": 53944,
+                "private_clean_kib": 34148,
+                "private_dirty_kib": 18012,
+                "peak_rss_kib": 62348,
+                "rss_kib": 62348,
+                "threads": 1
+              },
+              "active_workers": 0
+            }
+          ],
+          "extra_read_count": 3,
+          "extra_reads": [
+            {
+              "source_index": 4724,
+              "terminal": "VerifyNum",
+              "outcome": "unknown",
+              "native_status": "unknown",
+              "reason": "no_template",
+              "answer": {
+                "text": null,
+                "truncated": false
+              },
+              "matched_programs": 0,
+              "successful_readings": 0,
+              "unsupported_programs": 0,
+              "ambiguous_executions": 0,
+              "seconds": 0.0025528371334075928,
+              "cpu_seconds": 0.0025527910000002763
+            },
+            {
+              "source_index": 4724,
+              "terminal": "VerifyNum",
+              "outcome": "unknown",
+              "native_status": "unknown",
+              "reason": "no_template",
+              "answer": {
+                "text": null,
+                "truncated": false
+              },
+              "matched_programs": 0,
+              "successful_readings": 0,
+              "unsupported_programs": 0,
+              "ambiguous_executions": 0,
+              "seconds": 0.0024792104959487915,
+              "cpu_seconds": 0.002479582999999952
+            },
+            {
+              "source_index": 4724,
+              "terminal": "VerifyNum",
+              "outcome": "unknown",
+              "native_status": "unknown",
+              "reason": "no_template",
+              "answer": {
+                "text": null,
+                "truncated": false
+              },
+              "matched_programs": 0,
+              "successful_readings": 0,
+              "unsupported_programs": 0,
+              "ambiguous_executions": 0,
+              "seconds": 0.0024391748011112213,
+              "cpu_seconds": 0.0024395489999999853
+            }
+          ],
+          "passed": true
+        }
+      },
+      "native_process_wall_seconds": 2.919900957494974,
+      "retained_mismatches": 20,
+      "mismatch_limit": 20,
+      "artifacts": {
+        "cases": "cases.json",
+        "observations": "native-observations.json",
+        "mismatches": "mismatches.json",
+        "process": "native-process.json",
+        "metrics": "native-process-metrics.json"
+      }
+    },
+    "control": {
+      "code": "6cc653b",
+      "artifact_sha256": "8324a59da075d16a7d3c7c07bb7fe85690479c65e1baf416741d5373b010e8b0",
+      "evidence": "2026-10-29-native-performance-reader.json",
+      "retained_run": "var/performance-20261029/abba-B1",
+      "counts": {
+        "answered_correct": 36,
+        "answered_wrong": 0,
+        "refused": 4,
+        "unknown": 60,
+        "errors": 0
+      },
+      "query_wall": {
+        "count": 100,
+        "p50_seconds": 0.004102189093828201,
+        "p95_seconds": 0.028103673830628395,
+        "max_seconds": 0.044494593515992165
+      },
+      "query_cpu": {
+        "count": 100,
+        "p50_seconds": 0.004103109999999993,
+        "p95_seconds": 0.028093060999999975,
+        "max_seconds": 0.04449631599999998
+      }
+    },
+    "all_case_question_program_gold_and_order_identical": true,
+    "all_outcomes_and_answers_identical": true,
+    "new_answer_gain": 0,
+    "changed_interpretation_metadata": [
+      {
+        "source_index": 200,
+        "control": {
+          "matched_programs": 4,
+          "successful_readings": 4,
+          "unsupported_programs": 0,
+          "ambiguous_executions": 0
+        },
+        "new": {
+          "matched_programs": 6,
+          "successful_readings": 6,
+          "unsupported_programs": 0,
+          "ambiguous_executions": 0
+        }
+      },
+      {
+        "source_index": 264,
+        "control": {
+          "matched_programs": 5,
+          "successful_readings": 5,
+          "unsupported_programs": 0,
+          "ambiguous_executions": 0
+        },
+        "new": {
+          "matched_programs": 9,
+          "successful_readings": 9,
+          "unsupported_programs": 0,
+          "ambiguous_executions": 0
+        }
+      },
+      {
+        "source_index": 3290,
+        "control": {
+          "matched_programs": 2,
+          "successful_readings": 0,
+          "unsupported_programs": 0,
+          "ambiguous_executions": 0
+        },
+        "new": {
+          "matched_programs": 3,
+          "successful_readings": 0,
+          "unsupported_programs": 0,
+          "ambiguous_executions": 0
+        }
+      },
+      {
+        "source_index": 5930,
+        "control": {
+          "matched_programs": 6,
+          "successful_readings": 6,
+          "unsupported_programs": 0,
+          "ambiguous_executions": 0
+        },
+        "new": {
+          "matched_programs": 11,
+          "successful_readings": 11,
+          "unsupported_programs": 0,
+          "ambiguous_executions": 0
+        }
+      },
+      {
+        "source_index": 1475,
+        "control": {
+          "matched_programs": 5,
+          "successful_readings": 5,
+          "unsupported_programs": 0,
+          "ambiguous_executions": 0
+        },
+        "new": {
+          "matched_programs": 9,
+          "successful_readings": 9,
+          "unsupported_programs": 0,
+          "ambiguous_executions": 0
+        }
+      }
+    ],
+    "timing_boundary": "New median 8.80 ms / p95 64.35 ms versus historical control 4.10 / 28.10 ms; CPU medians 8.53 / 4.10 ms. Different runs/load, not a balanced performance experiment or speed claim. No additional timing repeats."
+  },
+  "retained_failures": [
+    "Initial expanded run33correct/3composition-binding errors on200/2688/5826 remains var/expanded-runtime-20261029/reader100.",
+    "Intermediate27 accounting repair still hit bindings; raw segment-diagnostics.json preserved.",
+    "Delayed-plan30 repair restored2688/5826 but200 hit2MiB; segment-byte-diagnostics.json preserved.",
+    "Streaming31 debug restored2688/5826;200 hit1s deadline. Optimized same three then all 100 passed under unchanged limits."
+  ],
+  "semantics_and_limits": [
+    "Exact learned 2\u20134 segment chains, <=12 words/segment, at most one source; source-first and stable concept-filter ordering.48-word chain bound is the admitted family span, not a host budget increase.",
+    "One nested pass consumes only base exact fragments or chains. All consumed child programs must be runnable/nonempty even if parent omits X; all successful alternatives enter existing form-veto/agreement.",
+    "Complete outer syntax establishes demand, shared semantic checks prune base children before nested products; unique resolved region/program/child-witness nodes spend unchanged interpretation cap.",
+    "Streaming walker transfers transient parsed reservations; dropped local dedup keys refunded. Accounting is an estimated storage envelope, not exact allocator peak or hard RSS bound. Fuel, bytes, row/match and program limits remain.",
+    "Dense viable children with empty resulting parents may hit bounded cap before parent viability; explicit refusal, never silent alternative truncation.",
+    "Content-key/strip-key fallback, analogy,clause patches,date wrappers and recursive nesting remain unimplemented."
+  ],
+  "resource_controls": {
+    "cargo_build_jobs": 2,
+    "reader_limits_overrides": {
+      "workers": 2,
+      "timeout_ms": 1000,
+      "fuel": 10000000
+    },
+    "host_bounds_raised": false,
+    "control_not_rerun": true
+  },
+  "distribution": {
+    "path": "/tank/lanes/o7-native-20261028/reader-stream31-20261029-dist/native-appliance",
+    "manifest_sha256": "e034f508ff0da801701c915487a4c12f3f8c4c1df8246e0edcfcc571e3f2e06f",
+    "archive_path": "/Users/ember/dev/o7vn/var/native-reader-20261029/native-appliance-linux-x86_64.tar.gz",
+    "archive_sha256": "683106a6cc7e83ba35a8ea60489d80683355935dbfc6e7cbadd470de76f16540",
+    "archive_bytes": 4544137,
+    "profiles_requested": [
+      "reasoning",
+      "science",
+      "incremental",
+      "bio",
+      "statistics",
+      "runtime"
+    ],
+    "manufacture_does_not_self_qualify": true,
+    "qualification": "Actual relocated journey passes exact artifact and same payload closure; external interpreter/systemdependencies/images/journals remain operator requirements. Prior7773163 archive preserved."
+  },
+  "retained_observation_sha256": {
+    "var/reader-stream31-20261029/reader100/report.json": "7099b9326085281b428ba9bdcbd193d253774c88334ddf070d40851d5e9ec499",
+    "var/reader-stream31-20261029/reader100/native-observations.json": "20eccd1b571b035ca30c76f8710c740ea5603d45343bd8bad34b04809d983f94",
+    "var/reader-stream31-20261029/reader100/native-process.json": "5a596a112d39c6977411488114cf26044c4206f9757d1347d52e592624376c5d",
+    "var/reader-stream31-20261029/reader100/cases.json": "9089a3c9f5bdee2cb916ad775b41b4631f91d35393e26e9a376eb7bb0a863d15",
+    "var/reader-stream31-20261029/reader100/mismatches.json": "d73f41417304b38da4d119c5425eea5f77e0cd72fdf83dfc8da98a82e530335d",
+    "var/reader-stream31-20261029/reader100/native-process-metrics.json": "b1949865829b99a059b4eaa2083ba285dd640e8daca32cd67d28734b626d8fe2",
+    "var/performance-20261029/abba-B1/report.json": "ddece52bd034ce7281a114a47f04075e5a515d4c1fb3e648c316a420a864f08b",
+    "var/performance-20261029/abba-B1/cases.json": "9089a3c9f5bdee2cb916ad775b41b4631f91d35393e26e9a376eb7bb0a863d15",
+    "var/performance-20261029/abba-B1/native-observations.json": "bc1172d511d55c984ecc1e6007c02f688ffbd99af625234f512fda0a8f6753db"
+  },
+  "log_sha256": {
+    "var/native-reader-20261029/remote-logs/build-segment-stream31-release.log": "746c42fa74909ea4c4d8785c15b968983297dd7f31c4bc77535de524265472e4",
+    "var/native-reader-20261029/remote-logs/build-segment-stream31.log": "ddd68afa63f469602cfbe02486a1c7271392877ef2f79a025477004d3366b933",
+    "var/native-reader-20261029/remote-logs/reader-affected-contracts.log": "a477b335ee32c14b02edd8317b60b98b780b83af3c07931decf47bd5194f8cbe",
+    "var/native-reader-20261029/remote-logs/reader-clippy.log": "c7dd75ece7c16af830e6bab612f01b5a406412c0fcf48dc6fea9027b4c83f70a",
+    "var/native-reader-20261029/remote-logs/reader-language-guard.log": "e28121f2c116302c6272c0fa2273b8a76fb07374a48f3d0be90961fcf1668ea6",
+    "var/native-reader-20261029/remote-logs/reader-package-actual.log": "77ee58f08334b62031a56e1e2a9f74e0c3c400f18b8f1aad5b51cbb22e29ca75",
+    "var/native-reader-20261029/remote-logs/reader-python-bindings.log": "c7cb808f7b83f7db92cae23ea5d2a5b58e0515e72f1b5edece8b266084b11194",
+    "var/native-reader-20261029/remote-logs/reader-runtime-actual.log": "1dd3dac0e069f6f99beb4a12703415fa5c3f07ff0dd499da3bfc064b6eaa008c",
+    "var/native-reader-20261029/remote-logs/reader-shortest-actual.log": "ce46db9829fd9bfc8d64c5e0f57cb17a696531efd8d61de096d1f342f6229a26",
+    "var/native-reader-20261029/remote-logs/reader-stream31-debug.log": "d692e743afd868a1c830955db46e2ad36016a70bfa41bf018ed0c3dad02b328f",
+    "var/native-reader-20261029/remote-logs/reader-stream31-release100.log": "7099b9326085281b428ba9bdcbd193d253774c88334ddf070d40851d5e9ec499",
+    "var/native-reader-20261029/remote-logs/reader-stream31-release3.log": "eeb783d267b77a0b53af3e32616d4081311597515707f458f448d4b4558e94dc",
+    "var/native-reader-20261029/remote-logs/segments-stream31.log": "cb7766edf1eea000f5637869e6d98083e7600f6543c950a057b9a8872617fb9f",
+    "var/native-reader-20261029/native.log": "3557dc0056f5ef17c6fd0805aad349a605c4151ba823f35bd9383ebde2238bd4",
+    "var/native-reader-20261029/python.log": "8a01747cda21c71875c82b3f7b69d94d322cd78412bb1864b2b676488dba82cf"
+  },
+  "code_commit": "2fda9fe"
+}

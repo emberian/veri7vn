@@ -227,14 +227,20 @@ The near-cap HTTP certificate passes without whitespace inflating native bytes.
 The receipt distinguishes initial checks, formatting repairs and the test-only
 HTTP import correction; 144 final source hashes match the committed cut.
 
-The separate reader repair now passes 31 contracts and removes the three earlier
-binding/byte failures. Two comparison questions pass in debug; the third reaches
-the debug deadline. Optimized probes under unchanged limits are still required
-before claiming restoration or wider coverage.
+The reader repair is committed as `2fda9fe`. It passes 31 new contracts plus 55
+affected Rust checks, Clippy, bindings and actual hosted/package journeys. The
+unchanged 100 questions retain 36 correct, four refused and 60 unknown, with no
+wrong answers or errors. Five questions gain interpretations without changing
+their outcomes. Timing was slower than the historical control; no matched
+speed or coverage gain is claimed. The refreshed Linux package retains the same
+external-data boundary. A separate targeted composition cohort is being authored
+to test useful new questions against independently checked source rows.
 
 The staged `oracle-logic` prototype adds grounded normal-program reasoning,
 independent stable-model witness checks and targeted counterexample queries.
-It remains outside the shared workspace and host, with no execution claim.
-Official clingo 5.8.2 source is pinned for a later controlled native CLI build;
-solver admission and real-backend qualification remain work. No new specialist
-panel or Isabelle theorem is claimed by these additions.
+It remains outside the shared workspace and host. Its 18 checks pass against a
+pinned, locally built clingo 5.8.2 executable, including the independent model
+oracle and a query over a program with 2^60 stable models. Solver absence claims
+remain explicitly solver-trusted. Shared-host admission, Python bindings and
+containment integration are next; no new specialist panel or Isabelle theorem
+is claimed by these additions.
