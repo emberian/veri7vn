@@ -1,0 +1,973 @@
+{
+  "schema": "oracle-native-paired-reader-checkpoint-v1",
+  "date": "2026-10-29",
+  "selection": "Predeclared first100 of unchanged hash ordering, seed, full11797 validation pool, image and10million fuel/1000ms limits. This extends original40 before observing answers. No questions selected after answers.",
+  "baseline_qualifier": {
+    "source": "git show 94add5b:native/tests/qualify_reader.py",
+    "sha256": "6387cb81ca929dc49f11ab5eda7e85a510de0099d95cec3609b9dbac7a2f9279"
+  },
+  "current_qualifier_sha256": "e92ce0db21f379a02e7aa9397e384a218cf4cca4cbd28c7004c9b34b9e441420",
+  "baseline_report": {
+    "schema": "oracle-native-whole-reader-v1",
+    "run_status": "complete",
+    "scope": "bounded real questions through native whole templates; no full reader/Engine or specialist-panel claim",
+    "reference": {
+      "upstream_whole_reader": "not run; no upstream Reader/Engine constructed",
+      "comparison": "dataset gold exact strings; no case-folding, date/unit normalization or tolerance"
+    },
+    "python": "3.12.7 (main, Jun 18 2025, 13:16:51) [GCC 14.2.0]",
+    "platform": "Linux-6.11.0-29-generic-x86_64-with-glibc2.40",
+    "load_average": [
+      6.30419921875,
+      9.47509765625,
+      9.42138671875
+    ],
+    "validation_sha256": "b4aed6ab3d7ad071722064fe3bb02bc028cfbeb15da5f7115d57a1e2d198f3bb",
+    "image_receipt": {
+      "schema": "oracle-image-v3",
+      "image_sha256": "8fcb1db9a08e234179f66ea9e032d2633b38cdcb902f4c95d1ba2c2d49c842f4",
+      "source_sha256": "04da7408320c5cb7023c44372cce32846d56d369d8865d2e61a18c3956661a7c",
+      "nodes": 17754,
+      "edges": 435900,
+      "bytes": 260341760,
+      "capabilities": {
+        "version": 1,
+        "lexicon": "oracle-lexicon-v1",
+        "reader": "oracle-reader-tables-v1"
+      }
+    },
+    "native": {
+      "files": [
+        {
+          "path": "/tank/lanes/o7-native-20261028/wheel-env/lib/python3.12/site-packages/oracle_native/__init__.py",
+          "sha256": "b1705316ada28ad5d5a702caa5217c68c14b2bffdd637884d86131cf4852a09f"
+        },
+        {
+          "path": "/tank/lanes/o7-native-20261028/wheel-env/lib/python3.12/site-packages/oracle_native/oracle_native.abi3.so",
+          "sha256": "568063bc6f43b677ade25915f04d0b059b9da22f8d25f7957cef07db1f5f2b79"
+        }
+      ],
+      "module": "oracle_native"
+    },
+    "limits_overrides": {
+      "workers": 2,
+      "timeout_ms": 1000,
+      "fuel": 10000000
+    },
+    "sample": {
+      "seed": "oracle-native-whole-reader-20261028-v1",
+      "bound": 100,
+      "selected": 100,
+      "dataset_rows": 11797,
+      "pool_rows": 11797,
+      "pool_by_terminal": {
+        "Count": 1318,
+        "QueryAttr": 1418,
+        "QueryAttrQualifier": 1214,
+        "QueryRelation": 1786,
+        "QueryRelationQualifier": 1004,
+        "SelectAmong": 548,
+        "SelectBetween": 1604,
+        "VerifyDate": 13,
+        "VerifyNum": 258,
+        "VerifyStr": 717,
+        "VerifyYear": 459,
+        "What": 1458
+      },
+      "selected_by_terminal": {
+        "Count": 11,
+        "QueryAttr": 8,
+        "QueryAttrQualifier": 16,
+        "QueryRelation": 22,
+        "QueryRelationQualifier": 7,
+        "SelectAmong": 5,
+        "SelectBetween": 10,
+        "VerifyNum": 3,
+        "VerifyStr": 2,
+        "VerifyYear": 3,
+        "What": 13
+      },
+      "cases_sha256": "9089a3c9f5bdee2cb916ad775b41b4631f91d35393e26e9a376eb7bb0a863d15",
+      "sampling_pool_sha256": "b4aed6ab3d7ad071722064fe3bb02bc028cfbeb15da5f7115d57a1e2d198f3bb"
+    },
+    "results": {
+      "counts": {
+        "answered_correct": 35,
+        "answered_wrong": 0,
+        "refused": 4,
+        "unknown": 61,
+        "errors": 0
+      },
+      "reason_counts": {
+        "ambiguous_execution": 1,
+        "answer_disagreement": 2,
+        "answered": 35,
+        "no_template": 59,
+        "no_viable_reading": 2,
+        "unreadable_script": 1
+      },
+      "native_status_counts": {
+        "ambiguous": 3,
+        "answered": 35,
+        "refused": 1,
+        "unknown": 61
+      },
+      "error_types": {},
+      "by_gold_terminal": {
+        "Count": {
+          "answered_correct": 0,
+          "answered_wrong": 0,
+          "refused": 1,
+          "unknown": 10,
+          "errors": 0
+        },
+        "QueryAttr": {
+          "answered_correct": 3,
+          "answered_wrong": 0,
+          "refused": 0,
+          "unknown": 5,
+          "errors": 0
+        },
+        "QueryAttrQualifier": {
+          "answered_correct": 5,
+          "answered_wrong": 0,
+          "refused": 0,
+          "unknown": 11,
+          "errors": 0
+        },
+        "QueryRelation": {
+          "answered_correct": 16,
+          "answered_wrong": 0,
+          "refused": 1,
+          "unknown": 5,
+          "errors": 0
+        },
+        "QueryRelationQualifier": {
+          "answered_correct": 2,
+          "answered_wrong": 0,
+          "refused": 0,
+          "unknown": 5,
+          "errors": 0
+        },
+        "SelectAmong": {
+          "answered_correct": 1,
+          "answered_wrong": 0,
+          "refused": 0,
+          "unknown": 4,
+          "errors": 0
+        },
+        "SelectBetween": {
+          "answered_correct": 5,
+          "answered_wrong": 0,
+          "refused": 2,
+          "unknown": 3,
+          "errors": 0
+        },
+        "VerifyNum": {
+          "answered_correct": 1,
+          "answered_wrong": 0,
+          "refused": 0,
+          "unknown": 2,
+          "errors": 0
+        },
+        "VerifyStr": {
+          "answered_correct": 0,
+          "answered_wrong": 0,
+          "refused": 0,
+          "unknown": 2,
+          "errors": 0
+        },
+        "VerifyYear": {
+          "answered_correct": 1,
+          "answered_wrong": 0,
+          "refused": 0,
+          "unknown": 2,
+          "errors": 0
+        },
+        "What": {
+          "answered_correct": 1,
+          "answered_wrong": 0,
+          "refused": 0,
+          "unknown": 12,
+          "errors": 0
+        }
+      },
+      "refused_definition": "native refused and ambiguous statuses; native status counts remain separate"
+    },
+    "metrics": {
+      "scope": "one fresh native process; filesystem caches not evicted",
+      "native_import_seconds": 0.00041463039815425873,
+      "image_open_seconds": 0.15287207625806332,
+      "runtime_and_first_handle_seconds": 0.3425673730671406,
+      "import_to_ready_seconds": 0.49607367254793644,
+      "fresh_process_to_ready_seconds": 0.49813450686633587,
+      "first_query_seconds": 0.002266906201839447,
+      "fresh_process_to_first_query_completed_seconds": 0.5007972549647093,
+      "all_query_timings": {
+        "count": 100,
+        "p50_seconds": 0.002080285921692848,
+        "p95_seconds": 0.02010153979063034,
+        "max_seconds": 0.032341575250029564
+      },
+      "completed_query_timings": {
+        "count": 100,
+        "p50_seconds": 0.002080285921692848,
+        "p95_seconds": 0.02010153979063034,
+        "max_seconds": 0.032341575250029564
+      },
+      "error_query_timings": {
+        "count": 0,
+        "p50_seconds": null,
+        "p95_seconds": null,
+        "max_seconds": null
+      },
+      "before_import_memory": {
+        "pss_kib": 11766,
+        "private_clean_kib": 108,
+        "private_dirty_kib": 8828,
+        "peak_rss_kib": 19348,
+        "rss_kib": 19348,
+        "threads": 1
+      },
+      "after_import_memory": {
+        "pss_kib": 12190,
+        "private_clean_kib": 404,
+        "private_dirty_kib": 8952,
+        "peak_rss_kib": 19744,
+        "rss_kib": 19744,
+        "threads": 1
+      },
+      "ready_memory": {
+        "pss_kib": 14151,
+        "private_clean_kib": 1824,
+        "private_dirty_kib": 9492,
+        "peak_rss_kib": 21856,
+        "rss_kib": 21856,
+        "threads": 1
+      },
+      "after_queries_memory": {
+        "pss_kib": 39387,
+        "private_clean_kib": 26208,
+        "private_dirty_kib": 10344,
+        "peak_rss_kib": 46524,
+        "rss_kib": 46524,
+        "threads": 1
+      },
+      "after_handles_memory": {
+        "pss_kib": 39399,
+        "private_clean_kib": 26208,
+        "private_dirty_kib": 10356,
+        "peak_rss_kib": 46716,
+        "rss_kib": 46716,
+        "threads": 1
+      },
+      "after_scope_reads_memory": {
+        "pss_kib": 39407,
+        "private_clean_kib": 26208,
+        "private_dirty_kib": 10364,
+        "peak_rss_kib": 46716,
+        "rss_kib": 46716,
+        "threads": 1
+      },
+      "tenant_memory_check": {
+        "handles": 256,
+        "configured_workers": 2,
+        "active_workers_after": 0,
+        "same_results_across_three_scopes": true,
+        "handle_creation_growth": {
+          "pss_kib": 12,
+          "rss_kib": 192,
+          "private_dirty_kib": 12,
+          "private_clean_kib": 0,
+          "threads": 0
+        },
+        "growth_metric": "pss_kib",
+        "handle_growth_bound_kib": 8192,
+        "within_handle_growth_bound": true,
+        "samples": [
+          {
+            "handles": 1,
+            "memory": {
+              "pss_kib": 39387,
+              "private_clean_kib": 26208,
+              "private_dirty_kib": 10344,
+              "peak_rss_kib": 46524,
+              "rss_kib": 46524,
+              "threads": 1
+            },
+            "active_workers": 0
+          },
+          {
+            "handles": 16,
+            "memory": {
+              "pss_kib": 39387,
+              "private_clean_kib": 26208,
+              "private_dirty_kib": 10344,
+              "peak_rss_kib": 46524,
+              "rss_kib": 46524,
+              "threads": 1
+            },
+            "active_workers": 0
+          },
+          {
+            "handles": 64,
+            "memory": {
+              "pss_kib": 39387,
+              "private_clean_kib": 26208,
+              "private_dirty_kib": 10344,
+              "peak_rss_kib": 46524,
+              "rss_kib": 46524,
+              "threads": 1
+            },
+            "active_workers": 0
+          },
+          {
+            "handles": 256,
+            "memory": {
+              "pss_kib": 39399,
+              "private_clean_kib": 26208,
+              "private_dirty_kib": 10356,
+              "peak_rss_kib": 46716,
+              "rss_kib": 46716,
+              "threads": 1
+            },
+            "active_workers": 0
+          }
+        ],
+        "extra_read_count": 3,
+        "extra_reads": [
+          {
+            "source_index": 4724,
+            "terminal": "VerifyNum",
+            "outcome": "unknown",
+            "native_status": "unknown",
+            "reason": "no_template",
+            "answer": {
+              "text": null,
+              "truncated": false
+            },
+            "matched_programs": 0,
+            "successful_readings": 0,
+            "unsupported_programs": 0,
+            "ambiguous_executions": 0,
+            "seconds": 0.0017111171036958694
+          },
+          {
+            "source_index": 4724,
+            "terminal": "VerifyNum",
+            "outcome": "unknown",
+            "native_status": "unknown",
+            "reason": "no_template",
+            "answer": {
+              "text": null,
+              "truncated": false
+            },
+            "matched_programs": 0,
+            "successful_readings": 0,
+            "unsupported_programs": 0,
+            "ambiguous_executions": 0,
+            "seconds": 0.0016351528465747833
+          },
+          {
+            "source_index": 4724,
+            "terminal": "VerifyNum",
+            "outcome": "unknown",
+            "native_status": "unknown",
+            "reason": "no_template",
+            "answer": {
+              "text": null,
+              "truncated": false
+            },
+            "matched_programs": 0,
+            "successful_readings": 0,
+            "unsupported_programs": 0,
+            "ambiguous_executions": 0,
+            "seconds": 0.0016270149499177933
+          }
+        ],
+        "passed": true
+      }
+    },
+    "native_process_wall_seconds": 0.9233452025800943,
+    "retained_mismatches": 20,
+    "mismatch_limit": 20,
+    "artifacts": {
+      "cases": "cases.json",
+      "observations": "native-observations.json",
+      "mismatches": "mismatches.json",
+      "process": "native-process.json",
+      "metrics": "native-process-metrics.json"
+    }
+  },
+  "current_report": {
+    "schema": "oracle-native-whole-reader-v1",
+    "run_status": "complete",
+    "scope": "bounded real questions through native whole and exact fragment/outer templates; no full reader/Engine or specialist-panel claim",
+    "coverage": "whole_and_exact_fragment_outer_v1",
+    "reference": {
+      "upstream_whole_reader": "not run; no upstream Reader/Engine constructed",
+      "comparison": "dataset gold exact strings; no case-folding, date/unit normalization or tolerance"
+    },
+    "python": "3.12.7 (main, Jun 18 2025, 13:16:51) [GCC 14.2.0]",
+    "platform": "Linux-6.11.0-29-generic-x86_64-with-glibc2.40",
+    "load_average": [
+      6.30419921875,
+      9.47509765625,
+      9.42138671875
+    ],
+    "validation_sha256": "b4aed6ab3d7ad071722064fe3bb02bc028cfbeb15da5f7115d57a1e2d198f3bb",
+    "image_receipt": {
+      "schema": "oracle-image-v3",
+      "image_sha256": "8fcb1db9a08e234179f66ea9e032d2633b38cdcb902f4c95d1ba2c2d49c842f4",
+      "source_sha256": "04da7408320c5cb7023c44372cce32846d56d369d8865d2e61a18c3956661a7c",
+      "nodes": 17754,
+      "edges": 435900,
+      "bytes": 260341760,
+      "capabilities": {
+        "version": 1,
+        "lexicon": "oracle-lexicon-v1",
+        "reader": "oracle-reader-tables-v1"
+      }
+    },
+    "native": {
+      "files": [
+        {
+          "path": "/tank/lanes/o7-native-20261028/binding-checkpoint-20261029/oracle_native.so",
+          "sha256": "8c838fe3f2764446f26b5a65c622fd79072f73e710756e2e597df1c1b0d36538"
+        }
+      ],
+      "module": "oracle_native"
+    },
+    "limits_overrides": {
+      "workers": 2,
+      "timeout_ms": 1000,
+      "fuel": 10000000
+    },
+    "sample": {
+      "seed": "oracle-native-whole-reader-20261028-v1",
+      "bound": 100,
+      "selected": 100,
+      "dataset_rows": 11797,
+      "pool_rows": 11797,
+      "pool_by_terminal": {
+        "Count": 1318,
+        "QueryAttr": 1418,
+        "QueryAttrQualifier": 1214,
+        "QueryRelation": 1786,
+        "QueryRelationQualifier": 1004,
+        "SelectAmong": 548,
+        "SelectBetween": 1604,
+        "VerifyDate": 13,
+        "VerifyNum": 258,
+        "VerifyStr": 717,
+        "VerifyYear": 459,
+        "What": 1458
+      },
+      "selected_by_terminal": {
+        "Count": 11,
+        "QueryAttr": 8,
+        "QueryAttrQualifier": 16,
+        "QueryRelation": 22,
+        "QueryRelationQualifier": 7,
+        "SelectAmong": 5,
+        "SelectBetween": 10,
+        "VerifyNum": 3,
+        "VerifyStr": 2,
+        "VerifyYear": 3,
+        "What": 13
+      },
+      "cases_sha256": "9089a3c9f5bdee2cb916ad775b41b4631f91d35393e26e9a376eb7bb0a863d15",
+      "sampling_pool_sha256": "b4aed6ab3d7ad071722064fe3bb02bc028cfbeb15da5f7115d57a1e2d198f3bb"
+    },
+    "results": {
+      "counts": {
+        "answered_correct": 36,
+        "answered_wrong": 0,
+        "refused": 4,
+        "unknown": 60,
+        "errors": 0
+      },
+      "reason_counts": {
+        "ambiguous_execution": 1,
+        "answer_disagreement": 2,
+        "answered": 36,
+        "no_template": 58,
+        "no_viable_reading": 2,
+        "unreadable_script": 1
+      },
+      "native_status_counts": {
+        "ambiguous": 3,
+        "answered": 36,
+        "refused": 1,
+        "unknown": 60
+      },
+      "error_types": {},
+      "by_gold_terminal": {
+        "Count": {
+          "answered_correct": 0,
+          "answered_wrong": 0,
+          "refused": 1,
+          "unknown": 10,
+          "errors": 0
+        },
+        "QueryAttr": {
+          "answered_correct": 3,
+          "answered_wrong": 0,
+          "refused": 0,
+          "unknown": 5,
+          "errors": 0
+        },
+        "QueryAttrQualifier": {
+          "answered_correct": 6,
+          "answered_wrong": 0,
+          "refused": 0,
+          "unknown": 10,
+          "errors": 0
+        },
+        "QueryRelation": {
+          "answered_correct": 16,
+          "answered_wrong": 0,
+          "refused": 1,
+          "unknown": 5,
+          "errors": 0
+        },
+        "QueryRelationQualifier": {
+          "answered_correct": 2,
+          "answered_wrong": 0,
+          "refused": 0,
+          "unknown": 5,
+          "errors": 0
+        },
+        "SelectAmong": {
+          "answered_correct": 1,
+          "answered_wrong": 0,
+          "refused": 0,
+          "unknown": 4,
+          "errors": 0
+        },
+        "SelectBetween": {
+          "answered_correct": 5,
+          "answered_wrong": 0,
+          "refused": 2,
+          "unknown": 3,
+          "errors": 0
+        },
+        "VerifyNum": {
+          "answered_correct": 1,
+          "answered_wrong": 0,
+          "refused": 0,
+          "unknown": 2,
+          "errors": 0
+        },
+        "VerifyStr": {
+          "answered_correct": 0,
+          "answered_wrong": 0,
+          "refused": 0,
+          "unknown": 2,
+          "errors": 0
+        },
+        "VerifyYear": {
+          "answered_correct": 1,
+          "answered_wrong": 0,
+          "refused": 0,
+          "unknown": 2,
+          "errors": 0
+        },
+        "What": {
+          "answered_correct": 1,
+          "answered_wrong": 0,
+          "refused": 0,
+          "unknown": 12,
+          "errors": 0
+        }
+      },
+      "refused_definition": "native refused and ambiguous statuses; native status counts remain separate"
+    },
+    "metrics": {
+      "scope": "one fresh native process; filesystem caches not evicted",
+      "native_import_seconds": 0.0003513861447572708,
+      "image_open_seconds": 2.0791278518736362,
+      "runtime_and_first_handle_seconds": 0.16385312378406525,
+      "import_to_ready_seconds": 2.2435791715979576,
+      "fresh_process_to_ready_seconds": 2.245661986991763,
+      "first_query_seconds": 0.008336292579770088,
+      "fresh_process_to_first_query_completed_seconds": 2.2546427752822638,
+      "all_query_timings": {
+        "count": 100,
+        "p50_seconds": 0.010006221011281013,
+        "p95_seconds": 0.030736742541193962,
+        "max_seconds": 0.04833350516855717
+      },
+      "completed_query_timings": {
+        "count": 100,
+        "p50_seconds": 0.010006221011281013,
+        "p95_seconds": 0.030736742541193962,
+        "max_seconds": 0.04833350516855717
+      },
+      "error_query_timings": {
+        "count": 0,
+        "p50_seconds": null,
+        "p95_seconds": null,
+        "max_seconds": null
+      },
+      "before_import_memory": {
+        "pss_kib": 11792,
+        "private_clean_kib": 100,
+        "private_dirty_kib": 8856,
+        "peak_rss_kib": 19708,
+        "rss_kib": 19708,
+        "threads": 1
+      },
+      "after_import_memory": {
+        "pss_kib": 12796,
+        "private_clean_kib": 896,
+        "private_dirty_kib": 9060,
+        "peak_rss_kib": 20704,
+        "rss_kib": 20704,
+        "threads": 1
+      },
+      "ready_memory": {
+        "pss_kib": 15409,
+        "private_clean_kib": 2992,
+        "private_dirty_kib": 9576,
+        "peak_rss_kib": 23216,
+        "rss_kib": 23216,
+        "threads": 1
+      },
+      "after_queries_memory": {
+        "pss_kib": 50889,
+        "private_clean_kib": 32980,
+        "private_dirty_kib": 15068,
+        "peak_rss_kib": 58372,
+        "rss_kib": 58372,
+        "threads": 1
+      },
+      "after_handles_memory": {
+        "pss_kib": 50893,
+        "private_clean_kib": 32980,
+        "private_dirty_kib": 15072,
+        "peak_rss_kib": 58372,
+        "rss_kib": 58372,
+        "threads": 1
+      },
+      "after_scope_reads_memory": {
+        "pss_kib": 50897,
+        "private_clean_kib": 32980,
+        "private_dirty_kib": 15076,
+        "peak_rss_kib": 58372,
+        "rss_kib": 58372,
+        "threads": 1
+      },
+      "tenant_memory_check": {
+        "handles": 256,
+        "configured_workers": 2,
+        "active_workers_after": 0,
+        "same_results_across_three_scopes": true,
+        "handle_creation_growth": {
+          "pss_kib": 4,
+          "rss_kib": 0,
+          "private_dirty_kib": 4,
+          "private_clean_kib": 0,
+          "threads": 0
+        },
+        "growth_metric": "pss_kib",
+        "handle_growth_bound_kib": 8192,
+        "within_handle_growth_bound": true,
+        "samples": [
+          {
+            "handles": 1,
+            "memory": {
+              "pss_kib": 50889,
+              "private_clean_kib": 32980,
+              "private_dirty_kib": 15068,
+              "peak_rss_kib": 58372,
+              "rss_kib": 58372,
+              "threads": 1
+            },
+            "active_workers": 0
+          },
+          {
+            "handles": 16,
+            "memory": {
+              "pss_kib": 50889,
+              "private_clean_kib": 32980,
+              "private_dirty_kib": 15068,
+              "peak_rss_kib": 58372,
+              "rss_kib": 58372,
+              "threads": 1
+            },
+            "active_workers": 0
+          },
+          {
+            "handles": 64,
+            "memory": {
+              "pss_kib": 50889,
+              "private_clean_kib": 32980,
+              "private_dirty_kib": 15068,
+              "peak_rss_kib": 58372,
+              "rss_kib": 58372,
+              "threads": 1
+            },
+            "active_workers": 0
+          },
+          {
+            "handles": 256,
+            "memory": {
+              "pss_kib": 50893,
+              "private_clean_kib": 32980,
+              "private_dirty_kib": 15072,
+              "peak_rss_kib": 58372,
+              "rss_kib": 58372,
+              "threads": 1
+            },
+            "active_workers": 0
+          }
+        ],
+        "extra_read_count": 3,
+        "extra_reads": [
+          {
+            "source_index": 4724,
+            "terminal": "VerifyNum",
+            "outcome": "unknown",
+            "native_status": "unknown",
+            "reason": "no_template",
+            "answer": {
+              "text": null,
+              "truncated": false
+            },
+            "matched_programs": 0,
+            "successful_readings": 0,
+            "unsupported_programs": 0,
+            "ambiguous_executions": 0,
+            "seconds": 0.005848590284585953
+          },
+          {
+            "source_index": 4724,
+            "terminal": "VerifyNum",
+            "outcome": "unknown",
+            "native_status": "unknown",
+            "reason": "no_template",
+            "answer": {
+              "text": null,
+              "truncated": false
+            },
+            "matched_programs": 0,
+            "successful_readings": 0,
+            "unsupported_programs": 0,
+            "ambiguous_executions": 0,
+            "seconds": 0.005729585886001587
+          },
+          {
+            "source_index": 4724,
+            "terminal": "VerifyNum",
+            "outcome": "unknown",
+            "native_status": "unknown",
+            "reason": "no_template",
+            "answer": {
+              "text": null,
+              "truncated": false
+            },
+            "matched_programs": 0,
+            "successful_readings": 0,
+            "unsupported_programs": 0,
+            "ambiguous_executions": 0,
+            "seconds": 0.005696605890989304
+          }
+        ],
+        "passed": true
+      }
+    },
+    "native_process_wall_seconds": 3.7140019815415144,
+    "retained_mismatches": 20,
+    "mismatch_limit": 20,
+    "artifacts": {
+      "cases": "cases.json",
+      "observations": "native-observations.json",
+      "mismatches": "mismatches.json",
+      "process": "native-process.json",
+      "metrics": "native-process-metrics.json"
+    }
+  },
+  "original40": {
+    "cases_sha256": "9bc39b35968acbabddffe7a5964aa56fe4f6092025c5b4ae66b381c7fc7907b1",
+    "prefix_verified": true,
+    "baseline": {
+      "unknown": 23,
+      "answered_correct": 17
+    },
+    "current": {
+      "unknown": 23,
+      "answered_correct": 17
+    }
+  },
+  "retained_artifacts": {
+    "reader100": {
+      "report.json": {
+        "path": "var/checkpoint-20261029/reader100/report.json",
+        "sha256": "6e525b6a7f504fca82e202087b09567200f590ffae18a383efe9c334bee8b7d8"
+      },
+      "native-observations.json": {
+        "path": "var/checkpoint-20261029/reader100/native-observations.json",
+        "sha256": "d016c49c7e75b4977238c9668a35dc2a6378906e57c8f446c707d21e6ce62a10"
+      },
+      "native-process.json": {
+        "path": "var/checkpoint-20261029/reader100/native-process.json",
+        "sha256": "8f2e7fa4a4a6f229bb26c016b1f7174c1f732e4bbee8c6106c74613ece43150a"
+      },
+      "cases.json": {
+        "path": "var/checkpoint-20261029/reader100/cases.json",
+        "sha256": "9089a3c9f5bdee2cb916ad775b41b4631f91d35393e26e9a376eb7bb0a863d15"
+      },
+      "mismatches.json": {
+        "path": "var/checkpoint-20261029/reader100/mismatches.json",
+        "sha256": "61754f22e337dc9db72c1ad7228525d76bee99f6977381bc38c313ca87f2a1e6"
+      },
+      "native-process-metrics.json": {
+        "path": "var/checkpoint-20261029/reader100/native-process-metrics.json",
+        "sha256": "6498c076ea432cce9aa16706a169c5575ceb2157da019a6ca5d4409beac6737f"
+      }
+    },
+    "reader100-baseline": {
+      "report.json": {
+        "path": "var/checkpoint-20261029/reader100-baseline/report.json",
+        "sha256": "2a5f41af41edbe18c22d91bef65d1ebaa7fafd9da4645f21172fb589caa7beb4"
+      },
+      "native-observations.json": {
+        "path": "var/checkpoint-20261029/reader100-baseline/native-observations.json",
+        "sha256": "052853da71c2b8f30ca6da3e7a79ab476288607ec272ca47a5fa652e5248f497"
+      },
+      "native-process.json": {
+        "path": "var/checkpoint-20261029/reader100-baseline/native-process.json",
+        "sha256": "05c549260577c08c8ba5a60df25d0c9a79462847d15370900f619036c926b755"
+      },
+      "cases.json": {
+        "path": "var/checkpoint-20261029/reader100-baseline/cases.json",
+        "sha256": "9089a3c9f5bdee2cb916ad775b41b4631f91d35393e26e9a376eb7bb0a863d15"
+      },
+      "mismatches.json": {
+        "path": "var/checkpoint-20261029/reader100-baseline/mismatches.json",
+        "sha256": "0903d605fab53d875ab67a5731c8a89afe5e8312990332c31171f255fc2a8bfa"
+      },
+      "native-process-metrics.json": {
+        "path": "var/checkpoint-20261029/reader100-baseline/native-process-metrics.json",
+        "sha256": "292ebddfa2b85dc0ca3ad11f1bbbab9a44f069a18e38a8adba8c69c1a2bd6231"
+      }
+    }
+  },
+  "changes": [
+    {
+      "case": {
+        "source_index": 10205,
+        "question": "How many subscribers are there for the Twitter username BristolUni belonging to the public university that is the educational institution of Matt Lucas?",
+        "gold": "73055",
+        "terminal": "QueryAttrQualifier",
+        "program_sha256": "30ad937dd23992fa3f05c9a2ca61199f42d6976454077b908babfd41535a2187"
+      },
+      "before": {
+        "source_index": 10205,
+        "terminal": "QueryAttrQualifier",
+        "outcome": "unknown",
+        "native_status": "unknown",
+        "reason": "no_template",
+        "answer": {
+          "text": null,
+          "truncated": false
+        },
+        "matched_programs": 0,
+        "successful_readings": 0,
+        "unsupported_programs": 0,
+        "ambiguous_executions": 0,
+        "seconds": 0.0032426882535219193
+      },
+      "after": {
+        "source_index": 10205,
+        "terminal": "QueryAttrQualifier",
+        "outcome": "answered_correct",
+        "native_status": "answered",
+        "reason": null,
+        "answer": {
+          "text": "73055",
+          "truncated": false
+        },
+        "matched_programs": 1,
+        "successful_readings": 1,
+        "unsupported_programs": 0,
+        "ambiguous_executions": 0,
+        "seconds": 0.010734539479017258
+      }
+    }
+  ],
+  "independent_gain_source_check": {
+    "source_sha256": "04da7408320c5cb7023c44372cce32846d56d369d8865d2e61a18c3956661a7c",
+    "complete_name_scan_entities": 16960,
+    "complete_concept_name_scan": 794,
+    "public_university_concepts": [
+      "Q875538"
+    ],
+    "matching_person_entities": [
+      {
+        "id": "Q317251",
+        "name": "Matt Lucas",
+        "all_forward_educated_at_relations": [
+          {
+            "position": 5,
+            "predicate": "educated at",
+            "object": "Q459506",
+            "direction": "forward",
+            "qualifiers": {}
+          },
+          {
+            "position": 11,
+            "predicate": "educated at",
+            "object": "Q459506",
+            "direction": "forward",
+            "qualifiers": {}
+          }
+        ]
+      }
+    ],
+    "all_educated_at_targets": {
+      "Q459506": {
+        "name": "University of Bristol",
+        "instanceOf": [
+          "Q875538"
+        ],
+        "ancestor_concepts": [
+          "Q38723",
+          "Q3918",
+          "Q875538"
+        ],
+        "public_university": true,
+        "matching_username_statements": [
+          {
+            "position": 4,
+            "key": "Twitter username",
+            "value": {
+              "type": "string",
+              "value": "BristolUni"
+            },
+            "qualifiers": {
+              "number of subscribers": [
+                {
+                  "type": "quantity",
+                  "value": 73055,
+                  "unit": "1"
+                }
+              ],
+              "country": [
+                {
+                  "type": "string",
+                  "value": "United Kingdom"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "claim": "Complete supplied-KB scan for every Matt Lucas entity, every forward educated-at target, public-university ancestry and all matching BristolUni username statements. This checks the pinned source, not current external subscriber counts."
+  },
+  "independent_gain_check_script_sha256": "111188cc85d595e0d334ac35db310ba16f0a1718ba4ad596671928a6c6542af8",
+  "interpretation": "One additional pinned-source answer with zero wrong/errors in100 questions. Median10.0ms versus2.08ms and p9530.7ms versus20.1ms; extra coverage has a measured cost. Single fresh process per artifact on warm filesystem cache, not throughput/fairness or full reader/specialist-panel qualification.",
+  "next_performance_work": "Share repeated lexical analysis and indexed prefix probes while preserving all admitted alternatives and bounds; no semantic fast path or raised limit."
+}

@@ -7,7 +7,7 @@ use crate::effects::{
     EffectFence, EffectIntent, EffectLease, EffectOutbox, EffectRecord, EffectState, EffectSummary,
     ExpiredEffect, Reconciliation,
 };
-use crate::{lock, Cancellation, Error, Result};
+use crate::{Cancellation, Error, Result};
 use rusqlite::{params, OptionalExtension, Transaction, TransactionBehavior};
 
 /// Already-authorized host proposals, committed atomically with the originating
@@ -79,7 +79,7 @@ impl Runtime {
         f: impl FnOnce(&Transaction<'_>) -> Result<T>,
     ) -> Result<T> {
         self.require_operation(operation)?;
-        let mut db = lock(&self.state)?;
+        let mut db = self.state.try_acquire()?;
         let tx = db.transaction_with_behavior(if write {
             TransactionBehavior::Immediate
         } else {

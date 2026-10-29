@@ -1,0 +1,129 @@
+{
+  "schema": "oracle-native-language-domains-validation-v1",
+  "date": "2026-10-29",
+  "base_commit": "94add5b",
+  "source_manifest": "2026-10-29-language-chemistry-domains-sources.json",
+  "scope": "Native language composition/shared stages/cancellable atomic turns and optional supplied-DNA/statistical-model providers. No full Engine, specialist-panel, new Isabelle theorem or signed Mini qualification.",
+  "build": {
+    "host": "hbox",
+    "cargo": "/home/hbox/.cargo/bin/cargo",
+    "CARGO_BUILD_JOBS": 2,
+    "target": "/tank/lanes/o7-native-20261028/target",
+    "combined_features": [
+      "reasoning",
+      "science",
+      "incremental",
+      "bio",
+      "statistics"
+    ],
+    "source_handling": "Checksum sync without preserving timestamps; explicitly touched changed core/Python Rust sources to force recompilation; local/remote source maps identical."
+  },
+  "artifacts": {
+    "combined": {
+      "path": "/tank/lanes/o7-native-20261028/binding-checkpoint-20261029/oracle_native.so",
+      "sha256": "8c838fe3f2764446f26b5a65c622fd79072f73e710756e2e597df1c1b0d36538",
+      "profile": "release; immutable copied artifact; actual tests/paired current reader use these bytes"
+    },
+    "default": {
+      "path": "/tank/lanes/o7-native-20261028/binding-default-checkpoint-20261029/oracle_native.so",
+      "sha256": "11b606236196d29e9c0fa886e32d33b259532a98c889a72c836af45b9e23d1a4",
+      "profile": "debug; default features; optional bio/statistics exports absent"
+    }
+  },
+  "rust": {
+    "passed_unique": 101,
+    "core": {
+      "language_guard_contract": 9,
+      "state_admission": 3,
+      "cancellation_registration": 1,
+      "composition_contract": 12,
+      "reader_contract": 10,
+      "runtime_contract": 14,
+      "runtime_effects_contract": 14,
+      "runtime_language_contract": 2,
+      "runtime_release_contract": 5,
+      "runtime_session_contract": 7
+    },
+    "bio_alignment_contract": 10,
+    "statistics_regression": 14,
+    "clippy": "--locked all targets, core/reasoning/bio/statistics/Python, all five optional features, -D warnings passed",
+    "final_scoped_reruns": "composition12 and statistics14 passed after Clippy cleanup; unaffected earlier checks not rerun."
+  },
+  "python": {
+    "actual_unique_passed": 15,
+    "actual_language": 2,
+    "actual_release": 7,
+    "actual_domains": 6,
+    "new_fake_adapters_passed": 8,
+    "standalone_existing_actual_extension_suite": 10,
+    "standalone_domain_suite": 5,
+    "standalone_domain_suite_skips": 0,
+    "default_exports_passed": 1,
+    "default_domain_calculations_intentionally_skipped": 5,
+    "consumer": "Actual CLI discover/call/restart both domains; analytic alignment/mean checks; native refusal retirement then valid-call recovery; one immutable snapshot and same worker PID across successful profiles."
+  },
+  "reader_evidence": "2026-10-29-language-chemistry-reader.json",
+  "reader_regression_history": "2026-10-29-language-chemistry-reader-history.json",
+  "earlier_chemistry_checkpoint": "2026-10-29-chemistry-validation.json",
+  "retained_nonfinal_findings": [
+    {
+      "finding": "Composition eager local fragments regressed original40 to14correct and5errors, later16correct and1error. All intermediate reports retained.",
+      "resolution": "Outer-first region demand plus shared semantic evaluation restored original40 and gained one answer on paired100."
+    },
+    {
+      "finding": "Static review found exact string index differed from Unicode lowercase source equality.",
+      "resolution": "Shared string_equality_key helper and differential full-result/evidence contract passed."
+    },
+    {
+      "finding": "Warnings-denied Clippy found map_entry, manual_contains and three test fixture initializations.",
+      "resolution": "Owners repaired them; combined Clippy passed."
+    },
+    {
+      "finding": "Language gate fixture expected RuntimeError instead of established ValueError / ConflictError mapping.",
+      "resolution": "Corrected fixture; both actual language tests passed."
+    },
+    {
+      "finding": "Domain HTTP fixture expected a resident worker after native input refusal.",
+      "resolution": "Existing pool deliberately retires noncompleted workers; fixture now tests retirement and valid-call recovery; five tests passed."
+    }
+  ],
+  "logs_sha256": {
+    "var/checkpoint-20261029/domain-clippy.log": "8bf8e0f34e97b54c3678b394d098c8993c109aef80831c8aed59ebac87b33f47",
+    "var/checkpoint-20261029/final-clippy-release.log": "409c662fec1438dc0a715da405ef17bb8df0c74992cd83c3b56ad7b6eef486a3",
+    "var/checkpoint-20261029/combined-native.log": "acf5fea399357f8eb28a273765c45263c635ae97200701ac2781ece210669035",
+    "var/checkpoint-20261029/domain-adapters.log": "35c94946d42a698217949de9f530c0bfa9ccb5f2fc5c39f55ff41bfd24c732f5",
+    "var/checkpoint-20261029/convergence-before-test-fixture-fix.log": "e6a0a7035989b3503aab258578e4789e1dbc5d181747707dcea04a975aab1399",
+    "var/checkpoint-20261029/life-polarity-compile.log": "f71f7f162eea0c93418a8b80ba8691eda5f819b23fc37056a305b17b0ce9375f",
+    "var/checkpoint-20261029/python-language-final.log": "0d5f19ead2bf9676d74342ac6c647b4bf2294bed713605930a76f4b7d5b1c878",
+    "var/checkpoint-20261029/composition-clippy-fix.log": "1dacbd55cd3ddb2515fa793e9c3b7104d459fb1dfd16463dc746fb0d51dc3fb1",
+    "var/checkpoint-20261029/python-convergence.log": "25896a1affc172a1a7b46b5b615e9dfebb686d972e2eec598935d1e1b1b5db8e",
+    "var/checkpoint-20261029/reader-default.log": "57da2de6f41ba3a94d4c5f2ae11f7f9dee5aec327f9f5aa3a480adc2e5e3c1fa",
+    "var/checkpoint-20261029/final-convergence.log": "e6a0a7035989b3503aab258578e4789e1dbc5d181747707dcea04a975aab1399",
+    "var/checkpoint-20261029/bio-contracts.log": "4a240f346b1082201ae47a0170c54ca5f92e2a9d904cf99fadff60b7308a8e30",
+    "var/checkpoint-20261029/python-final15.log": "3ce7240eacca613904fde6018215a0fd276e5f787f5d34a631a2799453d1000c",
+    "var/checkpoint-20261029/python-rest.log": "5c4e2151dbc51ca5ea59cb668b3b75b575eb4cf2944633511d8a6b318c70e4fd",
+    "var/checkpoint-20261029/domains-final.log": "3ea6d8f52686cd93a2b8e030f1786667bd8ab05fe95e73c1b2f8abfe886a2608",
+    "var/checkpoint-20261029/combined-native-before-clippy-fix.log": "acf5fea399357f8eb28a273765c45263c635ae97200701ac2781ece210669035",
+    "var/checkpoint-20261029/remote-logs/domain-service-contracts.log": "48d51233e303986dd7671ee3b4d811ab858aa05ec298624c4b1b72f4e6138c67",
+    "var/checkpoint-20261029/remote-logs/default-exports.log": "7617b3e8186ec64092e997a44b6836dffd710eededf75fd2bf79a710cf12a08c",
+    "var/checkpoint-20261029/remote-logs/reader-baseline100.log": "2a5f41af41edbe18c22d91bef65d1ebaa7fafd9da4645f21172fb589caa7beb4",
+    "var/checkpoint-20261029/remote-logs/default-build.log": "9f960ce94b7dea75ffc07e38a074486772cdb294ad9a83b378ddd10d5f742af0",
+    "var/checkpoint-20261029/remote-logs/clippy.log": "2d74def5e8851f77318742aebf891a4946023a0edb9e08c81f3400cf5034adc1",
+    "var/checkpoint-20261029/remote-logs/service-contracts.log": "f2473686148dea3ef73fe33fbc23f85d78a0c1a6eecb064ec808ccd5505b1457",
+    "var/checkpoint-20261029/remote-logs/statistics-contracts.log": "7437c349234905a6641d6b83e6f7e6604d63aba187a3b5cbae41500e908a611b",
+    "var/checkpoint-20261029/remote-logs/cancellation-registration.log": "fd8a36e9cff30d6152eef0d3b2c5ac6d99fad6fa1962cb0c1a0707af0cf5a075",
+    "var/checkpoint-20261029/remote-logs/export.log": "500f5fbcd6c05afd65fba358bd2492f05c14a66d08e58b4ec495b032db2c189a",
+    "var/checkpoint-20261029/remote-logs/language-guard.log": "36fe9e0774ad7a8ad01c00eed6eccb11ec219d65996707d017da42cad3798be7",
+    "var/checkpoint-20261029/remote-logs/state-admission.log": "c04e6d883a4dec109adde84c8203e73c140f7afd8e8faae51c22ec6cecce82e8",
+    "var/checkpoint-20261029/remote-logs/reader.log": "6e525b6a7f504fca82e202087b09567200f590ffae18a383efe9c334bee8b7d8",
+    "var/checkpoint-20261029/remote-logs/core-contracts.log": "7ff2b1711b16b3f646677ecf41b4078dee7e98180f8495684d0c5c340f877978",
+    "var/checkpoint-20261029/remote-logs/python-contracts.log": "056b1d58735d8dd631b2737f9da9f19fb3520f02d9804143ebcd8163651b40c4"
+  },
+  "remaining": [
+    "No new shipped specialist-panel measurements or Isabelle theorem statements.",
+    "Broader readers, routing cascade, dialogue adapters, external effect executors and signed Mini integration remain.",
+    "Language median is10.0ms versus whole-only2.08ms in paired100; repeated lexical analysis/prefix probes are a concrete performance target.",
+    "Expected native input refusal currently retires a healthy worker. A future typed expected-failure protocol should distinguish safe invalid_input/resource_limit from unexpected faults/timeouts, without treating every ValueError as safe. Keep shared snapshots and test same-PID valid\u2192expected-refusal\u2192valid. This checkpoint does not change that protocol.",
+    "DNA alignment scores supplied strings/scoring; no biological significance or genome lookup. Regression inference is numerical and conditional on supplied statistical assumptions."
+  ]
+}

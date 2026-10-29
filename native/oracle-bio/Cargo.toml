@@ -1,0 +1,11 @@
+[package]
+name = "oracle-bio"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+bio = { version = "=4.0.1", default-features = false }
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true

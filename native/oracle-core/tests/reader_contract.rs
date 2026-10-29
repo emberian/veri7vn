@@ -116,7 +116,7 @@ fn release_tables_are_consumed_through_one_worker_with_alias_spelling() {
     let answer = fixture.read("Who is the bard?");
     assert_eq!(answer.status, ReaderStatus::Answered);
     assert_eq!(answer.answer.as_deref(), Some("Alice"));
-    assert_eq!(answer.coverage, "whole_templates_only");
+    assert_eq!(answer.coverage, oracle_runtime_core::reader::COVERAGE);
     assert_eq!(answer.readings[0].result.entities, vec!["A"]);
     assert_eq!(fixture.image.active_workers(), 0);
     // Tenant handles share immutable grammar; no first tenant may teach it.

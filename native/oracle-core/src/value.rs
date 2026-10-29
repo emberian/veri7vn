@@ -583,6 +583,12 @@ pub enum TypedValue {
     Date(GregorianDate),
 }
 
+/// Exact key for the structured reader's case-insensitive string equality.
+/// Source whitespace is significant; literal trimming belongs to parse_literal.
+pub(crate) fn string_equality_key(text: &str) -> String {
+    text.to_lowercase()
+}
+
 impl TypedValue {
     pub fn kind(&self) -> ValueKind {
         match self {
@@ -679,7 +685,7 @@ impl TypedValue {
             (Self::String(left), Self::String(right)) => {
                 // Case-insensitive text equality matches the structured reader;
                 // lexical ordering is intentionally not a numeric/date cast.
-                if left.to_lowercase() == right.to_lowercase() {
+                if string_equality_key(left) == string_equality_key(right) {
                     ValueComparison::Equal
                 } else {
                     ValueComparison::Unequal

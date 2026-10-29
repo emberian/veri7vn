@@ -1,0 +1,18 @@
+{
+  "operation": "statistics.linear_regression",
+  "arguments": {
+    "features": [[-1], [0], [1]],
+    "response": [0, -1, 4],
+    "intercept": true,
+    "covariance": "classical_normal_errors",
+    "model": {
+      "description": "Prespecified force calibration against position",
+      "predictor_names": ["position"],
+      "predictor_units": ["m"],
+      "response_unit": "N",
+      "assumptions": ["Fixed positions; correct linear conditional mean; independent Gaussian errors of equal unknown variance"]
+    },
+    "confidence_level": 0.95,
+    "predictions": [{"features": [0], "observation_relative_precision": 1}]
+  }
+}

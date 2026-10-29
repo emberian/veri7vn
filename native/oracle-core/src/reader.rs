@@ -1,13 +1,13 @@
 //! Bounded whole-template language reader over one leased native image worker.
 //!
 //! This is an untrusted recognizer, not a proof of natural-language meaning.
-//! Coverage is explicitly whole templates: fragment composition, segments,
-//! analogy and clause patches are not silently treated as implemented. Direct
+//! Coverage includes whole templates and exact fragment/outer composition.
+//! Segments, nested fragments, analogy and clause patches remain unsupported. Direct
 //! graph/program execution does not inherit this reader's admission rules.
 use crate::grammar::{self, GrammarSpan, MatchLimits, MatchedProgram};
 use crate::lexicon::{self, CandidateOptions, LexiconLimits};
 use crate::program::{Operation, Program};
-use crate::query::{encode, evaluate_language, Selection};
+use crate::query::{encode, evaluate_language_shared, LanguageWorkspace, Selection};
 use crate::{Budget, Cancellation, Error, Image, Limits, QueryResult, Result};
 use rusqlite::Connection;
 use serde::{Deserialize, Serialize};
@@ -15,7 +15,7 @@ use serde_json::Value;
 use std::collections::BTreeSet;
 use std::sync::Arc;
 
-pub const COVERAGE: &str = "whole_templates_only";
+pub const COVERAGE: &str = "whole_and_exact_fragment_outer_v1";
 
 /// Host bounds, not learned language settings. Exhaustion fails the request.
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -176,6 +176,7 @@ fn evaluate_inner(
         materialized_bytes: bytes_limit,
     };
     let mut result = ReaderResult::empty(identity, ReaderReason::NoTemplate);
+    let mut shared = LanguageWorkspace::new(db)?;
     let mut total_bytes = 0usize;
     let mut selection = None::<Selection>;
     let mut same_selection = true;
@@ -207,7 +208,7 @@ fn evaluate_inner(
             })
             .collect();
         // Already normalized exactly once by the lexical entry point.
-        let matched = grammar::match_whole(
+        let mut matched = grammar::match_whole(
             db,
             &candidates.normalized,
             &spans,
@@ -217,6 +218,71 @@ fn evaluate_inner(
             budget,
         )?;
         let normalized = candidates.normalized;
+        let mut composition_spans = Vec::new();
+        for outer in [false, true] {
+            let options = CandidateOptions {
+                normalization,
+                compositional: true,
+                level2: level == 1,
+                outer,
+                plural: true,
+                max_words: reader_limits.max_name_words,
+            };
+            let lexical = lexicon::candidates(db, raw_question, &options, &lexical_limits, budget)?;
+            let spans: Vec<_> = lexical
+                .spans
+                .into_iter()
+                .flat_map(|s| {
+                    s.readings.into_iter().map(move |r| GrammarSpan {
+                        start: s.start,
+                        end: s.end,
+                        kind: r.kind.code(),
+                        canonical: r.canonical,
+                    })
+                })
+                .collect();
+            composition_spans.push(spans);
+        }
+        matched.extend(crate::composition::match_composed(
+            db,
+            &normalized,
+            &composition_spans[0],
+            &composition_spans[1],
+            level,
+            &policy,
+            match_limits,
+            budget,
+            |fragment| {
+                let candidate = MatchedProgram {
+                    template: String::new(),
+                    level,
+                    support: 0,
+                    program: fragment.clone(),
+                };
+                let Some((program, plan)) = compile_candidate(&candidate, limits)? else {
+                    // A malformed/unsupported fragment must not disappear and
+                    // leave another reading falsely certain.
+                    return Err(Error::Invalid("unsupported composition fragment".into()));
+                };
+                if program
+                    .0
+                    .last()
+                    .is_none_or(|s| s.function.contract().output != crate::ProgramType::Entities)
+                {
+                    return Err(Error::Format("non-entity composition fragment".into()));
+                }
+                Ok(evaluate_language_shared(
+                    db,
+                    identity,
+                    &plan,
+                    previous,
+                    limits,
+                    budget,
+                    &mut shared,
+                )?
+                .is_some())
+            },
+        )?);
         for candidate in matched {
             budget.spend(1)?;
             result.matched_programs += 1;
@@ -231,7 +297,15 @@ fn evaluate_inner(
             // The language mode examines every entity-producing intermediate,
             // including dead branches; terminal Count alone permits empties.
             // The common evaluator owns DAG execution, typed values and budgets.
-            let evaluation = evaluate_language(db, identity, &plan, previous, limits, budget);
+            let evaluation = evaluate_language_shared(
+                db,
+                identity,
+                &plan,
+                previous,
+                limits,
+                budget,
+                &mut shared,
+            );
             budget.check()?;
             let Some((query, selected)) = evaluation? else {
                 continue;

@@ -1,7 +1,9 @@
 # Shared native Oracle foundation
 
 The [native integration program](docs/INTEGRATIONS.md) adds optional graph,
-symbolic/dimensional, scientific and incremental-reasoning providers. They have
+symbolic/dimensional, scientific and incremental-reasoning providers. Optional
+[DNA alignment and statistical regression](docs/BIO-STATISTICS.md) operate on
+supplied sequences and models. They have
 Rust libraries, CLIs and feature-gated PyO3 calls; their experimental status and
 remaining hosted boundaries are explicit.
 
@@ -16,14 +18,14 @@ A tenant handle holds an identity and a shared reference. It starts no process,
 loads no corpus, and owns no database connection.
 
 The callable library now includes the full pinned KQA program vocabulary,
-exact typed predicates and scalar answers, a whole-template language reader,
-release-bound restart/retry, and bounded resident transport for the extracted
+exact typed predicates and scalar answers, learned whole/fragment/outer language
+reading and durable language turns, release-bound restart/retry, and bounded resident transport for the extracted
 quantity/acoustics kernels. Rust hosts can commit authorized effect intents
 with a query and recover their outcomes through an outbox. Python is not called
 inside any of these native execution paths.
 
 This is not the complete Oracle Engine and is not installed in signed v7.
-Compositional language readers, the full route cascade and dialogue adapters,
+Additional composition families, the full route cascade and dialogue adapters,
 additional specialists and real effect executors remain. The [migration
 map](docs/MIGRATION.md) identifies those surfaces and the practical Python
 boundaries. The [development roadmap](docs/ROADMAP.md) sets out the shared
@@ -67,8 +69,12 @@ runs offline through `tools/export_reader_tables.py`; the export must bind the
 exact KB digest. `Tenant.read_whole(question, cancellation)` performs indexed
 lexical lookup, whole-template matching, native program execution, answer-form
 guards and agreement under one worker lease and budget. Its result explicitly
-says `whole_templates_only`; fragments, analogy and clause composition are not
-silently treated as supported. Serving never learns or unpickles those tables.
+says `whole_and_exact_fragment_outer_v1`. Learned outer questions demand only
+the fragment regions they consume; shared fragment programs are checked once,
+and whole/composed alternatives must agree. Empty fragments cannot supply a zero
+count. Segment chains, nested fragments, content-key fallback, analogy and
+clause/date wrappers remain unsupported. Serving never learns or unpickles
+those tables. A learned interpretation is a hypothesis, not a proof of meaning.
 
 No client SQL is accepted. Ambiguous names remain multiple candidates; a unique
 name request reports ambiguity instead of picking the first. Returned coverage
@@ -123,6 +129,16 @@ read the journal without an execution slot, even after restart. Concurrent turns
 use version checks: a stale computation cannot overwrite a newer state. Replies,
 state versions and capacity counters commit in one SQLite transaction. Image
 changes require an explicit session migration; the runtime refuses to guess.
+
+`tenant.execute_language(session, request, expected_version, question, cancel)`
+uses the same durable session and returns `version` plus `language`. An agreed
+answer can replace the selection for a later graph `previous` query. Unknown,
+ambiguous and semantic refusal replies commit their exact result while preserving
+the prior selection; operational errors and cancellation before commit do not
+advance the version. Retries bind the raw question bytes and language dialect,
+and replay after restart without acquiring a worker. A measured release must
+explicitly admit `reader.execute` version 1. This does not restore the upstream
+Engine's full dialogue state or provide external effect execution.
 
 The current evaluator is pure. It does not call Python, send messages, run tools
 or mutate external files during evaluation. An uncommitted turn can therefore
@@ -241,9 +257,31 @@ answers 17 correctly, returns unknown for 23, and has zero wrong answers or
 execution errors. Its median is 2.4 ms and p95 23.4 ms; post-query PSS is about
 33.2 MiB. Adding 256 scoped handles adds 12 KiB PSS and no threads. This is a
 small fresh-process sample on warm filesystem caches, not a throughput or
-full-language-coverage claim. The other language readers remain explicit work.
+full-language-coverage claim. This historical receipt predates fragment/outer
+composition; current checkpoint evidence is recorded separately.
 
 The same 40 questions previously hit a span-combination bound 25 times. Indexed
 template-prefix search removed those errors without raising the limit or hiding
 alternatives; the [before receipt](evidence/2026-10-28-reader-before-prefix.json)
 is retained alongside the final run.
+
+The [29 October checkpoint](evidence/2026-10-29-language-chemistry-domains-validation.json)
+passed 101 scoped Rust checks, warnings-denied combined Clippy, 15 actual binding
+checks, eight new adapter checks and 15 standalone service checks. A default
+build separately confirms that optional DNA/statistics exports are absent.
+These count executable contracts, not specialist panels or formal proofs.
+
+The [paired 100-question reader sample](evidence/2026-10-29-language-chemistry-reader.json)
+uses the same pinned image, questions and limits for a retained whole-only
+artifact and the new composed reader. Correct answers increase from 35 to 36;
+both have zero wrong answers/errors and four refusals. Unknowns decrease from
+61 to 60. The original 40-question prefix is restored to 17 correct / 23 unknown
+without errors. Independent source inspection confirms the gained BristolUni
+subscriber qualifier across every matching education candidate in the pinned KB.
+It does not establish a current external subscriber count.
+
+The extra coverage costs time: median 10.0 ms versus 2.08 ms, p95 30.7 ms versus
+20.1 ms, in one fresh process per artifact on warm filesystem caches. Repeated
+lexical analysis and prefix probes remain a performance target. The earlier
+[regressions](evidence/2026-10-29-language-chemistry-reader-history.json) are
+retained; bounds were not raised and alternatives were not discarded.

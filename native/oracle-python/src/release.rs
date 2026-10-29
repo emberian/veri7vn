@@ -46,7 +46,7 @@ pub(super) fn open(
                     && (matches!(
                         operation.id.as_str(),
                         "graph.query" | "graph.execute" | "kqa.query" | "kqa.execute"
-                    ) || (operation.id == "reader.whole"
+                    ) || (matches!(operation.id.as_str(), "reader.whole" | "reader.execute")
                         && image.capabilities.reader.is_some()))
             })
             .map(|operation| OperationRegistration {

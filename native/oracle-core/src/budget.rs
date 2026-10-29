@@ -1,8 +1,9 @@
 use crate::{Error, Result};
 use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
 use std::sync::{
     atomic::{AtomicBool, AtomicU64, Ordering},
-    Arc,
+    Arc, Mutex, Weak,
 };
 use std::time::{Duration, Instant};
 
@@ -69,14 +70,79 @@ impl Limits {
     }
 }
 
+/// Internal wake registration. Implementations synchronize with their wait
+/// predicate before notifying, so cancellation cannot be lost before a wait.
+pub(crate) trait CancellationWake: Send + Sync {
+    fn wake(&self);
+}
+#[derive(Default)]
+struct CancellationListeners {
+    next: u64,
+    entries: BTreeMap<u64, Weak<dyn CancellationWake>>,
+}
+#[derive(Default)]
+struct CancellationInner {
+    cancelled: AtomicBool,
+    listeners: Mutex<CancellationListeners>,
+}
 #[derive(Clone, Default)]
-pub struct Cancellation(Arc<AtomicBool>);
+pub struct Cancellation(Arc<CancellationInner>);
+pub(crate) struct CancellationRegistration {
+    token: Cancellation,
+    id: u64,
+    // The registry retains only weak ownership; this guard owns the listener.
+    _wake: Arc<dyn CancellationWake>,
+}
+impl Drop for CancellationRegistration {
+    fn drop(&mut self) {
+        let mut listeners = self
+            .token
+            .0
+            .listeners
+            .lock()
+            .unwrap_or_else(|e| e.into_inner());
+        listeners.entries.remove(&self.id);
+    }
+}
 impl Cancellation {
     pub fn cancel(&self) {
-        self.0.store(true, Ordering::Release);
+        if self.0.cancelled.swap(true, Ordering::AcqRel) {
+            return;
+        }
+        // Never invoke a wake while holding the registry lock. Unregistration
+        // and listener-specific predicate locks therefore cannot deadlock.
+        let listeners: Vec<_> = self
+            .0
+            .listeners
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .entries
+            .values()
+            .cloned()
+            .collect();
+        for listener in listeners {
+            if let Some(listener) = listener.upgrade() {
+                listener.wake();
+            }
+        }
     }
     pub fn is_cancelled(&self) -> bool {
-        self.0.load(Ordering::Acquire)
+        self.0.cancelled.load(Ordering::Acquire)
+    }
+    fn register(&self, wake: Arc<dyn CancellationWake>) -> Result<CancellationRegistration> {
+        let mut listeners = self.0.listeners.lock().map_err(|_| Error::Poisoned)?;
+        let id = listeners.next;
+        listeners.next = id
+            .checked_add(1)
+            .ok_or(Error::Limit("cancellation registrations"))?;
+        listeners.entries.insert(id, Arc::downgrade(&wake));
+        // Registration can race cancellation's snapshot. The caller must check
+        // its budget under the predicate lock after registering, before waiting.
+        Ok(CancellationRegistration {
+            token: self.clone(),
+            id,
+            _wake: wake,
+        })
     }
 }
 
@@ -112,6 +178,16 @@ impl Budget {
         }
         Ok(())
     }
+    pub(crate) fn wake_on_cancel(
+        &self,
+        wake: Arc<dyn CancellationWake>,
+    ) -> Result<CancellationRegistration> {
+        self.0.cancellation.register(wake)
+    }
+    pub(crate) fn remaining_time(&self) -> Result<Duration> {
+        self.check()?;
+        Ok(self.0.deadline.saturating_duration_since(Instant::now()))
+    }
     pub fn spend(&self, amount: u64) -> Result<()> {
         self.check()?;
         let mut remaining = self.0.remaining.load(Ordering::Relaxed);
@@ -131,5 +207,58 @@ impl Budget {
             }
         }
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod cancellation_registration_tests {
+    use super::*;
+    use std::sync::{atomic::AtomicUsize, mpsc};
+
+    struct Counter(Arc<AtomicUsize>);
+    impl CancellationWake for Counter {
+        fn wake(&self) {
+            self.0.fetch_add(1, Ordering::SeqCst);
+        }
+    }
+    struct BlockingWake {
+        entered: mpsc::Sender<()>,
+        resume: Mutex<mpsc::Receiver<()>>,
+    }
+    impl CancellationWake for BlockingWake {
+        fn wake(&self) {
+            self.entered.send(()).unwrap();
+            self.resume.lock().unwrap().recv().unwrap();
+        }
+    }
+    #[test]
+    fn unregister_and_late_registration_are_safe_during_cancel_snapshot() {
+        let token = Cancellation::default();
+        let (entered, received) = mpsc::channel();
+        let (resume, resumed) = mpsc::channel();
+        let first = token
+            .register(Arc::new(BlockingWake {
+                entered,
+                resume: Mutex::new(resumed),
+            }))
+            .unwrap();
+        let calls = Arc::new(AtomicUsize::new(0));
+        let second = token.register(Arc::new(Counter(calls.clone()))).unwrap();
+        let cancelling = token.clone();
+        let thread = std::thread::spawn(move || cancelling.cancel());
+        received.recv_timeout(Duration::from_secs(2)).unwrap();
+        // The cancellation snapshot already contains the second weak listener.
+        // Dropping its owner must allow it to disappear before invocation.
+        drop(second);
+        let late = token.register(Arc::new(Counter(calls.clone()))).unwrap();
+        let budget = Budget::new(&Limits::default(), token.clone()).unwrap();
+        assert!(matches!(budget.check(), Err(Error::Cancelled)));
+        resume.send(()).unwrap();
+        thread.join().unwrap();
+        assert_eq!(calls.load(Ordering::SeqCst), 0);
+        drop(first);
+        drop(late);
+        assert!(token.0.listeners.lock().unwrap().entries.is_empty());
+        token.cancel();
     }
 }

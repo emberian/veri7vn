@@ -1,0 +1,15 @@
+{
+  "operation": "bio.align_pairwise",
+  "arguments": {
+    "query": "ACGT",
+    "reference": "TTACGTAA",
+    "mode": "query_global",
+    "scoring": {
+      "match_score": 2,
+      "mismatch_score": -3,
+      "gap_open": -5,
+      "gap_extend": -1
+    },
+    "ambiguity": "reject"
+  }
+}

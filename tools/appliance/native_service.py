@@ -28,6 +28,8 @@ from serve import Server, TENANT_KEY, IDENTIFIER, encode, failure
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from oracle_components.native_science import NativeScienceOperations
 from oracle_components.native_incremental import NativeIncrementalOperations
+from oracle_components.native_bio import NativeBioOperations
+from oracle_components.native_statistics import NativeStatisticsOperations
 from oracle_components.reasoning import create_reasoning_operations
 
 _CONTEXT = ContextVar("native_service_request", default=None)
@@ -69,6 +71,10 @@ class NativeService:
                     adapter = NativeScienceOperations(catalog, call, identity)
                 elif provider.profile == "incremental":
                     adapter = NativeIncrementalOperations(catalog, call, identity)
+                elif provider.profile == "bio":
+                    adapter = NativeBioOperations(catalog, call, identity)
+                elif provider.profile == "statistics":
+                    adapter = NativeStatisticsOperations(catalog, call, identity)
                 else:
                     raise ValueError("unknown native profile")
                 # Only actual callable exports enter discovery. A malformed or
@@ -177,7 +183,7 @@ class NativeService:
                             "reason": "native_request_refused"}
                 if error.detail is not None:
                     withheld["detail"] = error.detail
-                if request["operation_id"].startswith(("science.", "incremental.")):
+                if request["operation_id"].startswith(("science.", "incremental.", "bio.", "statistics.")):
                     withheld["authority"] = "computation_only"
                 return 200, {"outcome": "completed", "operation_id": request["operation_id"],
                              "reply": withheld, "durable_replay": False}

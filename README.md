@@ -60,8 +60,9 @@ independent grains. The newer agent lifecycle and complete restart/recovery
 journey remain unfinished; this is not a public Dreggnet deployment.
 
 The next shared runtime has a [Rust and PyO3 implementation](native/README.md):
-shared indexed data and learned tables, complete KQA programs, a whole-template
-language reader, exact values, durable tenant state, release-bound retries and
+shared indexed data and learned tables, complete KQA programs, learned
+whole/fragment/outer language reading, exact values, atomic durable language
+turns, release-bound retries and
 bounded native-kernel transport. It is a working library with real-data
 comparisons; the full Engine cascade and signed-appliance integration remain.
 The [migration map](native/docs/MIGRATION.md) separates native capabilities from
@@ -70,7 +71,8 @@ records measured progress and remaining work.
 
 The optional native computations also have a [standalone service](native/docs/STANDALONE.md)
 with operation discovery, direct calls and shared bounded workers. Graph,
-symbolic, scientific and dependency operations run and can be tested without
+symbolic, exact charge/isotope-conserving [reaction balancing](native/docs/CHEMISTRY.md),
+scientific and dependency operations run and can be tested without
 minidregg or a public dataset. This pure-computation service is separate from
 the signed conversational package and makes no durable-conversation claim.
 

@@ -18,6 +18,8 @@ import sys
 
 PROFILES = {"reasoning": ("reasoning_call", "reasoning_catalog"),
             "science": ("science_call", "science_catalog"),
+            "bio": ("bio_call", "bio_catalog"),
+            "statistics": ("statistics_call", "statistics_catalog"),
             "incremental": ("incremental_call", "incremental_catalog")}
 
 

@@ -182,6 +182,28 @@ impl Tenant {
         })
         .map_err(error)
     }
+    fn execute_language(
+        &self,
+        py: Python<'_>,
+        session: &str,
+        request: &str,
+        expected_version: i64,
+        question: &str,
+        cancellation: &Cancellation,
+    ) -> PyResult<String> {
+        let cancel = cancellation.0.clone();
+        py.detach(|| {
+            self.runtime.execute_language(
+                &self.identity,
+                session,
+                request,
+                expected_version,
+                question,
+                cancel,
+            )
+        })
+        .map_err(error)
+    }
     fn execute_program(
         &self,
         py: Python<'_>,

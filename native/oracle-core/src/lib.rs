@@ -3,6 +3,7 @@
 #![forbid(unsafe_code)]
 
 pub mod admission;
+pub mod composition;
 mod budget;
 pub mod effects;
 pub mod grammar;
@@ -32,7 +33,7 @@ pub use query::{
     AttributeFact, Node, Plan, Projection, QualifierCondition, QueryResult, SelectionOrder,
     ValuePredicate,
 };
-pub use runtime::{Execution, HostEffects, RequestDialect, Runtime};
+pub use runtime::{Execution, HostEffects, LanguageExecution, RequestDialect, Runtime};
 
 pub type Result<T> = std::result::Result<T, Error>;
 

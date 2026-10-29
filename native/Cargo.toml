@@ -1,5 +1,5 @@
 [workspace]
-members = ["oracle-core", "oracle-python", "oracle-reasoning", "oracle-incremental", "oracle-science"]
+members = ["oracle-core", "oracle-python", "oracle-reasoning", "oracle-incremental", "oracle-science", "oracle-bio", "oracle-statistics"]
 default-members = ["oracle-core", "oracle-python"]
 resolver = "2"
 

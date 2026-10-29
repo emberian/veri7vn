@@ -87,11 +87,54 @@ After a burst, the parent plus two children occupied about 34.5 MiB PSS.
 The burst immediately refused 91 of 96 attempts: a capacity-bound test, not
 a throughput or fairness success claim. See [the validation receipt](../native/evidence/2026-10-29-provider-host-validation.json).
 
-Next implementation batch: exact charge/isotope-conserving reaction balance and
-learned fragment/outer-template composition for the native language reader.
-Both Sol lanes have authored source; root review, consumer wiring and central
-qualification remain. Continue broader routing, durable state, representations,
-specialist panels and upstream contributions alongside domain expansion.
+The [chemistry checkpoint](../native/evidence/2026-10-29-chemistry-validation.json),
+commit `94add5b`, adds exact charge/isotope-conserving reaction balancing through
+the optional reasoning profile and pure standalone service. Central hbox checks
+passed ten native contracts, 24 adapter contracts, ten actual-extension service
+checks and warnings-denied reasoning Clippy. The reused combined artifact also
+contains unfinished core changes, which this scoped receipt does not qualify.
+There are no new shipped specialist-panel scores or theorem statements.
+
+The [language/domain checkpoint](../native/evidence/2026-10-29-language-chemistry-domains-validation.json)
+now integrates learned exact fragment/outer composition, shared semantic stages
+and typed attribute columns, cancellable atomic language turns, supplied-DNA
+alignment and statistical regression. All 101 scoped Rust checks passed,
+as did combined warnings-denied Clippy, 15 actual binding checks, eight new
+adapter checks and 15 standalone service checks. Default-feature export absence
+was checked separately. The DNA and statistics providers remain optional and
+operate on supplied arguments, with no new specialist-panel score or theorem.
+
+The first eager composition revision regressed the pinned original 40 questions
+from 17 correct / 23 unknown / no errors to 14 correct / 21 unknown / five errors;
+intermediate revisions reached 16 correct / 23 unknown / one error. Demand-driven
+outer regions and shared semantic evaluation restore 17 / 23 with no wrong answers
+or errors, under unchanged bounds. Static review also caught a Unicode equality
+mismatch before final validation; the shared helper and differential contract
+preserve existing comparisons and evidence.
+
+The [predeclared paired 100](../native/evidence/2026-10-29-language-chemistry-reader.json)
+compares the exact retained whole-only artifact with the new combined artifact:
+35→36 correct, 61→60 unknown, four refusals each, zero wrong answers/errors.
+The gained BristolUni subscriber qualifier is independently checked across all
+matching public-university candidates in the pinned KB. Median latency rises
+2.08→10.0 ms and p95 20.1→30.7 ms. These are single fresh-process measurements on
+warm filesystem caches, not fleet scores or throughput claims. Full paired
+reports, observation hashes and intermediate regressions are retained.
+
+Next performance work: share repeated lexical analysis and indexed prefix probes
+without semantic fast paths, discarded alternatives or raised bounds. Expected
+native input refusal currently retires an otherwise healthy worker. A future
+typed expected-failure protocol should distinguish safe invalid_input/resource_limit
+from unexpected faults/timeouts, keep immutable snapshots shared and test the
+same PID through valid→expected-refusal→valid. Do not assume all ValueErrors are
+safe. The current checkpoint preserves the existing retirement rule and tests
+replacement/recovery.
+
+Continue broader routing, durable retention/migration, dialogue adapters, actual
+effect executors, representations, specialist panels and signed Mini integration.
+Terra reviewed the optional DNA/statistics sources and cancellation notifier;
+central execution supplies the measured results above. The broader goal remains
+active.
 
 ## Upstream and active second batch
 

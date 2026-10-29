@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Untrusted, bounded qualification of the installed native whole-language reader.
+"""Untrusted, bounded qualification of the installed native language reader.
 
 Selects at most 100 real validation questions by a reproducible hash (40 by
 default), then reads them in one fresh native process. Gold comparison is exact
@@ -39,7 +39,7 @@ PROCESS_STARTED = time.perf_counter()
 VAL_SHA256 = "b4aed6ab3d7ad071722064fe3bb02bc028cfbeb15da5f7115d57a1e2d198f3bb"
 KB_SHA256 = "04da7408320c5cb7023c44372cce32846d56d369d8865d2e61a18c3956661a7c"
 OUTCOMES = ("answered_correct", "answered_wrong", "refused", "unknown", "errors")
-COVERAGE = "whole_templates_only"
+COVERAGE = "whole_and_exact_fragment_outer_v1"
 
 
 def canonical(value):
@@ -172,7 +172,7 @@ def observe(tenant, native, case):
     try:
         result = json.loads(tenant.read_whole(case["question"], native.Cancellation()))
         if result.get("coverage") != COVERAGE:
-            raise ValueError("native read lacks explicit whole_templates_only coverage")
+            raise ValueError(f"native read lacks explicit {COVERAGE} coverage")
         status, answer = result.get("status"), result.get("answer")
         if status == "answered":
             if not isinstance(answer, str) or result.get("distinct_answers") != [answer]:
@@ -376,7 +376,8 @@ def main():
                   if observation["outcome"] != "answered_correct"][:args.mismatch_limit]
     write_json(work / "mismatches.json",mismatches)
     report = {"schema":"oracle-native-whole-reader-v1","run_status":"complete",
-              "scope":"bounded real questions through native whole templates; no full reader/Engine or specialist-panel claim",
+              "scope":"bounded real questions through native whole and exact fragment/outer templates; no full reader/Engine or specialist-panel claim",
+              "coverage":COVERAGE,
               "reference":{"upstream_whole_reader":"not run; no upstream Reader/Engine constructed",
                            "comparison":"dataset gold exact strings; no case-folding, date/unit normalization or tolerance"},
               "python":sys.version,"platform":platform.platform(),"load_average":os.getloadavg(),

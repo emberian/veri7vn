@@ -1,9 +1,9 @@
-use crate::value::{ComparisonOp, TypedValue, ValueKind, ValueLimits};
+use crate::value::{string_equality_key, ComparisonOp, TypedValue, ValueKind, ValueLimits};
 use crate::{Budget, Error, Limits, Result};
 use rusqlite::{params, Connection};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::io::Write;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -279,6 +279,11 @@ impl<'a> PredicateMatcher<'a> {
         )?;
         let limits = ValueLimits::default();
         let source = TypedValue::from_kqa(source, &limits)?;
+        self.test_typed(&source)
+    }
+    fn test_typed(&mut self, source: &TypedValue) -> Result<Option<bool>> {
+        let predicate = self.predicate;
+        let limits = ValueLimits::default();
         let kind = predicate.kind.unwrap_or_else(|| source.kind());
         let temporal = |kind| matches!(kind, ValueKind::Year | ValueKind::Date);
         if source.kind() != kind && !(temporal(kind) && temporal(source.kind())) {
@@ -425,7 +430,7 @@ pub(crate) fn evaluate(
     limits: &Limits,
     budget: &Budget,
 ) -> Result<(QueryResult, Selection)> {
-    evaluate_with_mode(db, identity, plan, previous, limits, budget, false)?
+    evaluate_with_mode(db, identity, plan, previous, limits, budget, false, None)?
         .ok_or_else(|| Error::Format("unexpected guarded graph evaluation".into()))
 }
 
@@ -438,6 +443,7 @@ pub(crate) fn evaluate(
 /// its preceding candidate's private node namespace before evaluating another.
 /// Cancellation or cleanup errors propagate; the lease still owns unconditional
 /// cleanup before the connection can return to the pool.
+#[cfg(test)]
 pub(crate) fn evaluate_language(
     db: &Connection,
     identity: &str,
@@ -449,9 +455,187 @@ pub(crate) fn evaluate_language(
     budget.check()?;
     db.execute_batch("DELETE FROM temp.oracle_sets; DELETE FROM temp.oracle_facts; DELETE FROM temp.oracle_attributes;")?;
     budget.check()?;
-    evaluate_with_mode(db, identity, plan, previous, limits, budget, true)
+    evaluate_with_mode(db, identity, plan, previous, limits, budget, true, None)
 }
 
+/// One reader request on one exclusive worker, image and previous selection.
+/// Keys include complete typed node literals and canonical dependency identities,
+/// hence relation/attribute provenance is part of the reusable stage identity.
+/// Empty stages are cached too; each candidate still checks all its own stages.
+/// The worker lease clears every scratch table on success, refusal or cancellation.
+#[derive(Default)]
+pub(crate) struct LanguageWorkspace {
+    stages: BTreeMap<String, (usize, bool)>,
+    retained_rows: usize,
+    retained_bytes: usize,
+    columns: BTreeMap<(usize, String), AttributeColumn>,
+}
+/// A shared typed source column is indexed independently of any one predicate.
+/// Statement positions and qualifiers remain attached to every matching value.
+#[derive(Default)]
+struct AttributeColumn {
+    rows: Vec<(AttributeFact, TypedValue)>,
+    strings: BTreeMap<String, Vec<usize>>,
+    nonstrings: Vec<usize>,
+}
+impl LanguageWorkspace {
+    pub(crate) fn new(db: &Connection) -> Result<Self> {
+        db.execute_batch("DELETE FROM temp.oracle_sets; DELETE FROM temp.oracle_facts; DELETE FROM temp.oracle_attributes;")?;
+        Ok(Self::default())
+    }
+    fn filter_column(
+        &mut self,
+        db: &Connection,
+        input: usize,
+        key: &str,
+        output: usize,
+        predicate: &ValuePredicate,
+        meter: &mut Meter<'_>,
+    ) -> Result<()> {
+        let identity = (input, key.to_string());
+        if !self.columns.contains_key(&identity) {
+            let mut column = AttributeColumn::default();
+            let mut query=db.prepare_cached("SELECT a.subject,a.key,a.position,a.value,a.qualifiers FROM attributes a CROSS JOIN temp.oracle_sets selected ON selected.id=a.subject AND selected.node=?1 WHERE a.key=?2")?;
+            let mut rows = query.query(params![input as i64, key])?;
+            let mut bytes = key.len().saturating_add(64);
+            while let Some(row) = rows.next()? {
+                let attribute = attribute_row(row)?;
+                meter.charge(attribute_bytes(&attribute))?;
+                meter.budget.spend(attribute.value_json.len() as u64 + 1)?;
+                let typed = TypedValue::from_kqa(
+                    &serde_json::from_str(&attribute.value_json)?,
+                    &ValueLimits::default(),
+                )?;
+                bytes = bytes
+                    .saturating_add(attribute_bytes(&attribute))
+                    .saturating_add(attribute.value_json.len())
+                    .saturating_add(64);
+                if let TypedValue::String(text) = &typed {
+                    let equality_key = string_equality_key(text);
+                    bytes = bytes.saturating_add(equality_key.len()).saturating_add(32);
+                    column
+                        .strings
+                        .entry(equality_key)
+                        .or_default()
+                        .push(column.rows.len());
+                } else {
+                    column.nonstrings.push(column.rows.len());
+                }
+                if self.retained_bytes.saturating_add(bytes) > meter.limits.materialized_bytes
+                    || self.retained_rows.saturating_add(column.rows.len() + 1)
+                        > meter.limits.materialized_rows
+                {
+                    return Err(Error::Limit("language shared attribute column"));
+                }
+                column.rows.push((attribute, typed));
+            }
+            self.retained_bytes = self.retained_bytes.saturating_add(bytes);
+            self.retained_rows = self.retained_rows.saturating_add(column.rows.len());
+            self.columns.insert(identity.clone(), column);
+        }
+        let column = &self.columns[&identity];
+        let string_equality = predicate.comparison == ComparisonOp::Eq
+            && matches!(predicate.kind, None | Some(ValueKind::String));
+        let mut matcher = PredicateMatcher::new(predicate);
+        if string_equality {
+            // Literal parsing trims whitespace; the shared value-layer key
+            // applies the comparator's Unicode lowercasing to both operands.
+            // Source whitespace and all statement witnesses remain unchanged.
+            meter.budget.spend(predicate.literal.len() as u64 + 1)?;
+            if let Some(indices) = column
+                .strings
+                .get(&string_equality_key(predicate.literal.trim()))
+            {
+                for index in indices {
+                    let attribute = &column.rows[*index].0;
+                    insert_id(db, output, &attribute.subject, meter)?;
+                    insert_attribute(db, output, attribute)?;
+                }
+            }
+        }
+        let mut compare = |index: usize| -> Result<()> {
+            let (attribute, typed) = &column.rows[index];
+            let wanted = predicate.kind.unwrap_or_else(|| typed.kind());
+            let temporal = |kind| matches!(kind, ValueKind::Year | ValueKind::Date);
+            if typed.kind() != wanted && !(temporal(wanted) && temporal(typed.kind())) {
+                return Ok(());
+            }
+            meter
+                .budget
+                .spend(attribute.value_json.len() as u64 + predicate.literal.len() as u64 + 1)?;
+            if matcher.test_typed(typed)? == Some(true) {
+                insert_id(db, output, &attribute.subject, meter)?;
+                insert_attribute(db, output, attribute)?;
+            }
+            Ok(())
+        };
+        if string_equality {
+            for &index in &column.nonstrings {
+                compare(index)?;
+            }
+        } else {
+            for index in 0..column.rows.len() {
+                compare(index)?;
+            }
+        }
+        Ok(())
+    }
+    fn retain(
+        &mut self,
+        db: &Connection,
+        key: String,
+        slot: usize,
+        nonempty: bool,
+        meter: &Meter<'_>,
+    ) -> Result<()> {
+        let (rows,bytes): (i64,i64) = db.query_row(
+            "SELECT sum(n),sum(b) FROM (
+             SELECT count(*) n,coalesce(sum(length(CAST(id AS BLOB))),0) b FROM temp.oracle_sets WHERE node=?1
+             UNION ALL SELECT count(*),coalesce(sum(length(CAST(subject AS BLOB))+length(CAST(predicate AS BLOB))+length(CAST(direction AS BLOB))+length(CAST(object AS BLOB))+length(CAST(qualifiers AS BLOB))),0) FROM temp.oracle_facts WHERE node=?1
+             UNION ALL SELECT count(*),coalesce(sum(length(CAST(subject AS BLOB))+length(CAST(key AS BLOB))+8+length(CAST(value AS BLOB))+length(CAST(qualifiers AS BLOB))),0) FROM temp.oracle_attributes WHERE node=?1)",
+            [slot as i64], |row| Ok((row.get(0)?,row.get(1)?)))?;
+        let rows = usize::try_from(rows).map_err(|_| Error::Limit("language shared rows"))?;
+        let bytes = usize::try_from(bytes).map_err(|_| Error::Limit("language shared bytes"))?;
+        self.retained_rows = self.retained_rows.saturating_add(rows);
+        self.retained_bytes = self
+            .retained_bytes
+            .saturating_add(bytes)
+            .saturating_add(key.len())
+            .saturating_add(64);
+        if self.retained_rows > meter.limits.materialized_rows {
+            return Err(Error::Limit("language shared rows"));
+        }
+        if self.retained_bytes > meter.limits.materialized_bytes {
+            return Err(Error::Limit("language shared bytes"));
+        }
+        meter.budget.spend(key.len() as u64 + 1)?;
+        self.stages.insert(key, (slot, nonempty));
+        Ok(())
+    }
+}
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn evaluate_language_shared(
+    db: &Connection,
+    identity: &str,
+    plan: &Plan,
+    previous: &Selection,
+    limits: &Limits,
+    budget: &Budget,
+    shared: &mut LanguageWorkspace,
+) -> Result<Option<(QueryResult, Selection)>> {
+    evaluate_with_mode(
+        db,
+        identity,
+        plan,
+        previous,
+        limits,
+        budget,
+        true,
+        Some(shared),
+    )
+}
+
+#[allow(clippy::too_many_arguments)]
 fn evaluate_with_mode(
     db: &Connection,
     identity: &str,
@@ -460,6 +644,7 @@ fn evaluate_with_mode(
     limits: &Limits,
     budget: &Budget,
     language: bool,
+    shared: Option<&mut LanguageWorkspace>,
 ) -> Result<Option<(QueryResult, Selection)>> {
     let mut meter = Meter {
         rows: 0,
@@ -470,7 +655,7 @@ fn evaluate_with_mode(
     // Ordinary graph execution preserves SQL pushdown and materializes shared
     // subplans. Language admission materializes every stage exactly once so its
     // intermediate-empty guard cannot be bypassed by dead code or a union.
-    let Some(compiled) = compile(db, plan, previous, &mut meter, language)? else {
+    let Some(compiled) = compile(db, plan, previous, &mut meter, language, shared)? else {
         return Ok(None);
     };
     let mut selected = Selection::default();
@@ -542,6 +727,7 @@ fn compile(
     previous: &Selection,
     meter: &mut Meter<'_>,
     language: bool,
+    mut shared: Option<&mut LanguageWorkspace>,
 ) -> Result<Option<Compiled>> {
     let refuse_empty = language && !matches!(plan.projection, Projection::Count);
     let mut ctes = Vec::new();
@@ -582,11 +768,57 @@ fn compile(
             _ => {}
         }
     }
+    let mut slots = vec![0usize; plan.nodes.len()];
     for (i, node) in plan.nodes.iter().enumerate() {
         if !live[i] {
             continue;
         }
         meter.budget.spend(1)?;
+        let mut canonical = node.clone();
+        match &mut canonical {
+            Node::Relate { input, .. }
+            | Node::FilterConcept { input, .. }
+            | Node::FilterAttribute { input, .. }
+            | Node::FilterQualifier { input, .. } => *input = slots[*input],
+            Node::And { left, right } | Node::Or { left, right } => {
+                *left = slots[*left];
+                *right = slots[*right];
+            }
+            _ => {}
+        }
+        let key = if shared.is_some() {
+            Some(serde_json::to_string(&canonical)?)
+        } else {
+            None
+        };
+        if let Some(key) = &key {
+            meter.budget.spend(key.len() as u64 + 1)?;
+        }
+
+        let slot = if let Some(cache) = shared.as_deref() {
+            if let Some(&(slot, nonempty)) = cache.stages.get(key.as_ref().expect("shared key")) {
+                slots[i] = slot;
+                ctes.push(format!(
+                    "n{i}(id) AS (SELECT id FROM temp.oracle_sets WHERE node={slot})"
+                ));
+                ctes.push(format!(
+                    "f{i}(subject,predicate,direction,object,qualifiers) AS ({})",
+                    fact_scratch(slot)
+                ));
+                ctes.push(format!(
+                    "a{i}(subject,key,position,value,qualifiers) AS ({})",
+                    attribute_scratch(slot)
+                ));
+                if refuse_empty && !nonempty {
+                    return Ok(None);
+                }
+                continue;
+            }
+            cache.stages.len()
+        } else {
+            i
+        };
+        slots[i] = slot;
         let mut bind = |text: String| {
             parameters.push(text);
             format!("?{}", parameters.len())
@@ -632,23 +864,27 @@ fn compile(
             } => {
                 // Use the attribute key index, then intersect the input set;
                 // exact comparisons run in Rust without float coercion in SQL.
-                let key = bind(key.clone());
-                let sql = format!("{} SELECT a.subject,a.key,a.position,a.value,a.qualifiers FROM attributes a CROSS JOIN n{input} selected ON selected.id=a.subject WHERE a.key={key}", prefix(&ctes));
-                filter_attributes(db, &sql, &parameters, i, predicate, meter)?;
-                attributes = attribute_scratch(i);
+                if let Some(cache) = shared.as_deref_mut() {
+                    cache.filter_column(db, slots[*input], key, slot, predicate, meter)?;
+                } else {
+                    let key = bind(key.clone());
+                    let sql = format!("{} SELECT a.subject,a.key,a.position,a.value,a.qualifiers FROM attributes a CROSS JOIN n{input} selected ON selected.id=a.subject WHERE a.key={key}", prefix(&ctes));
+                    filter_attributes(db, &sql, &parameters, slot, predicate, meter)?;
+                }
+                attributes = attribute_scratch(slot);
                 already_materialized = true;
-                format!("SELECT id FROM temp.oracle_sets WHERE node={i}")
+                format!("SELECT id FROM temp.oracle_sets WHERE node={slot}")
             }
             Node::FilterQualifier {
                 input,
                 key,
                 predicate,
             } => {
-                filter_qualifiers(db, &ctes, &parameters, *input, i, key, predicate, meter)?;
-                attributes = attribute_scratch(i);
-                facts = fact_scratch(i);
+                filter_qualifiers(db, &ctes, &parameters, *input, slot, key, predicate, meter)?;
+                attributes = attribute_scratch(slot);
+                facts = fact_scratch(slot);
                 already_materialized = true;
-                format!("SELECT id FROM temp.oracle_sets WHERE node={i}")
+                format!("SELECT id FROM temp.oracle_sets WHERE node={slot}")
             }
             Node::And { left, right } | Node::Or { left, right } => {
                 let op = if matches!(node, Node::And { .. }) {
@@ -668,33 +904,41 @@ fn compile(
         ctes.push(format!(
             "a{i}(subject,key,position,value,qualifiers) AS ({attributes})"
         ));
-        if (uses[i] > 1 || language) && !already_materialized {
-            let nonempty = materialize(db, &ctes, &parameters, i, meter)?;
-            if refuse_empty && !nonempty {
-                return Ok(None);
-            }
+        let nonempty = if (uses[i] > 1 || language) && !already_materialized {
+            let nonempty = materialize(db, &ctes, &parameters, i, slot, meter)?;
             let n = ctes.len();
-            ctes[n - 3] = format!("n{i}(id) AS (SELECT id FROM temp.oracle_sets WHERE node={i})");
+            ctes[n - 3] =
+                format!("n{i}(id) AS (SELECT id FROM temp.oracle_sets WHERE node={slot})");
             ctes[n - 2] = format!(
                 "f{i}(subject,predicate,direction,object,qualifiers) AS ({})",
-                fact_scratch(i)
+                fact_scratch(slot)
             );
             ctes[n - 1] = format!(
                 "a{i}(subject,key,position,value,qualifiers) AS ({})",
-                attribute_scratch(i)
+                attribute_scratch(slot)
             );
-        } else if refuse_empty && already_materialized {
-            // Exact native filters already evaluated and materialized this
-            // stage. Inspect only its indexed scratch set; do not rerun it.
+            Some(nonempty)
+        } else if already_materialized && (refuse_empty || shared.is_some()) {
             meter.budget.spend(1)?;
-            let nonempty: bool = db.query_row(
+            Some(db.query_row(
                 "SELECT EXISTS(SELECT 1 FROM temp.oracle_sets WHERE node=?1)",
-                [i as i64],
-                |row| row.get(0),
+                [slot as i64],
+                |row| row.get::<_, bool>(0),
+            )?)
+        } else {
+            None
+        };
+        if let Some(cache) = shared.as_deref_mut() {
+            cache.retain(
+                db,
+                key.expect("shared key"),
+                slot,
+                nonempty.expect("language materializes each stage"),
+                meter,
             )?;
-            if !nonempty {
-                return Ok(None);
-            }
+        }
+        if refuse_empty && nonempty == Some(false) {
+            return Ok(None);
         }
     }
     Ok(Some(Compiled {
@@ -708,6 +952,7 @@ fn materialize(
     ctes: &[String],
     parameters: &[String],
     node: usize,
+    slot: usize,
     meter: &mut Meter<'_>,
 ) -> Result<bool> {
     let prefix = format!("WITH RECURSIVE {}", ctes.join(","));
@@ -721,7 +966,7 @@ fn materialize(
             let id: String = row.get(0)?;
             meter.charge(id.len())?;
             nonempty = true;
-            insert.execute(params![node as i64, id])?;
+            insert.execute(params![slot as i64, id])?;
         }
     }
     {
@@ -738,7 +983,7 @@ fn materialize(
                 .collect::<std::result::Result<_, _>>()?;
             meter.charge(fields.iter().map(String::len).sum())?;
             insert.execute(params![
-                node as i64,
+                slot as i64,
                 fields[0],
                 fields[1],
                 fields[2],
@@ -762,7 +1007,7 @@ fn materialize(
                     + attribute.qualifiers_json.len()
                     + 8,
             )?;
-            insert_attribute(db, node, &attribute)?;
+            insert_attribute(db, slot, &attribute)?;
         }
     }
     Ok(nonempty)
@@ -1445,5 +1690,340 @@ mod language_guard_contract {
         .unwrap()
         .unwrap();
         assert_eq!(result.value["candidate"]["name"], "Alpha");
+    }
+    #[test]
+    fn shared_language_stages_rebase_identity_and_preserve_attribute_evidence() {
+        let (_directory, image) = fixture(Limits::default());
+        let budget = Budget::new(&image.limits, Cancellation::default()).unwrap();
+        let worker = image.acquire("tenant", &budget).unwrap();
+        let mut shared = LanguageWorkspace::new(&worker).unwrap();
+        let previous = Selection::default();
+        let first = parse_plan(
+            json!([
+                {"op":"find","name":"Alpha"},
+                {"op":"filter_attribute","input":0,"key":"mass","predicate":{"kind":"quantity","literal":"1","comparison":"="}}
+            ]),
+            1,
+            json!({"kind":"entities"}),
+        );
+        let (_, selected) = evaluate_language_shared(
+            &worker,
+            &image.identity,
+            &first,
+            &previous,
+            &image.limits,
+            &budget,
+            &mut shared,
+        )
+        .unwrap()
+        .unwrap();
+        assert_eq!(shared.stages.len(), 2);
+        assert_eq!(selected.attributes.len(), 1);
+        let changes = worker.total_changes();
+        let rebased = parse_plan(
+            json!([
+                {"op":"find","name":"Beta"},
+                {"op":"find","name":"Alpha"},
+                {"op":"filter_attribute","input":1,"key":"mass","predicate":{"kind":"quantity","literal":"1","comparison":"="}}
+            ]),
+            2,
+            json!({"kind":"entities"}),
+        );
+        let (_, next) = evaluate_language_shared(
+            &worker,
+            &image.identity,
+            &rebased,
+            &previous,
+            &image.limits,
+            &budget,
+            &mut shared,
+        )
+        .unwrap()
+        .unwrap();
+        assert_eq!(shared.stages.len(), 3);
+        assert_eq!(worker.total_changes() - changes, 1); // Only new Beta stage inserts.
+        assert_eq!(selected.ids, next.ids);
+        assert_eq!(selected.attributes, next.attributes);
+        assert_eq!(selected.facts, next.facts);
+    }
+    #[test]
+    fn shared_empty_stage_still_refuses_dead_branches_but_count_can_reuse_it() {
+        let (_directory, image) = fixture(Limits::default());
+        let budget = Budget::new(&image.limits, Cancellation::default()).unwrap();
+        let worker = image.acquire("tenant", &budget).unwrap();
+        let mut shared = LanguageWorkspace::new(&worker).unwrap();
+        let previous = Selection::default();
+        let missing = parse_plan(
+            json!([{"op":"find","name":"Missing"}]),
+            0,
+            json!({"kind":"entities"}),
+        );
+        assert!(evaluate_language_shared(
+            &worker,
+            &image.identity,
+            &missing,
+            &previous,
+            &image.limits,
+            &budget,
+            &mut shared
+        )
+        .unwrap()
+        .is_none());
+        let changes = worker.total_changes();
+        let count = parse_plan(
+            json!([{"op":"find","name":"Missing"}]),
+            0,
+            json!({"kind":"count"}),
+        );
+        let (result, _) = evaluate_language_shared(
+            &worker,
+            &image.identity,
+            &count,
+            &previous,
+            &image.limits,
+            &budget,
+            &mut shared,
+        )
+        .unwrap()
+        .unwrap();
+        assert_eq!(result.value, json!(0));
+        assert_eq!(worker.total_changes(), changes);
+        let dead = parse_plan(
+            json!([{"op":"find","name":"Missing"},{"op":"find","name":"Alpha"}]),
+            1,
+            json!({"kind":"unique_name"}),
+        );
+        assert!(evaluate_language_shared(
+            &worker,
+            &image.identity,
+            &dead,
+            &previous,
+            &image.limits,
+            &budget,
+            &mut shared
+        )
+        .unwrap()
+        .is_none());
+    }
+    #[test]
+    fn shared_language_cache_has_aggregate_bounds_and_lease_cleanup() {
+        let (_directory, image) = fixture(Limits {
+            materialized_rows: 1,
+            ..Limits::default()
+        });
+        let budget = Budget::new(&image.limits, Cancellation::default()).unwrap();
+        let worker = image.acquire("tenant", &budget).unwrap();
+        let mut shared = LanguageWorkspace::new(&worker).unwrap();
+        let previous = Selection::default();
+        // Use compile directly so final reply row metering does not obscure the
+        // distinction between each stage's bound and the aggregate cache bound.
+        let alpha = parse_plan(
+            json!([{"op":"find","name":"Alpha"}]),
+            0,
+            json!({"kind":"entities"}),
+        );
+        let beta = parse_plan(
+            json!([{"op":"find","name":"Beta"}]),
+            0,
+            json!({"kind":"entities"}),
+        );
+        let mut meter = Meter {
+            rows: 0,
+            bytes: 0,
+            limits: &image.limits,
+            budget: &budget,
+        };
+        assert!(compile(
+            &worker,
+            &alpha,
+            &previous,
+            &mut meter,
+            true,
+            Some(&mut shared)
+        )
+        .unwrap()
+        .is_some());
+        let mut meter = Meter {
+            rows: 0,
+            bytes: 0,
+            limits: &image.limits,
+            budget: &budget,
+        };
+        assert!(matches!(
+            compile(
+                &worker,
+                &beta,
+                &previous,
+                &mut meter,
+                true,
+                Some(&mut shared)
+            ),
+            Err(Error::Limit("language shared rows"))
+        ));
+        drop(worker);
+        let worker = image.acquire("next", &budget).unwrap();
+        let rows: i64 = worker
+            .query_row("SELECT count(*) FROM temp.oracle_sets", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(rows, 0);
+    }
+    #[test]
+    fn shared_attribute_equality_index_handles_many_predicates_with_all_witnesses() {
+        let directory = tempfile::tempdir().unwrap();
+        let source = directory.path().join("strings.json");
+        let output = directory.path().join("strings.sqlite");
+        let entities:serde_json::Map<String,Value>=(0..100).map(|i| (format!("E{i}"),json!({
+            "name":format!("Entity{i}"),"instanceOf":[],"relations":[],
+            "attributes":[{"key":"code","value":{"type":"string","value":"live"},"qualifiers":{}}]
+        }))).collect();
+        std::fs::write(
+            &source,
+            json!({"concepts":{},"entities":entities}).to_string(),
+        )
+        .unwrap();
+        let receipt = build_image(&source, &output, 1_000_000, 100_000).unwrap();
+        let limits = Limits {
+            fuel: 500_000,
+            ..Limits::default()
+        };
+        let image = Image::open(&output, &receipt.image_sha256, limits).unwrap();
+        let budget = Budget::new(&image.limits, Cancellation::default()).unwrap();
+        let worker = image.acquire("tenant", &budget).unwrap();
+        let mut shared = LanguageWorkspace::new(&worker).unwrap();
+        let previous = Selection::default();
+        for i in 0..500 {
+            let plan = parse_plan(
+                json!([
+                    {"op":"all"},
+                    {"op":"filter_attribute","input":0,"key":"code","predicate":{"kind":"string","literal":format!("absent{i}"),"comparison":"="}}
+                ]),
+                1,
+                json!({"kind":"entities"}),
+            );
+            assert!(evaluate_language_shared(
+                &worker,
+                &image.identity,
+                &plan,
+                &previous,
+                &image.limits,
+                &budget,
+                &mut shared
+            )
+            .unwrap()
+            .is_none());
+        }
+        assert_eq!(shared.columns.len(), 1);
+        assert_eq!(shared.columns.values().next().unwrap().rows.len(), 100);
+        let plan = parse_plan(
+            json!([
+                {"op":"all"},
+                {"op":"filter_attribute","input":0,"key":"code","predicate":{"kind":"string","literal":" live ","comparison":"="}}
+            ]),
+            1,
+            json!({"kind":"entities"}),
+        );
+        let (_, selected) = evaluate_language_shared(
+            &worker,
+            &image.identity,
+            &plan,
+            &previous,
+            &image.limits,
+            &budget,
+            &mut shared,
+        )
+        .unwrap()
+        .unwrap();
+        assert_eq!(selected.ids.len(), 100);
+        assert_eq!(selected.attributes.len(), 100);
+        budget.check().unwrap();
+    }
+    #[test]
+    fn shared_string_index_matches_uncached_unicode_case_and_whitespace_semantics() {
+        let directory = tempfile::tempdir().unwrap();
+        let source = directory.path().join("unicode.json");
+        let output = directory.path().join("unicode.sqlite");
+        let attributes: Vec<_> = [
+            "Live",
+            "lIVE",
+            " live ",
+            "İSTANBUL",
+            "ÅNGSTRÖM",
+            "βETA",
+            " βETA ",
+        ]
+        .iter()
+        .enumerate()
+        .map(|(i, text)| {
+            json!({
+                "key":"code","value":{"type":"string","value":text},
+                "qualifiers":{"since":[{"type":"year","value":2000+i}]}
+            })
+        })
+        .collect();
+        std::fs::write(
+            &source,
+            json!({"concepts":{},"entities":{
+                "A":{"name":"Alpha","instanceOf":[],"relations":[],"attributes":attributes}
+            }})
+            .to_string(),
+        )
+        .unwrap();
+        let receipt = build_image(&source, &output, 1_000_000, 100_000).unwrap();
+        let image = Image::open(&output, &receipt.image_sha256, Limits::default()).unwrap();
+        let budget = Budget::new(&image.limits, Cancellation::default()).unwrap();
+        let worker = image.acquire("tenant", &budget).unwrap();
+        let previous = Selection::default();
+        let mut plans = Vec::new();
+        for kind in [None, Some("string")] {
+            for literal in [
+                " live ",
+                "İstanbul",
+                "i\u{0307}stanbul",
+                "ångström",
+                " βeta ",
+                "absent",
+            ] {
+                let mut predicate = json!({"literal":literal,"comparison":"="});
+                if let Some(kind) = kind {
+                    predicate["kind"] = json!(kind);
+                }
+                plans.push(parse_plan(json!([
+                    {"op":"all"},{"op":"filter_attribute","input":0,"key":"code","predicate":predicate}
+                ]),1,json!({"kind":"entities"})));
+            }
+        }
+        let expected: Vec<_> = plans
+            .iter()
+            .map(|plan| {
+                evaluate_language(
+                    &worker,
+                    &image.identity,
+                    plan,
+                    &previous,
+                    &image.limits,
+                    &budget,
+                )
+                .unwrap()
+                .map(|(result, _)| serde_json::to_value(result).unwrap())
+            })
+            .collect();
+        let mut shared = LanguageWorkspace::new(&worker).unwrap();
+        for (plan, expected) in plans.iter().zip(expected) {
+            let actual = evaluate_language_shared(
+                &worker,
+                &image.identity,
+                plan,
+                &previous,
+                &image.limits,
+                &budget,
+                &mut shared,
+            )
+            .unwrap()
+            .map(|(result, _)| serde_json::to_value(result).unwrap());
+            assert_eq!(actual, expected);
+        }
+        let column = shared.columns.values().next().unwrap();
+        assert_eq!(column.strings["live"].len(), 2); // Separate positions/qualifiers.
+        assert_eq!(column.strings[" live "].len(), 1); // Source whitespace preserved.
     }
 }

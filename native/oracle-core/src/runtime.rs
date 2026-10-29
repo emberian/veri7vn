@@ -2,12 +2,13 @@ mod host_effects;
 use crate::query::{encode, evaluate, Selection};
 use crate::release::{AdmittedRelease, SchemaVersion};
 use crate::session::{SessionBinding, SessionEnvelope, SessionLimits, SessionSelection};
-use crate::{digest, lock, Budget, Cancellation, Error, Image, Plan, Program, QueryResult, Result};
+use crate::{digest, Budget, Cancellation, Error, Image, Plan, Program, QueryResult, Result};
 pub use host_effects::HostEffects;
 use rusqlite::{params, Connection, OptionalExtension, TransactionBehavior};
 use serde::{Deserialize, Serialize};
+use std::ops::{Deref, DerefMut};
 use std::path::Path;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Condvar, Mutex, Weak};
 
 const STORE_ID: i64 = 0x4f375331;
 
@@ -17,18 +18,28 @@ pub struct Execution {
     pub result: QueryResult,
 }
 
+/// A completed bounded reader turn, including semantic refusals. This is not a
+/// graph QueryResult or a claim of restoring the upstream dialogue engine.
+#[derive(Debug, Serialize, Deserialize)]
+pub struct LanguageExecution {
+    pub version: i64,
+    pub language: crate::reader::ReaderResult,
+}
+
 /// Input dialect is explicit and participates in durable request identity.
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum RequestDialect {
     Graph,
     KqaProgram,
+    Language,
 }
 impl RequestDialect {
     fn compile(self, input: &str, limits: &crate::Limits) -> Result<Plan> {
         match self {
             Self::Graph => Plan::parse(input, limits),
             Self::KqaProgram => Program::parse(input, limits)?.compile(limits),
+            Self::Language => Err(Error::Invalid("language is not a query plan".into())),
         }
     }
     fn operation(self, transactional: bool) -> &'static str {
@@ -37,7 +48,153 @@ impl RequestDialect {
             (Self::Graph, true) => "graph.execute",
             (Self::KqaProgram, false) => "kqa.query",
             (Self::KqaProgram, true) => "kqa.execute",
+            (Self::Language, _) => "reader.execute",
         }
+    }
+}
+
+// The connection is owned by a guard outside this short in-memory mutex.
+// Admitted workers may wait for state I/O, never for another computation. New
+// replay/effect lookups cannot overtake queued workers. No FIFO order is claimed.
+struct StateSlot {
+    connection: Option<Connection>,
+    waiters: usize,
+    failed: bool,
+}
+struct StateStore {
+    slot: Arc<Mutex<StateSlot>>,
+    ready: Arc<Condvar>,
+}
+struct StateWake {
+    slot: Weak<Mutex<StateSlot>>,
+    ready: Weak<Condvar>,
+}
+impl crate::budget::CancellationWake for StateWake {
+    fn wake(&self) {
+        if let (Some(slot), Some(ready)) = (self.slot.upgrade(), self.ready.upgrade()) {
+            // Pair notification with the wait predicate's mutex: either the
+            // waiter sees cancellation before sleeping, or this wakes its wait.
+            let _slot = slot.lock().unwrap_or_else(|e| e.into_inner());
+            ready.notify_all();
+        }
+    }
+}
+struct StateGuard<'a> {
+    store: &'a StateStore,
+    connection: Option<Connection>,
+}
+impl StateStore {
+    fn new(connection: Connection) -> Self {
+        Self {
+            slot: Arc::new(Mutex::new(StateSlot {
+                connection: Some(connection),
+                waiters: 0,
+                failed: false,
+            })),
+            ready: Arc::new(Condvar::new()),
+        }
+    }
+    fn try_acquire(&self) -> Result<StateGuard<'_>> {
+        let mut slot = self.slot.try_lock().map_err(|error| match error {
+            std::sync::TryLockError::WouldBlock => Error::Busy,
+            std::sync::TryLockError::Poisoned(_) => Error::Poisoned,
+        })?;
+        if slot.failed {
+            return Err(Error::Poisoned);
+        }
+        if slot.waiters != 0 {
+            return Err(Error::Busy);
+        }
+        let connection = slot.connection.take().ok_or(Error::Busy)?;
+        Ok(StateGuard {
+            store: self,
+            connection: Some(connection),
+        })
+    }
+    fn acquire(&self, budget: &Budget) -> Result<StateGuard<'_>> {
+        budget.check()?;
+        // Only bounded memory bookkeeping runs under this mutex. Database I/O
+        // and fsync run under StateGuard and never hold the condition mutex.
+        let mut slot = self.slot.lock().map_err(|_| Error::Poisoned)?;
+        if slot.failed {
+            return Err(Error::Poisoned);
+        }
+        budget.check()?;
+        if slot.waiters == 0 {
+            if let Some(connection) = slot.connection.take() {
+                return Ok(StateGuard {
+                    store: self,
+                    connection: Some(connection),
+                });
+            }
+        }
+        drop(slot);
+        // Register only on contention. No per-turn notification allocation on
+        // the uncontended path, and no strong cycle back to the state store.
+        let _registration = budget.wake_on_cancel(Arc::new(StateWake {
+            slot: Arc::downgrade(&self.slot),
+            ready: Arc::downgrade(&self.ready),
+        }))?;
+        let mut slot = self.slot.lock().map_err(|_| Error::Poisoned)?;
+        slot.waiters += 1;
+        self.ready.notify_all();
+        loop {
+            if slot.failed {
+                slot.waiters -= 1;
+                self.ready.notify_all();
+                return Err(Error::Poisoned);
+            }
+            if let Err(error) = budget.check() {
+                slot.waiters -= 1;
+                self.ready.notify_all();
+                return Err(error);
+            }
+            if let Some(connection) = slot.connection.take() {
+                slot.waiters -= 1;
+                return Ok(StateGuard {
+                    store: self,
+                    connection: Some(connection),
+                });
+            }
+            let remaining = match budget.remaining_time() {
+                Ok(remaining) => remaining,
+                Err(error) => {
+                    slot.waiters -= 1;
+                    self.ready.notify_all();
+                    return Err(error);
+                }
+            };
+            // Notifications (including spurious wakes) recheck the predicate and
+            // the same monotonic deadline; this is not a retry/polling loop.
+            let (next, _) = self
+                .ready
+                .wait_timeout(slot, remaining)
+                .map_err(|_| Error::Poisoned)?;
+            slot = next;
+        }
+    }
+}
+impl Deref for StateGuard<'_> {
+    type Target = Connection;
+    fn deref(&self) -> &Connection {
+        self.connection.as_ref().expect("live state guard")
+    }
+}
+impl DerefMut for StateGuard<'_> {
+    fn deref_mut(&mut self) -> &mut Connection {
+        self.connection.as_mut().expect("live state guard")
+    }
+}
+impl Drop for StateGuard<'_> {
+    fn drop(&mut self) {
+        // Preserve poisoning: every future acquisition still fails closed.
+        let mut slot = match self.store.slot.lock() {
+            Ok(slot) => slot,
+            Err(poisoned) => poisoned.into_inner(),
+        };
+        slot.failed |= std::thread::panicking();
+        slot.connection = self.connection.take();
+        self.store.ready.notify_all();
     }
 }
 
@@ -46,7 +203,7 @@ impl RequestDialect {
 /// request after a crash. Completed replies and state commit in one transaction.
 pub struct Runtime {
     pub image: Arc<Image>,
-    state: Mutex<Connection>,
+    state: StateStore,
     release: Option<AdmittedRelease>,
 }
 
@@ -172,7 +329,7 @@ impl Runtime {
         db.pragma_update(None, "cache_size", -(image.limits.sqlite_cache_kib as i64))?;
         Ok(Self {
             image,
-            state: Mutex::new(db),
+            state: StateStore::new(db),
             release,
         })
     }
@@ -243,6 +400,28 @@ impl Runtime {
             None,
         )
     }
+    /// Commit an agreed native selection and reader reply with the same journal
+    /// and concurrency contract as graph/program turns. No effects are proposed.
+    pub fn execute_language(
+        &self,
+        tenant: &str,
+        session: &str,
+        request: &str,
+        expected_version: i64,
+        question: &str,
+        cancellation: Cancellation,
+    ) -> Result<String> {
+        self.execute_dialect(
+            tenant,
+            session,
+            request,
+            expected_version,
+            question,
+            cancellation,
+            RequestDialect::Language,
+            None,
+        )
+    }
     #[allow(clippy::too_many_arguments)]
     fn execute_dialect(
         &self,
@@ -256,6 +435,9 @@ impl Runtime {
         effects: Option<HostEffects<'_>>,
     ) -> Result<String> {
         self.require_operation(dialect.operation(true))?;
+        if matches!(dialect, RequestDialect::Language) && self.image.capabilities.reader.is_none() {
+            return Err(Error::Format("image has no learned reader tables".into()));
+        }
         identifier(tenant)?;
         identifier(session)?;
         identifier(request)?;
@@ -271,6 +453,13 @@ impl Runtime {
             RequestDialect::Graph => {
                 serde_json::to_vec(&(self.identity(), session, expected_version, plan_json))?
             }
+            RequestDialect::Language => serde_json::to_vec(&(
+                "oracle_language_turn_v1",
+                self.identity(),
+                session,
+                expected_version,
+                plan_json,
+            ))?,
             RequestDialect::KqaProgram => serde_json::to_vec(&(
                 "oracle_kqa_program_v1",
                 self.identity(),
@@ -302,7 +491,7 @@ impl Runtime {
         let request_digest = digest(&binding);
         // Completed retry consumes no execution slot and performs no evaluation.
         {
-            let db = lock(&self.state)?;
+            let db = self.state.try_acquire()?;
             if let Some(reply) =
                 Self::replay(&db, tenant, request, &request_digest, limits.result_bytes)?
             {
@@ -311,7 +500,11 @@ impl Runtime {
         }
         let budget = Budget::new(limits, cancellation)?;
         budget.check()?;
-        let plan = dialect.compile(plan_json, limits)?;
+        let plan = if matches!(dialect, RequestDialect::Language) {
+            None
+        } else {
+            Some(dialect.compile(plan_json, limits)?)
+        };
         let worker = self.image.acquire(tenant, &budget)?;
         let session_policy = SessionLimits {
             max_bytes: limits.state_bytes,
@@ -323,7 +516,7 @@ impl Runtime {
             image: self.identity().into(),
         };
         let (mut envelope, previous_text) = {
-            let db = lock(&self.state)?;
+            let db = self.state.acquire(&budget)?;
             let stored: Option<(String, i64, Option<String>)> = db
                 .query_row(
                     "SELECT image,version,CASE WHEN length(CAST(state AS BLOB))<=?3 THEN state ELSE NULL END FROM sessions WHERE tenant=?1 AND id=?2",
@@ -369,34 +562,64 @@ impl Runtime {
             facts: envelope.selection.facts.clone(),
             attributes: envelope.selection.attributes.clone(),
         };
-        let evaluation = evaluate(
-            &worker,
-            &self.image.identity,
-            &plan,
-            &previous,
-            limits,
-            &budget,
-        );
-        // An SQLite interrupt caused by the budget must retain the actual reason.
-        budget.check()?;
-        let (result, selection) = evaluation?;
-        let reply = encode(
-            &Execution {
-                version: expected_version + 1,
-                result,
-            },
-            limits.result_bytes,
-        )?;
-        // Pure data queries do not consume pending conversational interpretations.
-        envelope.selection = SessionSelection {
-            ids: selection.ids,
-            facts: selection.facts,
-            attributes: selection.attributes,
+        let (reply, selection) = if let Some(plan) = plan {
+            let evaluation = evaluate(
+                &worker,
+                &self.image.identity,
+                &plan,
+                &previous,
+                limits,
+                &budget,
+            );
+            // SQLite interruption must retain the underlying budget reason.
+            budget.check()?;
+            let (result, selection) = evaluation?;
+            (
+                encode(
+                    &Execution {
+                        version: expected_version + 1,
+                        result,
+                    },
+                    limits.result_bytes,
+                )?,
+                Some(selection),
+            )
+        } else {
+            let evaluation = crate::reader::evaluate_whole(
+                &worker,
+                &self.image.identity,
+                plan_json,
+                &previous,
+                limits,
+                &crate::reader::ReaderLimits::default(),
+                &budget,
+            );
+            budget.check()?;
+            let (language, selection) = evaluation?;
+            (
+                encode(
+                    &LanguageExecution {
+                        version: expected_version + 1,
+                        language,
+                    },
+                    limits.result_bytes,
+                )?,
+                selection,
+            )
         };
+        // Refusals and disagreements preserve selection. Every dialect leaves
+        // pending interpretations and adapter-owned conversation data intact.
+        if let Some(selection) = selection {
+            envelope.selection = SessionSelection {
+                ids: selection.ids,
+                facts: selection.facts,
+                attributes: selection.attributes,
+            };
+        }
         envelope.revision = expected_version + 1;
         let state = envelope.encode(&session_policy)?;
         budget.check()?;
-        let mut db = lock(&self.state)?;
+        let mut db = self.state.acquire(&budget)?;
         let tx = db.transaction_with_behavior(TransactionBehavior::Immediate)?;
         if let Some(reply) =
             Self::replay(&tx, tenant, request, &request_digest, limits.result_bytes)?
@@ -477,5 +700,115 @@ impl Image {
         let encoded = encode(&result, limits.result_bytes)?;
         budget.check()?;
         Ok(encoded)
+    }
+}
+
+#[cfg(test)]
+mod state_admission_tests {
+    use super::*;
+    use std::sync::mpsc;
+
+    fn store() -> Arc<StateStore> {
+        Arc::new(StateStore::new(Connection::open_in_memory().unwrap()))
+    }
+    fn wait_for_admission(store: &StateStore) {
+        let mut slot = store.slot.lock().unwrap();
+        while slot.waiters == 0 {
+            slot = store.ready.wait(slot).unwrap();
+        }
+    }
+    #[test]
+    fn admitted_worker_waits_for_replay_and_release_notifies_it() {
+        let store = store();
+        let replay = store.try_acquire().unwrap();
+        let (sent, received) = mpsc::channel();
+        let waiting = store.clone();
+        let thread = std::thread::spawn(move || {
+            let budget = Budget::new(&crate::Limits::default(), Cancellation::default()).unwrap();
+            let guard = waiting.acquire(&budget).unwrap();
+            sent.send(
+                guard
+                    .query_row("SELECT 1", [], |r| r.get::<_, i64>(0))
+                    .unwrap(),
+            )
+            .unwrap();
+        });
+        wait_for_admission(&store);
+        assert!(matches!(store.try_acquire(), Err(Error::Busy)));
+        drop(replay);
+        assert_eq!(
+            received
+                .recv_timeout(std::time::Duration::from_secs(5))
+                .unwrap(),
+            1
+        );
+        thread.join().unwrap();
+        assert!(store.try_acquire().is_ok());
+    }
+    #[test]
+    fn waiting_worker_obeys_original_deadline_and_cancel_on_notification() {
+        let store = store();
+        let replay = store.try_acquire().unwrap();
+        let waiting = store.clone();
+        let thread = std::thread::spawn(move || {
+            let limits = crate::Limits {
+                timeout_ms: 25,
+                ..Default::default()
+            };
+            let budget = Budget::new(&limits, Cancellation::default()).unwrap();
+            assert!(matches!(waiting.acquire(&budget), Err(Error::Deadline)));
+        });
+        thread.join().unwrap();
+        assert_eq!(store.slot.lock().unwrap().waiters, 0);
+        let directory = tempfile::tempdir().unwrap();
+        let source = directory.path().join("source.json");
+        let output = directory.path().join("image.sqlite");
+        std::fs::write(&source, r#"{"concepts":{},"entities":{}}"#).unwrap();
+        let receipt = crate::build_image(&source, &output, 100_000, 10_000).unwrap();
+        let image = Image::open(&output, &receipt.image_sha256, crate::Limits::default()).unwrap();
+        let leased_image = image.clone();
+        let cancellation = Cancellation::default();
+        let cancel = cancellation.clone();
+        let waiting = store.clone();
+        let (sent, received) = mpsc::channel();
+        let thread = std::thread::spawn(move || {
+            let limits = crate::Limits {
+                timeout_ms: 30_000,
+                ..Default::default()
+            };
+            let budget = Budget::new(&limits, cancel).unwrap();
+            let worker = leased_image.acquire("cancelled_waiter", &budget).unwrap();
+            assert!(matches!(waiting.acquire(&budget), Err(Error::Cancelled)));
+            drop(worker);
+            sent.send(()).unwrap();
+        });
+        wait_for_admission(&store);
+        assert_eq!(image.active_workers(), 1);
+        cancellation.cancel();
+        // The database owner is still held. A 30s deadline must not postpone
+        // cancellation; notification must remove admission bookkeeping now.
+        received
+            .recv_timeout(std::time::Duration::from_secs(2))
+            .unwrap();
+        assert_eq!(store.slot.lock().unwrap().waiters, 0);
+        assert_eq!(image.active_workers(), 0);
+        assert!(store.slot.lock().unwrap().connection.is_none());
+        thread.join().unwrap();
+        drop(replay);
+        assert!(store.try_acquire().is_ok());
+    }
+    #[test]
+    fn panic_while_holding_state_fails_closed() {
+        let store = store();
+        let panicking = store.clone();
+        assert!(std::thread::spawn(move || {
+            let _guard = panicking.try_acquire().unwrap();
+            panic!("manufactured state-owner failure");
+        })
+        .join()
+        .is_err());
+        assert!(matches!(store.try_acquire(), Err(Error::Poisoned)));
+        let budget = Budget::new(&crate::Limits::default(), Cancellation::default()).unwrap();
+        assert!(matches!(store.acquire(&budget), Err(Error::Poisoned)));
     }
 }

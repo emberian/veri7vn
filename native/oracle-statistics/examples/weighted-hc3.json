@@ -1,0 +1,18 @@
+{
+  "operation": "statistics.linear_regression",
+  "arguments": {
+    "features": [[], [], []],
+    "response": [0, 2, 4],
+    "intercept": true,
+    "relative_precisions": [1, 2, 1],
+    "covariance": "hc3_asymptotic",
+    "model": {
+      "description": "Analytic weighted common-mean example; small sample illustrates formulas, not reliable asymptotic coverage",
+      "predictor_names": [],
+      "predictor_units": [],
+      "response_unit": "1",
+      "assumptions": ["Fixed positive loss weights; independent mean-zero errors; common conditional mean; arbitrary conditional variances"]
+    },
+    "predictions": [{"features": []}]
+  }
+}

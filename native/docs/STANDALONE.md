@@ -6,8 +6,10 @@ adapters. It needs no minidregg checkout, daemon, Store, genesis, account or
 public Oracle dataset. The same service can later sit behind a hosted bridge.
 
 The service exposes supplied-graph optimization, exact polynomial and dimensional
-rewriting, numerical linear solving/fitting, thermal networks and versioned
-dependency queries. Discovery comes from the admitted extension's actual exports
+rewriting, exact charge/isotope-conserving [reaction balancing](CHEMISTRY.md),
+numerical linear solving/fitting, thermal networks and versioned
+dependency queries. Optional [DNA alignment and regression profiles](BIO-STATISTICS.md)
+add supplied-sequence alignment and conditional model inference. Discovery comes from the admitted extension's actual exports
 and catalogs. Unsupported features fail startup rather than appearing callable.
 
 ## Launch
@@ -73,7 +75,9 @@ this private loopback service from untrusted local processes. Browser-origin
 requests are refused. An Internet-facing authenticated gateway is not included.
 
 These operations are pure computations. `request_id` and `conversation_id` are
-correlation labels; repeating a request computes it again. There is no retained
+correlation labels; repeating a request computes it again. This includes
+`chemistry.balance_reaction`, which balances only the supplied species and
+inventories and does not infer chemical feasibility. There is no retained
 conversation, subscription, effect or exact-reply journal. Restarting the service
 does not need a history replay. This does not replace the separate durable core
 runtime or qualify the signed Mini package.
