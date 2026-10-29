@@ -1,0 +1,29 @@
+{
+  "receipt": "S2-PLURAL-FIRST regression run, 2026-10-29",
+  "python": "3.12.14 (main, Aug 12 2026, 13:57:54) [Clang 21.0.0 (clang-2100.1.1.101)] via /Users/ember/dev/o7vn/.venv/bin/python",
+  "command": "python -I -B tools/reader_audit/test_canonical_plural_first.py --source-dir <dir> [-v]; -I worked, no flag dropped",
+  "source": "var/runtime-architecture-20261028/source/workbench/swarm (67 files), copied to var/s2-plural-first/{control,candidate}; patch applied to candidate only with patch -p3 reader_v7.py; no fuzz or offset reported",
+  "sha256": {
+    "control_reader_v7.py": "f37f687e8190f08ff862738543790d6bcd56185a1a807ffdbd5cf8340da85354",
+    "candidate_reader_v7.py": "03e43e4e742b1bc6093fb67d00425ab47b679278fe1519b799b8cab91b90e57f",
+    "canonical_plural_first.patch": "54191621642ec4d2b1028c9dade9bd473cb8013a881ee189e60d7446100e8789",
+    "test_canonical_plural_first.py": "269a27c827c9d0ab586a15ec681215cf946f37284d4f84f890da76d5cd49f1b1",
+    "test_file_matches_frozen_hash": true,
+    "control_matches_report_pinned_hash": true
+  },
+  "outcomes": {
+    "test_count_cue_not_consumed_by_album_alias": {"control": "FAIL ('number of albums' != 'albums')", "candidate": "ok"},
+    "test_exact_two_training_examples_no_longer_replicate_wrong_outer": {"control": "FAIL (count support for 'which X1' is 2, expected 1)", "candidate": "ok"},
+    "test_direct_canonical_phrase_with_number_of_is_unchanged": {"control": "ok", "candidate": "ok"},
+    "test_existing_plural_branches": {"control": "ok", "candidate": "ok"},
+    "test_how_many_retains_count": {"control": "ok", "candidate": "ok"},
+    "test_nonconcept_literal_still_uses_alias": {"control": "ok", "candidate": "ok"},
+    "test_plural_disabled_preserves_alias_behavior": {"control": "ok", "candidate": "ok"},
+    "test_unrelated_alias_remains_usable": {"control": "ok", "candidate": "ok"}
+  },
+  "totals": {"control": "8 run, 2 failed, 6 ok", "candidate": "8 run, 0 failed, 8 ok"},
+  "matches_prediction": true,
+  "logs": ["var/s2-plural-first/control.log", "var/s2-plural-first/candidate.log", "var/s2-plural-first/control.verbose.log", "var/s2-plural-first/candidate.verbose.log"],
+  "outer_provenance_help": "outer_provenance.py --help parses and exits 0; not run for real (needs hbox training data)",
+  "limits": "Unit tests over small fixtures only. No retraining, no image rebuild, no native cohort re-run. Reader6 has separate alignment code (learn6) that is not covered."
+}

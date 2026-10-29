@@ -3,7 +3,7 @@
 Owner: reader_form_evidence. Consumer: root's reader source admission repair.
 No specialist panels run; no panel numbers. No theorem statements, native calls,
 builds, program execution, or tests. The scoped read-only provenance replay below
-returned exit 0. The patch is a proposal and has not been applied or checked.
+returned exit 0. The patch is a proposal; it was later applied to an isolated copy and its unit tests run (see the end of this report).
 
 ## Verified source facts
 
@@ -116,7 +116,8 @@ It covers the exact two contributing questions, Count remaining under
 singular city, unrelated alias fallback, a direct canonical phrase containing
 “number of”, PLURAL=False, and nonconcept entity alias alignment. Assertions
 expect the candidate's corrected behavior; the unchanged control should fail
-the count-cue and exact-two-example regressions. Authored only, not run here.
+the count-cue and exact-two-example regressions. Run on 2026-10-29 ([receipt](../../native/evidence/2026-10-29-plural-first-regressions.json)):
+the unchanged control fails exactly the two predicted tests and the patched copy passes all eight.
 The frozen file SHA-256 is
 `269a27c827c9d0ab586a15ec681215cf946f37284d4f84f890da76d5cd49f1b1`.
 
@@ -130,6 +131,6 @@ its agent stopped. Root retrieved and parsed all four reports from hbox
 `which number of X1` at both levels. Row 9630 remains under `which X1` at level 0.
 The separate row 43846 retains its distinct skeleton; do not sum all Count rows
 as if they were one skeleton. The [receipt](../../native/evidence/2026-10-29-reader-form-provenance.json)
-retains hashes and source identities. The eight authored regression tests have
-no execution receipt yet. Full training export, image rebuilding and native
+retains hashes and source identities. The eight regression tests were run on control and patched copies; see the
+[plural-first receipt](../../native/evidence/2026-10-29-plural-first-regressions.json). Full training export, image rebuilding and native
 cohort comparisons have not run. No upstream PR has been opened for this patch.
