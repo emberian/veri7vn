@@ -1,3 +1,4 @@
+use crate::value::{ComparisonOp, TypedValue, ValueKind, ValueLimits};
 use crate::{Budget, Error, Limits, Result};
 use rusqlite::{params, Connection};
 use serde::{Deserialize, Serialize};
@@ -22,6 +23,16 @@ pub enum Node {
         input: usize,
         name: String,
     },
+    FilterAttribute {
+        input: usize,
+        key: String,
+        predicate: ValuePredicate,
+    },
+    FilterQualifier {
+        input: usize,
+        key: String,
+        predicate: ValuePredicate,
+    },
     And {
         left: usize,
         right: usize,
@@ -32,6 +43,32 @@ pub enum Node {
     },
 }
 
+/// A request literal is parsed exactly once per encountered source kind. An omitted
+/// kind is useful for KQA operations whose literal is interpreted like its source.
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ValuePredicate {
+    #[serde(default)]
+    pub kind: Option<ValueKind>,
+    pub literal: String,
+    #[serde(default)]
+    pub comparison: ComparisonOp,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct QualifierCondition {
+    pub key: String,
+    pub predicate: ValuePredicate,
+}
+
+#[derive(Debug, Clone, Copy, Deserialize, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum SelectionOrder {
+    Smallest,
+    Largest,
+}
+
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
 pub enum Projection {
@@ -39,7 +76,44 @@ pub enum Projection {
     Names,
     UniqueName,
     Count,
-    Attributes { key: String },
+    Attributes {
+        key: String,
+    },
+    UniqueAttribute {
+        key: String,
+        #[serde(default)]
+        condition: Option<QualifierCondition>,
+    },
+    AttributeQualifier {
+        key: String,
+        predicate: ValuePredicate,
+        qualifier: String,
+    },
+    Relation {
+        target: usize,
+        #[serde(default)]
+        direction: Option<String>,
+    },
+    RelationQualifier {
+        target: usize,
+        predicate: String,
+        #[serde(default)]
+        direction: Option<String>,
+        qualifier: String,
+    },
+    Select {
+        key: String,
+        order: SelectionOrder,
+    },
+    SelectBetween {
+        target: usize,
+        key: String,
+        order: SelectionOrder,
+    },
+    Verify {
+        source: Box<Projection>,
+        predicate: ValuePredicate,
+    },
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -55,6 +129,10 @@ pub struct Plan {
 pub(crate) struct Selection {
     pub ids: BTreeSet<String>,
     pub facts: BTreeSet<Fact>,
+    // Omission preserves serialized states and replies produced before attribute
+    // evidence existed. Old states deserialize with an empty evidence set.
+    #[serde(default, skip_serializing_if = "BTreeSet::is_empty")]
+    pub attributes: BTreeSet<AttributeFact>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Deserialize, Serialize)]
@@ -68,12 +146,26 @@ pub struct Fact {
     pub qualifiers_json: String,
 }
 
+/// A source attribute statement, separate from relation evidence. Position is
+/// source identity: equal values with different qualifier records stay distinct.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct AttributeFact {
+    pub subject: String,
+    pub key: String,
+    pub position: i64,
+    pub value_json: String,
+    pub qualifiers_json: String,
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct QueryResult {
     pub image: String,
     pub coverage: String,
     pub entities: Vec<String>,
     pub facts: Vec<Fact>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub attributes: Vec<AttributeFact>,
     pub value: Value,
 }
 
@@ -132,6 +224,15 @@ impl Plan {
                     vec![*input]
                 }
                 Node::FilterConcept { input, .. } => vec![*input],
+                Node::FilterAttribute {
+                    input, predicate, ..
+                }
+                | Node::FilterQualifier {
+                    input, predicate, ..
+                } => {
+                    predicate.validate()?;
+                    vec![*input]
+                }
                 Node::And { left, right } | Node::Or { left, right } => vec![*left, *right],
                 _ => vec![],
             };
@@ -139,7 +240,129 @@ impl Plan {
                 return Err(Error::Invalid("dependency must precede consumer".into()));
             }
         }
+        plan.projection.validate(plan.nodes.len(), 0)?;
         Ok(plan)
+    }
+}
+
+impl ValuePredicate {
+    fn validate(&self) -> Result<()> {
+        if let Some(kind) = self.kind {
+            TypedValue::parse_literal(&self.literal, kind, &ValueLimits::default())?;
+        } else if self.literal.len() > ValueLimits::default().max_text_bytes {
+            return Err(Error::Limit("value literal bytes"));
+        }
+        Ok(())
+    }
+    fn test(&self, source: &Value, budget: &Budget) -> Result<Option<bool>> {
+        PredicateMatcher::new(self).test(source, budget)
+    }
+}
+
+struct PredicateMatcher<'a> {
+    predicate: &'a ValuePredicate,
+    literals: Vec<(ValueKind, Option<TypedValue>)>,
+}
+impl<'a> PredicateMatcher<'a> {
+    fn new(predicate: &'a ValuePredicate) -> Self {
+        Self {
+            predicate,
+            literals: Vec::new(),
+        }
+    }
+    fn test(&mut self, source: &Value, budget: &Budget) -> Result<Option<bool>> {
+        let predicate = self.predicate;
+        // Parsing and exact arithmetic have bounded operands. Charge bytes as
+        // well as each row so a large qualifier array cannot hide native work.
+        budget.spend(
+            serde_json::to_string(source)?.len() as u64 + predicate.literal.len() as u64 + 1,
+        )?;
+        let limits = ValueLimits::default();
+        let source = TypedValue::from_kqa(source, &limits)?;
+        let kind = predicate.kind.unwrap_or_else(|| source.kind());
+        let temporal = |kind| matches!(kind, ValueKind::Year | ValueKind::Date);
+        if source.kind() != kind && !(temporal(kind) && temporal(source.kind())) {
+            return Ok(None);
+        }
+        if !self.literals.iter().any(|(cached, _)| *cached == kind) {
+            let literal = match TypedValue::parse_literal(&predicate.literal, kind, &limits) {
+                Ok(value) => Some(value),
+                Err(Error::Invalid(_)) if predicate.kind.is_none() => None,
+                Err(error) => return Err(error),
+            };
+            self.literals.push((kind, literal));
+        }
+        let literal = self
+            .literals
+            .iter()
+            .find(|(cached, _)| *cached == kind)
+            .and_then(|(_, literal)| literal.as_ref());
+        let Some(literal) = literal else {
+            return Ok(None);
+        };
+        let compared = if matches!(kind, ValueKind::Year) {
+            source.compare_at_year(literal)
+        } else {
+            source.compare(literal)
+        };
+        Ok(compared.test(predicate.comparison))
+    }
+}
+
+impl Projection {
+    fn dependencies(&self, into: &mut Vec<usize>) {
+        match self {
+            Self::Relation { target, .. }
+            | Self::RelationQualifier { target, .. }
+            | Self::SelectBetween { target, .. } => into.push(*target),
+            Self::Verify { source, .. } => source.dependencies(into),
+            _ => {}
+        }
+    }
+    fn validate(&self, nodes: usize, depth: usize) -> Result<()> {
+        if depth > 8 {
+            return Err(Error::Invalid("projection nesting".into()));
+        }
+        match self {
+            Self::Relation { target, direction }
+            | Self::RelationQualifier {
+                target, direction, ..
+            } => {
+                if *target >= nodes {
+                    return Err(Error::Invalid("projection target".into()));
+                }
+                if direction
+                    .as_ref()
+                    .is_some_and(|d| d != "forward" && d != "backward")
+                {
+                    return Err(Error::Invalid("relation direction".into()));
+                }
+            }
+            Self::SelectBetween { target, .. } if *target >= nodes => {
+                return Err(Error::Invalid("projection target".into()))
+            }
+            Self::UniqueAttribute {
+                condition: Some(condition),
+                ..
+            } => condition.predicate.validate()?,
+            Self::AttributeQualifier { predicate, .. } => predicate.validate()?,
+            Self::Verify { source, predicate } => {
+                if !matches!(
+                    source.as_ref(),
+                    Self::UniqueAttribute { .. }
+                        | Self::AttributeQualifier { .. }
+                        | Self::RelationQualifier { .. }
+                ) {
+                    return Err(Error::Invalid(
+                        "verification requires a typed value projection".into(),
+                    ));
+                }
+                source.validate(nodes, depth + 1)?;
+                predicate.validate()?;
+            }
+            _ => {}
+        }
+        Ok(())
     }
 }
 
@@ -170,6 +393,17 @@ impl Meter<'_> {
         set.ids.insert(id);
         Ok(())
     }
+    fn attribute(&mut self, set: &mut Selection, attribute: AttributeFact) -> Result<()> {
+        self.charge(
+            attribute.subject.len()
+                + attribute.key.len()
+                + attribute.value_json.len()
+                + attribute.qualifiers_json.len()
+                + 8,
+        )?;
+        set.attributes.insert(attribute);
+        Ok(())
+    }
     fn fact(&mut self, set: &mut Selection, fact: Fact) -> Result<()> {
         self.charge(
             fact.subject.len()
@@ -191,15 +425,54 @@ pub(crate) fn evaluate(
     limits: &Limits,
     budget: &Budget,
 ) -> Result<(QueryResult, Selection)> {
+    evaluate_with_mode(db, identity, plan, previous, limits, budget, false)?
+        .ok_or_else(|| Error::Format("unexpected guarded graph evaluation".into()))
+}
+
+/// R7's language-only admission guard: every entity-producing step is evaluated
+/// once, including unused and union branches. Empty intermediates refuse unless
+/// the terminal projection is Count. Graph and declared program execution keep
+/// their existing final-DAG semantics through `evaluate`.
+///
+/// A reader may try several candidates on one exclusive lease and budget. Clear
+/// its preceding candidate's private node namespace before evaluating another.
+/// Cancellation or cleanup errors propagate; the lease still owns unconditional
+/// cleanup before the connection can return to the pool.
+pub(crate) fn evaluate_language(
+    db: &Connection,
+    identity: &str,
+    plan: &Plan,
+    previous: &Selection,
+    limits: &Limits,
+    budget: &Budget,
+) -> Result<Option<(QueryResult, Selection)>> {
+    budget.check()?;
+    db.execute_batch("DELETE FROM temp.oracle_sets; DELETE FROM temp.oracle_facts; DELETE FROM temp.oracle_attributes;")?;
+    budget.check()?;
+    evaluate_with_mode(db, identity, plan, previous, limits, budget, true)
+}
+
+fn evaluate_with_mode(
+    db: &Connection,
+    identity: &str,
+    plan: &Plan,
+    previous: &Selection,
+    limits: &Limits,
+    budget: &Budget,
+    language: bool,
+) -> Result<Option<(QueryResult, Selection)>> {
     let mut meter = Meter {
         rows: 0,
         bytes: 0,
         limits,
         budget,
     };
-    // Compile the complete pure DAG. SQLite can push predicates through the plan;
-    // Rust materializes results and shared subplans, not every single-use node.
-    let compiled = compile(db, plan, previous, &mut meter)?;
+    // Ordinary graph execution preserves SQL pushdown and materializes shared
+    // subplans. Language admission materializes every stage exactly once so its
+    // intermediate-empty guard cannot be bypassed by dead code or a union.
+    let Some(compiled) = compile(db, plan, previous, &mut meter, language)? else {
+        return Ok(None);
+    };
     let mut selected = Selection::default();
     {
         let sql = format!(
@@ -235,52 +508,28 @@ pub(crate) fn evaluate(
             )?;
         }
     }
-    let value = match &plan.projection {
-        Projection::Entities => Value::Null,
-        Projection::Count => json!(selected.ids.len()),
-        Projection::UniqueName if selected.ids.len() != 1 => {
-            json!({"status":if selected.ids.is_empty() {"absent"} else {"ambiguous"},"candidates":selected.ids.len()})
+    {
+        let sql = format!("{} SELECT subject,key,position,value,qualifiers FROM a{} ORDER BY subject,key,position", compiled.prefix, plan.output);
+        let mut stmt = db.prepare_cached(&sql)?;
+        let count = stmt.parameter_count();
+        let mut rows = stmt.query(rusqlite::params_from_iter(
+            compiled.parameters.iter().take(count),
+        ))?;
+        while let Some(row) = rows.next()? {
+            meter.attribute(&mut selected, attribute_row(row)?)?;
         }
-        Projection::Names | Projection::UniqueName => {
-            let mut names = Vec::new();
-            let mut stmt = db.prepare_cached("SELECT name FROM nodes WHERE id=?1")?;
-            for id in &selected.ids {
-                budget.spend(1)?;
-                let name: String = stmt.query_row([id], |r| r.get(0))?;
-                meter.charge(id.len() + name.len())?;
-                names.push(json!({"id":id,"name":name}));
-            }
-            if matches!(plan.projection, Projection::UniqueName) {
-                json!({"status":"unique","candidate":names[0]})
-            } else {
-                json!(names)
-            }
-        }
-        Projection::Attributes { key } => {
-            let mut attributes = Vec::new();
-            let mut stmt = db.prepare_cached("SELECT value,qualifiers FROM attributes WHERE subject=?1 AND key=?2 ORDER BY position")?;
-            for id in &selected.ids {
-                budget.spend(1)?;
-                let mut rows = stmt.query(params![id, key])?;
-                while let Some(row) = rows.next()? {
-                    let value: String = row.get(0)?;
-                    let qualifiers: String = row.get(1)?;
-                    meter.charge(id.len() + key.len() + value.len() + qualifiers.len())?;
-                    attributes.push(json!({"subject":id,"key":key,"value":serde_json::from_str::<Value>(&value)?,"qualifiers":serde_json::from_str::<Value>(&qualifiers)?}));
-                }
-            }
-            json!(attributes)
-        }
-    };
+    }
+    let value = project(db, plan, &compiled, &selected, &plan.projection, &mut meter)?;
     budget.check()?;
     let result = QueryResult {
         image: identity.into(),
         coverage: "complete_relative_to_image".into(),
         entities: selected.ids.iter().cloned().collect(),
         facts: selected.facts.iter().cloned().collect(),
+        attributes: selected.attributes.iter().cloned().collect(),
         value,
     };
-    Ok((result, selected))
+    Ok(Some((result, selected)))
 }
 
 struct Compiled {
@@ -292,18 +541,24 @@ fn compile(
     plan: &Plan,
     previous: &Selection,
     meter: &mut Meter<'_>,
-) -> Result<Compiled> {
+    language: bool,
+) -> Result<Option<Compiled>> {
+    let refuse_empty = language && !matches!(plan.projection, Projection::Count);
     let mut ctes = Vec::new();
     let mut parameters = Vec::new();
-    let mut live = vec![false; plan.nodes.len()];
+    let mut live = vec![language; plan.nodes.len()];
     let mut pending = vec![plan.output];
+    plan.projection.dependencies(&mut pending);
     while let Some(index) = pending.pop() {
         if live[index] {
             continue;
         }
         live[index] = true;
         match &plan.nodes[index] {
-            Node::Relate { input, .. } | Node::FilterConcept { input, .. } => pending.push(*input),
+            Node::Relate { input, .. }
+            | Node::FilterConcept { input, .. }
+            | Node::FilterAttribute { input, .. }
+            | Node::FilterQualifier { input, .. } => pending.push(*input),
             Node::And { left, right } | Node::Or { left, right } => pending.extend([*left, *right]),
             _ => {}
         }
@@ -316,7 +571,10 @@ fn compile(
             continue;
         }
         match node {
-            Node::Relate { input, .. } | Node::FilterConcept { input, .. } => uses[*input] += 1,
+            Node::Relate { input, .. }
+            | Node::FilterConcept { input, .. }
+            | Node::FilterAttribute { input, .. }
+            | Node::FilterQualifier { input, .. } => uses[*input] += 1,
             Node::And { left, right } | Node::Or { left, right } => {
                 uses[*left] += 1;
                 uses[*right] += 1;
@@ -334,6 +592,8 @@ fn compile(
             format!("?{}", parameters.len())
         };
         let mut facts = "SELECT '', '', '', '', '' WHERE 0".to_string();
+        let mut attributes = "SELECT '', '', 0, '', '' WHERE 0".to_string();
+        let mut already_materialized = false;
         let ids = match node {
             Node::Find { name } => {
                 format!("SELECT id FROM nodes WHERE name={}", bind(name.clone()))
@@ -342,6 +602,8 @@ fn compile(
             Node::Previous => {
                 let ids = bind(serde_json::to_string(&previous.ids)?);
                 let fs = bind(serde_json::to_string(&previous.facts)?);
+                let attrs = bind(serde_json::to_string(&previous.attributes)?);
+                attributes = format!("SELECT json_extract(value,'$.subject'),json_extract(value,'$.key'),json_extract(value,'$.position'),json_extract(value,'$.value_json'),json_extract(value,'$.qualifiers_json') FROM json_each({attrs})");
                 facts = format!("SELECT json_extract(value,'$.subject'),json_extract(value,'$.predicate'),json_extract(value,'$.direction'),json_extract(value,'$.object'),json_extract(value,'$.qualifiers_json') FROM json_each({fs})");
                 format!("SELECT value FROM json_each({ids})")
             }
@@ -363,6 +625,31 @@ fn compile(
                 // then test the input set. CROSS JOIN keeps that access order.
                 format!("SELECT DISTINCT p.child FROM parents p CROSS JOIN n{input} selected ON selected.id=p.child WHERE p.parent IN (SELECT id FROM c{i}) AND p.kind='entity'")
             }
+            Node::FilterAttribute {
+                input,
+                key,
+                predicate,
+            } => {
+                // Use the attribute key index, then intersect the input set;
+                // exact comparisons run in Rust without float coercion in SQL.
+                let key = bind(key.clone());
+                let sql = format!("{} SELECT a.subject,a.key,a.position,a.value,a.qualifiers FROM attributes a CROSS JOIN n{input} selected ON selected.id=a.subject WHERE a.key={key}", prefix(&ctes));
+                filter_attributes(db, &sql, &parameters, i, predicate, meter)?;
+                attributes = attribute_scratch(i);
+                already_materialized = true;
+                format!("SELECT id FROM temp.oracle_sets WHERE node={i}")
+            }
+            Node::FilterQualifier {
+                input,
+                key,
+                predicate,
+            } => {
+                filter_qualifiers(db, &ctes, &parameters, *input, i, key, predicate, meter)?;
+                attributes = attribute_scratch(i);
+                facts = fact_scratch(i);
+                already_materialized = true;
+                format!("SELECT id FROM temp.oracle_sets WHERE node={i}")
+            }
             Node::And { left, right } | Node::Or { left, right } => {
                 let op = if matches!(node, Node::And { .. }) {
                     "INTERSECT"
@@ -370,6 +657,7 @@ fn compile(
                     "UNION"
                 };
                 facts=format!("SELECT * FROM (SELECT * FROM f{left} UNION SELECT * FROM f{right}) WHERE object IN (SELECT id FROM n{i})");
+                attributes=format!("SELECT * FROM (SELECT * FROM a{left} UNION SELECT * FROM a{right}) WHERE subject IN (SELECT id FROM n{i})");
                 format!("SELECT id FROM n{left} {op} SELECT id FROM n{right}")
             }
         };
@@ -377,17 +665,42 @@ fn compile(
         ctes.push(format!(
             "f{i}(subject,predicate,direction,object,qualifiers) AS ({facts})"
         ));
-        if uses[i] > 1 {
-            materialize(db, &ctes, &parameters, i, meter)?;
+        ctes.push(format!(
+            "a{i}(subject,key,position,value,qualifiers) AS ({attributes})"
+        ));
+        if (uses[i] > 1 || language) && !already_materialized {
+            let nonempty = materialize(db, &ctes, &parameters, i, meter)?;
+            if refuse_empty && !nonempty {
+                return Ok(None);
+            }
             let n = ctes.len();
-            ctes[n - 2] = format!("n{i}(id) AS (SELECT id FROM temp.oracle_sets WHERE node={i})");
-            ctes[n-1]=format!("f{i}(subject,predicate,direction,object,qualifiers) AS (SELECT subject,predicate,direction,object,qualifiers FROM temp.oracle_facts WHERE node={i})");
+            ctes[n - 3] = format!("n{i}(id) AS (SELECT id FROM temp.oracle_sets WHERE node={i})");
+            ctes[n - 2] = format!(
+                "f{i}(subject,predicate,direction,object,qualifiers) AS ({})",
+                fact_scratch(i)
+            );
+            ctes[n - 1] = format!(
+                "a{i}(subject,key,position,value,qualifiers) AS ({})",
+                attribute_scratch(i)
+            );
+        } else if refuse_empty && already_materialized {
+            // Exact native filters already evaluated and materialized this
+            // stage. Inspect only its indexed scratch set; do not rerun it.
+            meter.budget.spend(1)?;
+            let nonempty: bool = db.query_row(
+                "SELECT EXISTS(SELECT 1 FROM temp.oracle_sets WHERE node=?1)",
+                [i as i64],
+                |row| row.get(0),
+            )?;
+            if !nonempty {
+                return Ok(None);
+            }
         }
     }
-    Ok(Compiled {
+    Ok(Some(Compiled {
         prefix: format!("WITH RECURSIVE {}", ctes.join(",")),
         parameters,
-    })
+    }))
 }
 
 fn materialize(
@@ -396,8 +709,9 @@ fn materialize(
     parameters: &[String],
     node: usize,
     meter: &mut Meter<'_>,
-) -> Result<()> {
+) -> Result<bool> {
     let prefix = format!("WITH RECURSIVE {}", ctes.join(","));
+    let mut nonempty = false;
     {
         let mut query = db.prepare(&format!("{prefix} SELECT id FROM n{node}"))?;
         let count = query.parameter_count();
@@ -406,6 +720,7 @@ fn materialize(
         while let Some(row) = rows.next()? {
             let id: String = row.get(0)?;
             meter.charge(id.len())?;
+            nonempty = true;
             insert.execute(params![node as i64, id])?;
         }
     }
@@ -432,5 +747,703 @@ fn materialize(
             ])?;
         }
     }
+    {
+        let mut query = db.prepare(&format!(
+            "{prefix} SELECT subject,key,position,value,qualifiers FROM a{node}"
+        ))?;
+        let count = query.parameter_count();
+        let mut rows = query.query(rusqlite::params_from_iter(parameters.iter().take(count)))?;
+        while let Some(row) = rows.next()? {
+            let attribute = attribute_row(row)?;
+            meter.charge(
+                attribute.subject.len()
+                    + attribute.key.len()
+                    + attribute.value_json.len()
+                    + attribute.qualifiers_json.len()
+                    + 8,
+            )?;
+            insert_attribute(db, node, &attribute)?;
+        }
+    }
+    Ok(nonempty)
+}
+
+fn prefix(ctes: &[String]) -> String {
+    format!("WITH RECURSIVE {}", ctes.join(","))
+}
+fn fact_scratch(node: usize) -> String {
+    format!("SELECT subject,predicate,direction,object,qualifiers FROM temp.oracle_facts WHERE node={node}")
+}
+fn attribute_scratch(node: usize) -> String {
+    format!("SELECT subject,key,position,value,qualifiers FROM temp.oracle_attributes WHERE node={node}")
+}
+fn attribute_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<AttributeFact> {
+    Ok(AttributeFact {
+        subject: row.get(0)?,
+        key: row.get(1)?,
+        position: row.get(2)?,
+        value_json: row.get(3)?,
+        qualifiers_json: row.get(4)?,
+    })
+}
+fn attribute_bytes(a: &AttributeFact) -> usize {
+    a.subject.len() + a.key.len() + a.value_json.len() + a.qualifiers_json.len() + 8
+}
+fn attribute_evidence(a: &AttributeFact) -> Result<Value> {
+    Ok(
+        json!({"subject":a.subject,"key":a.key,"position":a.position,
+        "value":serde_json::from_str::<Value>(&a.value_json)?,
+        "qualifiers":serde_json::from_str::<Value>(&a.qualifiers_json)?}),
+    )
+}
+fn insert_attribute(db: &Connection, node: usize, a: &AttributeFact) -> Result<()> {
+    db.prepare_cached("INSERT OR IGNORE INTO temp.oracle_attributes VALUES (?1,?2,?3,?4,?5,?6)")?
+        .execute(params![
+            node as i64,
+            a.subject,
+            a.key,
+            a.position,
+            a.value_json,
+            a.qualifiers_json
+        ])?;
     Ok(())
+}
+fn insert_id(db: &Connection, node: usize, id: &str, meter: &mut Meter<'_>) -> Result<()> {
+    meter.charge(id.len())?;
+    db.prepare_cached("INSERT OR IGNORE INTO temp.oracle_sets VALUES (?1,?2)")?
+        .execute(params![node as i64, id])?;
+    Ok(())
+}
+fn filter_attributes(
+    db: &Connection,
+    sql: &str,
+    parameters: &[String],
+    node: usize,
+    predicate: &ValuePredicate,
+    meter: &mut Meter<'_>,
+) -> Result<()> {
+    let mut stmt = db.prepare(sql)?;
+    let count = stmt.parameter_count();
+    let mut rows = stmt.query(rusqlite::params_from_iter(parameters.iter().take(count)))?;
+    let mut predicate = PredicateMatcher::new(predicate);
+    while let Some(row) = rows.next()? {
+        let attribute = attribute_row(row)?;
+        meter.charge(attribute_bytes(&attribute))?;
+        if predicate.test(
+            &serde_json::from_str::<Value>(&attribute.value_json)?,
+            meter.budget,
+        )? == Some(true)
+        {
+            insert_id(db, node, &attribute.subject, meter)?;
+            insert_attribute(db, node, &attribute)?;
+        }
+    }
+    Ok(())
+}
+fn qualifier_values<'a>(qualifiers: &'a Value, key: &str) -> Result<&'a [Value]> {
+    if !qualifiers.is_object() {
+        return Err(Error::Invalid("qualifiers must be an object".into()));
+    }
+    match qualifiers.get(key) {
+        None => Ok(&[]),
+        Some(Value::Array(values)) => Ok(values),
+        _ => Err(Error::Invalid("qualifier values must be an array".into())),
+    }
+}
+fn qualifier_matches(
+    text: &str,
+    key: &str,
+    predicate: &mut PredicateMatcher<'_>,
+    budget: &Budget,
+) -> Result<bool> {
+    budget.spend(text.len() as u64 + 1)?;
+    let qualifiers: Value = serde_json::from_str(text)?;
+    for value in qualifier_values(&qualifiers, key)? {
+        if predicate.test(value, budget)? == Some(true) {
+            return Ok(true);
+        }
+    }
+    Ok(false)
+}
+#[allow(clippy::too_many_arguments)]
+fn filter_qualifiers(
+    db: &Connection,
+    ctes: &[String],
+    parameters: &[String],
+    input: usize,
+    node: usize,
+    key: &str,
+    predicate: &ValuePredicate,
+    meter: &mut Meter<'_>,
+) -> Result<()> {
+    let prefix = prefix(ctes);
+    let mut predicate = PredicateMatcher::new(predicate);
+    {
+        let mut stmt = db.prepare(&format!(
+            "{prefix} SELECT subject,predicate,direction,object,qualifiers FROM f{input}"
+        ))?;
+        let count = stmt.parameter_count();
+        let mut rows = stmt.query(rusqlite::params_from_iter(parameters.iter().take(count)))?;
+        let mut insert = db
+            .prepare_cached("INSERT OR IGNORE INTO temp.oracle_facts VALUES (?1,?2,?3,?4,?5,?6)")?;
+        while let Some(row) = rows.next()? {
+            let fields: Vec<String> = (0..5)
+                .map(|i| row.get(i))
+                .collect::<std::result::Result<_, _>>()?;
+            meter.charge(fields.iter().map(String::len).sum())?;
+            if qualifier_matches(&fields[4], key, &mut predicate, meter.budget)? {
+                insert_id(db, node, &fields[3], meter)?;
+                insert.execute(params![
+                    node as i64,
+                    fields[0],
+                    fields[1],
+                    fields[2],
+                    fields[3],
+                    fields[4]
+                ])?;
+            }
+        }
+    }
+    {
+        let mut stmt = db.prepare(&format!(
+            "{prefix} SELECT subject,key,position,value,qualifiers FROM a{input}"
+        ))?;
+        let count = stmt.parameter_count();
+        let mut rows = stmt.query(rusqlite::params_from_iter(parameters.iter().take(count)))?;
+        while let Some(row) = rows.next()? {
+            let attribute = attribute_row(row)?;
+            meter.charge(attribute_bytes(&attribute))?;
+            if qualifier_matches(
+                &attribute.qualifiers_json,
+                key,
+                &mut predicate,
+                meter.budget,
+            )? {
+                insert_id(db, node, &attribute.subject, meter)?;
+                insert_attribute(db, node, &attribute)?;
+            }
+        }
+    }
+    Ok(())
+}
+
+/// Uniqueness is over exact typed values, with every supporting statement kept.
+/// Equal repeated values are agreement; distinct or incomparable values are an
+/// ambiguity, never permission to choose the first source row.
+#[derive(Default)]
+struct Values {
+    distinct: Vec<(TypedValue, Value)>,
+    evidence: Vec<Value>,
+}
+impl Values {
+    fn add(&mut self, value: Value, evidence: Value, meter: &mut Meter<'_>) -> Result<()> {
+        let typed = TypedValue::from_kqa(&value, &ValueLimits::default())?;
+        let mut duplicate = false;
+        for (other, _) in &self.distinct {
+            meter.budget.spend(1)?;
+            if typed.compare(other).test(ComparisonOp::Eq) == Some(true) {
+                duplicate = true;
+                break;
+            }
+        }
+        meter.charge(serde_json::to_vec(&evidence)?.len() + serde_json::to_vec(&value)?.len())?;
+        if !duplicate {
+            self.distinct.push((typed, value));
+        }
+        self.evidence.push(evidence);
+        Ok(())
+    }
+    fn finish(self) -> Value {
+        match self.distinct.len() {
+            0 => json!({"status":"absent","candidates":0,"evidence":self.evidence}),
+            1 => {
+                let (typed, value) = self.distinct.into_iter().next().expect("one value");
+                json!({"status":"unique","candidate":value,"display":typed.to_string(),"evidence":self.evidence})
+            }
+            count => json!({"status":"ambiguous","candidates":count,
+                "values":self.distinct.into_iter().map(|(_,value)|value).collect::<Vec<_>>(),"evidence":self.evidence}),
+        }
+    }
+}
+fn read_attributes(
+    db: &Connection,
+    ids: &BTreeSet<String>,
+    key: &str,
+    meter: &mut Meter<'_>,
+    mut visit: impl FnMut(AttributeFact, &mut Meter<'_>) -> Result<()>,
+) -> Result<()> {
+    // One parameterized indexed probe for each selected entity. No full corpus
+    // scan, Python callback or source-row rehydration occurs in this path.
+    let mut stmt = db.prepare_cached("SELECT subject,key,position,value,qualifiers FROM attributes WHERE subject=?1 AND key=?2 ORDER BY position")?;
+    for id in ids {
+        meter.budget.spend(1)?;
+        let mut rows = stmt.query(params![id, key])?;
+        while let Some(row) = rows.next()? {
+            let attribute = attribute_row(row)?;
+            meter.charge(attribute_bytes(&attribute))?;
+            visit(attribute, meter)?;
+        }
+    }
+    Ok(())
+}
+fn node_ids(
+    db: &Connection,
+    compiled: &Compiled,
+    node: usize,
+    meter: &mut Meter<'_>,
+) -> Result<BTreeSet<String>> {
+    let mut ids = BTreeSet::new();
+    let mut stmt = db.prepare(&format!("{} SELECT id FROM n{node}", compiled.prefix))?;
+    let count = stmt.parameter_count();
+    let mut rows = stmt.query(rusqlite::params_from_iter(
+        compiled.parameters.iter().take(count),
+    ))?;
+    while let Some(row) = rows.next()? {
+        let id: String = row.get(0)?;
+        meter.charge(id.len())?;
+        ids.insert(id);
+    }
+    Ok(ids)
+}
+fn project(
+    db: &Connection,
+    plan: &Plan,
+    compiled: &Compiled,
+    selected: &Selection,
+    projection: &Projection,
+    meter: &mut Meter<'_>,
+) -> Result<Value> {
+    match projection {
+        Projection::Entities => Ok(Value::Null),
+        Projection::Count => Ok(json!(selected.ids.len())),
+        Projection::UniqueName if selected.ids.len() != 1 => Ok(json!({
+            "status":if selected.ids.is_empty() {"absent"} else {"ambiguous"},"candidates":selected.ids.len()})),
+        Projection::Names | Projection::UniqueName => {
+            let mut names = Vec::new();
+            let mut stmt = db.prepare_cached("SELECT name FROM nodes WHERE id=?1")?;
+            for id in &selected.ids {
+                meter.budget.spend(1)?;
+                let name: String = stmt.query_row([id], |r| r.get(0))?;
+                meter.charge(id.len() + name.len())?;
+                names.push(json!({"id":id,"name":name}));
+            }
+            Ok(if matches!(projection, Projection::UniqueName) {
+                json!({"status":"unique","candidate":names[0]})
+            } else {
+                json!(names)
+            })
+        }
+        Projection::Attributes { key } => {
+            let mut attributes = Vec::new();
+            read_attributes(db, &selected.ids, key, meter, |a, _| {
+                // Preserve this pre-existing projection's exact field contract.
+                attributes.push(json!({"subject":a.subject,"key":a.key,
+                    "value":serde_json::from_str::<Value>(&a.value_json)?,
+                    "qualifiers":serde_json::from_str::<Value>(&a.qualifiers_json)?}));
+                Ok(())
+            })?;
+            Ok(json!(attributes))
+        }
+        Projection::UniqueAttribute { key, condition } => {
+            let mut values = Values::default();
+            let mut matcher = condition
+                .as_ref()
+                .map(|condition| PredicateMatcher::new(&condition.predicate));
+            read_attributes(db, &selected.ids, key, meter, |a, meter| {
+                if let Some(condition) = condition {
+                    if !qualifier_matches(
+                        &a.qualifiers_json,
+                        &condition.key,
+                        matcher.as_mut().expect("condition has a matcher"),
+                        meter.budget,
+                    )? {
+                        return Ok(());
+                    }
+                }
+                values.add(
+                    serde_json::from_str(&a.value_json)?,
+                    attribute_evidence(&a)?,
+                    meter,
+                )
+            })?;
+            Ok(values.finish())
+        }
+        Projection::AttributeQualifier {
+            key,
+            predicate,
+            qualifier,
+        } => {
+            let mut values = Values::default();
+            let mut predicate = PredicateMatcher::new(predicate);
+            read_attributes(db, &selected.ids, key, meter, |a, meter| {
+                if predicate.test(&serde_json::from_str::<Value>(&a.value_json)?, meter.budget)?
+                    != Some(true)
+                {
+                    return Ok(());
+                }
+                let qualifiers: Value = serde_json::from_str(&a.qualifiers_json)?;
+                for value in qualifier_values(&qualifiers, qualifier)? {
+                    values.add(value.clone(), attribute_evidence(&a)?, meter)?;
+                }
+                Ok(())
+            })?;
+            Ok(values.finish())
+        }
+        Projection::Relation { target, direction }
+        | Projection::RelationQualifier {
+            target, direction, ..
+        } => {
+            let mut parameters = compiled.parameters.clone();
+            let mut conditions = Vec::new();
+            if let Some(direction) = direction {
+                parameters.push(direction.clone());
+                conditions.push(format!("e.direction=?{}", parameters.len()));
+            }
+            if let Projection::RelationQualifier { predicate, .. } = projection {
+                parameters.push(predicate.clone());
+                conditions.push(format!("e.predicate=?{}", parameters.len()));
+            }
+            let extra = if conditions.is_empty() {
+                String::new()
+            } else {
+                format!(" AND {}", conditions.join(" AND "))
+            };
+            let sql = format!("{} SELECT e.subject,e.predicate,e.direction,e.object,e.qualifiers FROM edges e WHERE e.subject IN (SELECT id FROM n{}) AND e.object IN (SELECT id FROM n{target}){extra} ORDER BY e.subject,e.predicate,e.direction,e.object,e.qualifiers",compiled.prefix,plan.output);
+            let mut stmt = db.prepare(&sql)?;
+            let count = stmt.parameter_count();
+            let mut rows = stmt.query(rusqlite::params_from_iter(parameters.iter().take(count)))?;
+            let mut values = Values::default();
+            while let Some(row) = rows.next()? {
+                let fields: Vec<String> = (0..5)
+                    .map(|i| row.get(i))
+                    .collect::<std::result::Result<_, _>>()?;
+                meter.charge(fields.iter().map(String::len).sum())?;
+                let qualifiers: Value = serde_json::from_str(&fields[4])?;
+                let evidence = json!({"subject":fields[0],"predicate":fields[1],"direction":fields[2],"object":fields[3],"qualifiers":qualifiers});
+                if let Projection::RelationQualifier { qualifier, .. } = projection {
+                    for value in qualifier_values(&qualifiers, qualifier)? {
+                        values.add(value.clone(), evidence.clone(), meter)?;
+                    }
+                } else {
+                    values.add(json!({"type":"string","value":fields[1]}), evidence, meter)?;
+                }
+            }
+            Ok(values.finish())
+        }
+        Projection::Verify { source, predicate } => {
+            let source = project(db, plan, compiled, selected, source, meter)?;
+            if source.get("status").and_then(Value::as_str) != Some("unique") {
+                return Ok(source);
+            }
+            let candidate = source
+                .get("candidate")
+                .ok_or_else(|| Error::Format("missing value candidate".into()))?;
+            Ok(match predicate.test(candidate, meter.budget)? {
+                Some(answer) => json!({"status":"verified","answer":answer,"source":source}),
+                None => json!({"status":"incomparable","source":source}),
+            })
+        }
+        Projection::Select { key, order } => select(db, &selected.ids, key, *order, meter),
+        Projection::SelectBetween { target, key, order } => {
+            let target = node_ids(db, compiled, *target, meter)?;
+            if selected.ids.len() != 1 || target.len() != 1 {
+                return Ok(
+                    json!({"status":"ambiguous_operands","left":selected.ids.len(),"right":target.len()}),
+                );
+            }
+            let ids = selected
+                .ids
+                .union(&target)
+                .cloned()
+                .collect::<BTreeSet<_>>();
+            // Equal entity operands are a tie, not a successful comparison.
+            if ids.len() != 2 {
+                return Ok(json!({"status":"ambiguous","candidates":ids.len()}));
+            }
+            select(db, &ids, key, *order, meter)
+        }
+    }
+}
+
+fn select(
+    db: &Connection,
+    ids: &BTreeSet<String>,
+    key: &str,
+    order: SelectionOrder,
+    meter: &mut Meter<'_>,
+) -> Result<Value> {
+    if ids.is_empty() {
+        return Ok(json!({"status":"absent","candidates":0}));
+    }
+    let mut candidates = Vec::new();
+    for id in ids {
+        let one = BTreeSet::from([id.clone()]);
+        let mut values = Values::default();
+        read_attributes(db, &one, key, meter, |a, meter| {
+            values.add(
+                serde_json::from_str(&a.value_json)?,
+                attribute_evidence(&a)?,
+                meter,
+            )
+        })?;
+        if values.distinct.len() != 1 {
+            return Ok(json!({"status":"incomplete","subject":id,"value":values.finish()}));
+        }
+        let (typed, _) = &values.distinct[0];
+        if matches!(typed.kind(), ValueKind::String) {
+            return Ok(json!({"status":"incomparable","subject":id}));
+        }
+        candidates.push((id.clone(), typed.clone(), values.finish()));
+    }
+    let mut best = 0;
+    let mut winners = vec![0];
+    for index in 1..candidates.len() {
+        meter.budget.spend(1)?;
+        let comparison = candidates[index].1.compare(&candidates[best].1);
+        let strict = match order {
+            SelectionOrder::Smallest => ComparisonOp::Lt,
+            SelectionOrder::Largest => ComparisonOp::Gt,
+        };
+        match (comparison.test(strict), comparison.test(ComparisonOp::Eq)) {
+            (Some(true), _) => {
+                best = index;
+                winners = vec![index];
+            }
+            (Some(false), Some(true)) => winners.push(index),
+            (Some(false), Some(false)) => {}
+            // Incomparable intermediate values need not prevent a later
+            // value from dominating both. The final pass checks every operand.
+            _ => {}
+        }
+    }
+    // A partial comparison domain can contain values incomparable with each
+    // other even if each compares to the current best. Check the claimed winner
+    // against every source before returning it.
+    for (index, (_, typed, _)) in candidates.iter().enumerate() {
+        if index == best {
+            continue;
+        }
+        meter.budget.spend(1)?;
+        let comparison = candidates[best].1.compare(typed);
+        let nonstrict = match order {
+            SelectionOrder::Smallest => ComparisonOp::Le,
+            SelectionOrder::Largest => ComparisonOp::Ge,
+        };
+        if comparison.test(nonstrict) != Some(true) {
+            return Ok(
+                json!({"status":"incomparable","left":candidates[best].0,"right":candidates[index].0}),
+            );
+        }
+    }
+    if winners.len() != 1 {
+        return Ok(
+            json!({"status":"ambiguous","candidates":winners.len(),"entities":winners.into_iter().map(|i| &candidates[i].0).collect::<Vec<_>>()}),
+        );
+    }
+    let (id, _, value) = &candidates[best];
+    let name: String =
+        db.query_row("SELECT name FROM nodes WHERE id=?1", [id], |row| row.get(0))?;
+    meter.charge(id.len() + name.len())?;
+    Ok(json!({"status":"unique","candidate":{"id":id,"name":name},"attribute":value}))
+}
+
+#[cfg(test)]
+mod language_guard_contract {
+    use super::*;
+    use crate::{build_image, Cancellation, Image};
+    use std::sync::Arc;
+    use tempfile::TempDir;
+
+    fn fixture(limits: Limits) -> (TempDir, Arc<Image>) {
+        let directory = tempfile::tempdir().unwrap();
+        let source = directory.path().join("kb.json");
+        let image = directory.path().join("image.sqlite");
+        std::fs::write(&source, json!({"concepts":{},"entities":{
+            "A":{"name":"Alpha","instanceOf":[],"attributes":[
+                {"key":"mass","value":{"type":"quantity","value":1,"unit":"1"},"qualifiers":{"since":[{"type":"year","value":2000}]}}
+            ],"relations":[]},
+            "B":{"name":"Beta","instanceOf":[],"attributes":[],"relations":[]}
+        }}).to_string()).unwrap();
+        let receipt = build_image(&source, &image, 100_000, 10_000).unwrap();
+        let image = Image::open(&image, &receipt.image_sha256, limits).unwrap();
+        (directory, image)
+    }
+    fn parse_plan(nodes: Value, output: usize, projection: Value) -> Plan {
+        Plan::parse(
+            &json!({"nodes":nodes,"output":output,"projection":projection}).to_string(),
+            &Limits::default(),
+        )
+        .unwrap()
+    }
+
+    #[test]
+    fn language_guard_checks_dead_and_union_branches_without_changing_graphs() {
+        let (_directory, image) = fixture(Limits::default());
+        let budget = Budget::new(&image.limits, Cancellation::default()).unwrap();
+        let worker = image.acquire("tenant", &budget).unwrap();
+        let nodes = json!([
+            {"op":"find","name":"Absent"},
+            {"op":"find","name":"Alpha"},
+            {"op":"or","left":0,"right":1}
+        ]);
+        for output in [1, 2] {
+            let plan = parse_plan(nodes.clone(), output, json!({"kind":"unique_name"}));
+            let (direct, _) = evaluate(
+                &worker,
+                &image.identity,
+                &plan,
+                &Selection::default(),
+                &image.limits,
+                &budget,
+            )
+            .unwrap();
+            assert_eq!(direct.value["candidate"]["name"], "Alpha");
+            let guarded = evaluate_language(
+                &worker,
+                &image.identity,
+                &plan,
+                &Selection::default(),
+                &image.limits,
+                &budget,
+            )
+            .unwrap();
+            assert!(guarded.is_none());
+        }
+    }
+
+    #[test]
+    fn terminal_count_permits_empty_but_still_executes_all_stages() {
+        let (_directory, image) = fixture(Limits::default());
+        let budget = Budget::new(&image.limits, Cancellation::default()).unwrap();
+        let worker = image.acquire("tenant", &budget).unwrap();
+        let plan = parse_plan(
+            json!([
+                {"op":"find","name":"Absent"},
+                {"op":"find","name":"Alpha"}
+            ]),
+            0,
+            json!({"kind":"count"}),
+        );
+        let (result, _) = evaluate_language(
+            &worker,
+            &image.identity,
+            &plan,
+            &Selection::default(),
+            &image.limits,
+            &budget,
+        )
+        .unwrap()
+        .unwrap();
+        assert_eq!(result.value, 0);
+        drop(worker);
+
+        let (_directory, image) = fixture(Limits {
+            materialized_rows: 1,
+            ..Limits::default()
+        });
+        let budget = Budget::new(&image.limits, Cancellation::default()).unwrap();
+        let worker = image.acquire("tenant", &budget).unwrap();
+        let plan = parse_plan(
+            json!([
+                {"op":"find","name":"Alpha"},
+                {"op":"find","name":"Beta"},
+                {"op":"find","name":"Absent"}
+            ]),
+            2,
+            json!({"kind":"count"}),
+        );
+        let (direct, _) = evaluate(
+            &worker,
+            &image.identity,
+            &plan,
+            &Selection::default(),
+            &image.limits,
+            &budget,
+        )
+        .unwrap();
+        assert_eq!(direct.value, 0);
+        assert!(matches!(
+            evaluate_language(
+                &worker,
+                &image.identity,
+                &plan,
+                &Selection::default(),
+                &image.limits,
+                &budget,
+            ),
+            Err(Error::Limit("materialized rows"))
+        ));
+    }
+
+    #[test]
+    fn refused_candidate_cannot_leave_attribute_evidence_in_next_candidate() {
+        let (_directory, image) = fixture(Limits::default());
+        let budget = Budget::new(&image.limits, Cancellation::default()).unwrap();
+        let worker = image.acquire("tenant", &budget).unwrap();
+        let filter = json!({"op":"filter_attribute","input":0,"key":"mass",
+            "predicate":{"kind":"quantity","literal":"1","comparison":"="}});
+        let first = parse_plan(
+            json!([
+                {"op":"find","name":"Alpha"},filter.clone(),{"op":"find","name":"Absent"}
+            ]),
+            1,
+            json!({"kind":"unique_name"}),
+        );
+        assert!(evaluate_language(
+            &worker,
+            &image.identity,
+            &first,
+            &Selection::default(),
+            &image.limits,
+            &budget,
+        )
+        .unwrap()
+        .is_none());
+        // Reuse the node numbers and the same exclusive worker and Budget.
+        // Count permits this empty selection, so stale scratch would be visible.
+        let second = parse_plan(
+            json!([
+                {"op":"find","name":"Absent"},filter
+            ]),
+            1,
+            json!({"kind":"count"}),
+        );
+        let (result, selected) = evaluate_language(
+            &worker,
+            &image.identity,
+            &second,
+            &Selection::default(),
+            &image.limits,
+            &budget,
+        )
+        .unwrap()
+        .unwrap();
+        assert_eq!(result.value, 0);
+        assert!(selected.ids.is_empty());
+        assert!(selected.facts.is_empty());
+        assert!(selected.attributes.is_empty());
+    }
+
+    #[test]
+    fn language_guard_preserves_shared_dag_materialization() {
+        let (_directory, image) = fixture(Limits::default());
+        let budget = Budget::new(&image.limits, Cancellation::default()).unwrap();
+        let worker = image.acquire("tenant", &budget).unwrap();
+        let mut nodes = vec![json!({"op":"find","name":"Alpha"})];
+        for input in 0..24 {
+            nodes.push(json!({"op":"or","left":input,"right":input}));
+        }
+        let plan = parse_plan(json!(nodes), 24, json!({"kind":"unique_name"}));
+        let (result, _) = evaluate_language(
+            &worker,
+            &image.identity,
+            &plan,
+            &Selection::default(),
+            &image.limits,
+            &budget,
+        )
+        .unwrap()
+        .unwrap();
+        assert_eq!(result.value["candidate"]["name"], "Alpha");
+    }
 }

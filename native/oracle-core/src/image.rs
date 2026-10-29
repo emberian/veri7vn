@@ -1,6 +1,9 @@
-use crate::{digest, lock, Budget, Error, Limits, Result};
-use rusqlite::{params, Connection, OpenFlags};
-use serde::Serialize;
+use crate::grammar::{self, ReaderExport};
+use crate::lexicon::{self, LexiconBuildLimits};
+use crate::query::{encode, evaluate, Selection};
+use crate::{digest, lock, Budget, Cancellation, Error, Limits, Program, Result};
+use rusqlite::{params, Connection, OpenFlags, OptionalExtension};
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 use std::collections::BTreeSet;
@@ -24,7 +27,52 @@ CREATE TABLE edges(subject TEXT NOT NULL,predicate TEXT NOT NULL,direction TEXT 
  PRIMARY KEY(subject,predicate,direction,object,qualifiers)) WITHOUT ROWID;
 CREATE TABLE attributes(subject TEXT NOT NULL,position INTEGER NOT NULL,key TEXT NOT NULL,value TEXT NOT NULL,qualifiers TEXT NOT NULL,
  PRIMARY KEY(subject,key,position)) WITHOUT ROWID;
+CREATE INDEX attribute_key ON attributes(key,subject,position);
 ";
+
+/// Resource subformats actually present in the image, not engine feature claims.
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ImageCapabilities {
+    pub version: u32,
+    pub lexicon: Option<String>,
+    pub reader: Option<String>,
+}
+impl ImageCapabilities {
+    fn legacy() -> Self {
+        Self {
+            version: 1,
+            lexicon: None,
+            reader: None,
+        }
+    }
+    fn is_legacy(&self) -> bool {
+        self.lexicon.is_none() && self.reader.is_none()
+    }
+}
+
+/// Offline release bounds. Manufacturing has its own finite budget; serving
+/// deadlines are not used to build the shared vocabulary and learned tables.
+pub struct ReaderBuildOptions<'a> {
+    pub reader: Option<&'a ReaderExport>,
+    pub lexical: LexiconBuildLimits,
+    pub grammar_rows: usize,
+    pub grammar_bytes: usize,
+    pub fuel: u64,
+    pub timeout_ms: u64,
+}
+impl Default for ReaderBuildOptions<'_> {
+    fn default() -> Self {
+        Self {
+            reader: None,
+            lexical: LexiconBuildLimits::default(),
+            grammar_rows: 5_000_000,
+            grammar_bytes: 1024 * 1024 * 1024,
+            fuel: 100_000_000_000,
+            timeout_ms: 3_600_000,
+        }
+    }
+}
 
 #[derive(Serialize)]
 pub struct BuildReceipt {
@@ -34,6 +82,8 @@ pub struct BuildReceipt {
     pub nodes: u64,
     pub edges: u64,
     pub bytes: u64,
+    #[serde(skip_serializing_if = "ImageCapabilities::is_legacy")]
+    pub capabilities: ImageCapabilities,
 }
 
 fn text<'a>(v: &'a Value, key: &str) -> Result<&'a str> {
@@ -70,9 +120,58 @@ pub fn build_image(
     max_source_bytes: u64,
     max_record_bytes: usize,
 ) -> Result<BuildReceipt> {
+    build_image_internal(source, output, max_source_bytes, max_record_bytes, None)
+}
+
+/// Build a v3 image with lexical indexes and optional shared learned resources.
+/// The old build_image API still emits v2 without claiming these capabilities.
+/// Grammar aliases are imported only after both vocabulary and grammar exist.
+pub fn build_image_with_reader(
+    source: &Path,
+    output: &Path,
+    max_source_bytes: u64,
+    max_record_bytes: usize,
+    options: ReaderBuildOptions<'_>,
+) -> Result<BuildReceipt> {
+    build_image_internal(
+        source,
+        output,
+        max_source_bytes,
+        max_record_bytes,
+        Some(options),
+    )
+}
+
+fn build_image_internal(
+    source: &Path,
+    output: &Path,
+    max_source_bytes: u64,
+    max_record_bytes: usize,
+    options: Option<ReaderBuildOptions<'_>>,
+) -> Result<BuildReceipt> {
     if max_source_bytes == u64::MAX || max_record_bytes == 0 {
         return Err(Error::Invalid("invalid builder limits".into()));
     }
+    let build_budget = match options.as_ref() {
+        Some(options) => {
+            if options.fuel == 0
+                || options.timeout_ms == 0
+                || options.grammar_rows == 0
+                || options.grammar_bytes == 0
+            {
+                return Err(Error::Invalid("invalid reader builder limits".into()));
+            }
+            Some(Budget::new(
+                &Limits {
+                    fuel: options.fuel,
+                    timeout_ms: options.timeout_ms,
+                    ..Limits::default()
+                },
+                Cancellation::default(),
+            )?)
+        }
+        None => None,
+    };
     let mut bytes = Vec::new();
     File::open(source)?
         .take(max_source_bytes + 1)
@@ -80,8 +179,25 @@ pub fn build_image(
     if bytes.len() as u64 > max_source_bytes {
         return Err(Error::Limit("source bytes"));
     }
+    if let Some(budget) = &build_budget {
+        budget.spend(bytes.len() as u64 + 1)?;
+    }
     let source_sha256 = digest(&bytes);
+    if let Some(reader) = options.as_ref().and_then(|options| options.reader) {
+        match reader.metadata.get("kb_sha256") {
+            Some(Value::String(expected)) if expected == &source_sha256 => {}
+            Some(_) => return Err(Error::Format("reader knowledge source mismatch".into())),
+            None => {
+                return Err(Error::Format(
+                    "reader knowledge source binding missing".into(),
+                ))
+            }
+        }
+    }
     let kb: Value = serde_json::from_slice(&bytes)?;
+    if let Some(budget) = &build_budget {
+        budget.check()?;
+    }
     let parent = output
         .parent()
         .filter(|p| !p.as_os_str().is_empty())
@@ -89,6 +205,10 @@ pub fn build_image(
     let mut temporary = NamedTempFile::new_in(parent)?;
     let mut db = Connection::open(temporary.path())?;
     db.execute_batch(SCHEMA)?;
+    if let Some(budget) = &build_budget {
+        let progress = budget.clone();
+        db.progress_handler(1000, Some(move || progress.spend(1000).is_err()));
+    }
     // Explicitly set the numeric constant too: format checks never infer identity from a filename.
     db.pragma_update(None, "application_id", APPLICATION_ID)?;
     let tx = db.transaction()?;
@@ -102,6 +222,9 @@ pub fn build_image(
                 return Err(Error::Invalid("empty node ID".into()));
             }
             let encoded = serde_json::to_string(record)?;
+            if let Some(budget) = &build_budget {
+                budget.spend(encoded.len() as u64 + 1)?;
+            }
             if encoded.len() > max_record_bytes {
                 return Err(Error::Limit("source record bytes"));
             }
@@ -181,10 +304,39 @@ pub fn build_image(
         "INSERT INTO metadata VALUES ('max_record_bytes',?1)",
         [max_record_bytes.to_string()],
     )?;
+    let mut capabilities = ImageCapabilities::legacy();
+    if let Some(options) = &options {
+        let budget = build_budget.as_ref().expect("reader build owns budget");
+        let mut lexical_limits = options.lexical.clone();
+        lexical_limits.record_bytes = lexical_limits.record_bytes.min(max_record_bytes);
+        lexicon::build_from_nodes(&tx, budget, &lexical_limits)?;
+        capabilities.lexicon = Some(lexicon::VERSION.into());
+        if let Some(reader) = options.reader {
+            budget.check()?;
+            grammar::install_tables(&tx, reader, options.grammar_rows, options.grammar_bytes)?;
+            budget.check()?;
+            lexicon::install_grammar_aliases(&tx, &lexical_limits, budget)?;
+            capabilities.reader = Some(format!(
+                "{}-v{}",
+                grammar::READER_FORMAT,
+                grammar::READER_VERSION
+            ));
+        }
+        tx.execute(
+            "INSERT INTO metadata(key,value) VALUES ('image_capabilities',?1)",
+            [serde_json::to_string(&capabilities)?],
+        )?;
+        tx.pragma_update(None, "user_version", 3)?;
+        budget.check()?;
+    }
     let nodes = tx.query_row("SELECT count(*) FROM nodes", [], |r| r.get(0))?;
     let edges = tx.query_row("SELECT count(*) FROM edges", [], |r| r.get(0))?;
     tx.commit()?;
     db.execute_batch("ANALYZE; VACUUM;")?;
+    if let Some(budget) = &build_budget {
+        budget.check()?;
+    }
+    db.progress_handler(0, None::<fn() -> bool>);
     db.close().map_err(|(_, e)| e)?;
     temporary.flush()?;
     temporary.as_file().sync_all()?;
@@ -195,18 +347,72 @@ pub fn build_image(
         .map_err(|e| Error::Io(e.error))?;
     File::open(parent)?.sync_all()?;
     Ok(BuildReceipt {
-        schema: "oracle-image-v2",
+        schema: if options.is_some() {
+            "oracle-image-v3"
+        } else {
+            "oracle-image-v2"
+        },
         image_sha256,
         source_sha256,
         nodes,
         edges,
         bytes,
+        capabilities,
     })
+}
+
+fn image_capabilities(db: &Connection, schema: i64) -> Result<ImageCapabilities> {
+    let size: Option<i64> = db
+        .query_row(
+            "SELECT length(CAST(value AS BLOB)) FROM metadata WHERE key='image_capabilities'",
+            [],
+            |r| r.get(0),
+        )
+        .optional()?;
+    if schema == 2 {
+        if size.is_some() {
+            return Err(Error::Format(
+                "v2 image declares unsupported resources".into(),
+            ));
+        }
+        return Ok(ImageCapabilities::legacy());
+    }
+    if schema != 3 || !size.is_some_and(|n| (1..=4096).contains(&n)) {
+        return Err(Error::Format("image capabilities".into()));
+    }
+    let encoded: String = db.query_row(
+        "SELECT value FROM metadata WHERE key='image_capabilities'",
+        [],
+        |r| r.get(0),
+    )?;
+    let capabilities: ImageCapabilities = serde_json::from_str(&encoded)?;
+    if capabilities.version != 1 || capabilities.lexicon.as_deref() != Some(lexicon::VERSION) {
+        return Err(Error::Format("image lexical capability".into()));
+    }
+    lexicon::validate(db)?;
+    if let Some(reader) = &capabilities.reader {
+        if *reader != format!("{}-v{}", grammar::READER_FORMAT, grammar::READER_VERSION) {
+            return Err(Error::Format("image reader capability".into()));
+        }
+        grammar::read_policy(db)?;
+        lexicon::grammar_normalization(db)?;
+        for sql in [
+            "SELECT family,level,template,skeleton,support FROM reader_template LIMIT 0",
+            "SELECT level,template,roots,support FROM reader_shape LIMIT 0",
+            "SELECT phrase,kind,canonical FROM reader_alias LIMIT 0",
+            "SELECT category,word FROM reader_word LIMIT 0",
+            "SELECT opening,kinds FROM reader_form LIMIT 0",
+        ] {
+            db.prepare(sql)?;
+        }
+    }
+    Ok(capabilities)
 }
 
 pub struct Image {
     pub identity: String,
     pub limits: Limits,
+    pub capabilities: ImageCapabilities,
     connections: Mutex<Pool>,
     active: AtomicUsize,
 }
@@ -227,6 +433,7 @@ impl Image {
             return Err(Error::Format("image hash mismatch".into()));
         }
         let mut connections = Vec::new();
+        let mut capabilities = None;
         for _ in 0..limits.workers {
             let db = Connection::open_with_flags(
                 path,
@@ -234,16 +441,27 @@ impl Image {
             )?;
             let app: i64 = db.pragma_query_value(None, "application_id", |r| r.get(0))?;
             let version: i64 = db.pragma_query_value(None, "user_version", |r| r.get(0))?;
-            if app != APPLICATION_ID || version != 2 {
+            if app != APPLICATION_ID || !matches!(version, 2 | 3) {
                 return Err(Error::Format("image schema".into()));
             }
+            let worker_capabilities = image_capabilities(&db, version)?;
+            if capabilities
+                .as_ref()
+                .is_some_and(|previous| previous != &worker_capabilities)
+            {
+                return Err(Error::Format(
+                    "image capabilities changed during open".into(),
+                ));
+            }
+            capabilities = Some(worker_capabilities);
             db.busy_timeout(std::time::Duration::ZERO)?;
             // Main is opened SQLITE_OPEN_READ_ONLY. Private TEMP tables hold
             // explicitly metered shared subplans; no tenant data enters main.
             db.execute_batch("PRAGMA trusted_schema=OFF; PRAGMA temp_store=MEMORY;
                 CREATE TEMP TABLE oracle_sets(node INTEGER NOT NULL,id TEXT NOT NULL,PRIMARY KEY(node,id)) WITHOUT ROWID;
                 CREATE TEMP TABLE oracle_facts(node INTEGER NOT NULL,subject TEXT NOT NULL,predicate TEXT NOT NULL,direction TEXT NOT NULL,object TEXT NOT NULL,qualifiers TEXT NOT NULL,PRIMARY KEY(node,subject,predicate,direction,object,qualifiers)) WITHOUT ROWID;
-                CREATE INDEX temp.oracle_fact_object ON oracle_facts(node,object);")?;
+                CREATE INDEX temp.oracle_fact_object ON oracle_facts(node,object);
+                CREATE TEMP TABLE oracle_attributes(node INTEGER NOT NULL,subject TEXT NOT NULL,key TEXT NOT NULL,position INTEGER NOT NULL,value TEXT NOT NULL,qualifiers TEXT NOT NULL,PRIMARY KEY(node,subject,key,position)) WITHOUT ROWID;")?;
             db.pragma_update(None, "cache_size", -(limits.sqlite_cache_kib as i64))?;
             db.pragma_update(None, "mmap_size", limits.mmap_bytes as i64)?;
             db.set_prepared_statement_cache_capacity(16);
@@ -252,6 +470,7 @@ impl Image {
         Ok(Arc::new(Self {
             identity,
             limits,
+            capabilities: capabilities.expect("validated nonzero worker count"),
             connections: Mutex::new(Pool {
                 idle: connections,
                 active_tenants: BTreeSet::new(),
@@ -260,7 +479,7 @@ impl Image {
             active: AtomicUsize::new(0),
         }))
     }
-    pub(crate) fn acquire(self: &Arc<Self>, tenant: &str, budget: &Budget) -> Result<Lease> {
+    pub(crate) fn acquire(&self, tenant: &str, budget: &Budget) -> Result<Lease<'_>> {
         budget.check()?;
         let mut pool = lock(&self.connections)?;
         if pool.poisoned {
@@ -276,7 +495,7 @@ impl Image {
         let progress = budget.clone();
         db.progress_handler(1000, Some(move || progress.spend(1000).is_err()));
         Ok(Lease {
-            image: self.clone(),
+            image: self,
             db: Some(db),
             tenant: tenant.to_owned(),
         })
@@ -284,20 +503,53 @@ impl Image {
     pub fn active_workers(&self) -> usize {
         self.active.load(Ordering::Acquire)
     }
+
+    /// Pure complete-program query over the same evaluator and worker pool.
+    /// Parsing, compilation, SQL and encoding share one request budget. No
+    /// session or journal is touched, and Previous has an empty selection.
+    pub fn query_program(
+        &self,
+        tenant: &str,
+        program_json: &str,
+        cancellation: Cancellation,
+    ) -> Result<String> {
+        crate::runtime::identifier(tenant)?;
+        let limits = &self.limits;
+        let budget = Budget::new(limits, cancellation)?;
+        budget.spend(program_json.len() as u64 + 1)?;
+        let program = Program::parse(program_json, limits)?;
+        budget.check()?;
+        let plan = program.compile(limits)?;
+        budget.spend(plan.nodes.len() as u64 + 1)?;
+        let worker = self.acquire(tenant, &budget)?;
+        let outcome = evaluate(
+            &worker,
+            &self.identity,
+            &plan,
+            &Selection::default(),
+            limits,
+            &budget,
+        );
+        budget.check()?;
+        let (result, _) = outcome?;
+        let encoded = encode(&result, limits.result_bytes)?;
+        budget.check()?;
+        Ok(encoded)
+    }
 }
 
-pub(crate) struct Lease {
-    image: Arc<Image>,
+pub(crate) struct Lease<'a> {
+    image: &'a Image,
     db: Option<Connection>,
     tenant: String,
 }
-impl std::ops::Deref for Lease {
+impl std::ops::Deref for Lease<'_> {
     type Target = Connection;
     fn deref(&self) -> &Connection {
         self.db.as_ref().expect("live lease owns connection")
     }
 }
-impl Drop for Lease {
+impl Drop for Lease<'_> {
     fn drop(&mut self) {
         if let Some(db) = self.db.take() {
             db.progress_handler(0, None::<fn() -> bool>);
@@ -305,7 +557,7 @@ impl Drop for Lease {
             // private scratch for the next tenant, and cleanup failure poisons
             // the image rather than returning a questionable connection.
             let clean = db
-                .execute_batch("DELETE FROM temp.oracle_sets; DELETE FROM temp.oracle_facts;")
+                .execute_batch("DELETE FROM temp.oracle_sets; DELETE FROM temp.oracle_facts; DELETE FROM temp.oracle_attributes;")
                 .is_ok();
             // Returning capacity cannot fail because a brief concurrent checkout holds the lock.
             // Poison is recovered only here; future admissions still fail closed.

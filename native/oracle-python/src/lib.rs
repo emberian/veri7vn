@@ -1,5 +1,7 @@
 #![forbid(unsafe_code)]
 use oracle_runtime_core as core;
+mod kernel;
+mod release;
 use pyo3::exceptions::{PyRuntimeError, PyValueError};
 use pyo3::prelude::*;
 use std::path::PathBuf;
@@ -58,6 +60,10 @@ impl Runtime {
         .map_err(error)
     }
     #[getter]
+    fn identity(&self) -> &str {
+        self.0.identity()
+    }
+    #[getter]
     fn image_sha256(&self) -> &str {
         &self.0.image.identity
     }
@@ -66,6 +72,24 @@ impl Runtime {
         let image = image.0.clone();
         py.detach(move || core::Runtime::open(image, &state_path).map(|r| Self(Arc::new(r))))
             .map_err(error)
+    }
+    #[staticmethod]
+    fn from_release(
+        py: Python<'_>,
+        image: &Image,
+        state_path: PathBuf,
+        manifest_json: &str,
+        expected_identity: &str,
+        runtime_artifact_sha256: &str,
+    ) -> PyResult<Self> {
+        release::open(
+            py,
+            image,
+            state_path,
+            manifest_json,
+            expected_identity,
+            runtime_artifact_sha256,
+        )
     }
     /// Only the authenticated host should mint these scoped handles.
     fn tenant(&self, identity: String) -> Tenant {
@@ -100,6 +124,10 @@ impl Image {
             .map_err(error)
     }
     #[getter]
+    fn resource_profile_sha256(&self) -> PyResult<String> {
+        release::profile_sha256(self)
+    }
+    #[getter]
     fn sha256(&self) -> &str {
         &self.0.identity
     }
@@ -126,6 +154,51 @@ impl Tenant {
         let cancel = cancellation.0.clone();
         py.detach(|| self.runtime.query(&self.identity, plan_json, cancel))
             .map_err(error)
+    }
+    fn read_whole(
+        &self,
+        py: Python<'_>,
+        question: &str,
+        cancellation: &Cancellation,
+    ) -> PyResult<String> {
+        let cancel = cancellation.0.clone();
+        py.detach(|| self.runtime.read_whole(&self.identity, question, cancel))
+            .map_err(error)
+    }
+    fn query_program(
+        &self,
+        py: Python<'_>,
+        program_json: &str,
+        cancellation: &Cancellation,
+    ) -> PyResult<String> {
+        let cancel = cancellation.0.clone();
+        py.detach(|| {
+            self.runtime
+                .query_program(&self.identity, program_json, cancel)
+        })
+        .map_err(error)
+    }
+    fn execute_program(
+        &self,
+        py: Python<'_>,
+        session: &str,
+        request: &str,
+        expected_version: i64,
+        program_json: &str,
+        cancellation: &Cancellation,
+    ) -> PyResult<String> {
+        let cancel = cancellation.0.clone();
+        py.detach(|| {
+            self.runtime.execute_program(
+                &self.identity,
+                session,
+                request,
+                expected_version,
+                program_json,
+                cancel,
+            )
+        })
+        .map_err(error)
     }
     fn execute(
         &self,
@@ -166,14 +239,52 @@ fn build_image(
     .map_err(error)
 }
 
+/// Offline API. The optional JSON contains inert learned tables, never a pickle.
+#[pyfunction]
+#[pyo3(signature=(source,output,max_source_bytes,max_record_bytes,reader_json=None))]
+fn build_reader_image(
+    py: Python<'_>,
+    source: PathBuf,
+    output: PathBuf,
+    max_source_bytes: u64,
+    max_record_bytes: usize,
+    reader_json: Option<&str>,
+) -> PyResult<String> {
+    py.detach(|| {
+        let reader: Option<core::grammar::ReaderExport> =
+            reader_json.map(serde_json::from_str).transpose()?;
+        let options = core::ReaderBuildOptions {
+            reader: reader.as_ref(),
+            ..Default::default()
+        };
+        let receipt = core::build_image_with_reader(
+            &source,
+            &output,
+            max_source_bytes,
+            max_record_bytes,
+            options,
+        )?;
+        Ok(serde_json::to_string(&receipt)?)
+    })
+    .map_err(error)
+}
+#[pyfunction]
+fn operation_catalog() -> PyResult<String> {
+    serde_json::to_string(&core::operation_catalog())
+        .map_err(|e| PyRuntimeError::new_err(e.to_string()))
+}
+
 #[pymodule]
 fn oracle_native(py: Python<'_>, module: &Bound<'_, PyModule>) -> PyResult<()> {
+    kernel::register(module)?;
     module.add_class::<Runtime>()?;
     module.add_class::<Cancellation>()?;
     module.add_class::<Image>()?;
     module.add_class::<Tenant>()?;
-    module.add("API_VERSION", "0.1")?;
+    module.add("API_VERSION", "0.2")?;
     module.add_function(wrap_pyfunction!(build_image, module)?)?;
+    module.add_function(wrap_pyfunction!(build_reader_image, module)?)?;
+    module.add_function(wrap_pyfunction!(operation_catalog, module)?)?;
     module.add("BusyError", py.get_type::<BusyError>())?;
     module.add("ConflictError", py.get_type::<ConflictError>())?;
     module.add("BudgetError", py.get_type::<BudgetError>())?;

@@ -3,7 +3,7 @@ members = ["oracle-core", "oracle-python"]
 resolver = "2"
 
 [workspace.package]
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 license = "MIT"
 
@@ -14,6 +14,10 @@ rusqlite = { version = "0.37", features = ["bundled", "hooks"] }
 sha2 = "0.10"
 thiserror = "2"
 tempfile = "3"
+num-bigint = "0.4"
+num-rational = "0.4"
+num-traits = "0.2"
+nix = { version = "0.30", features = ["fs", "signal", "process"] }
 
 [profile.release]
 lto = "thin"

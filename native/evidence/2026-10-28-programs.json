@@ -1,0 +1,587 @@
+{
+  "schema": "oracle-native-gold-programs-v1",
+  "run_status": "complete",
+  "scope": "bounded gold structured programs; no learned reader or specialist-panel claim",
+  "comparison": "exact strings; no case-folding, tolerance, unit or date normalization",
+  "python": "3.12.7 (main, Jun 18 2025, 13:16:51) [GCC 14.2.0]",
+  "platform": "Linux-6.11.0-29-generic-x86_64-with-glibc2.40",
+  "input_sha256": {
+    "source": "04da7408320c5cb7023c44372cce32846d56d369d8865d2e61a18c3956661a7c",
+    "validation": "b4aed6ab3d7ad071722064fe3bb02bc028cfbeb15da5f7115d57a1e2d198f3bb",
+    "steps": "455fa3c7df1348914b37e15365670ff4130f99e15ee0625a88e5fe69a1e916e3"
+  },
+  "declared_source_revision": "c473d28",
+  "image_receipt": {
+    "schema": "oracle-image-v2",
+    "image_sha256": "6058c5ef6a2ef73c3d7bd94adc097c8655580d94e2f0f4572896f1d0546806aa",
+    "source_sha256": "04da7408320c5cb7023c44372cce32846d56d369d8865d2e61a18c3956661a7c",
+    "nodes": 17754,
+    "edges": 435900,
+    "bytes": 156901376,
+    "build_seconds": 50.861494056880474
+  },
+  "child_processes": [
+    {
+      "cases": 233,
+      "mode": "reference",
+      "provenance": {
+        "steps_sha256": "455fa3c7df1348914b37e15365670ff4130f99e15ee0625a88e5fe69a1e916e3"
+      }
+    },
+    {
+      "cases": 233,
+      "mode": "native",
+      "provenance": {
+        "extension_path": "/tank/lanes/o7-native-20261028/wheel-env/lib/python3.12/site-packages/oracle_native/oracle_native.abi3.so",
+        "extension_sha256": "568063bc6f43b677ade25915f04d0b059b9da22f8d25f7957cef07db1f5f2b79",
+        "import_module_path": "/tank/lanes/o7-native-20261028/wheel-env/lib/python3.12/site-packages/oracle_native/__init__.py"
+      }
+    }
+  ],
+  "limits_overrides": {
+    "workers": 2,
+    "timeout_ms": 10000
+  },
+  "sample": {
+    "seed": "oracle-kqa-programs-c473d28-v1",
+    "per_terminal_bound": 20,
+    "dataset_rows": 11797,
+    "population_by_terminal": {
+      "Count": 1318,
+      "QueryAttr": 1418,
+      "QueryAttrQualifier": 1214,
+      "QueryRelation": 1786,
+      "QueryRelationQualifier": 1004,
+      "SelectAmong": 548,
+      "SelectBetween": 1604,
+      "VerifyDate": 13,
+      "VerifyNum": 258,
+      "VerifyStr": 717,
+      "VerifyYear": 459,
+      "What": 1458
+    },
+    "selected": 233,
+    "selected_by_terminal": {
+      "Count": 20,
+      "QueryAttr": 20,
+      "QueryAttrQualifier": 20,
+      "QueryRelation": 20,
+      "QueryRelationQualifier": 20,
+      "SelectAmong": 20,
+      "SelectBetween": 20,
+      "VerifyDate": 13,
+      "VerifyNum": 20,
+      "VerifyStr": 20,
+      "VerifyYear": 20,
+      "What": 20
+    },
+    "cases_sha256": "76136954a4bef707f316418a18e0ab2563258af53a8d5c783b4b3f40358f4f8e"
+  },
+  "results": {
+    "reference": {
+      "counts": {
+        "correct": 232,
+        "wrong": 1,
+        "withheld": 0,
+        "unsupported": 0
+      },
+      "by_terminal": {
+        "Count": {
+          "correct": 20,
+          "wrong": 0,
+          "withheld": 0,
+          "unsupported": 0
+        },
+        "QueryAttr": {
+          "correct": 20,
+          "wrong": 0,
+          "withheld": 0,
+          "unsupported": 0
+        },
+        "QueryAttrQualifier": {
+          "correct": 20,
+          "wrong": 0,
+          "withheld": 0,
+          "unsupported": 0
+        },
+        "QueryRelation": {
+          "correct": 20,
+          "wrong": 0,
+          "withheld": 0,
+          "unsupported": 0
+        },
+        "QueryRelationQualifier": {
+          "correct": 20,
+          "wrong": 0,
+          "withheld": 0,
+          "unsupported": 0
+        },
+        "SelectAmong": {
+          "correct": 20,
+          "wrong": 0,
+          "withheld": 0,
+          "unsupported": 0
+        },
+        "SelectBetween": {
+          "correct": 20,
+          "wrong": 0,
+          "withheld": 0,
+          "unsupported": 0
+        },
+        "VerifyDate": {
+          "correct": 12,
+          "wrong": 1,
+          "withheld": 0,
+          "unsupported": 0
+        },
+        "VerifyNum": {
+          "correct": 20,
+          "wrong": 0,
+          "withheld": 0,
+          "unsupported": 0
+        },
+        "VerifyStr": {
+          "correct": 20,
+          "wrong": 0,
+          "withheld": 0,
+          "unsupported": 0
+        },
+        "VerifyYear": {
+          "correct": 20,
+          "wrong": 0,
+          "withheld": 0,
+          "unsupported": 0
+        },
+        "What": {
+          "correct": 20,
+          "wrong": 0,
+          "withheld": 0,
+          "unsupported": 0
+        }
+      },
+      "observed_statuses": {
+        "returned": 233
+      },
+      "execution_errors": 0,
+      "operation_coverage": {
+        "kind": "observed live instructions in evaluated gold programs; not Rust line/branch instrumentation",
+        "operations": {
+          "And": {
+            "programs_attempted": 56,
+            "programs_completed": 56,
+            "programs_matching_gold": 56
+          },
+          "Count": {
+            "programs_attempted": 20,
+            "programs_completed": 20,
+            "programs_matching_gold": 20
+          },
+          "FilterConcept": {
+            "programs_attempted": 137,
+            "programs_completed": 137,
+            "programs_matching_gold": 136
+          },
+          "FilterDate": {
+            "programs_attempted": 9,
+            "programs_completed": 9,
+            "programs_matching_gold": 9
+          },
+          "FilterNum": {
+            "programs_attempted": 27,
+            "programs_completed": 27,
+            "programs_matching_gold": 27
+          },
+          "FilterStr": {
+            "programs_attempted": 61,
+            "programs_completed": 61,
+            "programs_matching_gold": 61
+          },
+          "FilterYear": {
+            "programs_attempted": 8,
+            "programs_completed": 8,
+            "programs_matching_gold": 8
+          },
+          "Find": {
+            "programs_attempted": 162,
+            "programs_completed": 162,
+            "programs_matching_gold": 161
+          },
+          "FindAll": {
+            "programs_attempted": 75,
+            "programs_completed": 75,
+            "programs_matching_gold": 75
+          },
+          "Or": {
+            "programs_attempted": 6,
+            "programs_completed": 6,
+            "programs_matching_gold": 6
+          },
+          "QFilterDate": {
+            "programs_attempted": 2,
+            "programs_completed": 2,
+            "programs_matching_gold": 2
+          },
+          "QFilterNum": {
+            "programs_attempted": 4,
+            "programs_completed": 4,
+            "programs_matching_gold": 4
+          },
+          "QFilterStr": {
+            "programs_attempted": 8,
+            "programs_completed": 8,
+            "programs_matching_gold": 8
+          },
+          "QFilterYear": {
+            "programs_attempted": 3,
+            "programs_completed": 3,
+            "programs_matching_gold": 3
+          },
+          "QueryAttr": {
+            "programs_attempted": 87,
+            "programs_completed": 87,
+            "programs_matching_gold": 86
+          },
+          "QueryAttrQualifier": {
+            "programs_attempted": 20,
+            "programs_completed": 20,
+            "programs_matching_gold": 20
+          },
+          "QueryAttrUnderCondition": {
+            "programs_attempted": 6,
+            "programs_completed": 6,
+            "programs_matching_gold": 6
+          },
+          "QueryRelation": {
+            "programs_attempted": 20,
+            "programs_completed": 20,
+            "programs_matching_gold": 20
+          },
+          "QueryRelationQualifier": {
+            "programs_attempted": 20,
+            "programs_completed": 20,
+            "programs_matching_gold": 20
+          },
+          "Relate": {
+            "programs_attempted": 105,
+            "programs_completed": 105,
+            "programs_matching_gold": 104
+          },
+          "SelectAmong": {
+            "programs_attempted": 20,
+            "programs_completed": 20,
+            "programs_matching_gold": 20
+          },
+          "SelectBetween": {
+            "programs_attempted": 20,
+            "programs_completed": 20,
+            "programs_matching_gold": 20
+          },
+          "VerifyDate": {
+            "programs_attempted": 13,
+            "programs_completed": 13,
+            "programs_matching_gold": 12
+          },
+          "VerifyNum": {
+            "programs_attempted": 20,
+            "programs_completed": 20,
+            "programs_matching_gold": 20
+          },
+          "VerifyStr": {
+            "programs_attempted": 20,
+            "programs_completed": 20,
+            "programs_matching_gold": 20
+          },
+          "VerifyYear": {
+            "programs_attempted": 20,
+            "programs_completed": 20,
+            "programs_matching_gold": 20
+          },
+          "What": {
+            "programs_attempted": 20,
+            "programs_completed": 20,
+            "programs_matching_gold": 20
+          }
+        },
+        "unexercised_operations": [],
+        "operations_without_a_gold_correct_program": [],
+        "unseen_terminal_operations": [
+          "And",
+          "FilterConcept",
+          "FilterDate",
+          "FilterNum",
+          "FilterStr",
+          "FilterYear",
+          "Find",
+          "FindAll",
+          "Or",
+          "QFilterDate",
+          "QFilterNum",
+          "QFilterStr",
+          "QFilterYear",
+          "QueryAttrUnderCondition",
+          "Relate"
+        ]
+      }
+    },
+    "native": {
+      "counts": {
+        "correct": 225,
+        "wrong": 0,
+        "withheld": 8,
+        "unsupported": 0
+      },
+      "by_terminal": {
+        "Count": {
+          "correct": 20,
+          "wrong": 0,
+          "withheld": 0,
+          "unsupported": 0
+        },
+        "QueryAttr": {
+          "correct": 20,
+          "wrong": 0,
+          "withheld": 0,
+          "unsupported": 0
+        },
+        "QueryAttrQualifier": {
+          "correct": 20,
+          "wrong": 0,
+          "withheld": 0,
+          "unsupported": 0
+        },
+        "QueryRelation": {
+          "correct": 20,
+          "wrong": 0,
+          "withheld": 0,
+          "unsupported": 0
+        },
+        "QueryRelationQualifier": {
+          "correct": 20,
+          "wrong": 0,
+          "withheld": 0,
+          "unsupported": 0
+        },
+        "SelectAmong": {
+          "correct": 20,
+          "wrong": 0,
+          "withheld": 0,
+          "unsupported": 0
+        },
+        "SelectBetween": {
+          "correct": 20,
+          "wrong": 0,
+          "withheld": 0,
+          "unsupported": 0
+        },
+        "VerifyDate": {
+          "correct": 12,
+          "wrong": 0,
+          "withheld": 1,
+          "unsupported": 0
+        },
+        "VerifyNum": {
+          "correct": 13,
+          "wrong": 0,
+          "withheld": 7,
+          "unsupported": 0
+        },
+        "VerifyStr": {
+          "correct": 20,
+          "wrong": 0,
+          "withheld": 0,
+          "unsupported": 0
+        },
+        "VerifyYear": {
+          "correct": 20,
+          "wrong": 0,
+          "withheld": 0,
+          "unsupported": 0
+        },
+        "What": {
+          "correct": 20,
+          "wrong": 0,
+          "withheld": 0,
+          "unsupported": 0
+        }
+      },
+      "observed_statuses": {
+        "count": 20,
+        "incomparable": 8,
+        "unique": 140,
+        "verified": 65
+      },
+      "execution_errors": 0,
+      "operation_coverage": {
+        "kind": "observed live instructions in evaluated gold programs; not Rust line/branch instrumentation",
+        "operations": {
+          "And": {
+            "programs_attempted": 56,
+            "programs_completed": 56,
+            "programs_matching_gold": 53
+          },
+          "Count": {
+            "programs_attempted": 20,
+            "programs_completed": 20,
+            "programs_matching_gold": 20
+          },
+          "FilterConcept": {
+            "programs_attempted": 137,
+            "programs_completed": 137,
+            "programs_matching_gold": 132
+          },
+          "FilterDate": {
+            "programs_attempted": 9,
+            "programs_completed": 9,
+            "programs_matching_gold": 8
+          },
+          "FilterNum": {
+            "programs_attempted": 27,
+            "programs_completed": 27,
+            "programs_matching_gold": 26
+          },
+          "FilterStr": {
+            "programs_attempted": 61,
+            "programs_completed": 61,
+            "programs_matching_gold": 59
+          },
+          "FilterYear": {
+            "programs_attempted": 8,
+            "programs_completed": 8,
+            "programs_matching_gold": 8
+          },
+          "Find": {
+            "programs_attempted": 162,
+            "programs_completed": 162,
+            "programs_matching_gold": 157
+          },
+          "FindAll": {
+            "programs_attempted": 75,
+            "programs_completed": 75,
+            "programs_matching_gold": 72
+          },
+          "Or": {
+            "programs_attempted": 6,
+            "programs_completed": 6,
+            "programs_matching_gold": 6
+          },
+          "QFilterDate": {
+            "programs_attempted": 2,
+            "programs_completed": 2,
+            "programs_matching_gold": 2
+          },
+          "QFilterNum": {
+            "programs_attempted": 4,
+            "programs_completed": 4,
+            "programs_matching_gold": 4
+          },
+          "QFilterStr": {
+            "programs_attempted": 8,
+            "programs_completed": 8,
+            "programs_matching_gold": 8
+          },
+          "QFilterYear": {
+            "programs_attempted": 3,
+            "programs_completed": 3,
+            "programs_matching_gold": 3
+          },
+          "QueryAttr": {
+            "programs_attempted": 87,
+            "programs_completed": 87,
+            "programs_matching_gold": 79
+          },
+          "QueryAttrQualifier": {
+            "programs_attempted": 20,
+            "programs_completed": 20,
+            "programs_matching_gold": 20
+          },
+          "QueryAttrUnderCondition": {
+            "programs_attempted": 6,
+            "programs_completed": 6,
+            "programs_matching_gold": 6
+          },
+          "QueryRelation": {
+            "programs_attempted": 20,
+            "programs_completed": 20,
+            "programs_matching_gold": 20
+          },
+          "QueryRelationQualifier": {
+            "programs_attempted": 20,
+            "programs_completed": 20,
+            "programs_matching_gold": 20
+          },
+          "Relate": {
+            "programs_attempted": 105,
+            "programs_completed": 105,
+            "programs_matching_gold": 100
+          },
+          "SelectAmong": {
+            "programs_attempted": 20,
+            "programs_completed": 20,
+            "programs_matching_gold": 20
+          },
+          "SelectBetween": {
+            "programs_attempted": 20,
+            "programs_completed": 20,
+            "programs_matching_gold": 20
+          },
+          "VerifyDate": {
+            "programs_attempted": 13,
+            "programs_completed": 13,
+            "programs_matching_gold": 12
+          },
+          "VerifyNum": {
+            "programs_attempted": 20,
+            "programs_completed": 20,
+            "programs_matching_gold": 13
+          },
+          "VerifyStr": {
+            "programs_attempted": 20,
+            "programs_completed": 20,
+            "programs_matching_gold": 20
+          },
+          "VerifyYear": {
+            "programs_attempted": 20,
+            "programs_completed": 20,
+            "programs_matching_gold": 20
+          },
+          "What": {
+            "programs_attempted": 20,
+            "programs_completed": 20,
+            "programs_matching_gold": 20
+          }
+        },
+        "unexercised_operations": [],
+        "operations_without_a_gold_correct_program": [],
+        "unseen_terminal_operations": [
+          "And",
+          "FilterConcept",
+          "FilterDate",
+          "FilterNum",
+          "FilterStr",
+          "FilterYear",
+          "Find",
+          "FindAll",
+          "Or",
+          "QFilterDate",
+          "QFilterNum",
+          "QFilterStr",
+          "QFilterYear",
+          "QueryAttrUnderCondition",
+          "Relate"
+        ]
+      }
+    }
+  },
+  "source_native_comparison": {
+    "same_outcome_and_answer": 225,
+    "different_outcome_or_answer": 8
+  },
+  "retained_mismatches": 8,
+  "mismatch_limit": 30,
+  "artifacts": {
+    "cases": "cases.json",
+    "mismatches": "mismatches.json",
+    "reference": "reference-observations.json",
+    "native": "native-observations.json"
+  }
+}

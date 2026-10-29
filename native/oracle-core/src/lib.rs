@@ -2,15 +2,37 @@
 //! Image paths and tenant identities must come from an authenticated host.
 #![forbid(unsafe_code)]
 
+pub mod admission;
 mod budget;
+pub mod effects;
+pub mod grammar;
 mod image;
+pub mod kernel;
+pub mod lexicon;
+pub mod program;
 mod query;
+pub mod reader;
+pub mod release;
 mod runtime;
+pub mod session;
+pub mod value;
 
 pub use budget::{Budget, Cancellation, Limits};
-pub use image::{build_image, BuildReceipt, Image};
-pub use query::{Node, Plan, Projection, QueryResult};
-pub use runtime::{Execution, Runtime};
+pub use image::{
+    build_image, build_image_with_reader, BuildReceipt, Image, ImageCapabilities,
+    ReaderBuildOptions,
+};
+pub use kernel::{
+    KernelDescriptor, KernelExecutor, KernelFamily, KernelLimits, QuantitySpecialist,
+};
+pub use program::{
+    operation_catalog, Operation, OperationContract, Program, ProgramStep, ProgramType,
+};
+pub use query::{
+    AttributeFact, Node, Plan, Projection, QualifierCondition, QueryResult, SelectionOrder,
+    ValuePredicate,
+};
+pub use runtime::{Execution, HostEffects, RequestDialect, Runtime};
 
 pub type Result<T> = std::result::Result<T, Error>;
 

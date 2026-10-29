@@ -6,11 +6,18 @@ indexes, and persists a conversation's selection and exact replies together.
 A tenant handle holds an identity and a shared reference. It starts no process,
 loads no corpus, and owns no database connection.
 
-This first implementation covers relation and concept data access. It is not a
-replacement for Oracle's full language interpreter, learned readers, specialists
-or effectful tools, and is not installed in signed v7. The [migration
-tracker](../project/lanes/NATIVE-FOUNDATION-2026-10-28.md) names the remaining work.
-There are no new specialist-panel or theorem claims in this component.
+The callable library now includes the full pinned KQA program vocabulary,
+exact typed predicates and scalar answers, a whole-template language reader,
+release-bound restart/retry, and bounded resident transport for the extracted
+quantity/acoustics kernels. Rust hosts can commit authorized effect intents
+with a query and recover their outcomes through an outbox. Python is not called
+inside any of these native execution paths.
+
+This is not the complete Oracle Engine and is not installed in signed v7.
+Compositional language readers, the full route cascade and dialogue adapters,
+additional specialists and real effect executors remain. The [migration
+map](docs/MIGRATION.md) identifies those surfaces and the practical Python
+boundaries. There are no new specialist-panel or theorem claims.
 
 ## What runs
 
@@ -29,12 +36,25 @@ Publication uses a temporary file, fsync and a no-overwrite publish. A receipt
 binds source bytes, image bytes and schema version. Build-time memory is separate
 from serving memory: the current builder parses the whole source offline.
 
-Queries contain a validated acyclic graph of `find`, `all`, `previous`, `relate`,
-`filter_concept`, `and` and `or`. Projections return entities, names, a unique
-name, a count or typed attributes. The compiler turns the whole graph into
-parameterized SQL. Single-use chains can remain inside the query planner;
-shared subplans are explicitly materialized once in bounded worker scratch.
-They must not expand into exponential copies during SQL preparation.
+Queries contain validated acyclic graphs, with typed attribute and qualifier
+filters, relation/concept operations, exact selection and scalar projections.
+The separate `query_program` / `execute_program` APIs accept the upstream
+`function/dependencies/inputs` format. They compile the complete program once;
+no Python call occurs for each operation. The original bytes and explicit
+dialect bind durable retry identity.
+
+Single-use chains can remain inside SQLite's planner. Shared subplans are
+materialized once in bounded worker scratch; they must not expand exponentially
+during SQL preparation. Language execution checks every entity stage once,
+including unused branches, to preserve its empty-intermediate refusal rules.
+
+`build_reader_image` adds shared lexical and trained grammar indexes. Training
+runs offline through `tools/export_reader_tables.py`; the export must bind the
+exact KB digest. `Tenant.read_whole(question, cancellation)` performs indexed
+lexical lookup, whole-template matching, native program execution, answer-form
+guards and agreement under one worker lease and budget. Its result explicitly
+says `whole_templates_only`; fragments, analogy and clause composition are not
+silently treated as supported. Serving never learns or unpickles those tables.
 
 No client SQL is accepted. Ambiguous names remain multiple candidates; a unique
 name request reports ambiguity instead of picking the first. Returned coverage
@@ -129,6 +149,34 @@ protocols before old IDs can be reused. A tenant handle scopes cooperative
 callers; an in-process Python extension is not a sandbox for hostile Python.
 Do not expose the host Runtime or image paths directly to end users.
 
+## Release admission and effects
+
+`Runtime.from_release(image, state_path, manifest_json, expected_identity,
+runtime_artifact_sha256)` is the Python host constructor. The authenticated host
+supplies its trusted expected identity and measurement of protected code bytes.
+The factory checks the actual opened image, resource profile, required schemas
+and fixed native operation registry. It refuses external resources and kernel
+or effect claims. Those require their separate host admission paths. The
+manifest format and Rust equivalent are in [the migration map](docs/MIGRATION.md).
+
+`Runtime.from_image` remains useful for development; its identity covers data
+only. It cannot reuse history created under a full release identity. Session
+schema 2 explicitly distinguishes native selections from imported Oracle
+conversation state. Upgrading a schema-1 selection does not invent that state.
+
+Rust hosts use `execute_with_effects` / `execute_program_with_effects` and
+`HostEffects` for already-authorized intents. Reply, state and intents commit
+atomically; no external action runs within that transaction. The host claims
+work, executes its capability outside the store lock, and settles with a fenced
+receipt. An uncertain non-idempotent action is never automatically retried.
+The outbox is not a teaching, filesystem or network executor.
+
+`KernelExecutor` admits operator-supplied executable hashes once and supplies
+cheap tenant handles to a fixed resident process pool. The current audited
+protocols are acoustics and quantity modes. Cancellation owns the child process
+group and joins its I/O threads before releasing capacity. This transport does
+not replace the extracted SML implementations, dispatcher acceptance or proofs.
+
 ## Build and qualify
 
 From this directory:
@@ -154,7 +202,7 @@ worker capacity. Source data preparation is in another process; it cannot inflat
 the native process's memory measurement. These are data-access comparisons, not
 full Oracle or specialist-panel scores.
 
-The [retained Linux receipt](evidence/2026-10-28-linux.json) records its input and
+The earlier [retained Linux receipt](evidence/2026-10-28-linux.json) records its input and
 extension hashes. On that run, all 288 comparisons matched. Native post-use PSS
 was about 18 MiB versus 545 MiB for the reference KQA; startup was 0.17 versus
 2.93 seconds, including image hashing on the native side. Median query time was
@@ -163,6 +211,25 @@ in-memory lookup remains cheaper in Python, while indexed concept traversal
 and the memory footprint improve. These are observed fresh-process timings on
 a warm filesystem cache, not guaranteed service latency or full-Engine numbers.
 
-The [installed-wheel validation](evidence/2026-10-28-validation.json) records
+The earlier [installed-wheel validation](evidence/2026-10-28-validation.json) records
 14 passing Rust contract tests, six passing Python binding/recovery checks,
 Clippy with warnings denied, and the source and wheel digests.
+
+The [0.2 serving validation](evidence/2026-10-28-serving-validation.json)
+records 185 passing Rust checks (including one real resident-kernel protocol
+check), 17 Python checks, and Clippy with warnings denied. It binds the exact
+source and installed wheel; the retained image and corpora are outside Git.
+
+The [233-program sample](evidence/2026-10-28-programs.json) exercises every
+pinned KQA operation: 225 answers match gold, zero are wrong, and eight withhold
+on unit/date ambiguity. The [40-question whole-reader sample](evidence/2026-10-28-reader.json)
+answers 17 correctly, returns unknown for 23, and has zero wrong answers or
+execution errors. Its median is 2.4 ms and p95 23.4 ms; post-query PSS is about
+33.2 MiB. Adding 256 scoped handles adds 12 KiB PSS and no threads. This is a
+small fresh-process sample on warm filesystem caches, not a throughput or
+full-language-coverage claim. The other language readers remain explicit work.
+
+The same 40 questions previously hit a span-combination bound 25 times. Indexed
+template-prefix search removed those errors without raising the limit or hiding
+alternatives; the [before receipt](evidence/2026-10-28-reader-before-prefix.json)
+is retained alongside the final run.

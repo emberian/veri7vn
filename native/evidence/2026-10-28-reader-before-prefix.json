@@ -1,0 +1,393 @@
+{
+  "schema": "oracle-native-whole-reader-v1",
+  "run_status": "complete",
+  "scope": "bounded real questions through native whole templates; no full reader/Engine or specialist-panel claim",
+  "reference": {
+    "upstream_whole_reader": "not run; no upstream Reader/Engine constructed",
+    "comparison": "dataset gold exact strings; no case-folding, date/unit normalization or tolerance"
+  },
+  "python": "3.12.7 (main, Jun 18 2025, 13:16:51) [GCC 14.2.0]",
+  "platform": "Linux-6.11.0-29-generic-x86_64-with-glibc2.40",
+  "load_average": [
+    0.30126953125,
+    0.5947265625,
+    0.64892578125
+  ],
+  "validation_sha256": "b4aed6ab3d7ad071722064fe3bb02bc028cfbeb15da5f7115d57a1e2d198f3bb",
+  "image_receipt": {
+    "schema": "oracle-image-v3",
+    "image_sha256": "8fcb1db9a08e234179f66ea9e032d2633b38cdcb902f4c95d1ba2c2d49c842f4",
+    "source_sha256": "04da7408320c5cb7023c44372cce32846d56d369d8865d2e61a18c3956661a7c",
+    "nodes": 17754,
+    "edges": 435900,
+    "bytes": 260341760,
+    "capabilities": {
+      "version": 1,
+      "lexicon": "oracle-lexicon-v1",
+      "reader": "oracle-reader-tables-v1"
+    }
+  },
+  "native": {
+    "files": [
+      {
+        "path": "/tank/lanes/o7-native-20261028/wheel-env/lib/python3.12/site-packages/oracle_native/__init__.py",
+        "sha256": "b1705316ada28ad5d5a702caa5217c68c14b2bffdd637884d86131cf4852a09f"
+      },
+      {
+        "path": "/tank/lanes/o7-native-20261028/wheel-env/lib/python3.12/site-packages/oracle_native/oracle_native.abi3.so",
+        "sha256": "583799508f2aeaf3d2a6785cd2aed4ad9a6a9414f3214af26eae023ece5997df"
+      }
+    ],
+    "module": "oracle_native"
+  },
+  "limits_overrides": {
+    "workers": 2,
+    "timeout_ms": 1000,
+    "fuel": 10000000
+  },
+  "sample": {
+    "seed": "oracle-native-whole-reader-20261028-v1",
+    "bound": 40,
+    "selected": 40,
+    "dataset_rows": 11797,
+    "pool_rows": 11797,
+    "pool_by_terminal": {
+      "Count": 1318,
+      "QueryAttr": 1418,
+      "QueryAttrQualifier": 1214,
+      "QueryRelation": 1786,
+      "QueryRelationQualifier": 1004,
+      "SelectAmong": 548,
+      "SelectBetween": 1604,
+      "VerifyDate": 13,
+      "VerifyNum": 258,
+      "VerifyStr": 717,
+      "VerifyYear": 459,
+      "What": 1458
+    },
+    "selected_by_terminal": {
+      "Count": 3,
+      "QueryAttr": 5,
+      "QueryAttrQualifier": 8,
+      "QueryRelation": 8,
+      "QueryRelationQualifier": 2,
+      "SelectAmong": 2,
+      "SelectBetween": 2,
+      "VerifyNum": 1,
+      "VerifyStr": 1,
+      "VerifyYear": 2,
+      "What": 6
+    },
+    "cases_sha256": "9bc39b35968acbabddffe7a5964aa56fe4f6092025c5b4ae66b381c7fc7907b1",
+    "sampling_pool_sha256": "b4aed6ab3d7ad071722064fe3bb02bc028cfbeb15da5f7115d57a1e2d198f3bb"
+  },
+  "results": {
+    "counts": {
+      "answered_correct": 7,
+      "answered_wrong": 0,
+      "refused": 0,
+      "unknown": 8,
+      "errors": 25
+    },
+    "reason_counts": {
+      "answered": 7,
+      "execution_error": 25,
+      "no_template": 7,
+      "no_viable_reading": 1
+    },
+    "native_status_counts": {
+      "answered": 7,
+      "unknown": 8
+    },
+    "error_types": {
+      "BudgetError": 25
+    },
+    "by_gold_terminal": {
+      "Count": {
+        "answered_correct": 0,
+        "answered_wrong": 0,
+        "refused": 0,
+        "unknown": 1,
+        "errors": 2
+      },
+      "QueryAttr": {
+        "answered_correct": 1,
+        "answered_wrong": 0,
+        "refused": 0,
+        "unknown": 2,
+        "errors": 2
+      },
+      "QueryAttrQualifier": {
+        "answered_correct": 1,
+        "answered_wrong": 0,
+        "refused": 0,
+        "unknown": 1,
+        "errors": 6
+      },
+      "QueryRelation": {
+        "answered_correct": 3,
+        "answered_wrong": 0,
+        "refused": 0,
+        "unknown": 0,
+        "errors": 5
+      },
+      "QueryRelationQualifier": {
+        "answered_correct": 0,
+        "answered_wrong": 0,
+        "refused": 0,
+        "unknown": 0,
+        "errors": 2
+      },
+      "SelectAmong": {
+        "answered_correct": 0,
+        "answered_wrong": 0,
+        "refused": 0,
+        "unknown": 0,
+        "errors": 2
+      },
+      "SelectBetween": {
+        "answered_correct": 1,
+        "answered_wrong": 0,
+        "refused": 0,
+        "unknown": 0,
+        "errors": 1
+      },
+      "VerifyNum": {
+        "answered_correct": 0,
+        "answered_wrong": 0,
+        "refused": 0,
+        "unknown": 0,
+        "errors": 1
+      },
+      "VerifyStr": {
+        "answered_correct": 0,
+        "answered_wrong": 0,
+        "refused": 0,
+        "unknown": 0,
+        "errors": 1
+      },
+      "VerifyYear": {
+        "answered_correct": 1,
+        "answered_wrong": 0,
+        "refused": 0,
+        "unknown": 0,
+        "errors": 1
+      },
+      "What": {
+        "answered_correct": 0,
+        "answered_wrong": 0,
+        "refused": 0,
+        "unknown": 4,
+        "errors": 2
+      }
+    },
+    "refused_definition": "native refused and ambiguous statuses; native status counts remain separate"
+  },
+  "metrics": {
+    "scope": "one fresh native process; filesystem caches not evicted",
+    "native_import_seconds": 0.00040122680366039276,
+    "image_open_seconds": 0.15085390955209732,
+    "runtime_and_first_handle_seconds": 0.0654361005872488,
+    "import_to_ready_seconds": 0.21687827073037624,
+    "fresh_process_to_ready_seconds": 0.21881882660090923,
+    "first_query_seconds": 0.022329436615109444,
+    "fresh_process_to_first_query_completed_seconds": 0.24213331937789917,
+    "all_query_timings": {
+      "count": 40,
+      "p50_seconds": 0.004096611402928829,
+      "p95_seconds": 0.022329436615109444,
+      "max_seconds": 0.031242523342370987
+    },
+    "completed_query_timings": {
+      "count": 15,
+      "p50_seconds": 0.0030761640518903732,
+      "p95_seconds": 0.031242523342370987,
+      "max_seconds": 0.031242523342370987
+    },
+    "error_query_timings": {
+      "count": 25,
+      "p50_seconds": 0.004206761717796326,
+      "p95_seconds": 0.008582087233662605,
+      "max_seconds": 0.022329436615109444
+    },
+    "before_import_memory": {
+      "pss_kib": 12078,
+      "private_clean_kib": 92,
+      "private_dirty_kib": 8736,
+      "peak_rss_kib": 19148,
+      "rss_kib": 19148,
+      "threads": 1
+    },
+    "after_import_memory": {
+      "pss_kib": 12836,
+      "private_clean_kib": 732,
+      "private_dirty_kib": 8848,
+      "peak_rss_kib": 20028,
+      "rss_kib": 20028,
+      "threads": 1
+    },
+    "ready_memory": {
+      "pss_kib": 15444,
+      "private_clean_kib": 2760,
+      "private_dirty_kib": 9428,
+      "peak_rss_kib": 22584,
+      "rss_kib": 22584,
+      "threads": 1
+    },
+    "after_queries_memory": {
+      "pss_kib": 31316,
+      "private_clean_kib": 18068,
+      "private_dirty_kib": 9992,
+      "peak_rss_kib": 38328,
+      "rss_kib": 38328,
+      "threads": 1
+    },
+    "after_handles_memory": {
+      "pss_kib": 31336,
+      "private_clean_kib": 18068,
+      "private_dirty_kib": 10012,
+      "peak_rss_kib": 38520,
+      "rss_kib": 38520,
+      "threads": 1
+    },
+    "after_scope_reads_memory": {
+      "pss_kib": 31340,
+      "private_clean_kib": 18068,
+      "private_dirty_kib": 10016,
+      "peak_rss_kib": 38520,
+      "rss_kib": 38520,
+      "threads": 1
+    },
+    "tenant_memory_check": {
+      "handles": 256,
+      "configured_workers": 2,
+      "active_workers_after": 0,
+      "same_results_across_three_scopes": true,
+      "handle_creation_growth": {
+        "pss_kib": 20,
+        "rss_kib": 192,
+        "private_dirty_kib": 20,
+        "private_clean_kib": 0,
+        "threads": 0
+      },
+      "growth_metric": "pss_kib",
+      "handle_growth_bound_kib": 8192,
+      "within_handle_growth_bound": true,
+      "samples": [
+        {
+          "handles": 1,
+          "memory": {
+            "pss_kib": 31316,
+            "private_clean_kib": 18068,
+            "private_dirty_kib": 9992,
+            "peak_rss_kib": 38328,
+            "rss_kib": 38328,
+            "threads": 1
+          },
+          "active_workers": 0
+        },
+        {
+          "handles": 16,
+          "memory": {
+            "pss_kib": 31324,
+            "private_clean_kib": 18068,
+            "private_dirty_kib": 10000,
+            "peak_rss_kib": 38520,
+            "rss_kib": 38520,
+            "threads": 1
+          },
+          "active_workers": 0
+        },
+        {
+          "handles": 64,
+          "memory": {
+            "pss_kib": 31328,
+            "private_clean_kib": 18068,
+            "private_dirty_kib": 10004,
+            "peak_rss_kib": 38520,
+            "rss_kib": 38520,
+            "threads": 1
+          },
+          "active_workers": 0
+        },
+        {
+          "handles": 256,
+          "memory": {
+            "pss_kib": 31336,
+            "private_clean_kib": 18068,
+            "private_dirty_kib": 10012,
+            "peak_rss_kib": 38520,
+            "rss_kib": 38520,
+            "threads": 1
+          },
+          "active_workers": 0
+        }
+      ],
+      "extra_read_count": 3,
+      "extra_reads": [
+        {
+          "source_index": 4724,
+          "terminal": "VerifyNum",
+          "outcome": "errors",
+          "native_status": null,
+          "reason": "execution_error",
+          "answer": {
+            "text": null,
+            "truncated": false
+          },
+          "error_type": "BudgetError",
+          "error": {
+            "text": "resource limit: reader combinations",
+            "truncated": false
+          },
+          "seconds": 0.007472973316907883
+        },
+        {
+          "source_index": 4724,
+          "terminal": "VerifyNum",
+          "outcome": "errors",
+          "native_status": null,
+          "reason": "execution_error",
+          "answer": {
+            "text": null,
+            "truncated": false
+          },
+          "error_type": "BudgetError",
+          "error": {
+            "text": "resource limit: reader combinations",
+            "truncated": false
+          },
+          "seconds": 0.007421266287565231
+        },
+        {
+          "source_index": 4724,
+          "terminal": "VerifyNum",
+          "outcome": "errors",
+          "native_status": null,
+          "reason": "execution_error",
+          "answer": {
+            "text": null,
+            "truncated": false
+          },
+          "error_type": "BudgetError",
+          "error": {
+            "text": "resource limit: reader combinations",
+            "truncated": false
+          },
+          "seconds": 0.007345791906118393
+        }
+      ],
+      "passed": false
+    }
+  },
+  "native_process_wall_seconds": 0.5024618916213512,
+  "retained_mismatches": 20,
+  "mismatch_limit": 20,
+  "artifacts": {
+    "cases": "cases.json",
+    "observations": "native-observations.json",
+    "mismatches": "mismatches.json",
+    "process": "native-process.json",
+    "metrics": "native-process-metrics.json"
+  }
+}

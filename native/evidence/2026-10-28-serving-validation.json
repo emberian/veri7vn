@@ -1,0 +1,151 @@
+{
+  "date": "2026-10-28",
+  "platform": "hbox Linux x86_64, CPython 3.12.7, glibc 2.40",
+  "package_version": "0.2.0",
+  "source_digest_scheme": "sha256(sorted native-relative path + NUL + bytes + NUL), .rs/.py/.toml/Cargo.lock under native",
+  "source_sha256": "6a539f3cf7ac6544d7ce0d06093ab54df5d5e0df676d1c13bfac4031fafa13de",
+  "source_files": [
+    "Cargo.lock",
+    "Cargo.toml",
+    "oracle-core/Cargo.toml",
+    "oracle-core/src/admission.rs",
+    "oracle-core/src/bin/oracle-image.rs",
+    "oracle-core/src/budget.rs",
+    "oracle-core/src/effects.rs",
+    "oracle-core/src/grammar.rs",
+    "oracle-core/src/image.rs",
+    "oracle-core/src/kernel.rs",
+    "oracle-core/src/lexicon.rs",
+    "oracle-core/src/lib.rs",
+    "oracle-core/src/program.rs",
+    "oracle-core/src/query.rs",
+    "oracle-core/src/reader.rs",
+    "oracle-core/src/release.rs",
+    "oracle-core/src/runtime/host_effects.rs",
+    "oracle-core/src/runtime.rs",
+    "oracle-core/src/session.rs",
+    "oracle-core/src/value.rs",
+    "oracle-core/tests/admission_contract.rs",
+    "oracle-core/tests/effects_contract.rs",
+    "oracle-core/tests/grammar_contract.rs",
+    "oracle-core/tests/kernel_contract.rs",
+    "oracle-core/tests/lexicon_contract.rs",
+    "oracle-core/tests/predicate_contract.rs",
+    "oracle-core/tests/program_contract.rs",
+    "oracle-core/tests/reader_contract.rs",
+    "oracle-core/tests/release_contract.rs",
+    "oracle-core/tests/runtime_contract.rs",
+    "oracle-core/tests/runtime_effects_contract.rs",
+    "oracle-core/tests/runtime_release_contract.rs",
+    "oracle-core/tests/runtime_session_contract.rs",
+    "oracle-core/tests/session_contract.rs",
+    "oracle-core/tests/value_contract.rs",
+    "oracle-python/Cargo.toml",
+    "oracle-python/src/kernel.rs",
+    "oracle-python/src/lib.rs",
+    "oracle-python/src/release.rs",
+    "pyproject.toml",
+    "tests/qualify.py",
+    "tests/qualify_programs.py",
+    "tests/qualify_reader.py",
+    "tests/test_python_contract.py",
+    "tests/test_python_program.py",
+    "tests/test_python_release.py",
+    "tools/export_reader_tables.py"
+  ],
+  "wheel_filename": "oracle_native_runtime-0.2.0-cp312-abi3-linux_x86_64.whl",
+  "wheel_sha256": "07efd3ed6bc0900b6182d0466d041e6385536c67137b2702eb00041e6bdc4408",
+  "checks": [
+    {
+      "log": "serving-final-tests.log",
+      "passed": 180,
+      "failed": 0,
+      "ignored": 1,
+      "sha256": "9ccb6f07085b373bdb1b91ada22c4dff0235227ac1717398b3ce7f9dcef308cc"
+    },
+    {
+      "log": "serving-language-tests.log",
+      "passed": 4,
+      "failed": 0,
+      "ignored": 0,
+      "sha256": "8efaacafca40f7d886325115e4723d0bbdd4cc0cf5b26b256412274ac6495613"
+    },
+    {
+      "log": "serving-real-kernel.log",
+      "passed": 1,
+      "failed": 0,
+      "ignored": 0,
+      "sha256": "69759ae00689a08a9d2f4d94ce27be7dcd82571188be9c7d9c70d67409c8dbaa"
+    },
+    {
+      "log": "serving-python-release.log",
+      "passed": 7,
+      "failed": 0,
+      "sha256": "241cc9082c83d984731b53f41545cad3c6b096bfe0c9fb86a478828ea495fcbc"
+    },
+    {
+      "log": "serving-python-program.log",
+      "passed": 4,
+      "failed": 0,
+      "sha256": "b6a161abed43b9a0dba9259cd451b39b20b10425ac13cc14786554c0e6fac7f1"
+    },
+    {
+      "log": "serving-python-contract.log",
+      "passed": 6,
+      "failed": 0,
+      "sha256": "3e6077f79830f81112039d9f48b4cdfd836402692dddce5ab4eaffdebdd41486"
+    }
+  ],
+  "clippy": {
+    "command": "cargo clippy --locked --workspace --all-targets -- -D warnings",
+    "exit_code": 0
+  },
+  "build": {
+    "command": "maturin build --locked --release --compatibility linux",
+    "exit_code": 0
+  },
+  "real_kernel": {
+    "artifact_sha256": "1b8e6cfe9c4fdd4884b9acd5b2a0273291f7e2c79b5e4eb2e36a4e7f0529596d",
+    "scope": "One resident-protocol test against retained Linux quantity binary, not current specialist panels"
+  },
+  "program_counts": {
+    "reference": {
+      "correct": 232,
+      "wrong": 1,
+      "withheld": 0,
+      "unsupported": 0
+    },
+    "native": {
+      "correct": 225,
+      "wrong": 0,
+      "withheld": 8,
+      "unsupported": 0
+    }
+  },
+  "reader_counts": {
+    "answered_correct": 17,
+    "answered_wrong": 0,
+    "refused": 0,
+    "unknown": 23,
+    "errors": 0
+  },
+  "prefix_search_comparison": {
+    "same_image": true,
+    "same_cases_sha256": "9bc39b35968acbabddffe7a5964aa56fe4f6092025c5b4ae66b381c7fc7907b1",
+    "before": {
+      "answered_correct": 7,
+      "answered_wrong": 0,
+      "refused": 0,
+      "unknown": 8,
+      "errors": 25
+    },
+    "after": {
+      "answered_correct": 17,
+      "answered_wrong": 0,
+      "refused": 0,
+      "unknown": 23,
+      "errors": 0
+    }
+  },
+  "limits": "Bounded structured-program and whole-template questions, state/retry/release/effect contracts, native process transport. No full Engine, specialist-panel, manylinux, signed appliance, Mini deployment, or formal-proof claim."
+}
