@@ -1,0 +1,141 @@
+{
+  "schema": "oracle-resident-mst-validation-v1",
+  "date": "2026-10-29",
+  "scope": "Resident v2 supplied connected-graph checker and actual Rust-candidate consumer. Unchanged existing extracted theorem statements; no specialist-panel claim.",
+  "checker": {
+    "path": "/tank/lanes/o7-native-20261028/expanded-runtime-20261029/mst-certificate",
+    "sha256": "fcd7b7629616bb4ec54b770c66aba33f3312acb99923b8b94ba724d8b1dfee4f",
+    "compiled_receipt_path": "/tank/lanes/o7-native-20261028/var/discrete-certificate/native-attempts/20261029T064220Z-3c10d3b80228/compile-inputs.json",
+    "compiled_receipt_sha256": "4d5d3b1359c9de4d7f833f11c296252b3db1a59c9720c8b545983dfb8c7d0e32",
+    "managed_proof_path": "/tank/lanes/o7-native-20261028/var/discrete-certificate/remote-attempts/20261029T044413Z-2905ad2f7e96/receipt.json",
+    "managed_proof_sha256": "d162433694989dbe3eef17f9d0ef30afaf402a2393af4b9ac7e7f67adde8b6ee",
+    "generated_export": "Veri7vn_Discrete_Certificate.Mst_Certificate_Export/code/mst_certificate.ML",
+    "generated_sha256": "2e4837f4e651f885ef984e906fd00e3a4866c9742f30eadcdbbeb073a4a65b50",
+    "source_sha256": {
+      "src/extract/discrete-certificate/main.sml": "1ad4c5d0465b8858f20b730c593124ebffa87bb641d6fd750bfcb0c81f6149a9"
+    },
+    "compile_ok": true,
+    "compiler_exit": 0,
+    "proof_marker": "VERI7VN_DISCRETE_CERTIFICATE PASS theorems=4 oracles=0",
+    "proof_unchanged": true
+  },
+  "checks": {
+    "rust_mock_contracts_passed": 13,
+    "rust_actual_mst_contract_passed": 1,
+    "python_actual_cases_passed": 16,
+    "python_skips": 0,
+    "actual_rust_candidate_composition": true,
+    "receipt_scope_on_acceptance": true,
+    "one_request_benchmark": {
+      "schema": "resident-mst-benchmark-v1",
+      "iterations": 1,
+      "elapsed_seconds": 0.004234585911035538,
+      "p50_us": 4231.21452331543,
+      "p95_us": 4231.21452331543,
+      "observed_checker_pids": [
+        1224317
+      ],
+      "checker_processes_observed": 1,
+      "scope": "actual Rust candidates + independent forest check + resident predicate; no panel result",
+      "admission": {
+        "compiled_receipt_sha256": "4d5d3b1359c9de4d7f833f11c296252b3db1a59c9720c8b545983dfb8c7d0e32",
+        "executable_bytes": 331184,
+        "executable_sha256": "fcd7b7629616bb4ec54b770c66aba33f3312acb99923b8b94ba724d8b1dfee4f",
+        "family": "mst_certificate",
+        "id": "mst"
+      }
+    },
+    "thousand_request_benchmark": {
+      "schema": "resident-mst-benchmark-v1",
+      "iterations": 1000,
+      "elapsed_seconds": 2.1708683632314205,
+      "p50_us": 2122.8641271591187,
+      "p95_us": 2278.760075569153,
+      "observed_checker_pids": [
+        1224322
+      ],
+      "checker_processes_observed": 1,
+      "scope": "actual Rust candidates + independent forest check + resident predicate; no panel result",
+      "admission": {
+        "compiled_receipt_sha256": "4d5d3b1359c9de4d7f833f11c296252b3db1a59c9720c8b545983dfb8c7d0e32",
+        "executable_bytes": 331184,
+        "executable_sha256": "fcd7b7629616bb4ec54b770c66aba33f3312acb99923b8b94ba724d8b1dfee4f",
+        "family": "mst_certificate",
+        "id": "mst"
+      }
+    }
+  },
+  "independent_process_trace": {
+    "method": "strace -f -e trace=process around a fresh1000-iteration benchmark; one warmup plus1000 measured requests. Thread clone events distinguished from process creation. Traced timings are not performance estimates.",
+    "trace_path": "var/expanded-runtime-20261029/remote-logs/mst-process.trace",
+    "trace_sha256": "376ce68ee4df974f7d35ae6a1da340427a7432fa0c57f0cecc2bd283b7b46f45",
+    "checker_pid": 1224630,
+    "successful_execs_observed": 2,
+    "exec_entries": [
+      "1224563 execve(\"/tank/lanes/o7-native-20261028/wheel-env/bin/python\", [\"/tank/lanes/o7-native-20261028/w\"..., \"-B\", \"src/extract/discrete-certificate\"..., \"--checker\", \"/tank/lanes/o7-native-20261028/e\"..., \"--compiled-receipt\", \"/tank/lanes/o7-native-20261028/v\"..., \"--compiled-receipt-sha256\", \"4d5d3b1359c9de4d7f833f11c296252b\"..., \"--iterations\", \"1000\"], 0x7ffd93d1e028 /* 26 vars */) = 0",
+      "1224630 execve(\"/tmp/oracle-kernel-GwBwkI\", [\"/tmp/oracle-kernel-GwBwkI\"], 0x1be45b30 /* 0 vars */ <unfinished ...>"
+    ],
+    "nonthread_spawn_entries": [
+      "1224563 clone3({flags=CLONE_VM|CLONE_VFORK|CLONE_CLEAR_SIGHAND, exit_signal=SIGCHLD, stack=0x710158751000, stack_size=0x9000}, 88 <unfinished ...>"
+    ],
+    "additional_checker_execs_per_request": 0,
+    "benchmark": {
+      "schema": "resident-mst-benchmark-v1",
+      "iterations": 1000,
+      "elapsed_seconds": 2.2740802578628063,
+      "p50_us": 2144.9606865644455,
+      "p95_us": 2427.799627184868,
+      "observed_checker_pids": [
+        1224630
+      ],
+      "checker_processes_observed": 1,
+      "scope": "actual Rust candidates + independent forest check + resident predicate; no panel result",
+      "admission": {
+        "compiled_receipt_sha256": "4d5d3b1359c9de4d7f833f11c296252b3db1a59c9720c8b545983dfb8c7d0e32",
+        "executable_bytes": 331184,
+        "executable_sha256": "fcd7b7629616bb4ec54b770c66aba33f3312acb99923b8b94ba724d8b1dfee4f",
+        "family": "mst_certificate",
+        "id": "mst"
+      }
+    }
+  },
+  "theorem_statements": [
+    "external_mst_cert vs es t implies spans t es and connects t vs",
+    "external_mst_cert vs es t and spans t_prime es imply wt t <= wt t_prime"
+  ],
+  "boundaries": [
+    "Full declared supplied universe must equal edge-derived nodes and contain at least two vertices; empty/singleton/disconnected/isolated cases unsupported.",
+    "Rust forest results retain their independent checking and do not inherit connected HOL scope.",
+    "HOL scope requires operator-admitted compiled receipt; binary hashes alone provide no proof scope.",
+    "Compiler, SML driver parsing, JSON/framing and deployment remain explicit trust boundaries.",
+    "Single sequential supplied-graph batch does not establish throughput/fairness or general workload latency."
+  ],
+  "initial_extension": {
+    "path": "/tank/lanes/o7-native-20261028/binding-expanded-runtime-20261029/oracle_native.so",
+    "sha256": "bf8cd8e713cec88e88942b861e16ddfc2579fd54fc035a23ef422255c50fca5b",
+    "features": [
+      "reasoning",
+      "science",
+      "incremental",
+      "bio",
+      "statistics"
+    ],
+    "scope": "Only resident consumer qualified by this receipt; this initial combined artifact has a separately retained segment-reader regression."
+  },
+  "extension": {
+    "path": "/tank/lanes/o7-native-20261028/stable-host-20261029/binding/oracle_native.so",
+    "sha256": "f875fc2e217cbe5b7b4de196d546b717a105b28e9767b49905570f1893ae2a37",
+    "features": [
+      "reasoning",
+      "science",
+      "incremental",
+      "bio",
+      "statistics"
+    ],
+    "tested_index_tree": "1909f489dde610b76dacecae0aecb4a54c2bf2d2",
+    "actual_python_cases_passed": 16,
+    "actual_python_skipped": 0,
+    "reader": "committed6cc reader; experimental expansion excluded"
+  },
+  "benchmark_artifact": "The recorded1/1000/strace batches used initial_extension; final stable artifact reran16 actual resident cases and1 real Rust resident case. Kernel/producer/driver sources are unchanged between these artifacts."
+}

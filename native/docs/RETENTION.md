@@ -143,10 +143,21 @@ by retirement.
 
 ## Evidence boundary
 
-`runtime_retention_contract.rs` authors manufactured-store contracts for restart,
-already-open runtimes, request IDs across sessions, cancellation and atomic
-failure, completed and unresolved effects, global capacity recovery, historical
-store migration, prepared old writers, WAL snapshots, immutable tombstones,
-operator capacity and release gates. Central validation owns their execution
-receipt. These are handwritten Rust/SQL contracts, with no new theorem claim or
-specialist-panel score. No retirement was performed on real user data.
+The [stable appliance validation receipt](../evidence/2026-10-29-stable-appliance-validation.json)
+qualifies code commit `77731632484d0c7129362dca150eb5310cb70233` and actual
+extension SHA-256
+`f875fc2e217cbe5b7b4de196d546b717a105b28e9767b49905570f1893ae2a37`.
+All 10 Rust retention contracts and five actual-extension Python retention
+contracts passed, alongside the affected runtime, session, effect and release
+contracts in the central scoped run.
+
+The retention cases use manufactured stores for restart, already-open runtimes,
+request IDs across sessions, cancellation and atomic failure, completed and
+unresolved effects, global capacity recovery, historical store migration,
+prepared old writers, WAL snapshots, immutable tombstones, operator capacity
+and release gates. They qualify this bounded host API; no retirement was
+performed on real user data. These are handwritten Rust/SQL contracts, with no
+new theorem claim or specialist-panel score. The compatibility limits above
+remain: store schemas 1/2 migrate to 3 with unchanged reply bytes, digests and
+session envelope 2; the new operator limit/profile requires admission and does
+not migrate release-bound history.

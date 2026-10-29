@@ -157,6 +157,22 @@ ORACLE_NATIVE_TEST_EXTENSION=/operator/oracle_native.so \
   python3 -B -m unittest discover -s tests/appliance -p test_native_runtime_service.py
 ```
 
-No specialist-panel numbers or new theorem statements are claimed by this host
-integration. Actual validation results belong in the lane report and checkpoint
-receipt after these tests run against the admitted artifact.
+The [final stable appliance receipt](../evidence/2026-10-29-stable-appliance-validation.json)
+records all 11 actual hosted contracts passing (six direct runtime and five
+process/service/HTTP) against extension SHA-256
+`f875fc2e217cbe5b7b4de196d546b717a105b28e9767b49905570f1893ae2a37`, from qualified
+code commit `77731632484d0c7129362dca150eb5310cb70233`. Fourteen unit/fixture
+contracts had already passed for the same Python closure. The final run uses
+the frozen stable snapshot, independently of experimental reader working files.
+
+The cancellation case commits an initial graph turn, then holds a second real
+HTTP invocation at a test-only gate before worker exchange. Shutdown produces
+HTTP 503 cancelled with uncertainty/exact-retry metadata and reaps the child;
+a fresh service/server replays the earlier committed reply and selection. It
+does not test interruption during evaluation/commit or rollback of a completed
+commit. A separate controlled loss-after-successful-commit injection verifies
+exact retry when the committed response disappears.
+
+These tests use manufactured data. They do not qualify a real user store, full
+Oracle KB or full upstream Engine through HTTP. No specialist-panel numbers or
+new theorem statements are claimed by this host integration.

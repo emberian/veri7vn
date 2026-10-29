@@ -1,167 +1,137 @@
 # Hosted durable native runtime
 
-Owner: Sol durable runtime host lane. Consumer: the standalone appliance service,
-then an authenticated outer host. No specialist-panel numbers or new theorem
-statements. The Python boundary is untrusted; the Rust runtime implements the
-bounded query, session and exact-reply journal contracts.
+Owner: Sol durable runtime host lane. Consumer: the standalone appliance service
+and its relocated distribution, then an authenticated outer host. There are no
+new specialist-panel scores or theorem statements. The Python boundary is
+untrusted; the native runtime implements the bounded query, session and exact
+reply journal contracts.
 
-Current status: central reports all 25 runtime/service contracts passing
-(14 unit/fixture plus 11 actual-extension/process/HTTP), all 20 existing pool
-contracts passing, and six domain plus eight package contracts passing with no
-skips. The adapter import-identity repair and both fresh path-order cases pass;
-no Rust rebuild was needed for that Python-only repair. No remaining hosted or
-package issue was reported. No new panel scores or theorem statements.
+## Final qualified checkpoint
 
-## Contract before implementation
+The [stable appliance validation](../../native/evidence/2026-10-29-stable-appliance-validation.json)
+records the frozen index tree `1909f489dde610b76dacecae0aecb4a54c2bf2d2`, qualified
+code commit `77731632484d0c7129362dca150eb5310cb70233`, and final extension SHA-256
+`f875fc2e217cbe5b7b4de196d546b717a105b28e9767b49905570f1893ae2a37`.
+Central built and tested that immutable snapshot on hbox. Its hosted tests passed
+all 11 actual-extension contracts: six direct runtime contracts and five actual
+process/service/HTTP contracts. These are stable-artifact results, separate from
+the earlier expanded-reader working-tree tests.
+
+The same Python closure had already passed 14 unit/fixture contracts, including
+fresh subprocesses with both component-first and appliance-first import orders.
+Earlier central checks also passed 20 existing process-pool contracts and the
+six domain/eight package contracts. Those earlier counts do not stand in for the
+final artifact run; its exact commands, selected results and log hashes are in
+the linked receipt. No tests or builds were executed by this lane.
+
+## Changed files and consumer
+
+- `tools/appliance/native_runtime.py`: operator-fixed RuntimeProfile and the worker-resident Image/Runtime bridge.
+- `tools/appliance/native_pool.py`, `native_worker.py`, `native_service.py`: resource-aware worker reuse, private host context, startup admission and HTTP registration.
+- `tools/oracle_components/native_runtime_adapter.py`: six fixed operation declarations, bounded metadata and exact native reply transport.
+- `tests/appliance/test_native_runtime.py`, `test_native_runtime_service.py`: manufactured data, admission/replay/authority contracts and actual HTTP/process journeys.
+- `native/docs/RUNTIME-HOST.md`, `native/docs/STANDALONE.md`: operator launch, retry and qualification contracts.
+- This report: ownership, contract and evidence.
+
+The distribution lane updated its explicit Python closure to include the adapter
+under its distinct basename. There is no conflicting component `native_runtime.py`
+or compatibility stub. NativePool's flat native_runtime import selects the host
+helper even when an embedding puts the component directory first. The qualified
+adapter import is `oracle_components.native_runtime_adapter`. The regression
+checks module and class identity through NativePool and NativeService in fresh
+processes. This import repair required no Rust rebuild.
+
+## Serving contract
 
 The operator fixes the extension digest, image path and digest, persistent state
 path, release declaration and expected identity, core limits and per-file write
 limit. None comes from an invocation. Startup opens the actual `Image` and
-`Runtime.from_release` before discovery advertises its supported operations.
-A worker retains one image/runtime and creates cheap tenant handles as needed.
-The global process pool bounds workers across tenants and profiles. Its affinity
-includes all runtime resources, not merely the extension digest. Two workers
-may reopen the same journal and read-only image; their SQLite caches are bounded
-separately and the OS may share image pages. This is not one Engine/data copy
-per tenant, nor a claim that every worker shares one Python/Rust heap.
+`Runtime.from_release` before discovery advertises supported operations. Native
+release admission owns canonical identity checks. Exact `manifest_json` text is
+supported for arbitrary-precision release metadata; float-bearing manifest
+objects are rejected with instructions to use that text form.
 
-The six fixed operations are graph.query/execute, kqa.query/execute and
+Each runtime worker retains one image/runtime and creates cheap tenant handles
+as needed. One global process cap covers all profiles and tenants. Runtime
+profile calls, including pure fixed-image reads, require worker affinity to the
+full operator resource identity: state path, image, release and resource bounds.
+The identity never hashes mutable journal contents. Supplied-argument providers
+can reuse a runtime-bound child of the same artifact. Two workers may reopen the
+same journal and read-only image; SQLite caches are bounded separately, and the
+OS may share image pages. No Engine or dataset is constructed per tenant.
+
+The six tenant operations are graph.query/execute, kqa.query/execute and
 reader.whole/execute, subject to actual release admission. Graph/program input
-is an exact JSON string so whitespace and key order retain the core's byte-level
-retry identity. Language input is an exact question string. Stateful arguments
-require expected_version explicitly. The outer envelope supplies request and
-conversation IDs; host routing supplies tenant. Domain-separated hashes map
-outer IDs into the core's stricter ASCII identifier space without truncation.
-No nested session, request, tenant, resource, module or authority selector exists.
+is an exact JSON string, preserving the core's byte-level retry identity.
+Language input is an exact question string. Stateful arguments require
+expected_version explicitly. The outer envelope supplies request/conversation
+IDs and host routing supplies tenant. Domain-separated hashes map outer IDs into
+the core's stricter identifier space without truncation. Arguments cannot select
+tenant, session, request, release, resources, modules or authority.
+
+Private worker frames carry host context separately from operation arguments.
+Operator configuration is copied into a private read-only pool snapshot file;
+worker readiness verifies its resource identity. Public receipts expose hashes,
+not operator paths or release configuration. Runtime result bounds must satisfy
+`2 * result_bytes + 16384 <= reply_bytes` before spawning, so every admitted
+native reply fits escaped JSON framing and bounded host metadata.
 
 A stateful operation commits selection and reply atomically. A refused language
-turn advances the version and preserves prior selection. Its response retains
-both the new version and complete semantic reply, as authoritative exact native JSON bytes. The host extracts only bounded
-status/image/coverage metadata and the checked version. Arbitrary-precision
-numeric tokens never become decoded binary-float answers. The same request, input bytes, version, session and release replay the
-same core reply after worker death or host restart. Changed input or a changed
+turn advances its version and preserves prior selection. The adapter retains
+that committed version and complete semantic reply as authoritative exact
+core_reply_json. It extracts only bounded image/coverage/status/reason metadata
+and a checked version; arbitrary-precision native numbers never become decoded
+binary-float answers. Tests include source values
+0.123456789012345678901234567890 and 1e1000.
+
+The same tenant, request, input bytes, expected version, session and release
+replay the same core reply after worker death or host restart. Changed input or
 release/data identity conflicts and requires explicit migration. Pure query IDs
-remain correlation labels. There are no external effects.
+remain correlation labels. HTTP wrapper and process metadata need not be
+byte-identical. There are no external effects.
 
-Cancellation/deadline terminates and reaps the owned worker. A completed commit
-can race with response loss: report state_may_have_changed and instruct an exact
-retry, never invent rollback. Retiring a worker never removes persistent state.
-A runtime child permits bounded file writes for its journal; the pure-only
-worker retains its zero-write RLIMIT_FSIZE. A per-file cap is not a total journal
-or filesystem quota. Core session/journal entry and state limits also apply.
+## What the actual tests establish
 
-The existing loopback header is host routing metadata, not authentication.
-This work does not claim a public gateway, full Oracle Engine, signed Mini
-qualification, binary attestation of Python/dependencies, or full language
-coverage. Resource identity receipts contain hashes, never operator paths.
+The 11 final-artifact hosted contracts exercise all six entrypoints on a
+manufactured two-entity KB and inert learned reader table. They cover release
+admission, exact decimal/large-exponent reply transport, versioned selection and
+semantic refusal, changed-input/release conflicts, tenant separation, bounded
+worker reuse, same-artifact/different-journal affinity, CLI discovery and restart.
+They do not qualify a real user store, full Oracle KB or full upstream Engine
+through HTTP.
 
-## Integration paths
+The HTTP cancellation test first commits an initial graph turn. A test-only gate
+then holds a second real HTTP invocation **before worker exchange**. Production
+shutdown controls produce HTTP 503 cancelled with uncertain-state/exact-retry
+metadata and reap the owned child. A fresh service/server retrieves the earlier
+committed reply and selection. This does not establish interruption during
+native evaluation or SQLite commit, or rollback of a completed commit.
 
-New lane-owned modules: tools/appliance/native_runtime.py,
-tools/oracle_components/native_runtime_adapter.py; new tests/appliance/test_native_runtime.py
-and test_native_runtime_service.py; native/docs/RUNTIME-HOST.md.
+A separate controlled response-loss injection lets a native turn commit
+successfully, then drops its response at the parent transport boundary. Worker
+retirement and exact retry retrieve that committed core reply. That test covers
+successful commit followed by lost response, independently of the pre-exchange
+shutdown cancellation case. No production caller-controlled fault flag exists.
 
-After checkpoint 6cc653b, root transferred the pool/worker/service paths. The
-implemented integration adds:
-operator-only optional runtime configuration, resource-aware affinity, host
-context in the private worker frame, runtime startup factory, journal write
-limit and adapter registration. Central tests are still pending; no successful hosted journey is claimed yet.
-Python AST parsing of seven changed source files passed; git diff --check passed.
-No lane builds or tests were run. Exact manifest_json is supported for numeric
-release metadata; float-bearing manifest objects are rejected. Runtime replies
-carry only exact core_reply_json plus bounded adapter metadata, and startup
-rejects result-byte bounds that cannot fit escaped transport frames.
+## Boundaries
 
-## Implemented wiring awaiting central execution
+Trusted in-process NativePool callers can supply individual per-call Events.
+The standalone HTTP service uses its shutdown Event and wall deadlines; there
+is no individual remote cancellation endpoint. Cancellation/deadline failures
+retire and reap owned workers, but a completed commit may race with response
+loss. The host reports uncertainty and requires exact retry rather than claiming
+rollback.
 
-Changed paths are the six new files above plus tools/appliance/native_pool.py,
-native_worker.py, native_service.py and native/docs/STANDALONE.md (transferred
-by root after the initial wiring). Existing typed bio/statistics refusal
-contracts are preserved; runtime conflicts/budget/busy failures have their own
-exact declared exception routing and remain conservatively retiring failures.
+Worker retirement removes only pool-owned snapshots, never the operator's
+persistent journal. Runtime children permit bounded per-file writes for that
+journal; pure-only children retain zero-write RLIMIT_FSIZE. This is not a total
+filesystem quota. Core state, session, journal-entry and retired-namespace bounds
+also apply. [Host-only namespace retirement](../../native/docs/RETENTION.md) is a
+separate explicit maintenance action. Its admitted admin operations never enter
+tenant HTTP discovery or dispatch.
 
-The pool snapshots operator configuration as a private read-only file, carries
-host IDs in a separate private frame field and verifies resource identity at
-worker readiness. Native release admission remains authoritative, including
-exact manifest_json declarations. Runtime result bounds must satisfy
-`2 * result_bytes + 16384 <= reply_bytes` before spawning. Supplied-argument providers can reuse a runtime-bound child of the same
-artifact. Every runtime-profile call, including pure fixed-image reads,
-additionally requires the exact resource identity. Retirement deletes only pool-owned snapshots.
-
-Tests authored: profile/configuration and numeric-token boundaries; all six real
-entrypoints; fixed release admission; semantic refusal and selection; exact
-retry/restart and changed release; fake-service host-ID/authority contracts;
-actual lost-response-after-commit injection; two-worker/many-tenant reuse;
-same-artifact/different-journal affinity; cancellation retirement; actual CLI
-HTTP discovery/language/previous/refusal/restart. The decimal fixture includes
-0.123456789012345678901234567890 and 1e1000 source values. Complete native replies
-remain raw text, so neither can become a rounded or infinite decoded answer.
-
-Central validator was notified at source freeze. No build, test or specialist
-panel execution was performed by this lane; current exact execution results
-remain pending. No new theorem statements.
-
-Retention compatibility: the core-limit allowlist includes retired_namespaces
-(default 65536). After native admission, catalog/dispatch select only the six
-fixed tenant operations; host.retention.retire/inspect stay private Runtime admin
-methods even when the operator's release admits them. A unit regression checks
-this exclusion. The runtime tests now contain ten unit contracts plus six
-actual-extension contracts; the service tests contain three fixture contracts
-plus five actual process/service/CLI contracts. All seven Python sources parse;
-whitespace checks pass. Central execution remains pending at this report update.
-
-Root static reviewer reported no actionable issue in host authority, resource
-affinity, exact reply preservation or replay routing. That was source review,
-not an execution result. Host retirement documentation links from RUNTIME-HOST.
-
-## Central validation in progress
-
-Central integrator reports all 13 new profile/adapter/service unit and fixture
-contracts passing locally, and all 20 existing real-process pool tests passing.
-The 11 actual-extension runtime/process/HTTP contracts await the newly rebuilt
-combined core. These results are separate from checkpoint 6cc653b; this lane did
-not execute tests or builds. No specialist-panel numbers or theorem statements.
-
-Cancellation scope: trusted in-process NativePool callers can supply individual
-per-call Events. The standalone HTTP service currently passes its shutdown Event
-and applies wall deadlines. It has no individual HTTP cancellation endpoint.
-This distinction is explicit in RUNTIME-HOST.md; current actual cancellation
-coverage targets the trusted pool API, while the CLI test covers the HTTP
-language/refusal/previous/restart journey. Root was notified of the optional
-remote cancellation extension before any further source change.
-
-Root approved one narrow test delta before actual execution: the actual pool-only
-cancellation test is replaced by HTTP shutdown-cancellation composition. A real
-loopback HTTP invoke reaches a test-gated worker exchange, host shutdown controls
-trigger cancellation, HTTP reports uncertain state/exact retry and the owned PID
-is reaped. A fresh service/server then retrieves the earlier exact reply and
-selection from the persistent journal. This adds no production cancel endpoint
-or caller-controlled fault flag. Source refrozen and central integrator notified;
-13 unit/fixture and 11 actual-extension contracts remain the count.
-
-
-## Import identity repair after central hosted checks
-
-Central reports all 11 actual runtime/process/HTTP contracts passed. A mixed
-domain-test process then exposed a real embedding collision: component-first
-sys.path selected the component adapter when native_pool requested the flat
-native_runtime host helper. Reordering that fixture unblocked execution but did
-not remove the ambiguity. The adapter is now native_runtime_adapter.py, imported
-through oracle_components.native_runtime_adapter. The appliance helper and its
-fixed worker loader retain native_runtime.py. No duplicate basename or fallback
-stub remains. Distribution owns the corresponding explicit payload-closure
-rename. A fresh-subprocess contract checks both component-first and
-appliance-first import orders, including object identity through native_pool and
-native_service. This Python-only delta needs scoped central validation; no Rust
-rebuild is required.
-
-
-Final import-repair validation: central ran runtime17 plus service8, all passing
-(14 unit/fixture and 11 actual); domain6 and package8 also pass with zero skips
-and the original component-first test preamble. The fresh subprocess regression
-passes both path orders. Central removed exactly its own stale remote copied
-old adapter before final tests; the local renamed source already had no old
-file. Consumer: NativePool/NativeService embedded imports and the relocated
-standalone distribution. Module/class/operation/config contracts are unchanged;
-only the component module basename and its qualified imports/payload entry
-changed. No Rust build or test execution by this lane.
+The existing loopback header is routing metadata, not authentication. This work
+does not claim an authenticated public gateway, full dialogue/teaching/effect
+execution, signed Mini qualification, unrestricted language coverage or binary
+attestation of Python and dependencies. The wider routing/dialogue/effect/Mini
+work remains outside this qualified hosted surface.

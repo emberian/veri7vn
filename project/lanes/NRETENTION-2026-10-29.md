@@ -2,7 +2,7 @@
 
 ## Result and consumer
 
-Authored a host maintenance API that permanently closes a namespace and reclaims
+Implemented a host maintenance API that permanently closes a namespace and reclaims
 its local session, exact-reply and completed-effect payloads. Active namespaces
 keep exact retries indefinitely within their admitted capacity. There is no TTL,
 silent ID eviction, tenant-facing retirement operation or full automatic
@@ -59,18 +59,32 @@ logical SQLite capacity can be reused, but this does not promise smaller files,
 secure erasure, backup purge or a total disk quota.
 
 Schema-1 and schema-2 stores upgrade transactionally to schema 3 without rewriting
-old request digests/replies/sessions/effects. The session envelope stays version2.
+old request digests/replies/sessions/effects. The session envelope stays version 2.
 The new setting participates in the measured resource profile; a newly measured
 binary/profile still needs release admission, and existing release identities
 are not silently rebound. No release migration is implemented here.
 
 ## Checks and outstanding work
 
-`rustfmt --edition 2021 --config skip_children=true` completed successfully on
-the changed Rust files. No build or test ran in this lane, per root's central
-validator rule. Authored tests are not an execution receipt. Root must run the
-scoped retention contract, affected existing runtime/release/effect contracts
-and the actual extension consumer checks against its central artifact.
+The central validator qualified code commit `77731632484d0c7129362dca150eb5310cb70233`
+against its frozen 140-source closure. The [stable appliance validation receipt](../../native/evidence/2026-10-29-stable-appliance-validation.json)
+records extension SHA-256
+`f875fc2e217cbe5b7b4de196d546b717a105b28e9767b49905570f1893ae2a37`.
+
+All 10 `runtime_retention_contract` tests passed. All five Python retention
+contracts passed against that actual extension with
+`python -B native/tests/test_python_retention.py --extension ARTIFACT`.
+The affected runtime, session, effect and release contracts also passed in the
+115-test scoped Rust run. The broader receipt records one additional actual
+resident-kernel test and 54 selected Python checks; those totals cover the
+combined appliance, not extra retention cases. Warnings-denied Clippy and the
+release build passed. No build or test was run independently in this lane.
+
+These results qualify the manufactured-store/API boundary described above.
+They do not qualify real user data, an authenticated maintenance service or the
+complete Oracle Engine. State-store schemas 1/2 upgrade to 3 while preserving
+old reply bytes, request digests and session envelope 2. The added operator
+limit/profile still requires admission; there is no release-history migration.
 
 Host lane coordinated public metadata filtering and its operator core-limit
 allowlist. Remaining service lifecycle work includes an authenticated operator

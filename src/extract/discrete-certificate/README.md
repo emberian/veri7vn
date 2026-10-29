@@ -11,9 +11,12 @@ singletons, isolated vertices and disconnected graphs return `unsupported` from
 this interface. Their Rust forest result remains useful. There is no extracted
 forest theorem here.
 
-No new specialist panel numbers are available. This is a checking consumer,
-not a specialist answerer. The authoring lane ran no builds or tests; the central
-integrator must record qualification results for these changed sources.
+Central Linux qualification passed: 13 normal core transport contracts, one
+actual Rust resident MST contract, and all 16 actual Python cases with zero
+skips. The actual Rust candidate consumer and receipt-admitted acceptance were
+exercised. [The retained evidence](../../../native/evidence/2026-10-29-resident-mst.json)
+binds the source, checker, receipts and final stable extension. No new specialist
+panel numbers are available; this is a checking consumer, not a specialist answerer.
 
 ## Build and use
 
@@ -193,8 +196,8 @@ been weakened. `.thy` and `ROOT` were not changed for residency.
 
 ## Focused qualification and zero-per-request-fork measurement
 
-Central qualification should run core `kernel_contract` tests and the actual
-extension tests with the reasoning feature, then the ignored
+To reproduce central qualification, run core `kernel_contract` tests and the
+actual extension tests with the reasoning feature, then explicitly invoke the ignored
 `real_mst_resident_protocol` core test with `ORACLE_TEST_MST_BIN`,
 `ORACLE_TEST_MST_SHA256` and optional `ORACLE_TEST_MST_COMPILED_RECEIPT` plus
 `ORACLE_TEST_MST_COMPILED_RECEIPT_SHA256`. Python uses `MST_CERTIFICATE_BIN`,
@@ -219,4 +222,14 @@ strace -f -e trace=process -o var/discrete-certificate/resident-process.trace \
 Inspect the trace for one checker exec and no additional process forks/execs
 as the request count increases; distinguish the host's three I/O thread clones
 from process creation. Compare one request with 1000 using the same warmed
-artifacts. This is a recipe; no timing or fork-count result is claimed yet.
+artifacts.
+
+The central 1000-request batch took 2.171 seconds, p50 2.123 ms and p95 2.279 ms.
+A separate 1000-request Linux trace recorded one checker exec/PID and zero
+additional process creation per request, distinguishing thread clones. These
+benchmarks used the earlier combined extension `bf8cd8e713ce…`; the final stable
+extension `f875fc2e217c…` reran all 16 actual Python cases and the real Rust case.
+The kernel, producer and driver sources are unchanged between those artifacts.
+Full digests and the trace binding are in the retained evidence. Traced timings
+are not performance estimates. These small sequential supplied-graph batches do
+not establish general latency, throughput or fairness.

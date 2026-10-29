@@ -132,3 +132,10 @@ resource settings and the exact extension digest.
 Durable runtime qualification uses manufactured tiny KB/reader images and the
 actual extension through direct and CLI HTTP calls. See the [runtime host contract](RUNTIME-HOST.md#qualification)
 for cancellation, lost-response replay, tenant/resource separation and restart checks.
+
+The [stable appliance receipt](../evidence/2026-10-29-stable-appliance-validation.json)
+qualifies exact commit `7773163`, including the operator-bound durable runtime,
+relocated package and resident checker. Actual hosted journeys use a manufactured
+KB. The committed reader stays unchanged; experimental reader expansion and
+later providers are separate work. [Retirement](RETENTION.md) describes the
+state-store upgrade, permanent fences and release-identity compatibility limits.

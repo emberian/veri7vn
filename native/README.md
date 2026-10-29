@@ -9,7 +9,11 @@ remaining hosted boundaries are explicit.
 
 The [standalone native service](docs/STANDALONE.md) exposes these computations
 through discovery and direct HTTP calls, sharing bounded workers across tenants.
-It runs and tests without any minidregg dependency or public Oracle dataset.
+It runs and tests without any minidregg dependency or public Oracle dataset. An
+optional [durable runtime profile](docs/RUNTIME-HOST.md) admits an operator image
+and release, then serves structured queries and atomic language turns. The
+[distribution builder](docs/DISTRIBUTION.md) produces a relocatable Python/native
+bundle; images, journals and private configuration stay external.
 
 This is the Rust and PyO3 foundation for the next Oracle appliance. It builds a
 release's knowledge base once, executes structured query plans over shared
@@ -20,7 +24,7 @@ loads no corpus, and owns no database connection.
 The callable library now includes the full pinned KQA program vocabulary,
 exact typed predicates and scalar answers, learned whole/fragment/outer language
 reading and durable language turns, release-bound restart/retry, and bounded resident transport for the extracted
-quantity/acoustics kernels. Rust hosts can commit authorized effect intents
+quantity/acoustics kernels and the resident connected-MST checker. Rust hosts can commit authorized effect intents
 with a query and recover their outcomes through an outbox. Python is not called
 inside any of these native execution paths.
 
@@ -174,8 +178,9 @@ The SQLite cache setting is not a hard process-memory ceiling.
 
 The journal never evicts request IDs silently. Persistent storage is bounded by
 configured entry counts and value sizes, with SQLite overhead and WAL added;
-the host must provision a disk quota. Retention and migration require explicit
-protocols before old IDs can be reused. A tenant handle scopes cooperative
+the host must provision a disk quota. [Host namespace retirement](docs/RETENTION.md)
+can reclaim retained payloads while permanent, bounded tombstones prevent a
+retired namespace from reopening. A tenant handle scopes cooperative
 callers; an in-process Python extension is not a sandbox for hostile Python.
 Do not expose the host Runtime or image paths directly to end users.
 
@@ -303,3 +308,19 @@ benefit less than the 59 without one. The earlier overloaded run is retained.
 These are bounded workload measurements, without a throughput or universal
 latency claim. Optional cache retention and output scratch have separate bounded
 estimates; neither is a hard RSS ceiling.
+
+The [stable appliance checkpoint](evidence/2026-10-29-stable-appliance-validation.json)
+qualifies commit `7773163` from an immutable staged-index snapshot: 115 scoped
+Rust contracts, one actual resident-checker contract, warnings-denied Clippy and
+54 selected Python checks pass on the final artifact. Hosted and relocated
+package journeys use manufactured data; the previously qualified reader stays
+unchanged in this cut. Experimental segment/nested work remains separate.
+
+State-store schemas 1/2 upgrade transactionally to 3 without rewriting old reply
+bytes or request identities; session envelopes stay version 2. The new retirement
+limit affects the measured resource profile, and releases still require explicit
+admission. No release-history migration is inferred. Shutdown cancellation was
+checked with a real HTTP call gated before worker exchange: it returns 503 with
+uncertainty, reaps the child, and restart replays the earlier committed reply.
+A separate lost-response-after-commit test checks exact retry after a successful
+commit. Full routing, dialogue, external effects and signed Mini integration remain.

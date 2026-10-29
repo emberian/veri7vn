@@ -1,0 +1,121 @@
+{
+  "schema": "oracle-stable-appliance-validation-v1",
+  "date": "2026-10-29",
+  "source_manifest": "2026-10-29-stable-appliance-sources.json",
+  "tested_index_tree": "1909f489dde610b76dacecae0aecb4a54c2bf2d2",
+  "scope": "Frozen staged host+retention+resident+distribution mix with unchanged committed reader, separate from working-tree reader/graph/refusal work. These are final stable-artifact results, not earlier expanded-reader tests.",
+  "artifact": {
+    "path": "/tank/lanes/o7-native-20261028/stable-host-20261029/binding/oracle_native.so",
+    "sha256": "f875fc2e217cbe5b7b4de196d546b717a105b28e9767b49905570f1893ae2a37",
+    "features": [
+      "reasoning",
+      "science",
+      "incremental",
+      "bio",
+      "statistics"
+    ],
+    "API_VERSION": "0.2"
+  },
+  "build": {
+    "host": "hbox",
+    "CARGO_BUILD_JOBS": 2,
+    "CARGO_TARGET_DIR": "/tank/lanes/o7-native-20261028/target",
+    "source": "immutable checkout-index snapshot; no live working source",
+    "release_build": "passed"
+  },
+  "results": {
+    "rust_scoped": 115,
+    "rust_actual_resident": 1,
+    "python_selected": 54,
+    "warnings_denied_clippy": "passed",
+    "reasoning_only_check": "passed"
+  },
+  "commands": [
+    {
+      "command": "cargo test --locked --no-fail-fast -p oracle-runtime-core --test composition_contract --test reader_contract --test lexicon_workspace_contract --test runtime_contract --test runtime_session_contract --test runtime_effects_contract --test runtime_release_contract --test runtime_language_contract --test runtime_retention_contract --test release_contract --test effects_contract --test kernel_contract",
+      "exit_code": 0,
+      "passed": 115,
+      "initially_ignored": 2
+    },
+    {
+      "command": "cargo test --locked -p oracle-runtime-core --test kernel_contract real_mst_resident_protocol -- --ignored",
+      "exit_code": 0,
+      "passed": 1,
+      "remaining_ignored": "real quantity artifact case not rerun"
+    },
+    {
+      "command": "cargo clippy --locked -p oracle-runtime-core -p oracle-runtime-python --features reasoning,science,incremental,bio,statistics --all-targets -- -D warnings",
+      "exit_code": 0
+    },
+    {
+      "command": "cargo check --locked -p oracle-runtime-python --features reasoning",
+      "exit_code": 0,
+      "scope": "reasoning-only kernel imports compile; no additional single-feature runtime claim"
+    },
+    {
+      "command": "python -B -m unittest test_python_language test_python_release test_python_domains",
+      "exit_code": 0,
+      "passed": 17
+    },
+    {
+      "command": "python -B native/tests/test_python_retention.py --extension ARTIFACT",
+      "exit_code": 0,
+      "passed": 5
+    },
+    {
+      "command": "python -B -m unittest test_native_runtime.ActualRuntimeContracts test_native_runtime_service.ActualRuntimeServiceJourney",
+      "exit_code": 0,
+      "passed": 11
+    },
+    {
+      "command": "python -B -m unittest test_native_service.ActualNativeStandaloneJourney test_native_domain_service.ActualDomainStandaloneJourney test_package_native.ActualPackagedJourney",
+      "exit_code": 0,
+      "passed": 5
+    },
+    {
+      "command": "python -B src/extract/discrete-certificate/test_certificate.py -v",
+      "exit_code": 0,
+      "passed": 16,
+      "skipped": 0
+    }
+  ],
+  "hosted_scope": "Actual tiny-KB release admission, all six public entrypoints, exact decimal/large-exponent JSON, reply/selection/refusal versions, conflict/tenant isolation, response-loss retry, resource-affinity, bounded workers, CLI discovery and restart. No real user store or full Oracle Engine/KB HTTP qualification.",
+  "cancellation_scope": "After an initial graph turn commits, a test-only gate holds a second real HTTP invocation before worker exchange. Production shutdown controls produce503 cancelled/uncertainty/exact-retry, reap the child, then a new HTTP server replays the earlier exact reply and selection. A separate response-loss-after-commit injection verifies exact retry after a successful commit with lost response.",
+  "retention_boundary": "State-store schemas1/2 migrate transactionally to3; session envelope remains2. Request digests/replies remain unchanged. retired_namespaces participates in measured limits, so existing release identities are not silently rebound. Permanent namespace tombstones fence old prepared writers; pending/leased/uncertain effects refuse retirement. Host-only methods, finite configured tombstone budget; no TTL, automatic eviction, secure erasure or backup purge.",
+  "resident_evidence": "2026-10-29-resident-mst.json",
+  "distribution": {
+    "archive_path": "/Users/ember/dev/o7vn/var/expanded-runtime-20261029/native-appliance-linux-x86_64.tar.gz",
+    "archive_sha256": "fc40d81124c9e797579981d7ddc509bc671a7c06279a05ee1822f7409d38302b",
+    "remote_directory": "/tank/lanes/o7-native-20261028/stable-host-20261029/dist/native-appliance",
+    "manifest_sha256": "5fa945d820c1b4cb7f8ff347ee0e460d44a0b6f6f79ba5ab4498ac0ca0f441f2",
+    "extension_sha256": "f875fc2e217cbe5b7b4de196d546b717a105b28e9767b49905570f1893ae2a37",
+    "profiles_requested": [
+      "reasoning",
+      "science",
+      "incremental",
+      "bio",
+      "statistics",
+      "runtime"
+    ],
+    "manufacture_does_not_self_qualify": true,
+    "qualification": "Selected actual relocated package journey passed against this artifact and frozen closure, independently of manufacture metadata. Interpreter/platform/system libraries remain operator requirements; images/journals/credentials stay external."
+  },
+  "logs_sha256": {
+    "var/expanded-runtime-20261029/stable-remote/real-mst-core.log": "4a358527e471807091af179da3d033f29d1da7e0c213dc792a3adbdfd13c93ad",
+    "var/expanded-runtime-20261029/stable-remote/python-retention.log": "c7bda652e5d33c59422b19bbc4a6fdf0f099ecdd6b6a9a561893f4f6156b93fa",
+    "var/expanded-runtime-20261029/stable-remote/clippy.log": "5c4a0b852defa441ce8ba4b71696a6c9baef42ed9d0e37fbe2564a2eac05e647",
+    "var/expanded-runtime-20261029/stable-remote/python-bindings.log": "dbe758c0c680006d7470814f86ecd9d4edba4c186dac4407b7f7ffa5e00295fc",
+    "var/expanded-runtime-20261029/stable-remote/runtime-actual.log": "760820d2880994d06f402136c3eca8abf07a27bab2b60681be31dbdbaf1bdd90",
+    "var/expanded-runtime-20261029/stable-remote/release-build.log": "b1e07935be1f4e3e10eb61737e265e402f57245e4ffe7d92b8146c779a311fbd",
+    "var/expanded-runtime-20261029/stable-remote/host-package-actual.log": "59294e55ff50a8fef008e010ddb71ff54a7be3868097579638f4600c402edbb4",
+    "var/expanded-runtime-20261029/stable-remote/resident-actual.log": "277699faac0a5c977941f7b7e6c66a5e24a8c8b69892486d8dee8f58073b9844",
+    "var/expanded-runtime-20261029/stable-remote/core-contracts.log": "114afbfa31f26a08e74942ba9c1d758208a3e0f43d2285ea2c9a10dceec4f3d4",
+    "var/expanded-runtime-20261029/stable-python.log": "ec0506636d864b7fba9d876d411535a666aa05d79b11825cfaadba95b6c27201",
+    "var/expanded-runtime-20261029/stable-before-source-sync-completed.log": "6584354bd2e77390b11d159065c5d633cb5ddcc15536a51aa0b3c6a4dc4c5f48",
+    "var/expanded-runtime-20261029/stable-native.log": "b4e5e46156b66cfc491ac397718cc7fbc3c8248073a694ba296a5ad2062a53ed",
+    "var/expanded-runtime-20261029/stable-reasoning-feature-check.log": "6b4b5fc803d333259302a8cb99268fc9cabc8d5aca232d6dc26625e3f274e782"
+  },
+  "retained_unqualified_reader": "var/expanded-runtime-20261029/reader100/report.json contains33correct/3composition-binding-errors; debug probes and raw segment-diagnostics.json retained. These experimental reader files are absent from the tested stable snapshot.",
+  "remaining": "No new specialist-panel or Isabelle theorem claims for hosting/retention/package. Existing connected MST theorems retain their supplied-graph premises. Full routing/dialogue/effects/Mini and experimental reader/nextbatch providers remain work.",
+  "qualified_code_commit": "77731632484d0c7129362dca150eb5310cb70233"
+}

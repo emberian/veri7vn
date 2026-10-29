@@ -185,5 +185,19 @@ The actual case requires reasoning, science, incremental, bio, statistics and
 runtime support. The inert-extension cases never import their manufactured
 binary. Integrity verification alone is not native export qualification. These
 are distribution/runtime fixtures, with no specialist-panel score or new formal
-theorem claim. Actual command results belong in the lane report and central
-checkpoint receipt.
+theorem claim.
+
+The [29 October stable qualification receipt](../evidence/2026-10-29-stable-appliance-validation.json)
+records a passing actual relocated package journey on hbox for code commit
+`77731632484d0c7129362dca150eb5310cb70233`, extension SHA-256
+`f875fc2e217cbe5b7b4de196d546b717a105b28e9767b49905570f1893ae2a37` and observed
+`API_VERSION` `0.2`. That journey exercised discovery, alignment, regression,
+supplied MST, graph query and exact durable reader retry after service restart.
+The [lane report](../../project/lanes/NDIST-2026-10-29.md) records the seven
+manufactured checks and retained archive details. The archive is
+`var/expanded-runtime-20261029/native-appliance-linux-x86_64.tar.gz`; its digest,
+payload manifest digest and remote directory are in the receipt. Manufacture
+metadata does not qualify itself: this separate result applies to the exact
+tested frozen closure and artifact. Receiving-host interpreter, platform and
+system-library requirements still apply, and images, journals and credentials
+remain external.

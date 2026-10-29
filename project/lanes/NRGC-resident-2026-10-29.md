@@ -1,10 +1,10 @@
 # NRGC — resident extracted graph certificate checker
 
 Author: Codex lane `resident_graph_checker`, 29 October 2026.
-Status: implementation authored; central qualification remains. No specialist
-panel numbers, build result, test result or performance number is claimed.
-Root owns integration, builds and commits. The lane ran no tests, MLton or
-Isabelle. It ran `rustfmt --edition 2021` on its three Rust files; exit 0.
+Status: central Linux qualification passed. No new specialist panel numbers or
+theorem statements. Root owns integration, builds and commits. The authoring
+lane ran no tests, MLton or Isabelle; it ran `rustfmt --edition 2021` on its three
+Rust files, exit 0. The central integrator's results are recorded below.
 
 ## What changed and who consumes it
 
@@ -111,9 +111,24 @@ the connected theorem.
 
 ## Authored checks; exact execution result
 
-Execution result: **not run, per root's instruction that only the central
-integrator builds/tests under managed resource controls**. No generated binary
-was replaced by this lane. The prior v1 binary cannot serve v2 requests.
+The central integrator compiled the Linux v2 checker under managed native
+compilation using the unchanged warm proof export; compiler exit 0. The checker
+SHA-256 is `fcd7b7629616bb4ec54b770c66aba33f3312acb99923b8b94ba724d8b1dfee4f`.
+Its compiler receipt is at hbox
+`/tank/lanes/o7-native-20261028/var/discrete-certificate/native-attempts/20261029T064220Z-3c10d3b80228/compile-inputs.json`,
+with SHA-256 `4d5d3b1359c9de4d7f833f11c296252b3db1a59c9720c8b545983dfb8c7d0e32`.
+The recorded proof receipt remains readable at its admitted path.
+
+Central results: 13 normal core transport contracts passed; the explicitly
+invoked real Rust resident MST contract passed; all 16 actual Python integration
+cases passed with zero skips, including actual Rust candidate composition and
+receipt-admitted acceptance scope. The final stable extension is
+`f875fc2e217cbe5b7b4de196d546b717a105b28e9767b49905570f1893ae2a37`.
+The 16 actual Python cases and the real Rust case were rerun against that final
+stable artifact. Source, compiler, proof and test bindings are retained in
+[the resident MST evidence](../../native/evidence/2026-10-29-resident-mst.json).
+No generated binary was replaced by the authoring lane. The prior v1 binary
+cannot serve v2 requests.
 
 Core cases cover accepted/nonminimal/unsupported/accepted on one owned PID;
 parallel identical occurrences; i64 extrema and a sum beyond i64; full ordered
@@ -121,9 +136,9 @@ input binding; forged/repeated IDs and invalid endpoints/numbers; request size;
 malformed, oversized, wrong-scope and timeout replies; cancellation plus tenant
 capacity and owned-process retirement; and rejection of incomplete forged
 compiler receipt metadata. The mock is explicitly a protocol fixture and never
-gets HOL scope. `real_mst_resident_protocol` is ignored until root explicitly
-supplies the actual v2 binary/hash, and optionally the actual approved compiler
-receipt/hash.
+gets HOL scope. `real_mst_resident_protocol` stays ignored by default and is
+invoked explicitly with the actual v2 binary/hash and approved compiler
+receipt/hash, as in this central qualification.
 
 Python's 16 authored integration cases require the actual v2 checker and native
 extension. The composition case needs the extension's reasoning feature; a skip
@@ -133,7 +148,22 @@ preserving candidate IDs, exact sums, Rust checking and one resident PID.
 Direct native framing cases confirm that malformed/oversized/unterminated frames
 exit. CLI bad JSON resumes safely at the next JSON line.
 
-Central follow-through:
+The measured 1000-request sequential batch took 2.171 seconds, with p50 2.123 ms
+and p95 2.279 ms. One-request and 1000-request batches each observed one checker
+PID. A separate Linux `strace -f -e trace=process` run of one warmup plus 1000
+measured requests independently recorded one checker exec and no additional
+process creation per request; thread clones were distinguished from process
+creation. The trace hash and retained path are in the evidence file.
+
+These timing and process-trace batches used the earlier combined extension
+`bf8cd8e713cec88e88942b861e16ddfc2579fd54fc035a23ef422255c50fca5b`.
+Its kernel, Rust producer and SML driver sources are unchanged in the final
+stable extension. The timing batch was not rerun on the final artifact; the
+final artifact's actual correctness cases were rerun separately. Traced timings
+are not performance estimates. These small sequential supplied-graph batches
+do not establish general workload latency, throughput or fairness.
+
+Reproduction steps:
 
 1. Compile the changed driver with existing managed `build.sh`; use its new
    compiler receipt. The theorem sources are unchanged; a current warm proof
@@ -145,8 +175,8 @@ Central follow-through:
 3. Run the benchmark with one then 1000 requests using warm artifacts. Stable
    observed checker PID is asserted; use Linux `strace -f -e trace=process` to
    independently verify one checker exec and zero additional process forks/execs
-   per request. Distinguish I/O thread clones. Record actual timing/count results
-   before making performance claims.
+   per request. Distinguish I/O thread clones and record which extension artifact
+   supplied each timing and process-trace result.
 
 The native service/pool is outside this lane. The concrete consumer is the
 PyO3 tenant API plus the resident JSONL CLI and Rust-candidate batch facade.

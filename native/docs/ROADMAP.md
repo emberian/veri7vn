@@ -4,6 +4,9 @@ Planning checkpoint, 2026-10-28. Implementation baseline: `e678f22`; upstream
 source: `c473d28914e480425adb29b4f7f42485b8cfb4e3`. This is a development
 proposal, not a statement that these capabilities already run in the appliance.
 The [migration map](MIGRATION.md) names source consumers and remaining adapters.
+Current achieved hosting, retirement, resident checking and packaging are in the
+[29 October stable receipt](../evidence/2026-10-29-stable-appliance-validation.json);
+this document remains the historical planning baseline.
 
 The destination is a complete Oracle service whose public knowledge, learned
 language resources, code and models are shared across tenants. Private state

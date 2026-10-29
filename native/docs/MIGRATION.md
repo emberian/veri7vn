@@ -203,6 +203,22 @@ Known typed DNA/statistics request refusals also preserve the shared worker;
 unclassified failures retain process retirement. This adds no durable hosting,
 complete route cascade or dialogue adapter.
 
+The [stable host checkpoint](../evidence/2026-10-29-stable-appliance-validation.json)
+qualifies the private six-operation data Runtime, relocated package and resident
+extracted checker from exact commit `7773163`. Its final artifact passes 115
+scoped Rust contracts, one actual resident contract and 54 selected Python
+checks. Actual HTTP/package journeys use a manufactured KB, while the committed
+reader remains unchanged. A new language family is not implied by these results.
+
+[Retirement](RETENTION.md) upgrades state-store schemas 1/2 to 3, retains envelope
+version 2 and preserves old request/reply bytes. Tombstones permanently close
+stateful namespaces under an explicit finite budget; pending/leased/uncertain
+effects prevent retirement. The new limit changes measured profile identity;
+this does not migrate release-bound history. The HTTP shutdown test gates a
+second invocation before worker exchange, then verifies cancellation uncertainty,
+reaping and restart replay of the earlier commit. A separate injection drops a
+reply after commit and verifies exact retry.
+
 ## Evidence needed to finish
 
 Component/consumer checks and bounded real program/language runs are retained
