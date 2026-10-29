@@ -43,6 +43,10 @@ tests, including real clingo. It is outside the main workspace and has no PyO3, 
 Its model checks and solver-trusted absence claims are distinct; see its
 [README](../oracle-logic/README.md) and [receipt](../evidence/2026-10-29-logic-validation.json).
 
+The [design experiments](../experiments/README.md) explore streaming queries,
+maintained views, conditional formulas and evidence revisions. Their new code
+and examples have not been compiled or run. They are absent from service discovery.
+
 ## Coverage and evidence
 
 No new shipped specialist-panel scores are available. Component checks and small

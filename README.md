@@ -75,6 +75,11 @@ records delivered work and failures: the original 100-question reader result is
 preserved, but a new 16-question composition challenge still has unanswered
 questions and storage-limit errors. These samples are not a specialist-fleet score.
 
+Separate [Rust design experiments](native/experiments/README.md) explore
+streaming queries, maintained views, conditional formulas and nonmonotonic
+reasoning scenarios. They are source prototypes, with no execution or performance
+results and no service registration.
+
 Start with the [shared-hosting checkpoint](project/HOSTED-2026-10-27.md),
 the [Mini appliance overview](https://github.com/emberian/minidregg/blob/main/docs/oracle-appliance.md),
 the [materialization tools](deploy/appliance/README.md), and the
