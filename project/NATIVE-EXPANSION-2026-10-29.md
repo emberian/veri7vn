@@ -22,17 +22,23 @@ What changed since the morning handoff:
 | Hosted logic (O3) | `logic.query` and `logic.enumerate` as the optional `logic` profile with an operator-admitted, hash-pinned clingo | [receipt](../native/evidence/2026-10-29-logic-hosted.json) |
 | Rational formulas (O4) | `algebra.simplify_rational` with a replayed proof and domain obligations; agrees with the densities specialist on three items | [receipt](../native/evidence/2026-10-29-rational-formulas.json) |
 
-Combined qualification of the merged tree on macOS and the Linux receipt on hbox
-are in progress (lane S4). The temporary diagnostic instrumentation is removed;
-its snapshots stay under `var/composition-byte-four-20261029/`. The macOS
-extension links for the first time (`native/.cargo/config.toml`). The
-16-case cohort now stands at 2 correct, 6 expected declines, 8 unanswered with
-the learned-form conflict, 0 wrong, 0 errors on macOS debug builds, pending Linux.
+| Combined Linux and macOS qualification (S4) | 16-case cohort 2/6/8/0/0 and the 100 at 36/4/60/0/0 on both platforms, release build under `swarm-build` | [receipt](../native/evidence/2026-10-29-combined-qualification.json) |
+| `algorithms-native` specialist folder (I1) | 18 / 0 / 0 on dev and held-out by the shipped scorer; ADMIT in front of the head on held-out | [receipt](../native/evidence/2026-10-29-algorithms-native-panel.json) |
+| Plural-first patch upstream (I3) | [PR 10](https://huggingface.co/psiloceyeben/oracle7-slim/discussions/10) open | [lane](lanes/I3-UPSTREAM-PLURAL-PR-2026-10-29.md) |
+| `oracle-host` (I2) | One Rust program on Mini's HTTP contract; native reader and organs first, agreement or refusal, Python Engine as a contained child; reproduces the board's acoustics and networking rows | [HOST.md](../native/docs/HOST.md), [receipt](../native/evidence/2026-10-29-host.json) |
+| Appliance on upstream 10.1 (A1) | Upstream absorbed our correctness, usage, conversation, geometry and date repairs; three local patches remain; U8 matches U7 on the usage set and six panels | [receipt](../docs/deploy/appliance-2026-10-29.json) |
 
-Next in order: Linux receipt and package refresh; reader retrain with the plural
-patch and the code-only, data-only, combined comparison; organ folders for the
-graph, statistics and chemistry operations so native work earns panel numbers;
-the native front door with the Python Engine as a contained worker.
+The temporary diagnostic instrumentation is removed; its snapshots stay under
+`var/composition-byte-four-20261029/`. The macOS extension links for the first
+time (`native/.cargo/config.toml`). The scoreboard's `upstream/` checkout is the
+15 October full release at head `w540`; slim 10.1 has 375 specialists and the
+board has never scored 68 of them.
+
+Next in order: the host becomes the appliance (its config takes the U8
+materialization; sign it); the full board on 10.1's 375 specialists; reader
+retrain with the plural patch and the code-only, data-only, combined comparison;
+statistics as the next native specialist folder; the three Engine misses and the
+`optics-v5` false yes reported upstream.
 
 ## Morning checkpoint — 29 October, after `259d7b9` (superseded above)
 

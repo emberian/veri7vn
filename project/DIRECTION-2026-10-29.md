@@ -9,7 +9,7 @@ native work earns a number on the only scoreboard the project trusts.
 
 | Layer | What it does today | Scoreboard number |
 | --- | --- | --- |
-| Oracle7 upstream (Python, 403 classes) | Answers every user question; 267 specialists; the appliance Mini hosts | 15,478 right / 14 wrong on the shipped exams |
+| Oracle7 upstream (Python, 403 classes) | Answers every user question; 267 specialists; the appliance Mini hosts. As of this evening the recipe builds slim 10.1, which already carries our earlier repairs | 15,478 right / 14 wrong on the shipped exams |
 | veri7vn extracted organs (Isabelle to SML) | 145 non-relation IDs and one relation kernel, placed in front of the Oracle7 head | 11,844 right / 14 false yes / 71 wrong on 12,247 items; zero wrong is the law |
 | Native runtime (Rust, PyO3, HTTP) | 12 operations over supplied inputs plus a KQA image, programs and a learned reader | None. 233 programs, 100 reader questions and a failed 16-case cohort are component checks |
 | Four design prototypes | Compile and pass their fixtures as of today | None, by design |
