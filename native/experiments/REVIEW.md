@@ -1,9 +1,11 @@
 # Exploratory Rust designs: source review, 29 October 2026
 
-These designs have no specialist-panel numbers, executed sprint fixtures or
-benchmark results. This review read source and followed small cases by hand;
-it did not compile, test, run solvers or integrate anything. The earlier logic
-core receipt does not qualify its new examples. No new theorem is claimed.
+These designs have no specialist-panel numbers or benchmark results. The
+review itself read source and followed small cases by hand. Afterwards the four
+crates were compiled, linted, and their authored fixtures and tests passed on
+macOS ([receipt](../evidence/2026-10-29-experiments-execution.json)); no solver was run and nothing was integrated or
+registered in the service. The earlier logic core receipt does not qualify the
+new examples. No new theorem is claimed.
 
 | Design | Useful result | Decision and next narrow experiment |
 | --- | --- | --- |

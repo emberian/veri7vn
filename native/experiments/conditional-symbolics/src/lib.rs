@@ -1,4 +1,4 @@
-//! Uncompiled exploratory Rust checker, not an Isabelle theorem or trusted kernel.
+//! Exploratory Rust checker (compiled, linted, fixtures pass on macOS), not an Isabelle theorem or trusted kernel.
 //! Exact rational, linear SI quantities only. No floating point or affine units.
 use num_rational::BigRational as Q;
 use num_traits::{One, Zero};

@@ -1,4 +1,4 @@
-//! Authored executable fixture, deliberately not executed during this sprint.
+//! Authored executable fixture with hand-traced assertions; runs clean (see also tests/fixture.rs).
 use std::{
     sync::{
         atomic::{AtomicBool, Ordering},

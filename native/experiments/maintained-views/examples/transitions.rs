@@ -1,4 +1,4 @@
-//! Authored scenarios, NOT executed in the exploration sprint.
+//! Authored scenarios with hand-traced assertions; they run clean (see also tests/transitions.rs).
 use maintained_views_experiment::*;
 fn main() -> Result<(), Error> {
     let public = Public::new(

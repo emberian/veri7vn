@@ -1,9 +1,11 @@
 # Native design experiments
 
 These implementations explore possible next steps. They are outside the main
-workspace and packaged service. Their examples have not been compiled or run;
-expected results come from reasoning through the code. No performance result
-or specialist-panel score applies to them.
+workspace and packaged service. Each crate compiles, passes `cargo clippy
+-D warnings`, and passes its authored fixtures and tests on macOS arm64
+([receipt](../evidence/2026-10-29-experiments-execution.json)). The expectations are hand-traced, not compared with an
+independent implementation. Nothing is benchmarked, no performance result or
+specialist-panel score applies, and none is registered in the service.
 
 | Experiment | Question | Constraint exposed by writing it |
 | --- | --- | --- |

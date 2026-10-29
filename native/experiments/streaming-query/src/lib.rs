@@ -1,4 +1,4 @@
-//! Untrusted, uncompiled design experiment. No inherited Isabelle assurance.
+//! Untrusted design experiment (compiled, linted, tests pass on macOS). No inherited Isabelle assurance.
 //! Operators return sorted sets unless their type explicitly names a bag.
 use std::{
     collections::BTreeMap,

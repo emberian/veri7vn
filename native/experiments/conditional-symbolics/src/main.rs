@@ -1,4 +1,4 @@
-//! Authored fixture driver. NOT RUN; its assertions are intended expectations.
+//! Authored fixture driver; its assertions are hand-traced expectations and run clean (see tests/fixture.rs).
 use conditional_symbolics_experiment::*;
 use num_rational::BigRational as Q;
 use std::collections::BTreeMap;

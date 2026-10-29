@@ -1,9 +1,11 @@
 # Demand-maintained views: exploration only
 
-Status: **uncompiled, unexecuted, unmeasured**. No specialist panel numbers.
-No theorem statements or verification claims. This separate, dependency-free
-workspace changes no production provider. Its authored scenario is an example
-program, not a passing test receipt.
+Status: compiled, linted, and its authored example and four traces pass on
+macOS ([receipt](../../evidence/2026-10-29-experiments-execution.json)); not benchmarked, no panel numbers, not registered in
+the service. No theorem statements or verification claims. This separate,
+dependency-free workspace changes no production provider. The example
+`examples/transitions.rs` prints nothing; its assertions executed and held, and
+`tests/transitions.rs` repeats the four traces as tests.
 
 ## What is actually retained
 
@@ -61,7 +63,7 @@ changed-edge/view inspection and graph traversal, not every machine operation.
 
 ## Authored traces, hand-simulated
 
-`examples/transitions.rs` describes these intended transitions; it was not run:
+`examples/transitions.rs` and `tests/transitions.rs` assert these transitions:
 
 - Public `1→2`; tenant A adds two supports for `2→3` plus `3→2`.
   A's root-1 result becomes `{2,3}`; B's stays `{2}`. Remove the first

@@ -4,3 +4,6 @@ var/
 __pycache__/
 *.pyc
 .playwright-mcp/
+
+native/experiments/*/target/
+native/oracle-logic/target/
