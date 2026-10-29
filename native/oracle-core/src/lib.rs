@@ -16,6 +16,7 @@ pub mod reader;
 pub mod release;
 mod runtime;
 pub mod session;
+mod segments;
 pub mod value;
 
 pub use budget::{Budget, Cancellation, Limits};

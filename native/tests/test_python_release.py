@@ -225,7 +225,7 @@ class PythonReleaseContract(unittest.TestCase):
         declaration['operations'].append(operation('reader.whole'))
         tenant = self.open(declaration, image=image, store='reader_state').tenant('trusted_tenant')
         result = json.loads(tenant.read_whole('Who is Alice?', native.Cancellation()))
-        self.assertEqual(result['coverage'], 'whole_and_exact_fragment_outer_v1')
+        self.assertEqual(result['coverage'], 'whole_and_exact_fragment_outer_v1+exact_segment_and_single_nested_v1')
         self.assertEqual(result['status'], 'answered')
         self.assertEqual(result['answer'], 'Alice')
         self.assertEqual(image.active_workers, 0)

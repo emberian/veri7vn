@@ -1,8 +1,8 @@
 //! Bounded whole-template language reader over one leased native image worker.
 //!
 //! This is an untrusted recognizer, not a proof of natural-language meaning.
-//! Coverage includes whole templates and exact fragment/outer composition.
-//! Segments, nested fragments, analogy and clause patches remain unsupported. Direct
+//! Coverage includes whole templates, exact segments and one nested fragment pass.
+//! Fallbacks, analogy and clause patches remain unsupported. Direct
 //! graph/program execution does not inherit this reader's admission rules.
 use crate::grammar::{self, GrammarSpan, MatchLimits, MatchedProgram};
 use crate::lexicon::{self, CandidateOptions, LexiconLimits};
@@ -15,7 +15,7 @@ use serde_json::Value;
 use std::collections::BTreeSet;
 use std::sync::Arc;
 
-pub const COVERAGE: &str = "whole_and_exact_fragment_outer_v1";
+pub const COVERAGE: &str = "whole_and_exact_fragment_outer_v1+exact_segment_and_single_nested_v1";
 
 /// Host bounds, not learned language settings. Exhaustion fails the request.
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -23,6 +23,9 @@ pub const COVERAGE: &str = "whole_and_exact_fragment_outer_v1";
 pub struct ReaderLimits {
     pub lexicon: LexiconLimits,
     pub max_name_words: usize,
+    /// Whole-template bindings; composition counts unique resolved region and
+    /// outer nodes, retaining independent child witnesses. Unresolved chart
+    /// paths remain bounded by request fuel, match rows and materialized bytes.
     pub combinations_per_level: usize,
     pub matched_programs: usize,
     pub program_steps: usize,

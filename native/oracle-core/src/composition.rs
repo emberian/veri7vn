@@ -1,29 +1,18 @@
-//! Bounded, exact learned fragment/outer composition from Reader7.
+//! Bounded, exact learned fragment/segment/nested/outer composition from Reader7.
 //!
-//! This recognizer is untrusted. It does not implement segment, nested, analogy
+//! This recognizer is untrusted. It does not implement analogy, deeper nesting
 //! or content-key fallback reading. Its caller must use compositional lexical
 //! candidates and must test each fragment for nonempty, executable entity output.
 //! All admitted alternatives participate; support never selects a winner.
 use crate::grammar::{
     self, Bindings, Fallback, GrammarSpan, MatchLimits, MatchedProgram, Program, ReaderPolicy,
 };
+use crate::segments::{Chart, Fragment, RegionPlan, MAX_FRAGMENT_WORDS, MAX_REGION_WORDS};
 use crate::{Budget, Error, Result};
 use rusqlite::{params, Connection};
-use serde::Serialize;
 use std::collections::{BTreeMap, BTreeSet};
 
 pub const COVERAGE: &str = "exact_fragment_outer_v1";
-const MAX_FRAGMENT_WORDS: usize = 30; // Reader7.MAX_FRAG_W
-
-#[derive(Clone, Debug, Serialize)]
-struct Fragment {
-    start: usize,
-    end: usize,
-    template: String,
-    support: u64,
-    program: Program,
-}
-
 #[derive(Clone)]
 struct Edge {
     end: usize,
@@ -99,7 +88,7 @@ where
         if fragment_edges[start].is_empty() {
             continue;
         }
-        for &end in ends.range((start + 1)..=words.len().min(start + MAX_FRAGMENT_WORDS)) {
+        for &end in ends.range((start + 1)..=words.len().min(start + MAX_REGION_WORDS)) {
             let index = holes.len();
             let hole = Fragment {
                 start: offsets[start],
@@ -111,6 +100,7 @@ where
                     dependencies: vec![],
                     inputs: vec![serde_json::json!(index + 1)],
                 }],
+                required_children: vec![],
             };
             state.charge(
                 serde_json::to_vec(&hole)?
@@ -130,62 +120,70 @@ where
         return Ok(vec![]);
     }
     let outer = state.walk("outer", 0, &outer_edges, &holes, None)?;
+    if outer.is_empty() {
+        return Ok(vec![]);
+    }
     let demanded: BTreeSet<_> = outer
         .iter()
         .flat_map(|f| f.fragments.iter().copied())
         .collect();
-    let mut chart = BTreeMap::<usize, Vec<Fragment>>::new();
+    let mut plans = BTreeMap::<usize, RegionPlan>::new();
+    let mut regions = Chart::new(
+        db,
+        normalized,
+        fragment_spans,
+        level,
+        policy,
+        limits,
+        budget,
+        state.bytes,
+        state.complete,
+    )?;
     for index in demanded {
         let hole = &holes[index];
-        let start = offsets
-            .binary_search(&hole.start)
-            .map_err(|_| Error::Invalid("fragment start".into()))?;
-        let end = offsets
-            .binary_search(&(hole.end + 1))
-            .map_err(|_| Error::Invalid("fragment end".into()))?;
-        let found = state.walk("fragment", start, &fragment_edges, &[], Some(end))?;
-        let mut seen = BTreeSet::new();
-        let mut alternatives = Vec::new();
-        for found in found {
-            if !seen.insert(serde_json::to_string(&found.program)?) {
-                continue;
-            }
-            let fragment = Fragment {
-                start: hole.start,
-                end: hole.end,
-                template: found.template,
-                support: found.support,
-                program: found.program,
-            };
-            state.charge(serde_json::to_vec(&fragment)?.len().saturating_add(64))?;
-            alternatives.push(fragment);
-        }
-        chart.insert(index, alternatives);
+        plans.insert(index, regions.region(hole.start, hole.end)?);
     }
-    // A syntactically incomplete hole is not a consumed reading. First require
-    // every hole to have a learned fragment, then validate the demanded union.
-    // Empty executed siblings cannot hide an unsupported complete alternative.
+    // Establish complete outer syntax before any provider runs. A missing
+    // sibling hole cannot make an otherwise unconsumed region a semantic demand.
     let outer: Vec<_> = outer
         .into_iter()
-        .filter(|f| f.fragments.iter().all(|index| !chart[index].is_empty()))
+        .filter(|found| {
+            found
+                .fragments
+                .iter()
+                .all(|index| plans[index].has_syntax())
+        })
         .collect();
+    if outer.is_empty() {
+        return Ok(vec![]);
+    }
     let demanded: BTreeSet<_> = outer
         .iter()
-        .flat_map(|f| f.fragments.iter().copied())
+        .flat_map(|found| found.fragments.iter().copied())
         .collect();
     let mut viability = BTreeMap::<String, bool>::new();
-    for index in demanded {
-        for fragment in &chart[&index] {
-            let key = serde_json::to_string(&fragment.program)?;
-            if let std::collections::btree_map::Entry::Vacant(entry) = viability.entry(key) {
-                let value = viable(&fragment.program)?;
-                state.charge(entry.key().len().saturating_add(64))?;
-                entry.insert(value);
-            }
+    // Source Reader7 admits pre-nested fragments before forming parent products.
+    // Check the whole demanded base union first. Empty alternatives cannot hide
+    // unsupported siblings, even if a parent omits the template's @X splice.
+    for index in &demanded {
+        for program in plans[index].base_programs() {
+            regions.check(program, &mut viability, &mut viable)?;
         }
     }
+    let mut chart = BTreeMap::<usize, Vec<Fragment>>::new();
+    for index in &demanded {
+        chart.insert(
+            *index,
+            regions.resolve(&plans[index], &mut viability, &mut viable)?,
+        );
+    }
+    // One aggregate envelope across admitted region nodes and resolved outers;
+    // raw syntax recipes remain bounded by fuel, match rows and materialization.
+    state.bytes = regions.bytes;
+    state.complete = regions.complete;
+    drop(regions);
     let mut output = Vec::new();
-    let mut joins = 0usize;
+    let mut resolved_outer = BTreeSet::new();
     for found in outer {
         let choices: Vec<Vec<&Fragment>> = found
             .fragments
@@ -195,8 +193,16 @@ where
                     .iter()
                     .filter(|fragment| {
                         // Serialization already succeeded for every retained fragment.
-                        viability[&serde_json::to_string(&fragment.program)
-                            .expect("serialized fragment")]
+                        fragment.required_children.iter().all(|child| {
+                            viability
+                                [&serde_json::to_string(&child.program).expect("serialized child")]
+                        }) && viability
+                            .get(
+                                &serde_json::to_string(&fragment.program)
+                                    .expect("serialized fragment"),
+                            )
+                            .copied()
+                            .unwrap_or(false)
                     })
                     .collect()
             })
@@ -207,10 +213,6 @@ where
         let mut cursor = vec![0usize; choices.len()];
         loop {
             budget.spend(1)?;
-            joins += 1;
-            if joins > limits.combinations {
-                return Err(Error::Limit("composition joined bindings"));
-            }
             let witnesses: Vec<_> = choices
                 .iter()
                 .zip(&cursor)
@@ -225,6 +227,28 @@ where
             if let Some(program) =
                 grammar::expand(&found.program, &Bindings::new(), &programs, limits.steps)?
             {
+                // Count a complete outer interpretation only after all region
+                // holes resolve. Equivalent parse paths share a node; differing
+                // region/program/child witnesses remain distinct alternatives.
+                let witness_key: Vec<_> = witnesses
+                    .iter()
+                    .map(|fragment| {
+                        (
+                            fragment.start,
+                            fragment.end,
+                            &fragment.program,
+                            &fragment.required_children,
+                        )
+                    })
+                    .collect();
+                let key = serde_json::to_string(&(&program, &witness_key))?;
+                if resolved_outer.insert(key.clone()) {
+                    state.complete += 1;
+                    if state.complete > limits.combinations {
+                        return Err(Error::Limit("composition bindings"));
+                    }
+                    state.charge(key.len().saturating_add(32))?;
+                }
                 let template = serde_json::to_string(
                     &serde_json::json!({"family":COVERAGE,"outer":found.template,"fragments":witnesses}),
                 )?;
@@ -368,10 +392,8 @@ impl Search<'_> {
                     self.limits.matches,
                     self.budget,
                 )? {
-                    self.complete += 1;
-                    if self.complete > self.limits.combinations {
-                        return Err(Error::Limit("composition bindings"));
-                    }
+                    // Holes in a complete outer wording are unresolved syntax;
+                    // their transitions/rows remain fuel/byte/match bounded.
                     for candidate in hit.candidates.into_iter().filter(|c| c.rejection.is_none()) {
                         let skeleton: Program = serde_json::from_value(candidate.skeleton)?;
                         let xprograms = xindices

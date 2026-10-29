@@ -167,13 +167,13 @@ def installed_provenance(native):
     return {"module": "oracle_native", "files": [{"path": path, "sha256": digest(path)} for path in sorted(files)]}
 
 
-def observe(tenant, native, case):
+def observe(tenant, native, case, expected_coverage=COVERAGE):
     started = time.perf_counter()
     cpu_started = time.process_time()
     try:
         result = json.loads(tenant.read_whole(case["question"], native.Cancellation()))
-        if result.get("coverage") != COVERAGE:
-            raise ValueError(f"native read lacks explicit {COVERAGE} coverage")
+        if result.get("coverage") != expected_coverage:
+            raise ValueError(f"native read lacks explicit {expected_coverage} coverage")
         status, answer = result.get("status"), result.get("answer")
         if status == "answered":
             if not isinstance(answer, str) or result.get("distinct_answers") != [answer]:
@@ -227,7 +227,7 @@ def native_child(args):
     observations = []
     first_completed_at = None
     for case in cases:
-        observations.append(observe(tenant, native, case))
+        observations.append(observe(tenant, native, case, args.expected_coverage))
         if first_completed_at is None:
             first_completed_at = time.perf_counter()
         if image.active_workers != 0:
@@ -244,7 +244,7 @@ def native_child(args):
     growth = delta(after_handles, after_queries)
     metric = "pss_kib" if "pss_kib" in growth else "rss_kib" if "rss_kib" in growth else None
     within_growth_bound = metric is not None and growth[metric] <= args.tenant_memory_growth_kib
-    tenant_reads = [observe(handles[index], native, cases[0]) for index in (0, 127, 255)]
+    tenant_reads = [observe(handles[index], native, cases[0], args.expected_coverage) for index in (0, 127, 255)]
     # Comparing outcomes cannot make the three repeats part of the gold score.
     stable = all((row["outcome"], row["native_status"], row["reason"], row["answer"])
                  == (observations[0]["outcome"], observations[0]["native_status"],
@@ -315,6 +315,8 @@ def main():
     parser.add_argument("--validation-sha256", default=VAL_SHA256)
     parser.add_argument("--source-sha256", default=KB_SHA256)
     parser.add_argument("--limits-json", default='{"workers":2,"timeout_ms":1000,"fuel":10000000}')
+    parser.add_argument("--expected-coverage", default=COVERAGE,
+                        choices=[COVERAGE, COVERAGE + "+exact_segment_and_single_nested_v1"])
     parser.add_argument("--mismatch-limit", type=int, default=20)
     parser.add_argument("--tenant-memory-growth-kib", type=int, default=8192)
     parser.add_argument("--child-timeout-seconds", type=int, default=180)
@@ -351,7 +353,8 @@ def main():
     command = [sys.executable,"-B",str(Path(__file__).resolve()),"--mode","native",
                "--image",str(Path(args.image).resolve()),"--image-receipt",str(Path(args.image_receipt).resolve()),
                "--validation",str(Path(args.validation).resolve()),"--work",str(work.resolve()),
-               "--limits-json",args.limits_json,"--tenant-memory-growth-kib",str(args.tenant_memory_growth_kib)]
+               "--limits-json",args.limits_json,"--expected-coverage",args.expected_coverage,
+               "--tenant-memory-growth-kib",str(args.tenant_memory_growth_kib)]
     started = time.perf_counter()
     try:
         process = subprocess.run(command,capture_output=True,text=True,check=False,timeout=args.child_timeout_seconds)
@@ -381,8 +384,8 @@ def main():
                   if observation["outcome"] != "answered_correct"][:args.mismatch_limit]
     write_json(work / "mismatches.json",mismatches)
     report = {"schema":"oracle-native-whole-reader-v1","run_status":"complete",
-              "scope":"bounded real questions through native whole and exact fragment/outer templates; no full reader/Engine or specialist-panel claim",
-              "coverage":COVERAGE,
+              "scope":"bounded real questions through admitted native reader families under explicit coverage; no full reader/Engine or specialist-panel claim",
+              "coverage":args.expected_coverage,
               "reference":{"upstream_whole_reader":"not run; no upstream Reader/Engine constructed",
                            "comparison":"dataset gold exact strings; no case-folding, date/unit normalization or tolerance"},
               "python":sys.version,"platform":platform.platform(),"load_average":os.getloadavg(),
