@@ -132,3 +132,4 @@ veri7vn's `dev` branch; no native-runtime PR has been opened.
 The focused [biology PR 8](https://huggingface.co/psiloceyeben/oracle7-slim/discussions/8)
 and [statistics PR 9](https://huggingface.co/psiloceyeben/oracle7-slim/discussions/9)
 were open at the latest check.
+The [plural-first reader PR 10](https://huggingface.co/psiloceyeben/oracle7-slim/discussions/10) (canonical plurals before learned aliases in `Reader7.align`, eight tests) was posted on 29 October and is open.
