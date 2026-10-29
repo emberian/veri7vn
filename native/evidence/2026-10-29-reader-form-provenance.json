@@ -1,0 +1,131 @@
+{
+  "scope": "Recovered completed source-only provenance replays; no native calls, regression-test result, full retraining or image qualification.",
+  "files": [
+    {
+      "file": "candidate-which_number_of_x.json",
+      "sha256": "2b7201b6c3cab6a1bd5dbee80b3075394047ac7fd7de451ec1440ecbc1af5087",
+      "source_sha256": {
+        "reader_v4.py": "b81fc6dcfbb8a1c1fff098905db3f2bf3ae983716aa7d8dfa9d0a9936f47287d",
+        "reader_v6.py": "5bda666d8a4c9661964064a1c4d5788e7284019ce63e8bdcc9e54d6fedba30a0",
+        "reader_v7.py": "03e43e4e742b1bc6093fb67d00425ab47b679278fe1519b799b8cab91b90e57f"
+      },
+      "contributions": [
+        {
+          "index": 9288,
+          "level": 0,
+          "support": 1
+        },
+        {
+          "index": 9288,
+          "level": 1,
+          "support": 1
+        },
+        {
+          "index": 32261,
+          "level": 0,
+          "support": 1
+        },
+        {
+          "index": 32261,
+          "level": 1,
+          "support": 1
+        },
+        {
+          "index": 43417,
+          "level": 0,
+          "support": 1
+        }
+      ]
+    },
+    {
+      "file": "candidate-which_x.json",
+      "sha256": "7714ba3fc738bb2a1a4e927e2cd82489df645343239bc0663d4555420d022e6b",
+      "source_sha256": {
+        "reader_v4.py": "b81fc6dcfbb8a1c1fff098905db3f2bf3ae983716aa7d8dfa9d0a9936f47287d",
+        "reader_v6.py": "5bda666d8a4c9661964064a1c4d5788e7284019ce63e8bdcc9e54d6fedba30a0",
+        "reader_v7.py": "03e43e4e742b1bc6093fb67d00425ab47b679278fe1519b799b8cab91b90e57f"
+      },
+      "contributions": [
+        {
+          "index": 9630,
+          "level": 0,
+          "support": 1
+        },
+        {
+          "index": 43846,
+          "level": 0,
+          "support": 1
+        },
+        {
+          "index": 43846,
+          "level": 1,
+          "support": 1
+        }
+      ]
+    },
+    {
+      "file": "control-which_number_of_x.json",
+      "sha256": "21958ada3f934be3feb72489d733d5a472d57b0f2f09f895d4ba35fc71b2c7ab",
+      "source_sha256": {
+        "reader_v4.py": "b81fc6dcfbb8a1c1fff098905db3f2bf3ae983716aa7d8dfa9d0a9936f47287d",
+        "reader_v6.py": "5bda666d8a4c9661964064a1c4d5788e7284019ce63e8bdcc9e54d6fedba30a0",
+        "reader_v7.py": "f37f687e8190f08ff862738543790d6bcd56185a1a807ffdbd5cf8340da85354"
+      },
+      "contributions": [
+        {
+          "index": 9288,
+          "level": 0,
+          "support": 1
+        },
+        {
+          "index": 9288,
+          "level": 1,
+          "support": 1
+        },
+        {
+          "index": 43417,
+          "level": 0,
+          "support": 1
+        }
+      ]
+    },
+    {
+      "file": "control-which_x.json",
+      "sha256": "2b37371f1c7d0652b91ed069f44dfc22ed1ae3adc8463053f9c977b1c164523f",
+      "source_sha256": {
+        "reader_v4.py": "b81fc6dcfbb8a1c1fff098905db3f2bf3ae983716aa7d8dfa9d0a9936f47287d",
+        "reader_v6.py": "5bda666d8a4c9661964064a1c4d5788e7284019ce63e8bdcc9e54d6fedba30a0",
+        "reader_v7.py": "f37f687e8190f08ff862738543790d6bcd56185a1a807ffdbd5cf8340da85354"
+      },
+      "contributions": [
+        {
+          "index": 9630,
+          "level": 0,
+          "support": 1
+        },
+        {
+          "index": 32261,
+          "level": 0,
+          "support": 1
+        },
+        {
+          "index": 32261,
+          "level": 1,
+          "support": 1
+        },
+        {
+          "index": 43846,
+          "level": 0,
+          "support": 1
+        },
+        {
+          "index": 43846,
+          "level": 1,
+          "support": 1
+        }
+      ]
+    }
+  ],
+  "finding": "Album training row 32261 moves from which X1 to which number of X1 at both levels; March row 9630 remains at level 0. Inspect raw skeletons to distinguish the separate literary-award row 43846.",
+  "raw_directory": "var/reader-form-20261029/provenance"
+}

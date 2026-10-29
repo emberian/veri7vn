@@ -151,8 +151,25 @@ Those errors remain errors, including the ambiguous/empty cases; they are not cr
 
 ## Diagnosis boundary
 
-Read-only source inspection verifies a reason for the form refusals. The exact learned outer template `which X1` contains a `Count` skeleton with support 2. Because `Count` has no hidden literal, the pinned source trust policy admits that replicated skeleton alongside the much more common `What` skeletons. The form rows permit entity answers for `which` and `which city`. The native result therefore contains both `1` and `Saskatoon` for the single-city case and vetoes the complete reading set, as Reader7's form rule requires. The same baseline refusal occurs in the old artifact. The other unique-entity misses similarly retain both `1` and the independently expected entity name.
+Read-only source inspection verifies a reason for the form refusals. The exact learned outer template `which X1` contains a `Count` skeleton with support 2. Because `Count` has no hidden literal, the pinned source trust policy admits that replicated skeleton alongside the much more common `What` skeletons. The form rows permit entity answers for `which` and `which city`. The native result therefore contains both `1` and `Saskatoon` for the single-city case and vetoes the complete reading set, as Reader7's form rule requires. The same baseline refusal occurs in the old artifact. The other unique-entity misses similarly retain both `1` and the independently expected entity name. Reconstructing the Count programs from the source facts, without executing them, matches both retained successful-program hashes for the Saskatoon baseline: exact-fragment order `cd6e72edbc2591351c92ecacd643029b2cc34b4f02fdd43f4fef81d805ad36f2` and segment order `36c9ae673be15d55082762bb20207965ac86215c93a9cb52a68bc67ca25aaadd`.
 
 This is learned source-admission conflict, not evidence that the native veto should be disabled. Removing the count reading to elect a preferred name would hide disagreement. A source repair would need independent review of the training examples and an explicit admissibility premise; the cohort does not supply authority to hand-edit a winning template.
 
-The byte-error mechanism is not yet established. All four failures involve `headquartered in`; read-only lexicon inspection shows that `headquartered` introduces an `R` alias at level 1, unlike the inspected `located in` wording. That can open generic learned-template paths, but neither this correlation nor the short failure times establishes which owner consumes the byte envelope. A scoped follow-up should identify the failing phase and retained owners on these four unchanged cases before changing representation. No production code, limit, expected fact or question has been changed for that investigation.
+The byte-error mechanism is not yet established. All four failures involve `headquartered in`; read-only lexicon inspection shows that `headquartered` introduces an `R` alias at level 1, unlike the inspected `located in` wording. That can open generic learned-template paths, but neither this correlation nor the short failure times establishes which owner consumes the byte envelope. A scoped follow-up should identify the failing phase and retained owners on these four unchanged cases before changing representation. Root subsequently authorized a temporary, bounded phase/retained-owner diagnostic for exactly the four unchanged failures. It separates outer syntax, region syntax, base validation and region resolution, while tracking net fragment/unit/recipe/cache reservations. No permanent production remedy, limit, expected fact or question has changed; central diagnostic execution is pending.
+
+
+## Completed storage diagnosis
+
+The [four-case diagnostic](../../native/evidence/2026-10-29-composition-byte-diagnosis.json)
+completed before handoff. Every failure occurs in region syntax, before semantic
+admission. Fragment storage plus active deduplication keys accounts for about
+1,951,000 bytes, roughly 93% of the unchanged 2 MiB envelope; units account for
+about 130,000 bytes. One cached base region contains 1,290 flat fragments.
+Transient walker storage is zero and nested recipes account for 332 bytes.
+These are logical accounting totals, not RSS measurements.
+
+The proposed remedy is shared exact step/program storage and thin region records,
+with flattening only at existing evaluator/output boundaries. It has not been
+implemented. The dirty Rust files still contain temporary diagnostic errors;
+remove that instrumentation before qualifying a production candidate. Preserve
+all interpretations, child-region witnesses, bounds and original cohort facts.

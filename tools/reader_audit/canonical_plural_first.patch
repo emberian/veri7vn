@@ -1,0 +1,25 @@
+--- a/workbench/swarm/reader_v7.py
++++ b/workbench/swarm/reader_v7.py
+@@ -122,15 +122,16 @@
+         t = R4.norm(text)
+         pos = R4.find_all(q, t) if t else []
+         n = len(t)
++        if not pos and PLURAL and kind == "C" and t:
++            for g in (t + "s", t + "es", t[:-1] + "ies" if t.endswith("y") else None):
++                pos = R4.find_all(q, g) if g else []
++                if pos:
++                    n = len(g)
++                    break
++        # Prefer a canonical plural over an alias that can absorb surrounding words.
+         if not pos:
+             for g in sorted(by_lit.get((kind, t), []), key=len, reverse=True):
+                 pos = R4.find_all(q, g)
+-                if pos:
+-                    n = len(g)
+-                    break
+-        if not pos and PLURAL and kind == "C" and t:
+-            for g in (t + "s", t + "es", t[:-1] + "ies" if t.endswith("y") else None):
+-                pos = R4.find_all(q, g) if g else []
+                 if pos:
+                     n = len(g)
+                     break

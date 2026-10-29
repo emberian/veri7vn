@@ -1,0 +1,73 @@
+{
+  "scope": "Exactly four temporary diagnostic probes; no source remedy or production qualification.",
+  "artifact_sha256": "a95afdb82f8fca34757e5799a058e141832df7cc6ee5baf1d2c4e68522ad31b8",
+  "raw_report_sha256": "c157c427d0074b33c1d54c72704ae33839e6bc25ed3640ca0b6d4fdce6553759",
+  "measured_accounting": [
+    {
+      "id": "nested_headquarters_city_website_population_bristol",
+      "phase": "region_syntax",
+      "owner": "fragment_storage_and_active_seen",
+      "total_accounted_bytes": 2097670,
+      "initial_outer_bytes": 11278,
+      "fragment_and_active_dedup_bytes": 1950968,
+      "fragment_share_of_total": 0.9300643094481019,
+      "unit_and_active_dedup_bytes": 130126,
+      "walk_scratch_bytes": 0,
+      "cached_base_regions": 1,
+      "cached_base_fragments": 1290,
+      "cached_unit_nodes": 654,
+      "resolved_nodes": 0
+    },
+    {
+      "id": "nested_university_count_cardiff",
+      "phase": "region_syntax",
+      "owner": "fragment_storage_and_active_seen",
+      "total_accounted_bytes": 2097469,
+      "initial_outer_bytes": 11510,
+      "fragment_and_active_dedup_bytes": 1951040,
+      "fragment_share_of_total": 0.9301877643960411,
+      "unit_and_active_dedup_bytes": 129472,
+      "walk_scratch_bytes": 0,
+      "cached_base_regions": 1,
+      "cached_base_fragments": 1290,
+      "cached_unit_nodes": 651,
+      "resolved_nodes": 0
+    },
+    {
+      "id": "ambiguous_university_selection_cardiff",
+      "phase": "region_syntax",
+      "owner": "fragment_storage_and_active_seen",
+      "total_accounted_bytes": 2097748,
+      "initial_outer_bytes": 11281,
+      "fragment_and_active_dedup_bytes": 1951040,
+      "fragment_share_of_total": 0.9300640496379927,
+      "unit_and_active_dedup_bytes": 130127,
+      "walk_scratch_bytes": 0,
+      "cached_base_regions": 1,
+      "cached_base_fragments": 1290,
+      "cached_unit_nodes": 654,
+      "resolved_nodes": 0
+    },
+    {
+      "id": "empty_parent_headquarters_saskatoon",
+      "phase": "region_syntax",
+      "owner": "fragment_storage_and_active_seen",
+      "total_accounted_bytes": 2097185,
+      "initial_outer_bytes": 11499,
+      "fragment_and_active_dedup_bytes": 1950776,
+      "fragment_share_of_total": 0.9301878470425833,
+      "unit_and_active_dedup_bytes": 129469,
+      "walk_scratch_bytes": 0,
+      "cached_base_regions": 1,
+      "cached_base_fragments": 1290,
+      "cached_unit_nodes": 651,
+      "resolved_nodes": 0
+    }
+  ],
+  "finding": "All failures occur before base viability in region_syntax. Retained base fragments plus current dedup keys dominate the envelope; transient walker accounting is zero and nested recipes are negligible. The next question is how to delay/share/stream base candidates under established outer demand while preserving every semantic alternative.",
+  "limits": "Unchanged2MiB composition envelope,1second,10millionfuel. These are logical storage-accounting totals, not allocator/RSS measurements; no blanket proof that every lifetime charge is exact.",
+  "frozen_source_files": {
+    "source/native/oracle-core/src/segments.rs": "e0590907b2138abd9dce48d2c125011ef4b9525fad78134ad0b193fa7248b251",
+    "source/native/oracle-core/src/composition.rs": "76fb03f880b41f748f0491c1a2e4bf3851bc0457fe20d4917fcc9c52bd7ccb5f"
+  }
+}
