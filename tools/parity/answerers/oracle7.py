@@ -195,22 +195,34 @@ SELF_LOOP_FILES = ("vessels.json", "vessels_events.jsonl", "curriculum_requests.
 
 def redirect_self_loop(dst):
     """The head's reception folds (w175 vessels.json / vessels_events.jsonl / curriculum_requests.jsonl, w480
-    vessels.sqlite3) write next to the admitted modules, inside upstream/. They resolve those paths as module globals
-    and open them lazily, so after the engine is built every such global is pointed into the answerer's state dir.
-    The dir starts empty, which is the shipped state (the release carries none of these files)."""
+    vessels.sqlite3) write next to the admitted modules, inside upstream/, in runtimes without the correctness repair
+    (the old upstream/ checkout, head w540). They resolve those paths as module globals and open them lazily, so after
+    the engine is built every such global that points into upstream is repointed into the answerer's state dir. The dir
+    starts empty, which is the shipped state (the release carries none of these files).
+    A runtime with the repair (upstream 10.0 and later) already resolves them under ORACLE7_STATE/vessels. Those are
+    left alone and reported. The answerer refuses to start only when it finds no such path at all, or when one of them
+    still lies inside upstream and cannot be moved."""
     dst.mkdir(parents=True, exist_ok=True)
     up = UPSTREAM.resolve()
-    moved = []
+    state = dst.resolve().parent
+    moved, honoured = [], []
     for mname, mod in list(sys.modules.items()):
         f = getattr(mod, "__file__", None)
         if not f or up not in Path(f).resolve().parents:
             continue
         for k, v in list(vars(mod).items()):
-            if isinstance(v, Path) and v.name in SELF_LOOP_FILES and up in v.resolve().parents:
+            if not (isinstance(v, Path) and v.name in SELF_LOOP_FILES):
+                continue
+            rv = v.resolve()
+            if up in rv.parents:
                 setattr(mod, k, dst / v.name)
                 moved.append("%s.%s" % (mname, k))
-    if not moved:
+            elif state in rv.parents:
+                honoured.append("%s.%s" % (mname, k))
+    if not moved and not honoured:
         raise SystemExit("[oracle7 answerer] found no self_loop paths to redirect; refusing to write into upstream")
+    if not moved:
+        return ["none needed, the runtime already writes under ORACLE7_STATE: " + ", ".join(honoured)]
     return moved
 
 

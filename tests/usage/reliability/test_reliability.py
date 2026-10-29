@@ -40,6 +40,13 @@ class PairCheckerTests(unittest.TestCase):
     def test_disagreement_is_visible(self):
         self.assertEqual(checker.observe(row('a', 'answered', '[ev:derived] 12 square units.', {'value': 99}))['kind'], 'inconsistent_reply')
 
+    def test_tagged_and_untagged_reply_read_the_same(self):
+        tagged = checker.observe(row('a', 'answered', '[ev:derived] 12 square units. Read as geometry.', {'value': 12}))
+        untagged = checker.observe(row('a', 'answered', '12 square units. Read as geometry.', {'value': 12}))
+        self.assertEqual((tagged['kind'], tagged['value']), ('number', 12.0))
+        self.assertEqual(tagged, untagged)
+        self.assertEqual(checker.observe(row('a', 'answered', '12 square units.', {'value': 99}))['kind'], 'inconsistent_reply')
+
     def test_duplicate_results_rejected(self):
         with self.assertRaises(ValueError):
             checker.evaluate([row('a', 'withheld', ''), row('a', 'withheld', '')], {'cases': {}, 'pairs': []})

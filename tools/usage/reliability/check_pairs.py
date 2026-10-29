@@ -25,7 +25,7 @@ def observe(row):
     if status != 'answered':
         return {'kind': 'unparsed', 'value': None, 'status': status}
     text = reply.get('response', '')
-    patterns = [rf'^\[ev:derived\]\s+({NUMBER})(?=\s|\.)',
+    patterns = [rf'^(?:\[ev:derived\]\s+)?({NUMBER})(?=\s|\.)',
                 rf'\bThe answer is ({NUMBER})(?=\.|\s|$)',
                 rf'^{NUMBER}\s*°[CF]\s+is\s+({NUMBER})\s*°[CF]']
     values = [float(match.group(1)) for pattern in patterns

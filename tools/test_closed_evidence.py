@@ -71,4 +71,13 @@ class ClosedTests(unittest.TestCase):
   for _ in range(7):tree={'op':'add','left':tree,'right':copy.deepcopy(tree)}
   r,p=fixture(tree,128)
   with self.assertRaisesRegex(c.ContractError,'node or depth'):validate(r,p)
+ def test_reply_with_or_without_evidence_tag(self):
+  r,p=fixture({'op':'add','left':const(2),'right':const(3)},5)
+  self.assertEqual(r['response'],'[ev:derived] 5.')
+  self.assertEqual(validate(r,p)['status'],'consistent')
+  r['response']='5.'
+  self.assertEqual(validate(r,p)['status'],'consistent')
+  for bad in ('6.','[ev:derived] 6.','[ev:direct] 5.','5'):
+   r['response']=bad
+   with self.assertRaises(c.ContractError):validate(r,p)
 if __name__=='__main__':unittest.main()

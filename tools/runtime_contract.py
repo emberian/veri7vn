@@ -179,6 +179,15 @@ def validate_capabilities(repo):
     return entries
 
 
+_EV_DERIVED = "[ev:derived] "
+
+
+def _untag(text):
+    """A reply body without its leading evidence tag. Slim 10.0 and earlier write "[ev:derived] 12."; the 10.1 head
+    (fold w573) strips every [ev:...] tag, so both forms are read the same way and the rest must still match exactly."""
+    return text[len(_EV_DERIVED):] if isinstance(text, str) and text.startswith(_EV_DERIVED) else text
+
+
 def _evidence_rational(value):
     _object(value, {"num", "den"}, "rational")
     for key in ("num", "den"):
@@ -263,7 +272,7 @@ def _validate_affine_evidence(reply, packet):
         if a * root + b != c * root + d:
             raise ContractError("affine root does not satisfy the typed equation")
         value = str(root.numerator) if root.denominator == 1 else f"{root.numerator}/{root.denominator}"
-        if reply.get("value") != value or reply.get("response") != f"[ev:derived] {variable} = {value}.":
+        if reply.get("value") != value or _untag(reply.get("response")) != f"{variable} = {value}.":
             raise ContractError("affine displayed solution disagrees with the checked root")
         explanation = f"Both typed sides normalize to affine expressions; substituting {variable} = {value} makes them equal, and their different coefficients give one solution."
     else:
@@ -271,7 +280,7 @@ def _validate_affine_evidence(reply, packet):
             raise ContractError("nonunique affine result must not assert one numeric root")
         expected = (f"Every rational value of {variable} satisfies this equation." if classification == "all"
                     else f"No rational value of {variable} satisfies this equation.")
-        if reply.get("response") != "[ev:derived] " + expected:
+        if _untag(reply.get("response")) != expected:
             raise ContractError("affine displayed classification disagrees with the checked equation")
         explanation = ("The typed sides have equal coefficients and constants." if classification == "all"
                        else "The typed sides have equal coefficients but different constants.")
@@ -353,7 +362,7 @@ def _validate_closed_evidence(reply, packet):
     if compute(tree) != result:
         raise ContractError('closed-expression result disagrees with the typed AST')
     value = str(result.numerator) if result.denominator == 1 else f'{result.numerator}/{result.denominator}'
-    if reply.get('value') != value or reply.get('response') != f'[ev:derived] {value}.':
+    if reply.get('value') != value or _untag(reply.get('response')) != f'{value}.':
         raise ContractError('closed-expression displayed value disagrees with the checked result')
     _strings(packet.get('assumptions', []), 'computation assumptions')
     return {'status': 'consistent', 'checker': 'python_exact_closed_expression_v1',
