@@ -7,7 +7,10 @@
 use crate::grammar::{
     self, Bindings, Fallback, GrammarSpan, MatchLimits, MatchedProgram, Program, ReaderPolicy,
 };
-use crate::segments::{Chart, Fragment, RegionPlan, MAX_FRAGMENT_WORDS, MAX_REGION_WORDS};
+use crate::segments::{
+    Chart, Fragment, Ledger, NodeId, NodeKey, Owner, ProgramId, RegionPlan, MAX_FRAGMENT_WORDS,
+    MAX_REGION_WORDS,
+};
 use crate::{Budget, Error, Result};
 use rusqlite::{params, Connection};
 use std::collections::{BTreeMap, BTreeSet};
@@ -61,21 +64,59 @@ where
         offset += word.len() + 1;
     }
     offsets.push(normalized.len().saturating_add(1));
-    let mut state = Search {
+    let mut ledger = Ledger::new(limits.materialized_bytes);
+    let result = compose(
         db,
-        words: &words,
-        offsets: &offsets,
+        normalized,
+        &words,
+        &offsets,
+        fragment_spans,
+        outer_spans,
         level,
         policy,
         limits,
         budget,
-        bytes: 0,
+        &mut ledger,
+        &mut viable,
+    );
+    probe::record(&ledger, &result);
+    result
+}
+
+#[allow(clippy::too_many_arguments)]
+fn compose<F>(
+    db: &Connection,
+    normalized: &str,
+    words: &[&str],
+    offsets: &[usize],
+    fragment_spans: &[GrammarSpan],
+    outer_spans: &[GrammarSpan],
+    level: u8,
+    policy: &ReaderPolicy,
+    limits: MatchLimits,
+    budget: &Budget,
+    ledger: &mut Ledger,
+    viable: &mut F,
+) -> Result<Vec<MatchedProgram>>
+where
+    F: FnMut(&Program) -> Result<bool>,
+{
+    let mut state = Search {
+        db,
+        words,
+        offsets,
+        level,
+        policy,
+        limits,
+        budget,
+        ledger,
         complete: 0,
     };
     state.charge(
         normalized
             .len()
             .saturating_add(offsets.len().saturating_mul(16)),
+        Owner::Question,
     )?;
     let fragment_edges = state.edges(normalized, fragment_spans)?;
     let mut outer_edges = state.edges(normalized, outer_spans)?;
@@ -106,6 +147,7 @@ where
                 serde_json::to_vec(&hole)?
                     .len()
                     .saturating_add(std::mem::size_of::<Edge>()),
+                Owner::OuterHoles,
             )?;
             holes.push(hole);
             outer_edges[start].push(Edge {
@@ -128,6 +170,8 @@ where
         .flat_map(|f| f.fragments.iter().copied())
         .collect();
     let mut plans = BTreeMap::<usize, RegionPlan>::new();
+    // The chart continues the same ledger and resolved-node count.
+    let complete = state.complete;
     let mut regions = Chart::new(
         db,
         normalized,
@@ -136,8 +180,8 @@ where
         policy,
         limits,
         budget,
-        state.bytes,
-        state.complete,
+        state.ledger,
+        complete,
     )?;
     for index in demanded {
         let hole = &holes[index];
@@ -161,48 +205,46 @@ where
         .iter()
         .flat_map(|found| found.fragments.iter().copied())
         .collect();
-    let mut viability = BTreeMap::<String, bool>::new();
+    // Keyed by exact interned program content, equivalent to its JSON.
+    let mut viability = BTreeMap::<ProgramId, bool>::new();
     // Source Reader7 admits pre-nested fragments before forming parent products.
     // Check the whole demanded base union first. Empty alternatives cannot hide
     // unsupported siblings, even if a parent omits the template's @X splice.
     for index in &demanded {
-        for program in plans[index].base_programs() {
-            regions.check(program, &mut viability, &mut viable)?;
+        for node in plans[index].base_nodes() {
+            let program = regions.node_program(node);
+            regions.check(program, &mut viability, viable)?;
         }
     }
-    let mut chart = BTreeMap::<usize, Vec<Fragment>>::new();
+    let mut chart = BTreeMap::<usize, Vec<NodeId>>::new();
     for index in &demanded {
         chart.insert(
             *index,
-            regions.resolve(&plans[index], &mut viability, &mut viable)?,
+            regions.resolve(&plans[index], &mut viability, viable)?,
         );
     }
     // One aggregate envelope across admitted region nodes and resolved outers;
     // raw syntax recipes remain bounded by fuel, match rows and materialization.
-    state.bytes = regions.bytes;
-    state.complete = regions.complete;
-    drop(regions);
+    // The arena stays live: public fragments are rebuilt from it for output.
     let mut output = Vec::new();
     let mut resolved_outer = BTreeSet::new();
     for found in outer {
-        let choices: Vec<Vec<&Fragment>> = found
+        let choices: Vec<Vec<NodeId>> = found
             .fragments
             .iter()
             .map(|index| {
                 chart[index]
                     .iter()
-                    .filter(|fragment| {
-                        // Serialization already succeeded for every retained fragment.
-                        fragment.required_children.iter().all(|child| {
-                            viability
-                                [&serde_json::to_string(&child.program).expect("serialized child")]
-                        }) && viability
-                            .get(
-                                &serde_json::to_string(&fragment.program)
-                                    .expect("serialized fragment"),
-                            )
-                            .copied()
-                            .unwrap_or(false)
+                    .copied()
+                    .filter(|&node| {
+                        regions
+                            .child_programs(node)
+                            .iter()
+                            .all(|child| viability[child])
+                            && viability
+                                .get(&regions.node_program(node))
+                                .copied()
+                                .unwrap_or(false)
                     })
                     .collect()
             })
@@ -213,45 +255,52 @@ where
         let mut cursor = vec![0usize; choices.len()];
         loop {
             budget.spend(1)?;
-            let witnesses: Vec<_> = choices
+            let witnesses: Vec<NodeId> = choices
                 .iter()
                 .zip(&cursor)
                 .map(|(alternatives, index)| alternatives[*index])
                 .collect();
+            let scratch: usize = witnesses
+                .iter()
+                .map(|&node| regions.flat_size(regions.node_program(node)))
+                .sum();
+            regions.charge(scratch, Owner::Scratch)?;
             let programs = found
                 .fragments
                 .iter()
                 .zip(&witnesses)
-                .map(|(index, fragment)| (index + 1, fragment.program.clone()))
+                .map(|(index, &node)| (index + 1, regions.program(regions.node_program(node))))
                 .collect();
-            if let Some(program) =
-                grammar::expand(&found.program, &Bindings::new(), &programs, limits.steps)?
-            {
+            let expanded =
+                grammar::expand(&found.program, &Bindings::new(), &programs, limits.steps);
+            drop(programs);
+            regions.release(scratch, Owner::Scratch);
+            if let Some(program) = expanded? {
                 // Count a complete outer interpretation only after all region
                 // holes resolve. Equivalent parse paths share a node; differing
                 // region/program/child witnesses remain distinct alternatives.
-                let witness_key: Vec<_> = witnesses
-                    .iter()
-                    .map(|fragment| {
-                        (
-                            fragment.start,
-                            fragment.end,
-                            &fragment.program,
-                            &fragment.required_children,
-                        )
-                    })
-                    .collect();
-                let key = serde_json::to_string(&(&program, &witness_key))?;
-                if resolved_outer.insert(key.clone()) {
-                    state.complete += 1;
-                    if state.complete > limits.combinations {
+                let witness_key: Vec<_> = witnesses.iter().map(|&node| regions.key(node)).collect();
+                let key_size = std::mem::size_of::<(ProgramId, Vec<NodeKey>)>()
+                    + witness_key
+                        .iter()
+                        .map(|(_, node)| std::mem::size_of::<(usize, usize)>() + node.size())
+                        .sum::<usize>();
+                let key = (regions.intern(&program)?, witness_key);
+                if resolved_outer.insert(key) {
+                    regions.complete += 1;
+                    if regions.complete > limits.combinations {
                         return Err(Error::Limit("composition bindings"));
                     }
-                    state.charge(key.len().saturating_add(32))?;
+                    regions.charge(key_size.saturating_add(32), Owner::Resolved)?;
                 }
+                let fragments = witnesses
+                    .iter()
+                    .map(|&node| regions.fragment(node))
+                    .collect::<Result<Vec<_>>>()?;
                 let template = serde_json::to_string(
-                    &serde_json::json!({"family":COVERAGE,"outer":found.template,"fragments":witnesses}),
+                    &serde_json::json!({"family":COVERAGE,"outer":found.template,"fragments":fragments}),
                 )?;
+                drop(fragments);
                 let candidate = MatchedProgram {
                     template,
                     level,
@@ -261,7 +310,7 @@ where
                 if output.len() >= limits.matches {
                     return Err(Error::Limit("composition matches"));
                 }
-                state.charge(serde_json::to_vec(&candidate)?.len())?;
+                regions.charge(serde_json::to_vec(&candidate)?.len(), Owner::Output)?;
                 output.push(candidate);
             }
             let mut position = cursor.len();
@@ -295,20 +344,12 @@ struct Search<'a> {
     policy: &'a ReaderPolicy,
     limits: MatchLimits,
     budget: &'a Budget,
-    bytes: usize,
+    ledger: &'a mut Ledger,
     complete: usize,
 }
 impl Search<'_> {
-    fn charge(&mut self, bytes: usize) -> Result<()> {
-        self.budget.spend(bytes as u64 + 1)?;
-        self.bytes = self
-            .bytes
-            .checked_add(bytes)
-            .ok_or(Error::Limit("composition bytes"))?;
-        if self.bytes > self.limits.materialized_bytes {
-            return Err(Error::Limit("composition bytes"));
-        }
-        Ok(())
+    fn charge(&mut self, bytes: usize, owner: Owner) -> Result<()> {
+        self.ledger.charge(self.budget, bytes, owner)
     }
     fn edges(&mut self, question: &str, spans: &[GrammarSpan]) -> Result<Vec<Vec<Edge>>> {
         let mut edges = vec![Vec::new(); self.words.len()];
@@ -333,6 +374,7 @@ impl Search<'_> {
                 span.canonical
                     .len()
                     .saturating_add(std::mem::size_of::<Edge>()),
+                Owner::Lexical,
             )?;
             edges[start].push(Edge {
                 end,
@@ -372,7 +414,7 @@ impl Search<'_> {
         let mut out = Vec::new();
         let mut query = self.db.prepare_cached("SELECT EXISTS(SELECT 1 FROM reader_template WHERE family=?1 AND level=?2 AND template>=?3 AND template<?4)")?;
         // Bound the live path independently of emitted output and retained chart.
-        self.charge(self.words.len().saturating_mul(256))?;
+        self.charge(self.words.len().saturating_mul(256), Owner::Walk)?;
         while !stack.is_empty() {
             self.budget.spend(1)?;
             let top = stack.len() - 1;
@@ -411,6 +453,7 @@ impl Search<'_> {
                                     .len()
                                     .saturating_add(prefix.len())
                                     .saturating_add(64),
+                                Owner::OuterFound,
                             )?;
                             out.push(Found {
                                 template: prefix.clone(),
@@ -496,5 +539,54 @@ impl Search<'_> {
             }
         }
         Ok(out)
+    }
+}
+
+/// Measurement hook for tests. Disabled unless a test calls `enable()`; it
+/// then records each call's peak ledger and owners. It never changes a result.
+#[doc(hidden)]
+pub mod probe {
+    use super::{Ledger, MatchedProgram, Result};
+    use std::sync::atomic::{AtomicBool, Ordering};
+    use std::sync::Mutex;
+
+    #[derive(Clone, Debug)]
+    pub struct Record {
+        pub peak: usize,
+        pub peak_owners: Vec<(&'static str, usize)>,
+        pub final_bytes: usize,
+        pub outcome: String,
+    }
+    static RECORDS: Mutex<Vec<Record>> = Mutex::new(Vec::new());
+
+    static ENABLED: AtomicBool = AtomicBool::new(false);
+    /// Start recording. Only measurement tests call this.
+    pub fn enable() {
+        ENABLED.store(true, Ordering::Relaxed);
+    }
+    pub(super) fn record(ledger: &Ledger, result: &Result<Vec<MatchedProgram>>) {
+        if !ENABLED.load(Ordering::Relaxed) {
+            return;
+        }
+        let peak_owners = crate::segments::OWNERS
+            .iter()
+            .zip(ledger.peak_owners)
+            .filter(|(_, bytes)| *bytes > 0)
+            .map(|(name, bytes)| (*name, bytes))
+            .collect();
+        let outcome = match result {
+            Ok(found) => format!("ok {} programs", found.len()),
+            Err(error) => format!("error {error:?}"),
+        };
+        RECORDS.lock().expect("probe lock").push(Record {
+            peak: ledger.peak,
+            peak_owners,
+            final_bytes: ledger.bytes,
+            outcome,
+        });
+    }
+    /// Take and clear every record since the last call.
+    pub fn take() -> Vec<Record> {
+        std::mem::take(&mut *RECORDS.lock().expect("probe lock"))
     }
 }
