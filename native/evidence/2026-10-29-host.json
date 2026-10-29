@@ -1,0 +1,5450 @@
+{
+ "schema": "oracle-native-evidence-v1",
+ "date": "2026-10-29",
+ "lane": "I2-HOST",
+ "claim": "oracle-host, a Rust binary, serves the appliance wire contract with the native reader and resident extracted organs in front of a contained Python Engine, deciding each question by agreement or refusal; measured on macOS arm64 under load 80-250 (counts only).",
+ "not_claimed": [
+  "Mini signing or qualification",
+  "authentication (tenant header is routing only)",
+  "Linux receipt",
+  "effect executors",
+  "per-tenant Engine isolation",
+  "10.1 Engine: the Engine scored here is git c5d6a29 (head w540)",
+  "timings"
+ ],
+ "host_binary": {
+  "path": "var/i2-host/bin/oracle-host-final",
+  "sha256": "d0dc0181c7485cb5eef06bb3734a9d5918e5b3c0f5f255791324a00b3b9ded51",
+  "build": "cargo build --release -p oracle-host --features reasoning,science,incremental,bio,statistics,logic (native/ working tree between commits 8fc1401 and 859e92f, plus this lane's uncommitted crate)"
+ },
+ "artifacts": {
+  "image_sha256": "8fcb1db9a08e234179f66ea9e032d2633b38cdcb902f4c95d1ba2c2d49c842f4",
+  "release_identity": "2d4a4edf378588e3549d69730463177dffa059a952fecc7be9f4e1ad8aa51cf7",
+  "organ_acoustics_sha256": "804b6488d6c193e5a2cd7edad0501e90adb0726c1b4a2499bf0a6e92f11be2b4",
+  "organ_acoustics_accept": {
+   "kinds": [
+    "beat",
+    "doppler",
+    "db_sum",
+    "db_distance",
+    "db_ratio",
+    "intensity_ratio",
+    "string",
+    "pipe_closed",
+    "pipe_open",
+    "wavelength",
+    "frequency",
+    "speed"
+   ],
+   "declines_in_domain": [
+    "underspecified",
+    "impossible",
+    "unsupported_model"
+   ],
+   "context_regex": "\\b(?:sound|decibels?|db|doppler|siren|horn|honk\\w*|pipe|string|harmonics?|beats?|tuning fork|pitch)\\b"
+  },
+  "engine_python_sha256": "30b2a6bf9706029b609327ca5db722cd458239df96efc87e1f8e37beed49db2e",
+  "engine_answerer_sha256": "31c1e710295bd7addf792aeeb295f7c53c2a9810685148e766438db75625ef86",
+  "engine_checkout_revision": "c5d6a29d5bc5e2525078e5a53afa1abf659e4d69",
+  "engine_head": "oracle_release_runtime_w540",
+  "engine_release_merkle_root": "04daf3ae439e55b7fea5f73e944b52d75f2535536bcf6a077a23d7a28802476f",
+  "upstream_BUILD_REPORT_sha256": "08cc838e55b6327eab49a50627132ee6fd25d4fa5079848d4f16dc8c07933f4b",
+  "upstream_RELEASE_HASHES_sha256": "81873078a3e6f77a0daf0fc71e183f9a6264b4fe4b75a62633893937bc0fe196",
+  "solver_sha256": "c30e55ebf01cdb4b986bb8be337d48beb98c0d06ec9d260864dac4010e909bb7"
+ },
+ "configs": {
+  "reader_set_and_acoustics": {
+   "engine": {
+    "workers": 1,
+    "turn_ms": 300000
+   },
+   "routes": [
+    "native:reader",
+    "organ:acoustics",
+    "engine"
+   ]
+  },
+  "networking": {
+   "engine_specialist": "upstream/root/specialists/networking",
+   "compose": "front",
+   "tip": "oracle_release_runtime_w503",
+   "routes": [
+    "native:reader",
+    "organ:acoustics",
+    "engine"
+   ]
+  }
+ },
+ "reader_set": {
+  "scorer": "native/oracle-host/tools/qualify_reader_set.py, rules copied from native/evidence/2026-10-29-upstream-reader-control.json scoring_rules",
+  "control_sha256": "07a23ba68d2be1988f227fa81ee464d8b54d4a37d38c3e6c2df747c2678b45e2",
+  "totals": {
+   "r100": {
+    "unanswered": 61,
+    "answered_correct": 36,
+    "answered_wrong": 3
+   },
+   "c16": {
+    "unanswered": 8,
+    "answered_correct": 2,
+    "declined_expected": 6
+   }
+  },
+  "decisions": {
+   "r100|refused|('engine',)": 57,
+   "r100|answered|('native:reader',)": 36,
+   "r100|answered|('engine',)": 3,
+   "r100|refused|('native:reader',)": 4,
+   "c16|refused|('native:reader',)": 10,
+   "c16|answered|('native:reader',)": 2,
+   "c16|refused|('engine',)": 4
+  },
+  "disagreements": [],
+  "errors": [],
+  "wrong": [
+   {
+    "id": "r100:14:9124",
+    "question": "Tell me the number of airlines that has New York City has a headquarter location or that has the legal form limited company.",
+    "gold": "3",
+    "response": "Got it. Since you mention new york city: New York, often called New York City (NYC), is the most populous city in the United States. [enwiki_8e909612eeb1b8108c82fd63] Want to know more about it?",
+    "decided_by": [
+     "engine"
+    ],
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "answered_wrong"
+   },
+   {
+    "id": "r100:60:11107",
+    "question": "What language has an IETF language tag of bg and is spoken in Turkey?",
+    "gold": "Bulgarian",
+    "response": "[ev:direct] Turkish. The money of Turkey is called the Turkish Lira. [simplewiki_efb7d55dbe520f7d7770fc54] (typed relations: wd:Q43 P37 wd:Q256)",
+    "decided_by": [
+     "engine"
+    ],
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "answered_wrong"
+   },
+   {
+    "id": "r100:79:8512",
+    "question": "What movie was produced by Anna Faris ?",
+    "gold": "The House Bunny",
+    "response": "[ev:direct] The House Bunny. Anna Kay Faris (born November 29, 1976) is an American movie, television, stage, voice actress, comedian and singer who is known for her roles in all four Scary Movies, Lost in Translation, Cloudy with a Chance of Meatballs, The House Bunny and Overboard. [simplewiki_3e2ee78e58cbc5eebe972db3] (typed relations: wd:Q466959 P162 wd:Q4491)",
+    "decided_by": [
+     "engine"
+    ],
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "answered_wrong"
+   }
+  ],
+  "controls": {
+   "r100": {
+    "native_reader": {
+     "answered_correct": 36,
+     "refused": 4,
+     "unknown": 60,
+     "wrong": 0
+    },
+    "engine_alone": {
+     "withheld": 90,
+     "answered_wrong": 10
+    },
+    "reader7": {
+     "answered_correct": 32,
+     "unknown": 68
+    },
+    "reader7_cascade": {
+     "answered_correct": 37,
+     "refused": 1,
+     "unknown": 62
+    }
+   },
+   "c16": {
+    "native_reader": "2 correct, 8 unanswered, 6 expected declines, 0 wrong (2026-10-29-combined-qualification.json)",
+    "engine_alone": {
+     "withheld": 10,
+     "declined_expected": 6
+    }
+   }
+  },
+  "results_sha256": "c5e56be29da35abca98a76c7a578d43eedf94af24fdb5ad5a20e9068ac6e268c",
+  "per_question": [
+   {
+    "id": "r100:0:4724",
+    "split": "r100",
+    "question": "Per this 2016 statement, does a figure below 3900000 equal the population of Cuban Americans?",
+    "gold": "yes",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "clarification",
+    "path": "act:clarify_specific",
+    "response": "What does \"this\" refer to? Nothing earlier in this conversation names it. Tell me the name.",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "clarification",
+      "agreement_key": null,
+      "path": "act:clarify_specific"
+     }
+    },
+    "seconds": 12.504,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:1:4832",
+    "split": "r100",
+    "question": "Tell me the relationship between buddy film and Boogie Nights.",
+    "gold": "genre",
+    "kind": "gold",
+    "outcome": "answered_correct",
+    "status": "answered",
+    "path": "native:reader>answered",
+    "response": "genre",
+    "decision": "answered",
+    "group": 0,
+    "decided_by": [
+     "native:reader"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "answer",
+      "status": "answered",
+      "agreement_key": "genre",
+      "path": "native:reader>answered"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     }
+    },
+    "seconds": 0.071,
+    "native_control": {
+     "outcome": "answered_correct",
+     "answer": "genre"
+    },
+    "engine_control": "answered_wrong",
+    "reader7_control": "answered_correct"
+   },
+   {
+    "id": "r100:2:200",
+    "split": "r100",
+    "question": "For the administrative territorial entity whose FIPS 6-4 (US counties) is 29037, what is the time point for its population of 100319?",
+    "gold": "2012-07-01",
+    "kind": "gold",
+    "outcome": "answered_correct",
+    "status": "answered",
+    "path": "native:reader>answered",
+    "response": "2012-07-01",
+    "decision": "answered",
+    "group": 0,
+    "decided_by": [
+     "native:reader"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "answer",
+      "status": "answered",
+      "agreement_key": "2012-07-01",
+      "path": "native:reader>answered"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     }
+    },
+    "seconds": 0.141,
+    "native_control": {
+     "outcome": "answered_correct",
+     "answer": "2012-07-01"
+    },
+    "engine_control": "answered_wrong",
+    "reader7_control": "answered_correct"
+   },
+   {
+    "id": "r100:3:8377",
+    "split": "r100",
+    "question": "How many subscribers does Joseph Gordon-Levitt have to his Twitter account called hitRECordJoe?",
+    "gold": "4314192",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "withheld",
+    "path": "factoid:withheld|vessel:receipt",
+    "response": "I have no admitted record that answers that about \"Joseph Gordon-Levitt\", so I will not guess. The reply I had was about \"Joseph Gordon-Levitt\" and did not cover subscriber, account, hitrecordjoe.",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "factoid:withheld|vessel:receipt"
+     }
+    },
+    "seconds": 1.94,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:4:3884",
+    "split": "r100",
+    "question": "What is the connection between Olympia (the one that is based on 1936 Summer Olympics) to propaganda film?",
+    "gold": "genre",
+    "kind": "gold",
+    "outcome": "answered_correct",
+    "status": "answered",
+    "path": "native:reader>answered",
+    "response": "genre",
+    "decision": "answered",
+    "group": 0,
+    "decided_by": [
+     "native:reader"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "answer",
+      "status": "answered",
+      "agreement_key": "genre",
+      "path": "native:reader>answered"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     }
+    },
+    "seconds": 0.056,
+    "native_control": {
+     "outcome": "answered_correct",
+     "answer": "genre"
+    },
+    "engine_control": "withheld",
+    "reader7_control": "answered_correct"
+   },
+   {
+    "id": "r100:5:5031",
+    "split": "r100",
+    "question": "Nassar was cast in the movie with which title?",
+    "gold": "Fair Game",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "clarification",
+    "path": "act:clarify|vessel:receipt",
+    "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Nassar was cast in the movie with which title?\" as an unnamed shape [vessel:v0003]; if it returns it gains",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "clarification",
+      "agreement_key": null,
+      "path": "act:clarify|vessel:receipt"
+     }
+    },
+    "seconds": 0.821,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:6:3656",
+    "split": "r100",
+    "question": "What is the connection between The Twilight Saga: Eclipse to Kristen Stewart?",
+    "gold": "cast member",
+    "kind": "gold",
+    "outcome": "answered_correct",
+    "status": "answered",
+    "path": "native:reader>answered",
+    "response": "cast member",
+    "decision": "answered",
+    "group": 0,
+    "decided_by": [
+     "native:reader"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "answer",
+      "status": "answered",
+      "agreement_key": "cast member",
+      "path": "native:reader>answered"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     }
+    },
+    "seconds": 0.051,
+    "native_control": {
+     "outcome": "answered_correct",
+     "answer": "cast member"
+    },
+    "engine_control": "withheld",
+    "reader7_control": "answered_correct"
+   },
+   {
+    "id": "r100:7:2170",
+    "split": "r100",
+    "question": "When did Shanghai (the one that is the twinned administrative body of Dunedin) start to be the twinned administrative body of Liverpool (the one with a population of 513441)?",
+    "gold": "1999-01-01",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "withheld",
+    "path": "arb:timeline->capability:timeline|vessel:receipt",
+    "response": "A timeline needs at least two dated statements; the admitted material on Shanghai contains 1.\n\nI have received \"When did Shanghai (the one that is the twinned administrative body of Dunedin) start to be the twinned administrative body of Liverpool.",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "arb:timeline->capability:timeline|vessel:receipt"
+     }
+    },
+    "seconds": 0.537,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:8:11108",
+    "split": "r100",
+    "question": "Which visual artwork has a script written by Jason Segel?",
+    "gold": "Forgetting Sarah Marshall",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "clarification",
+    "path": "act:clarify|vessel:receipt",
+    "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Which visual artwork has a script written by Jason Segel?\" as an unnamed shape [vessel:v0005]; if it retur",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "clarification",
+      "agreement_key": null,
+      "path": "act:clarify|vessel:receipt"
+     }
+    },
+    "seconds": 1.057,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:9:264",
+    "split": "r100",
+    "question": "Was the association football club whose Twitter username is atlasfc founded before 1945?",
+    "gold": "yes",
+    "kind": "gold",
+    "outcome": "answered_correct",
+    "status": "answered",
+    "path": "native:reader>answered",
+    "response": "yes",
+    "decision": "answered",
+    "group": 0,
+    "decided_by": [
+     "native:reader"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "answer",
+      "status": "answered",
+      "agreement_key": "yes",
+      "path": "native:reader>answered"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     }
+    },
+    "seconds": 0.049,
+    "native_control": {
+     "outcome": "answered_correct",
+     "answer": "yes"
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:10:4875",
+    "split": "r100",
+    "question": "Of news broadcasts which were Primetime Emmy nominees for Outstanding Writing for a Variety, Music or Comedy Program, which has the lowest total episodes?",
+    "gold": "The Colbert Report",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "withheld",
+    "path": "factoid:withheld|vessel:receipt",
+    "response": "I have no admitted record that answers that about \"Outstanding Writing\", so I will not guess. The reply I had did not cover news, broadcast, nomine, lowest.",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "factoid:withheld|vessel:receipt"
+     }
+    },
+    "seconds": 3.01,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:11:7478",
+    "split": "r100",
+    "question": "What is the time period that 56196 is the population of Qatar?",
+    "gold": "1962",
+    "kind": "gold",
+    "outcome": "answered_correct",
+    "status": "answered",
+    "path": "native:reader>answered",
+    "response": "1962",
+    "decision": "answered",
+    "group": 0,
+    "decided_by": [
+     "native:reader"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "answer",
+      "status": "answered",
+      "agreement_key": "1962",
+      "path": "native:reader>answered"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     }
+    },
+    "seconds": 0.052,
+    "native_control": {
+     "outcome": "answered_correct",
+     "answer": "1962"
+    },
+    "engine_control": "withheld",
+    "reader7_control": "answered_correct"
+   },
+   {
+    "id": "r100:12:3290",
+    "split": "r100",
+    "question": "What is the beginning date of the television series whose official website is http://www.cbs.com/shows/csi/?",
+    "gold": "2000-10-06",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "withheld",
+    "path": "corpus_query:property_of|vessel:receipt",
+    "response": "No provenance-admitted sentence in the abstracts corpus answers that.\n\nI have received \"What is the beginning date of the television series whose official website is http://www.cbs.com/shows/csi/?\" as an unnamed shape [vessel:v0007]; if it returns it gains weight, and when I can name it, I will.",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "corpus_query:property_of|vessel:receipt"
+     }
+    },
+    "seconds": 0.317,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:13:5930",
+    "split": "r100",
+    "question": "What is the official website for the person whose ISNI is 0000 0001 1677 6434?",
+    "gold": "http://www.tiffanithiessen.com/",
+    "kind": "gold",
+    "outcome": "answered_correct",
+    "status": "answered",
+    "path": "native:reader>answered",
+    "response": "http://www.tiffanithiessen.com/",
+    "decision": "answered",
+    "group": 0,
+    "decided_by": [
+     "native:reader"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "answer",
+      "status": "answered",
+      "agreement_key": "http://www.tiffanithiessen.com/",
+      "path": "native:reader>answered"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     }
+    },
+    "seconds": 0.13,
+    "native_control": {
+     "outcome": "answered_correct",
+     "answer": "http://www.tiffanithiessen.com/"
+    },
+    "engine_control": "withheld",
+    "reader7_control": "answered_correct"
+   },
+   {
+    "id": "r100:14:9124",
+    "split": "r100",
+    "question": "Tell me the number of airlines that has New York City has a headquarter location or that has the legal form limited company.",
+    "gold": "3",
+    "kind": "gold",
+    "outcome": "answered_wrong",
+    "status": "answered",
+    "path": "organ:converse>statement",
+    "response": "Got it. Since you mention new york city: New York, often called New York City (NYC), is the most populous city in the United States. [enwiki_8e909612eeb1b8108c82fd63] Want to know more about it?",
+    "decision": "answered",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "answer",
+      "status": "answered",
+      "agreement_key": "Got it. Since you mention new york city: New York, often called New York City (NYC), is the most populous city in the United States. [enwiki_8e909612eeb1b8108c82fd63] Want to know more about it?",
+      "path": "organ:converse>statement"
+     }
+    },
+    "seconds": 1.434,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "answered_wrong",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:15:3625",
+    "split": "r100",
+    "question": "How many national cuisines are in the sovereign state country whose inflation rate is 49.3 percentage?",
+    "gold": "0",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "clarification",
+    "path": "act:clarify|vessel:receipt",
+    "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"How many national cuisines are in the sovereign state country whose inflation rate is 49.3 percentage?\" as",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "clarification",
+      "agreement_key": null,
+      "path": "act:clarify|vessel:receipt"
+     }
+    },
+    "seconds": 0.255,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:16:2608",
+    "split": "r100",
+    "question": "Which is longer, The Producers that was nominated for a Golden Globe Award for Best Original Song or Memoirs of a Geisha?",
+    "gold": "Memoirs of a Geisha",
+    "kind": "gold",
+    "outcome": "answered_correct",
+    "status": "answered",
+    "path": "native:reader>answered",
+    "response": "Memoirs of a Geisha",
+    "decision": "answered",
+    "group": 0,
+    "decided_by": [
+     "native:reader"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "answer",
+      "status": "answered",
+      "agreement_key": "Memoirs of a Geisha",
+      "path": "native:reader>answered"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     }
+    },
+    "seconds": 0.061,
+    "native_control": {
+     "outcome": "answered_correct",
+     "answer": "Memoirs of a Geisha"
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:17:2431",
+    "split": "r100",
+    "question": "What is Tom Stoppard's link to the 71st Academy Awards?",
+    "gold": "award received",
+    "kind": "gold",
+    "outcome": "answered_correct",
+    "status": "answered",
+    "path": "native:reader>answered",
+    "response": "award received",
+    "decision": "answered",
+    "group": 0,
+    "decided_by": [
+     "native:reader"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "answer",
+      "status": "answered",
+      "agreement_key": "award received",
+      "path": "native:reader>answered"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     }
+    },
+    "seconds": 0.018,
+    "native_control": {
+     "outcome": "answered_correct",
+     "answer": "award received"
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:18:3768",
+    "split": "r100",
+    "question": "Is the official website of a school headquartered in New Work City (the street address of this statement is 630 West 168th Street) http://ps.columbia.edu/ ?",
+    "gold": "yes",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "clarification",
+    "path": "act:clarify_specific",
+    "response": "What does \"this\" refer to? Nothing earlier in this conversation names it. Tell me the name.",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "clarification",
+      "agreement_key": null,
+      "path": "act:clarify_specific"
+     }
+    },
+    "seconds": 3.25,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:19:398",
+    "split": "r100",
+    "question": "How was it determined that Saginaw County has a population of 196542?",
+    "gold": "estimation process",
+    "kind": "gold",
+    "outcome": "answered_correct",
+    "status": "answered",
+    "path": "native:reader>answered",
+    "response": "estimation process",
+    "decision": "answered",
+    "group": 0,
+    "decided_by": [
+     "native:reader"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "answer",
+      "status": "answered",
+      "agreement_key": "estimation process",
+      "path": "native:reader>answered"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     }
+    },
+    "seconds": 0.036,
+    "native_control": {
+     "outcome": "answered_correct",
+     "answer": "estimation process"
+    },
+    "engine_control": "withheld",
+    "reader7_control": "answered_correct"
+   },
+   {
+    "id": "r100:20:878",
+    "split": "r100",
+    "question": "Where was the film whose script was writen by Jerry Belson published on 1978-03-06?",
+    "gold": "Germany",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "clarification",
+    "path": "act:clarify|vessel:receipt",
+    "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Where was the film whose script was writen by Jerry Belson published on 1978-03-06?\" as an unnamed shape [",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "clarification",
+      "agreement_key": null,
+      "path": "act:clarify|vessel:receipt"
+     }
+    },
+    "seconds": 4.857,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:21:6944",
+    "split": "r100",
+    "question": "Is Knocked Up or Valkyrie longer?",
+    "gold": "Knocked Up",
+    "kind": "gold",
+    "outcome": "answered_correct",
+    "status": "answered",
+    "path": "native:reader>answered",
+    "response": "Knocked Up",
+    "decision": "answered",
+    "group": 0,
+    "decided_by": [
+     "native:reader"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "answer",
+      "status": "answered",
+      "agreement_key": "Knocked Up",
+      "path": "native:reader>answered"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     }
+    },
+    "seconds": 0.051,
+    "native_control": {
+     "outcome": "answered_correct",
+     "answer": "Knocked Up"
+    },
+    "engine_control": "withheld",
+    "reader7_control": "answered_correct"
+   },
+   {
+    "id": "r100:22:1475",
+    "split": "r100",
+    "question": "Who is the human whose Twitter username is adamlevine and has a subscription number of 8921169?",
+    "gold": "Adam Levine",
+    "kind": "gold",
+    "outcome": "answered_correct",
+    "status": "answered",
+    "path": "native:reader>answered",
+    "response": "Adam Levine",
+    "decision": "answered",
+    "group": 0,
+    "decided_by": [
+     "native:reader"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "answer",
+      "status": "answered",
+      "agreement_key": "Adam Levine",
+      "path": "native:reader>answered"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     }
+    },
+    "seconds": 0.066,
+    "native_control": {
+     "outcome": "answered_correct",
+     "answer": "Adam Levine"
+    },
+    "engine_control": "withheld",
+    "reader7_control": "answered_correct"
+   },
+   {
+    "id": "r100:23:2136",
+    "split": "r100",
+    "question": "What language is used in http://www.grammy.com, the official website of an award nominated to Melissa Etheridge in 2001 ?",
+    "gold": "English",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "clarification",
+    "path": "act:clarify|vessel:receipt",
+    "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"What language is used in http://www.grammy.com, the official website of an award nominated to Melissa Ethe",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "clarification",
+      "agreement_key": null,
+      "path": "act:clarify|vessel:receipt"
+     }
+    },
+    "seconds": 1.083,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "answered_correct"
+   },
+   {
+    "id": "r100:24:2801",
+    "split": "r100",
+    "question": "Which business has the official name 'GT Interactive Software Corp.' and is headquartered in New York City?",
+    "gold": "GT Interactive Software",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "clarification",
+    "path": "act:clarify|vessel:receipt",
+    "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Which business has the official name 'GT Interactive Software Corp.' and is headquartered in New York City",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "clarification",
+      "agreement_key": null,
+      "path": "act:clarify|vessel:receipt"
+     }
+    },
+    "seconds": 3.781,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:25:10371",
+    "split": "r100",
+    "question": "Which individual born as Durante di Alighiero degli Alighieri did not die in 1977?",
+    "gold": "Dante Alighieri",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "clarification",
+    "path": "act:clarify|vessel:receipt",
+    "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Which individual born as Durante di Alighiero degli Alighieri did not die in 1977?\" as an unnamed shape [v",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "clarification",
+      "agreement_key": null,
+      "path": "act:clarify|vessel:receipt"
+     }
+    },
+    "seconds": 2.798,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:26:5984",
+    "split": "r100",
+    "question": "When did the Kingdom of Great Britain become Kirkcaldy's country?",
+    "gold": "1707-05-01",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "clarification",
+    "path": "act:clarify|vessel:receipt",
+    "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"When did the Kingdom of Great Britain become Kirkcaldy's country?\" as an unnamed shape [vessel:v0015]; if ",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "clarification",
+      "agreement_key": null,
+      "path": "act:clarify|vessel:receipt"
+     }
+    },
+    "seconds": 5.779,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:27:7031",
+    "split": "r100",
+    "question": "At what point in time was the population 375,165 for the county of Ohio whose licence plate code is 76?",
+    "gold": "2015-01-01",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "withheld",
+    "path": "factoid:withheld|vessel:receipt",
+    "response": "I have no admitted record that answers that about \"Ohio\", so I will not guess. The reply I had did not cover point, time, population, 375165.",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "factoid:withheld|vessel:receipt"
+     }
+    },
+    "seconds": 0.261,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:28:10532",
+    "split": "r100",
+    "question": "What is the connection between Tommy (the one whose script is wrote by Ken Russell) to United Kingdom?",
+    "gold": "country of origin",
+    "kind": "gold",
+    "outcome": "answered_correct",
+    "status": "answered",
+    "path": "native:reader>answered",
+    "response": "country of origin",
+    "decision": "answered",
+    "group": 0,
+    "decided_by": [
+     "native:reader"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "answer",
+      "status": "answered",
+      "agreement_key": "country of origin",
+      "path": "native:reader>answered"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     }
+    },
+    "seconds": 0.083,
+    "native_control": {
+     "outcome": "answered_correct",
+     "answer": "country of origin"
+    },
+    "engine_control": "withheld",
+    "reader7_control": "answered_correct"
+   },
+   {
+    "id": "r100:29:10504",
+    "split": "r100",
+    "question": "What television series has more than 5 seasons and stars Barbara Stanwyck?",
+    "gold": "Dynasty",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "clarification",
+    "path": "act:clarify|vessel:receipt",
+    "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"What television series has more than 5 seasons and stars Barbara Stanwyck?\" as an unnamed shape [vessel:v0",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "clarification",
+      "agreement_key": null,
+      "path": "act:clarify|vessel:receipt"
+     }
+    },
+    "seconds": 1.168,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:30:209",
+    "split": "r100",
+    "question": "Of geographic regions that battled England, site of the English Civil War, which takes up the biggest area?",
+    "gold": "Transylvania",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "clarification",
+    "path": "act:clarify_specific",
+    "response": "What does \"that\" refer to? Nothing earlier in this conversation names it. Tell me the name.",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "clarification",
+      "agreement_key": null,
+      "path": "act:clarify_specific"
+     }
+    },
+    "seconds": 1.658,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:31:5091",
+    "split": "r100",
+    "question": "What is the title of Looney Tunes?",
+    "gold": "Looney Tunes",
+    "kind": "gold",
+    "outcome": "answered_correct",
+    "status": "answered",
+    "path": "native:reader>answered",
+    "response": "Looney Tunes",
+    "decision": "answered",
+    "group": 0,
+    "decided_by": [
+     "native:reader"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "answer",
+      "status": "answered",
+      "agreement_key": "Looney Tunes",
+      "path": "native:reader>answered"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     }
+    },
+    "seconds": 0.033,
+    "native_control": {
+     "outcome": "answered_correct",
+     "answer": "Looney Tunes"
+    },
+    "engine_control": "withheld",
+    "reader7_control": "answered_correct"
+   },
+   {
+    "id": "r100:32:4084",
+    "split": "r100",
+    "question": "What is the birth date of a person other than Jim Brown (the one whose position is running back)?",
+    "gold": "1956-08-14",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "withheld",
+    "path": "corpus_query:property_of|vessel:receipt",
+    "response": "No provenance-admitted sentence in the abstracts corpus answers that.\n\nI have received \"What is the birth date of a person other than Jim Brown (the one whose position is running back)?\" as an unnamed shape [vessel:v0019]; if it returns it gains weight, and when I can name it, I will.",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "corpus_query:property_of|vessel:receipt"
+     }
+    },
+    "seconds": 1.323,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:33:748",
+    "split": "r100",
+    "question": "How is Seven starring R. Lee Ermey related to drama film?",
+    "gold": "genre",
+    "kind": "gold",
+    "outcome": "answered_correct",
+    "status": "answered",
+    "path": "native:reader>answered",
+    "response": "genre",
+    "decision": "answered",
+    "group": 0,
+    "decided_by": [
+     "native:reader"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "answer",
+      "status": "answered",
+      "agreement_key": "genre",
+      "path": "native:reader>answered"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     }
+    },
+    "seconds": 0.101,
+    "native_control": {
+     "outcome": "answered_correct",
+     "answer": "genre"
+    },
+    "engine_control": "withheld",
+    "reader7_control": "answered_correct"
+   },
+   {
+    "id": "r100:34:3498",
+    "split": "r100",
+    "question": "Which resident of Italy won the Nobel Prize for Physics?",
+    "gold": "Enrico Fermi",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "clarification",
+    "path": "act:clarify|vessel:receipt",
+    "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Which resident of Italy won the Nobel Prize for Physics?\" as an unnamed shape [vessel:v0020]; if it return",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "clarification",
+      "agreement_key": null,
+      "path": "act:clarify|vessel:receipt"
+     }
+    },
+    "seconds": 4.474,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:35:10958",
+    "split": "r100",
+    "question": "What is the connection between The Grifters to National Society of Film Critics Award for Best Film?",
+    "gold": "nominated for",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "withheld",
+    "path": "unverified:arb:definitional->document_runtime|substitution_disclosed",
+    "response": "I found a passage that may be related, but I can't verify it answers your question: \"I have no admitted entry for “connection between The Grifters to National Society of Film Critics Award for Best Film”.\"",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "unverified:arb:definitional->document_runtime|substitution_disclosed"
+     }
+    },
+    "seconds": 0.169,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:36:1749",
+    "split": "r100",
+    "question": "What is the relationship between Paul Lieberstein and the United States of America?",
+    "gold": "country of citizenship",
+    "kind": "gold",
+    "outcome": "answered_correct",
+    "status": "answered",
+    "path": "native:reader>answered",
+    "response": "country of citizenship",
+    "decision": "answered",
+    "group": 0,
+    "decided_by": [
+     "native:reader"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "answer",
+      "status": "answered",
+      "agreement_key": "country of citizenship",
+      "path": "native:reader>answered"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     }
+    },
+    "seconds": 0.051,
+    "native_control": {
+     "outcome": "answered_correct",
+     "answer": "country of citizenship"
+    },
+    "engine_control": "withheld",
+    "reader7_control": "answered_correct"
+   },
+   {
+    "id": "r100:37:68",
+    "split": "r100",
+    "question": "How many record labels have a start time not in 1964?",
+    "gold": "139",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "withheld",
+    "path": "arb:timeline->capability:timeline|vessel:receipt",
+    "response": "A timeline needs at least two dated statements; the admitted material on record contains 0.\n\nI have received \"How many record labels have a start time not in 1964?\" as an unnamed shape [vessel:v0021]; if it returns it gains weight, and when I can name it, I will.",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "arb:timeline->capability:timeline|vessel:receipt"
+     }
+    },
+    "seconds": 0.151,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:38:3213",
+    "split": "r100",
+    "question": "Was Ben Harper (the one whose genre is alternative rock) not born in 1972?",
+    "gold": "yes",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "clarification",
+    "path": "act:clarify_specific",
+    "response": "What does \"the one\" refer to? Nothing earlier in this conversation names it. Tell me the name.",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "clarification",
+      "agreement_key": null,
+      "path": "act:clarify_specific"
+     }
+    },
+    "seconds": 2.871,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:39:6111",
+    "split": "r100",
+    "question": "What is the language of the Philadelphia Phillies' official website, https://www.mlb.com/phillies?",
+    "gold": "English",
+    "kind": "gold",
+    "outcome": "answered_correct",
+    "status": "answered",
+    "path": "native:reader>answered",
+    "response": "English",
+    "decision": "answered",
+    "group": 0,
+    "decided_by": [
+     "native:reader"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "answer",
+      "status": "answered",
+      "agreement_key": "English",
+      "path": "native:reader>answered"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     }
+    },
+    "seconds": 0.065,
+    "native_control": {
+     "outcome": "answered_correct",
+     "answer": "English"
+    },
+    "engine_control": "withheld",
+    "reader7_control": "answered_correct"
+   },
+   {
+    "id": "r100:40:8905",
+    "split": "r100",
+    "question": "When did Neil Simon win the Pulitzer Prize for Drama?",
+    "gold": "1991",
+    "kind": "gold",
+    "outcome": "answered_correct",
+    "status": "answered",
+    "path": "native:reader>answered",
+    "response": "1991",
+    "decision": "answered",
+    "group": 0,
+    "decided_by": [
+     "native:reader"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "answer",
+      "status": "answered",
+      "agreement_key": "1991",
+      "path": "native:reader>answered"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     }
+    },
+    "seconds": 0.034,
+    "native_control": {
+     "outcome": "answered_correct",
+     "answer": "1991"
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:41:1968",
+    "split": "r100",
+    "question": "What association does Sheldon Leonard have to Manhattan (death place of Eli Wallach)?",
+    "gold": "place of birth",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "clarification",
+    "path": "act:clarify|vessel:receipt",
+    "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"What association does Sheldon Leonard have to Manhattan (death place of Eli Wallach)?\" as an unnamed shape",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "clarification",
+      "agreement_key": null,
+      "path": "act:clarify|vessel:receipt"
+     }
+    },
+    "seconds": 1.705,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:42:9741",
+    "split": "r100",
+    "question": "How is Bucharest related to Atlanta, birthplace of Kelly Rowland?",
+    "gold": "twinned administrative body",
+    "kind": "gold",
+    "outcome": "answered_correct",
+    "status": "answered",
+    "path": "native:reader>answered",
+    "response": "twinned administrative body",
+    "decision": "answered",
+    "group": 0,
+    "decided_by": [
+     "native:reader"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "answer",
+      "status": "answered",
+      "agreement_key": "twinned administrative body",
+      "path": "native:reader>answered"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     }
+    },
+    "seconds": 0.048,
+    "native_control": {
+     "outcome": "answered_correct",
+     "answer": "twinned administrative body"
+    },
+    "engine_control": "withheld",
+    "reader7_control": "answered_correct"
+   },
+   {
+    "id": "r100:43:6407",
+    "split": "r100",
+    "question": "How many silent films were directed by someone with an ISNI of 0000 0001 1496 4714?",
+    "gold": "0",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "clarification",
+    "path": "act:clarify|vessel:receipt",
+    "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"How many silent films were directed by someone with an ISNI of 0000 0001 1496 4714?\" as an unnamed shape [",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "clarification",
+      "agreement_key": null,
+      "path": "act:clarify|vessel:receipt"
+     }
+    },
+    "seconds": 0.174,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:44:11514",
+    "split": "r100",
+    "question": "What was Adam Sandler's role in Little Nicky (the one that was nominated for Golden Raspberry Award for Worst Supporting Actress)?",
+    "gold": "Nicky",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "withheld",
+    "path": "unverified:factoid:page",
+    "response": "I found a passage that may be related, but I can't verify it answers your question: \"The Golden Raspberry Award for Worst Supporting Actress is an award presented annually at the Golden Raspberry Awards (or \"Razzies\") to the worst supporting actress of the previous year.\"",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "unverified:factoid:page"
+     }
+    },
+    "seconds": 0.15,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:45:5088",
+    "split": "r100",
+    "question": "How many national soccer teams rank 10 or took part in the Games of the 1948 Summer Olympics?",
+    "gold": "34",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "clarification",
+    "path": "act:clarify|vessel:receipt",
+    "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"How many national soccer teams rank 10 or took part in the Games of the 1948 Summer Olympics?\" as an unnam",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "clarification",
+      "agreement_key": null,
+      "path": "act:clarify|vessel:receipt"
+     }
+    },
+    "seconds": 1.404,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:46:8193",
+    "split": "r100",
+    "question": "What is the character role of Colm Meaney in Star Trek: Deep Space Nine?",
+    "gold": "Miles O'Brien",
+    "kind": "gold",
+    "outcome": "answered_correct",
+    "status": "answered",
+    "path": "native:reader>answered",
+    "response": "Miles O'Brien",
+    "decision": "answered",
+    "group": 0,
+    "decided_by": [
+     "native:reader"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "answer",
+      "status": "answered",
+      "agreement_key": "Miles O'Brien",
+      "path": "native:reader>answered"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     }
+    },
+    "seconds": 0.05,
+    "native_control": {
+     "outcome": "answered_correct",
+     "answer": "Miles O'Brien"
+    },
+    "engine_control": "withheld",
+    "reader7_control": "answered_correct"
+   },
+   {
+    "id": "r100:47:602",
+    "split": "r100",
+    "question": "Regarding the activity for the Instagram username seriea is the inception time in 1816?",
+    "gold": "no",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "clarification",
+    "path": "act:clarify|vessel:receipt",
+    "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Regarding the activity for the Instagram username seriea is the inception time in 1816?\" as an unnamed sha",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "clarification",
+      "agreement_key": null,
+      "path": "act:clarify|vessel:receipt"
+     }
+    },
+    "seconds": 1.8,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:48:4913",
+    "split": "r100",
+    "question": "What is the connection between City of Angels (the one whose distributor is Warner Bros.) to Andre Braugher?",
+    "gold": "cast member",
+    "kind": "gold",
+    "outcome": "answered_correct",
+    "status": "answered",
+    "path": "native:reader>answered",
+    "response": "cast member",
+    "decision": "answered",
+    "group": 0,
+    "decided_by": [
+     "native:reader"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "answer",
+      "status": "answered",
+      "agreement_key": "cast member",
+      "path": "native:reader>answered"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     }
+    },
+    "seconds": 0.052,
+    "native_control": {
+     "outcome": "answered_correct",
+     "answer": "cast member"
+    },
+    "engine_control": "withheld",
+    "reader7_control": "answered_correct"
+   },
+   {
+    "id": "r100:49:431",
+    "split": "r100",
+    "question": "When was the member of Cardiff City F.C. (the start time of this statement is 1991) born?",
+    "gold": "1960-10-03",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "withheld",
+    "path": "arb:timeline->capability:timeline|vessel:receipt",
+    "response": "A timeline needs at least two dated statements; the admitted material on member contains 0.\n\nI have received \"When was the member of Cardiff City F.C. (the start time of this statement is 1991) born?\" as an unnamed shape [vessel:v0028]; if it returns it gains weight, and when I can name it, I will.",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "arb:timeline->capability:timeline|vessel:receipt"
+     }
+    },
+    "seconds": 6.78,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:50:5662",
+    "split": "r100",
+    "question": "Of Canadian administrative territorial entities with a population below 9000000, which occupies the most area?",
+    "gold": "Nunavut",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "clarification",
+    "path": "act:clarify|vessel:receipt",
+    "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Of Canadian administrative territorial entities with a population below 9000000, which occupies the most a",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "clarification",
+      "agreement_key": null,
+      "path": "act:clarify|vessel:receipt"
+     }
+    },
+    "seconds": 0.728,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:51:6283",
+    "split": "r100",
+    "question": "Does Secretary of State-led Montana or does Indiana have the higher elevation?",
+    "gold": "Montana",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "clarification",
+    "path": "act:clarify|vessel:receipt",
+    "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Does Secretary of State-led Montana or does Indiana have the higher elevation?\" as an unnamed shape [vesse",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "clarification",
+      "agreement_key": null,
+      "path": "act:clarify|vessel:receipt"
+     }
+    },
+    "seconds": 3.494,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:52:4738",
+    "split": "r100",
+    "question": "How many land-grant universities are in East Lansing or denoted by PermID 5000861728?",
+    "gold": "2",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "clarification",
+    "path": "act:clarify|vessel:receipt",
+    "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"How many land-grant universities are in East Lansing or denoted by PermID 5000861728?\" as an unnamed shape",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "clarification",
+      "agreement_key": null,
+      "path": "act:clarify|vessel:receipt"
+     }
+    },
+    "seconds": 2.222,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:53:876",
+    "split": "r100",
+    "question": "How many administrative territorial entities of Canada share a border with the Northwest Territories or have the official name of Yukon Territory?",
+    "gold": "2",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "clarification",
+    "path": "act:clarify|vessel:receipt",
+    "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"How many administrative territorial entities of Canada share a border with the Northwest Territories or ha",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "clarification",
+      "agreement_key": null,
+      "path": "act:clarify|vessel:receipt"
+     }
+    },
+    "seconds": 2.087,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:54:9389",
+    "split": "r100",
+    "question": "What is the determination method of the population 149294 county of Maryland who shares the south border with Prince George's County?",
+    "gold": "estimation process",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "withheld",
+    "path": "corpus_query:property_of|vessel:receipt",
+    "response": "No provenance-admitted sentence in the abstracts corpus answers that.\n\nI have received \"What is the determination method of the population 149294 county of Maryland who shares the south border with Prince George's County?\" as an unnamed shape [vessel:v0033]; if it returns it gains weight, and when I can name it, I will.",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "corpus_query:property_of|vessel:receipt"
+     }
+    },
+    "seconds": 2.673,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:55:10204",
+    "split": "r100",
+    "question": "The website of Georgetown University Law Center, www.law.georgetown.edu, is published in which language ?",
+    "gold": "English",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "clarification",
+    "path": "act:clarify|vessel:receipt",
+    "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"The website of Georgetown University Law Center, www.law.georgetown.edu, is published in which language?\" ",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "clarification",
+      "agreement_key": null,
+      "path": "act:clarify|vessel:receipt"
+     }
+    },
+    "seconds": 3.334,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:56:1720",
+    "split": "r100",
+    "question": "Which movie follows Sherlock Holmes (the one whose release region is Philippines)?",
+    "gold": "Sherlock Holmes: A Game of Shadows",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "clarification",
+    "path": "act:clarify_specific",
+    "response": "What does \"the one\" refer to? Nothing earlier in this conversation names it. Tell me the name.",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "clarification",
+      "agreement_key": null,
+      "path": "act:clarify_specific"
+     }
+    },
+    "seconds": 0.783,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:57:5373",
+    "split": "r100",
+    "question": "Who weighs less, Jermaine Jackson (the one that is a member of Atlanta Hawks) or Richard Wright (the one that is a member of Ipswich Town F.C.)?",
+    "gold": "Richard Wright",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "clarification",
+    "path": "act:clarify_specific",
+    "response": "What does \"the one\" refer to? Nothing earlier in this conversation names it. Tell me the name.",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "clarification",
+      "agreement_key": null,
+      "path": "act:clarify_specific"
+     }
+    },
+    "seconds": 4.661,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:58:10315",
+    "split": "r100",
+    "question": "In which language was the work that earned a nomination to Catherine Zeta-Jones in the Tony Awards?",
+    "gold": "English",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "clarification",
+    "path": "act:clarify_specific",
+    "response": "What does \"that\" refer to? Nothing earlier in this conversation names it. Tell me the name.",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "clarification",
+      "agreement_key": null,
+      "path": "act:clarify_specific"
+     }
+    },
+    "seconds": 3.046,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:59:3730",
+    "split": "r100",
+    "question": "In what way is Duke Blue Devils men's basketball associated with the NCAA Men's Division I Basketball Tournament in 1985?",
+    "gold": "seed team",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "clarification",
+    "path": "act:clarify|vessel:receipt",
+    "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"In what way is Duke Blue Devils men's basketball associated with the NCAA Men's Division I Basketball Tour",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "clarification",
+      "agreement_key": null,
+      "path": "act:clarify|vessel:receipt"
+     }
+    },
+    "seconds": 3.923,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:60:11107",
+    "split": "r100",
+    "question": "What language has an IETF language tag of bg and is spoken in Turkey?",
+    "gold": "Bulgarian",
+    "kind": "gold",
+    "outcome": "answered_wrong",
+    "status": "answered",
+    "path": "organ:relation>READ>FRAME>LINK>RELATE:fwd:P37>CHECK:P37>BIND>EXPAND>VERIFY",
+    "response": "[ev:direct] Turkish. The money of Turkey is called the Turkish Lira. [simplewiki_efb7d55dbe520f7d7770fc54] (typed relations: wd:Q43 P37 wd:Q256)",
+    "decision": "answered",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "answer",
+      "status": "answered",
+      "agreement_key": "[ev:direct] Turkish. The money of Turkey is called the Turkish Lira. [simplewiki_efb7d55dbe520f7d7770fc54] (typed relations: wd:Q43 P37 wd:Q256)",
+      "path": "organ:relation>READ>FRAME>LINK>RELATE:fwd:P37>CHECK:P37>BIND>EXPAND>VERIFY"
+     }
+    },
+    "seconds": 1.569,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "answered_wrong",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:61:10098",
+    "split": "r100",
+    "question": "Is the neo-noir Rush titled Young Adam ?",
+    "gold": "no",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "clarification",
+    "path": "act:clarify|vessel:receipt",
+    "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Is the neo-noir Rush titled Young Adam?\" as an unnamed shape [vessel:v0040]; if it returns it gains weight",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "clarification",
+      "agreement_key": null,
+      "path": "act:clarify|vessel:receipt"
+     }
+    },
+    "seconds": 2.663,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:62:8699",
+    "split": "r100",
+    "question": "What is the association of Scott McDonald with association football?",
+    "gold": "sport",
+    "kind": "gold",
+    "outcome": "answered_correct",
+    "status": "answered",
+    "path": "native:reader>answered",
+    "response": "sport",
+    "decision": "answered",
+    "group": 0,
+    "decided_by": [
+     "native:reader"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "answer",
+      "status": "answered",
+      "agreement_key": "sport",
+      "path": "native:reader>answered"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     }
+    },
+    "seconds": 0.064,
+    "native_control": {
+     "outcome": "answered_correct",
+     "answer": "sport"
+    },
+    "engine_control": "withheld",
+    "reader7_control": "answered_correct"
+   },
+   {
+    "id": "r100:63:9732",
+    "split": "r100",
+    "question": "Who is the person who owns the painting that has an inventory number of 47.106",
+    "gold": "Gertrude Stein",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "clarification",
+    "path": "act:clarify_specific",
+    "response": "What does \"the person\" refer to? Nothing earlier in this conversation names it. Tell me the name.",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "clarification",
+      "agreement_key": null,
+      "path": "act:clarify_specific"
+     }
+    },
+    "seconds": 0.17,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:64:1941",
+    "split": "r100",
+    "question": "What is the population of the US city which shares border with Lakewood?",
+    "gold": "396815",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "withheld",
+    "path": "corpus_query:property_of|vessel:receipt",
+    "response": "No provenance-admitted sentence in the abstracts corpus answers that.\n\nI have received \"What is the population of the US city which shares border with Lakewood?\" as an unnamed shape [vessel:v0042]; if it returns it gains weight, and when I can name it, I will.",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "corpus_query:property_of|vessel:receipt"
+     }
+    },
+    "seconds": 0.247,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:65:9503",
+    "split": "r100",
+    "question": "What is the link between Freddie Francis and World War II?",
+    "gold": "conflict",
+    "kind": "gold",
+    "outcome": "answered_correct",
+    "status": "answered",
+    "path": "native:reader>answered",
+    "response": "conflict",
+    "decision": "answered",
+    "group": 0,
+    "decided_by": [
+     "native:reader"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "answer",
+      "status": "answered",
+      "agreement_key": "conflict",
+      "path": "native:reader>answered"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     }
+    },
+    "seconds": 0.043,
+    "native_control": {
+     "outcome": "answered_correct",
+     "answer": "conflict"
+    },
+    "engine_control": "withheld",
+    "reader7_control": "answered_correct"
+   },
+   {
+    "id": "r100:66:106",
+    "split": "r100",
+    "question": "What language is associated with the official website http://www.morgan.edu of Morgan State University ?",
+    "gold": "English",
+    "kind": "gold",
+    "outcome": "answered_correct",
+    "status": "answered",
+    "path": "native:reader>answered",
+    "response": "English",
+    "decision": "answered",
+    "group": 0,
+    "decided_by": [
+     "native:reader"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "answer",
+      "status": "answered",
+      "agreement_key": "English",
+      "path": "native:reader>answered"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     }
+    },
+    "seconds": 0.054,
+    "native_control": {
+     "outcome": "answered_correct",
+     "answer": "English"
+    },
+    "engine_control": "withheld",
+    "reader7_control": "answered_correct"
+   },
+   {
+    "id": "r100:67:2542",
+    "split": "r100",
+    "question": "Which university has fewer students, Brandeis University or University of Missouri?",
+    "gold": "Brandeis University",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "withheld",
+    "path": "native:reader>ambiguous",
+    "response": "The native reader found readings that disagree, so it gives no answer.",
+    "decision": "refused",
+    "group": 0,
+    "decided_by": [
+     "native:reader"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "refusal",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>ambiguous"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     }
+    },
+    "seconds": 0.089,
+    "native_control": {
+     "outcome": "refused",
+     "answer": null
+    },
+    "engine_control": "answered_wrong",
+    "reader7_control": "answered_correct"
+   },
+   {
+    "id": "r100:68:9151",
+    "split": "r100",
+    "question": "Does University of Toronto not have 89000 students?",
+    "gold": "yes",
+    "kind": "gold",
+    "outcome": "answered_correct",
+    "status": "answered",
+    "path": "native:reader>answered",
+    "response": "yes",
+    "decision": "answered",
+    "group": 0,
+    "decided_by": [
+     "native:reader"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "answer",
+      "status": "answered",
+      "agreement_key": "yes",
+      "path": "native:reader>answered"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     }
+    },
+    "seconds": 0.018,
+    "native_control": {
+     "outcome": "answered_correct",
+     "answer": "yes"
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:69:3371",
+    "split": "r100",
+    "question": "What is the connection between Verona (the one whose population is 54709) to Albany (the one that is the twinned administrative body of Nassau)?",
+    "gold": "twinned administrative body",
+    "kind": "gold",
+    "outcome": "answered_correct",
+    "status": "answered",
+    "path": "native:reader>answered",
+    "response": "twinned administrative body",
+    "decision": "answered",
+    "group": 0,
+    "decided_by": [
+     "native:reader"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "answer",
+      "status": "answered",
+      "agreement_key": "twinned administrative body",
+      "path": "native:reader>answered"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     }
+    },
+    "seconds": 0.134,
+    "native_control": {
+     "outcome": "answered_correct",
+     "answer": "twinned administrative body"
+    },
+    "engine_control": "withheld",
+    "reader7_control": "answered_correct"
+   },
+   {
+    "id": "r100:70:2064",
+    "split": "r100",
+    "question": "What is Jerome Kern's CANTIC-ID?",
+    "gold": "a10450294",
+    "kind": "gold",
+    "outcome": "answered_correct",
+    "status": "answered",
+    "path": "native:reader>answered",
+    "response": "a10450294",
+    "decision": "answered",
+    "group": 0,
+    "decided_by": [
+     "native:reader"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "answer",
+      "status": "answered",
+      "agreement_key": "a10450294",
+      "path": "native:reader>answered"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     }
+    },
+    "seconds": 0.017,
+    "native_control": {
+     "outcome": "answered_correct",
+     "answer": "a10450294"
+    },
+    "engine_control": "answered_wrong",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:71:11486",
+    "split": "r100",
+    "question": "What is the name of a person of Russian origin, who was involved in Russian Civil War conflict?",
+    "gold": "Georgy Zhukov",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "withheld",
+    "path": "corpus_query:property_of|vessel:receipt",
+    "response": "No provenance-admitted sentence in the abstracts corpus answers that.\n\nI have received \"What is the name of a person of Russian origin, who was involved in Russian Civil War conflict?\" as an unnamed shape [vessel:v0043]; if it returns it gains weight, and when I can name it, I will.",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "corpus_query:property_of|vessel:receipt"
+     }
+    },
+    "seconds": 2.208,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:72:5920",
+    "split": "r100",
+    "question": "Taekwondo is associated with how many baseball player positions?",
+    "gold": "0",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "clarification",
+    "path": "act:clarify|vessel:receipt",
+    "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Taekwondo is associated with how many baseball player positions?\" as an unnamed shape [vessel:v0044]; if i",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "clarification",
+      "agreement_key": null,
+      "path": "act:clarify|vessel:receipt"
+     }
+    },
+    "seconds": 0.402,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:73:3540",
+    "split": "r100",
+    "question": "Which visual artwork received a National Board of Review Award for Best Actor (for Gene Hackman) and is titled The Conversation?",
+    "gold": "The Conversation",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "clarification",
+    "path": "act:clarify|vessel:receipt",
+    "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Which visual artwork received a National Board of Review Award for Best Actor (for Gene Hackman) and is ti",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "clarification",
+      "agreement_key": null,
+      "path": "act:clarify|vessel:receipt"
+     }
+    },
+    "seconds": 2.426,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:74:9197",
+    "split": "r100",
+    "question": "Is the elevation other than 45 ft at the land-grant university in Wyoming, where Rocky IV was filmed?",
+    "gold": "yes",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "clarification",
+    "path": "act:clarify|vessel:receipt",
+    "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Is the elevation other than 45 ft at the land-grant university in Wyoming, where Rocky IV was filmed?\" as ",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "clarification",
+      "agreement_key": null,
+      "path": "act:clarify|vessel:receipt"
+     }
+    },
+    "seconds": 0.796,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:75:11763",
+    "split": "r100",
+    "question": "tell me the number of subscribers for the museum that has an isni of 0000 0001 2375 3994, and Twitter username of ngadc",
+    "gold": "223290",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "clarification",
+    "path": "act:clarify_specific",
+    "response": "What does \"that\" refer to? Nothing earlier in this conversation names it. Tell me the name.",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "clarification",
+      "agreement_key": null,
+      "path": "act:clarify_specific"
+     }
+    },
+    "seconds": 0.162,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:76:9514",
+    "split": "r100",
+    "question": "What is the relationship between experimental music to Plastic Ono Band?",
+    "gold": "famous people",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "withheld",
+    "path": "native:reader>ambiguous",
+    "response": "The native reader found readings that disagree, so it gives no answer.",
+    "decision": "refused",
+    "group": 0,
+    "decided_by": [
+     "native:reader"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "refusal",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>ambiguous"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     }
+    },
+    "seconds": 0.063,
+    "native_control": {
+     "outcome": "refused",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "answered_correct"
+   },
+   {
+    "id": "r100:77:7209",
+    "split": "r100",
+    "question": "How is East Coast hip hop related to Method Man?",
+    "gold": "famous people",
+    "kind": "gold",
+    "outcome": "answered_correct",
+    "status": "answered",
+    "path": "native:reader>answered",
+    "response": "famous people",
+    "decision": "answered",
+    "group": 0,
+    "decided_by": [
+     "native:reader"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "answer",
+      "status": "answered",
+      "agreement_key": "famous people",
+      "path": "native:reader>answered"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     }
+    },
+    "seconds": 0.054,
+    "native_control": {
+     "outcome": "answered_correct",
+     "answer": "famous people"
+    },
+    "engine_control": "answered_wrong",
+    "reader7_control": "answered_correct"
+   },
+   {
+    "id": "r100:78:1994",
+    "split": "r100",
+    "question": "Is the population count higher for Palo Alto, where the Grateful Dead formed, or Mesa (in the Mountain Time Zone)?",
+    "gold": "Mesa",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "clarification",
+    "path": "act:clarify|vessel:receipt",
+    "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Is the population count higher for Palo Alto, where the Grateful Dead formed, or Mesa (in the Mountain Tim",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "clarification",
+      "agreement_key": null,
+      "path": "act:clarify|vessel:receipt"
+     }
+    },
+    "seconds": 2.263,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:79:8512",
+    "split": "r100",
+    "question": "What movie was produced by Anna Faris ?",
+    "gold": "The House Bunny",
+    "kind": "gold",
+    "outcome": "answered_wrong",
+    "status": "answered",
+    "path": "organ:relation>READ>FRAME>LINK>RELATE:inv:P162>CHECK:P162>BIND>EXPAND>VERIFY",
+    "response": "[ev:direct] The House Bunny. Anna Kay Faris (born November 29, 1976) is an American movie, television, stage, voice actress, comedian and singer who is known for her roles in all four Scary Movies, Lost in Translation, Cloudy with a Chance of Meatballs, The House Bunny and Overboard. [simplewiki_3e2ee78e58cbc5eebe972db3] (typed relations: wd:Q466959 P162 wd:Q4491)",
+    "decision": "answered",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "answer",
+      "status": "answered",
+      "agreement_key": "[ev:direct] The House Bunny. Anna Kay Faris (born November 29, 1976) is an American movie, television, stage, voice actress, comedian and singer who is known for her roles in all four Scary Movies, Lost in Translation, Cloudy with a Chance of Meatballs, The House Bunny and Overboard. [simplewiki_3e2ee78e58cbc5eebe972db3] (typed relations: wd:Q466959 P162 wd:Q4491)",
+      "path": "organ:relation>READ>FRAME>LINK>RELATE:inv:P162>CHECK:P162>BIND>EXPAND>VERIFY"
+     }
+    },
+    "seconds": 0.876,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "answered_wrong",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:80:653",
+    "split": "r100",
+    "question": "What is the number of China provinces that have the official name 山西省 or that were incepted prior to 1955?",
+    "gold": "3",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "withheld",
+    "path": "native:reader>refused",
+    "response": "The native reader found readings that disagree, so it gives no answer.",
+    "decision": "refused",
+    "group": 0,
+    "decided_by": [
+     "native:reader"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "refusal",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>refused"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     }
+    },
+    "seconds": 0.022,
+    "native_control": {
+     "outcome": "refused",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:81:2103",
+    "split": "r100",
+    "question": "How is Sonic the Hedgehog from Playstation 2 related to Doctor Eggman?",
+    "gold": "characters",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "clarification",
+    "path": "act:clarify|vessel:receipt",
+    "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"How is Sonic the Hedgehog from Playstation 2 related to Doctor Eggman?\" as an unnamed shape [vessel:v0051]",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "clarification",
+      "agreement_key": null,
+      "path": "act:clarify|vessel:receipt"
+     }
+    },
+    "seconds": 11.607,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:82:7393",
+    "split": "r100",
+    "question": "Where was the film whose official website is http://www.janeeyremovie.com published on 2011-12-01?",
+    "gold": "Germany",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "clarification",
+    "path": "act:clarify|vessel:receipt",
+    "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Where was the film whose official website is http://www.janeeyremovie.com published on 2011-12-01?\" as an ",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "clarification",
+      "agreement_key": null,
+      "path": "act:clarify|vessel:receipt"
+     }
+    },
+    "seconds": 3.451,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:83:4583",
+    "split": "r100",
+    "question": "At what point did the Los Angeles Dodgers shed their official name of Brooklyn Grooms?",
+    "gold": "1895",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "withheld",
+    "path": "factoid:withheld|vessel:receipt",
+    "response": "I have no admitted record that answers that about \"Los Angeles Dodgers\", so I will not guess. The reply I had did not cover point, shed, official.",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "factoid:withheld|vessel:receipt"
+     }
+    },
+    "seconds": 2.918,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:84:11042",
+    "split": "r100",
+    "question": "How many Illinois counties have a population that is not 2300?",
+    "gold": "18",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "clarification",
+    "path": "act:clarify_specific",
+    "response": "What does \"that\" refer to? Nothing earlier in this conversation names it. Tell me the name.",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "clarification",
+      "agreement_key": null,
+      "path": "act:clarify_specific"
+     }
+    },
+    "seconds": 2.953,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:85:5821",
+    "split": "r100",
+    "question": "What's the relationship between Ray Stark and The Way We Were?",
+    "gold": "producer",
+    "kind": "gold",
+    "outcome": "answered_correct",
+    "status": "answered",
+    "path": "native:reader>answered",
+    "response": "producer",
+    "decision": "answered",
+    "group": 0,
+    "decided_by": [
+     "native:reader"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "answer",
+      "status": "answered",
+      "agreement_key": "producer",
+      "path": "native:reader>answered"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     }
+    },
+    "seconds": 0.029,
+    "native_control": {
+     "outcome": "answered_correct",
+     "answer": "producer"
+    },
+    "engine_control": "answered_wrong",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:86:2688",
+    "split": "r100",
+    "question": "Which area is larger, Jefferson County (the one whose population is 73191) or Franklin County (the one whose FIPS 6-4 (US counties) is 20059)?",
+    "gold": "Jefferson County",
+    "kind": "gold",
+    "outcome": "answered_correct",
+    "status": "answered",
+    "path": "native:reader>answered",
+    "response": "Jefferson County",
+    "decision": "answered",
+    "group": 0,
+    "decided_by": [
+     "native:reader"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "answer",
+      "status": "answered",
+      "agreement_key": "Jefferson County",
+      "path": "native:reader>answered"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     }
+    },
+    "seconds": 0.099,
+    "native_control": {
+     "outcome": "answered_correct",
+     "answer": "Jefferson County"
+    },
+    "engine_control": "withheld",
+    "reader7_control": "answered_correct"
+   },
+   {
+    "id": "r100:87:9181",
+    "split": "r100",
+    "question": "How is Maximilian Schell related to Innsbruck?",
+    "gold": "place of death",
+    "kind": "gold",
+    "outcome": "answered_correct",
+    "status": "answered",
+    "path": "native:reader>answered",
+    "response": "place of death",
+    "decision": "answered",
+    "group": 0,
+    "decided_by": [
+     "native:reader"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "answer",
+      "status": "answered",
+      "agreement_key": "place of death",
+      "path": "native:reader>answered"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     }
+    },
+    "seconds": 0.054,
+    "native_control": {
+     "outcome": "answered_correct",
+     "answer": "place of death"
+    },
+    "engine_control": "answered_wrong",
+    "reader7_control": "answered_correct"
+   },
+   {
+    "id": "r100:88:5826",
+    "split": "r100",
+    "question": "Which has more people, Chichester (the one whose TOID is 7000000000016444) or Winchester (the one whose TOID is 7000000000017754)?",
+    "gold": "Winchester",
+    "kind": "gold",
+    "outcome": "answered_correct",
+    "status": "answered",
+    "path": "native:reader>answered",
+    "response": "Winchester",
+    "decision": "answered",
+    "group": 0,
+    "decided_by": [
+     "native:reader"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "answer",
+      "status": "answered",
+      "agreement_key": "Winchester",
+      "path": "native:reader>answered"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     }
+    },
+    "seconds": 0.069,
+    "native_control": {
+     "outcome": "answered_correct",
+     "answer": "Winchester"
+    },
+    "engine_control": "withheld",
+    "reader7_control": "answered_correct"
+   },
+   {
+    "id": "r100:89:11707",
+    "split": "r100",
+    "question": "When did Crazy Heart receive the Los Angeles Film Critics Association Award for Best Actor?",
+    "gold": "2009",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "clarification",
+    "path": "act:clarify|vessel:receipt",
+    "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"When did Crazy Heart receive the Los Angeles Film Critics Association Award for Best Actor?\" as an unnamed",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "clarification",
+      "agreement_key": null,
+      "path": "act:clarify|vessel:receipt"
+     }
+    },
+    "seconds": 3.002,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:90:1116",
+    "split": "r100",
+    "question": "How many Grammy Awards (USA) was record producer David Foster nominated for?",
+    "gold": "10",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "withheld",
+    "path": "arb:timeline->capability:timeline|vessel:receipt",
+    "response": "A timeline needs at least two dated statements; the admitted material on record producer contains 0.\n\nI have received \"How many Grammy Awards (USA) was record producer David Foster nominated for?\" as an unnamed shape [vessel:v0056]; if it returns it gains weight, and when I can name it, I will.",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "arb:timeline->capability:timeline|vessel:receipt"
+     }
+    },
+    "seconds": 1.331,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:91:5659",
+    "split": "r100",
+    "question": "Of mountain ranges that are not 330 meters above sea level, which is lowest in elevation?",
+    "gold": "Adirondack Mountains",
+    "kind": "gold",
+    "outcome": "answered_correct",
+    "status": "answered",
+    "path": "native:reader>answered",
+    "response": "Adirondack Mountains",
+    "decision": "answered",
+    "group": 0,
+    "decided_by": [
+     "native:reader"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "answer",
+      "status": "answered",
+      "agreement_key": "Adirondack Mountains",
+      "path": "native:reader>answered"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     }
+    },
+    "seconds": 0.042,
+    "native_control": {
+     "outcome": "answered_correct",
+     "answer": "Adirondack Mountains"
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:92:9234",
+    "split": "r100",
+    "question": "What is the connection between  X-Men: The Last Stand to Ian McKellen?",
+    "gold": "cast member",
+    "kind": "gold",
+    "outcome": "answered_correct",
+    "status": "answered",
+    "path": "native:reader>answered",
+    "response": "cast member",
+    "decision": "answered",
+    "group": 0,
+    "decided_by": [
+     "native:reader"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "answer",
+      "status": "answered",
+      "agreement_key": "cast member",
+      "path": "native:reader>answered"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     }
+    },
+    "seconds": 0.049,
+    "native_control": {
+     "outcome": "answered_correct",
+     "answer": "cast member"
+    },
+    "engine_control": "withheld",
+    "reader7_control": "answered_correct"
+   },
+   {
+    "id": "r100:93:6064",
+    "split": "r100",
+    "question": "Which movie is longer, Resident Evil: Afterlife or Final Fantasy: The Spirits Within?",
+    "gold": "Final Fantasy: The Spirits Within",
+    "kind": "gold",
+    "outcome": "answered_correct",
+    "status": "answered",
+    "path": "native:reader>answered",
+    "response": "Final Fantasy: The Spirits Within",
+    "decision": "answered",
+    "group": 0,
+    "decided_by": [
+     "native:reader"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "answer",
+      "status": "answered",
+      "agreement_key": "Final Fantasy: The Spirits Within",
+      "path": "native:reader>answered"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     }
+    },
+    "seconds": 0.048,
+    "native_control": {
+     "outcome": "answered_correct",
+     "answer": "Final Fantasy: The Spirits Within"
+    },
+    "engine_control": "withheld",
+    "reader7_control": "answered_correct"
+   },
+   {
+    "id": "r100:94:9887",
+    "split": "r100",
+    "question": "Among India's states which share a border with Tamil Nadu (the one whose male population is 36137975), which one has the largest urban population?",
+    "gold": "Andhra Pradesh",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "clarification",
+    "path": "act:clarify_specific",
+    "response": "What does \"the one\" refer to? Nothing earlier in this conversation names it. Tell me the name.",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "clarification",
+      "agreement_key": null,
+      "path": "act:clarify_specific"
+     }
+    },
+    "seconds": 1.265,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:95:4156",
+    "split": "r100",
+    "question": "How is the downtempo genre connected to William Orbit?",
+    "gold": "famous people",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "clarification",
+    "path": "act:clarify|vessel:receipt",
+    "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"How is the downtempo genre connected to William Orbit?\" as an unnamed shape [vessel:v0058]; if it returns ",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "clarification",
+      "agreement_key": null,
+      "path": "act:clarify|vessel:receipt"
+     }
+    },
+    "seconds": 0.901,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:96:823",
+    "split": "r100",
+    "question": "What is the ending time for James Brown (the one whose date of birth is 1862-07-31) as a member of Blackburn Rovers F.C.?",
+    "gold": "1889-01-01",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "withheld",
+    "path": "arb:timeline->capability:timeline|vessel:receipt",
+    "response": "A timeline needs at least two dated statements; the admitted material on time contains 0.\n\nI have received \"What is the ending time for James Brown (the one whose date of birth is 1862-07-31) as a member of Blackburn Rovers F.C.?\" as an unnamed shape [vessel:v0059]; if it returns it gains weight, and when I can name it, I will.",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "arb:timeline->capability:timeline|vessel:receipt"
+     }
+    },
+    "seconds": 0.207,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "r100:97:525",
+    "split": "r100",
+    "question": "Which movie is shorter, Made in Dagenham or Deconstructing Harry?",
+    "gold": "Deconstructing Harry",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "withheld",
+    "path": "native:reader>ambiguous",
+    "response": "The native reader found readings that disagree, so it gives no answer.",
+    "decision": "refused",
+    "group": 0,
+    "decided_by": [
+     "native:reader"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "refusal",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>ambiguous"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     }
+    },
+    "seconds": 0.052,
+    "native_control": {
+     "outcome": "refused",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "answered_correct"
+   },
+   {
+    "id": "r100:98:10205",
+    "split": "r100",
+    "question": "How many subscribers are there for the Twitter username BristolUni belonging to the public university that is the educational institution of Matt Lucas?",
+    "gold": "73055",
+    "kind": "gold",
+    "outcome": "answered_correct",
+    "status": "answered",
+    "path": "native:reader>answered",
+    "response": "73055",
+    "decision": "answered",
+    "group": 0,
+    "decided_by": [
+     "native:reader"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "answer",
+      "status": "answered",
+      "agreement_key": "73055",
+      "path": "native:reader>answered"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     }
+    },
+    "seconds": 0.026,
+    "native_control": {
+     "outcome": "answered_correct",
+     "answer": "73055"
+    },
+    "engine_control": "withheld",
+    "reader7_control": "answered_correct"
+   },
+   {
+    "id": "r100:99:11198",
+    "split": "r100",
+    "question": "Who has ISNI 0000 0001 1947 1951?",
+    "gold": "Ellen Pompeo",
+    "kind": "gold",
+    "outcome": "unanswered",
+    "status": "clarification",
+    "path": "act:clarify|vessel:receipt",
+    "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Who has ISNI 0000 0001 1947 1951?\" as an unnamed shape [vessel:v0060]; if it returns it gains weight, and ",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "clarification",
+      "agreement_key": null,
+      "path": "act:clarify|vessel:receipt"
+     }
+    },
+    "seconds": 0.141,
+    "native_control": {
+     "outcome": "unknown",
+     "answer": null
+    },
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "c16:baseline_city_website_saskatoon",
+    "split": "c16",
+    "question": "Which city whose official website is http://www.saskatoon.ca/?",
+    "gold": "Saskatoon",
+    "kind": "entity",
+    "outcome": "unanswered",
+    "status": "withheld",
+    "path": "native:reader>refused",
+    "response": "The native reader found readings that disagree, so it gives no answer.",
+    "decision": "refused",
+    "group": 0,
+    "decided_by": [
+     "native:reader"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "refusal",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>refused"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     }
+    },
+    "seconds": 0.069,
+    "native_control": null,
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "c16:segment_city_website_population_saskatoon",
+    "split": "c16",
+    "question": "Which city whose official website is http://www.saskatoon.ca/ whose population is 222189?",
+    "gold": "Saskatoon",
+    "kind": "entity",
+    "outcome": "unanswered",
+    "status": "withheld",
+    "path": "native:reader>refused",
+    "response": "The native reader found readings that disagree, so it gives no answer.",
+    "decision": "refused",
+    "group": 0,
+    "decided_by": [
+     "native:reader"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "refusal",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>refused"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     }
+    },
+    "seconds": 0.107,
+    "native_control": null,
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "c16:segment_city_population_website_saskatoon",
+    "split": "c16",
+    "question": "Which city whose population is 222189 whose official website is http://www.saskatoon.ca/?",
+    "gold": "Saskatoon",
+    "kind": "entity",
+    "outcome": "unanswered",
+    "status": "withheld",
+    "path": "native:reader>refused",
+    "response": "The native reader found readings that disagree, so it gives no answer.",
+    "decision": "refused",
+    "group": 0,
+    "decided_by": [
+     "native:reader"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "refusal",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>refused"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     }
+    },
+    "seconds": 0.146,
+    "native_control": null,
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "c16:nested_university_city_website_saskatoon",
+    "split": "c16",
+    "question": "Which university located in city whose official website is http://www.saskatoon.ca/?",
+    "gold": "University of Saskatchewan",
+    "kind": "entity",
+    "outcome": "unanswered",
+    "status": "withheld",
+    "path": "native:reader>refused",
+    "response": "The native reader found readings that disagree, so it gives no answer.",
+    "decision": "refused",
+    "group": 0,
+    "decided_by": [
+     "native:reader"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "refusal",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>refused"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     }
+    },
+    "seconds": 0.065,
+    "native_control": null,
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "c16:nested_university_city_website_population_saskatoon",
+    "split": "c16",
+    "question": "Which university located in city whose official website is http://www.saskatoon.ca/ whose population is 222189?",
+    "gold": "University of Saskatchewan",
+    "kind": "entity",
+    "outcome": "unanswered",
+    "status": "withheld",
+    "path": "native:reader>refused",
+    "response": "The native reader found readings that disagree, so it gives no answer.",
+    "decision": "refused",
+    "group": 0,
+    "decided_by": [
+     "native:reader"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "refusal",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>refused"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     }
+    },
+    "seconds": 0.067,
+    "native_control": null,
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "c16:nested_university_city_website_population_belfast",
+    "split": "c16",
+    "question": "Which university located in city whose official website is http://www.belfastcity.gov.uk/ whose population is 333871?",
+    "gold": "Queen's University Belfast",
+    "kind": "entity",
+    "outcome": "unanswered",
+    "status": "withheld",
+    "path": "native:reader>refused",
+    "response": "The native reader found readings that disagree, so it gives no answer.",
+    "decision": "refused",
+    "group": 0,
+    "decided_by": [
+     "native:reader"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "refusal",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>refused"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     }
+    },
+    "seconds": 0.08,
+    "native_control": null,
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "c16:nested_headquarters_city_website_population_bristol",
+    "split": "c16",
+    "question": "Which university headquartered in city whose official website is http://www.bristol.gov.uk/ whose population is 442500?",
+    "gold": "University of Bristol",
+    "kind": "entity",
+    "outcome": "unanswered",
+    "status": "withheld",
+    "path": "native:reader>refused",
+    "response": "The native reader found readings that disagree, so it gives no answer.",
+    "decision": "refused",
+    "group": 0,
+    "decided_by": [
+     "native:reader"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "refusal",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>refused"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     }
+    },
+    "seconds": 0.166,
+    "native_control": null,
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "c16:segment_city_website_population_bristol",
+    "split": "c16",
+    "question": "Which city whose official website is http://www.bristol.gov.uk/ whose population is 442500?",
+    "gold": "Bristol",
+    "kind": "entity",
+    "outcome": "unanswered",
+    "status": "withheld",
+    "path": "native:reader>refused",
+    "response": "The native reader found readings that disagree, so it gives no answer.",
+    "decision": "refused",
+    "group": 0,
+    "decided_by": [
+     "native:reader"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "refusal",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>refused"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     }
+    },
+    "seconds": 0.127,
+    "native_control": null,
+    "engine_control": "withheld",
+    "reader7_control": "unknown"
+   },
+   {
+    "id": "c16:nested_human_count_bristol",
+    "split": "c16",
+    "question": "How many humans born in city whose official website is http://www.bristol.gov.uk/ whose population is 442500?",
+    "gold": "6",
+    "kind": "count",
+    "outcome": "answered_correct",
+    "status": "answered",
+    "path": "native:reader>answered",
+    "response": "6",
+    "decision": "answered",
+    "group": 0,
+    "decided_by": [
+     "native:reader"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "answer",
+      "status": "answered",
+      "agreement_key": "6",
+      "path": "native:reader>answered"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     }
+    },
+    "seconds": 0.068,
+    "native_control": null,
+    "engine_control": "withheld",
+    "reader7_control": "answered_correct"
+   },
+   {
+    "id": "c16:ambiguous_human_selection_bristol",
+    "split": "c16",
+    "question": "Which human born in city whose official website is http://www.bristol.gov.uk/ whose population is 442500?",
+    "gold": null,
+    "kind": "decline_ambiguous",
+    "outcome": "declined_expected",
+    "status": "withheld",
+    "path": "native:reader>refused",
+    "response": "The native reader found readings that disagree, so it gives no answer.",
+    "decision": "refused",
+    "group": 0,
+    "decided_by": [
+     "native:reader"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "refusal",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>refused"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     }
+    },
+    "seconds": 0.121,
+    "native_control": null,
+    "engine_control": "declined_expected",
+    "reader7_control": "declined_expected"
+   },
+   {
+    "id": "c16:nested_university_count_cardiff",
+    "split": "c16",
+    "question": "How many universities headquartered in city whose official website is https://www.cardiff.gov.uk/ whose population is 346100?",
+    "gold": "2",
+    "kind": "count",
+    "outcome": "answered_correct",
+    "status": "answered",
+    "path": "native:reader>answered",
+    "response": "2",
+    "decision": "answered",
+    "group": 0,
+    "decided_by": [
+     "native:reader"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "answer",
+      "status": "answered",
+      "agreement_key": "2",
+      "path": "native:reader>answered"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     }
+    },
+    "seconds": 0.114,
+    "native_control": null,
+    "engine_control": "withheld",
+    "reader7_control": "answered_correct"
+   },
+   {
+    "id": "c16:ambiguous_university_selection_cardiff",
+    "split": "c16",
+    "question": "Which university headquartered in city whose official website is https://www.cardiff.gov.uk/ whose population is 346100?",
+    "gold": null,
+    "kind": "decline_ambiguous",
+    "outcome": "declined_expected",
+    "status": "withheld",
+    "path": "native:reader>refused",
+    "response": "The native reader found readings that disagree, so it gives no answer.",
+    "decision": "refused",
+    "group": 0,
+    "decided_by": [
+     "native:reader"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "refusal",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>refused"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     }
+    },
+    "seconds": 0.181,
+    "native_control": null,
+    "engine_control": "declined_expected",
+    "reader7_control": "declined_expected"
+   },
+   {
+    "id": "c16:empty_segment_changed_population_bristol",
+    "split": "c16",
+    "question": "Which city whose official website is http://www.bristol.gov.uk/ whose population is 442501?",
+    "gold": null,
+    "kind": "decline_empty",
+    "outcome": "declined_expected",
+    "status": "clarification",
+    "path": "act:clarify|vessel:receipt",
+    "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Which city whose official website is http://www.bristol.gov.uk/ whose population is 442501?\" as an unnamed",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "clarification",
+      "agreement_key": null,
+      "path": "act:clarify|vessel:receipt"
+     }
+    },
+    "seconds": 0.226,
+    "native_control": null,
+    "engine_control": "declined_expected",
+    "reader7_control": "declined_expected"
+   },
+   {
+    "id": "c16:empty_nested_changed_population_bristol",
+    "split": "c16",
+    "question": "How many universities located in city whose official website is http://www.bristol.gov.uk/ whose population is 442501?",
+    "gold": null,
+    "kind": "decline_empty",
+    "outcome": "declined_expected",
+    "status": "clarification",
+    "path": "act:clarify|vessel:receipt",
+    "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"How many universities located in city whose official website is http://www.bristol.gov.uk/ whose populatio",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "clarification",
+      "agreement_key": null,
+      "path": "act:clarify|vessel:receipt"
+     }
+    },
+    "seconds": 0.201,
+    "native_control": null,
+    "engine_control": "declined_expected",
+    "reader7_control": "declined_expected"
+   },
+   {
+    "id": "c16:empty_segment_conflicting_city_anchors",
+    "split": "c16",
+    "question": "Which city whose official website is http://www.saskatoon.ca/ whose population is 442500?",
+    "gold": null,
+    "kind": "decline_empty",
+    "outcome": "declined_expected",
+    "status": "clarification",
+    "path": "act:clarify|vessel:receipt",
+    "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Which city whose official website is http://www.saskatoon.ca/ whose population is 442500?\" as an unnamed s",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "clarification",
+      "agreement_key": null,
+      "path": "act:clarify|vessel:receipt"
+     }
+    },
+    "seconds": 0.229,
+    "native_control": null,
+    "engine_control": "declined_expected",
+    "reader7_control": "declined_expected"
+   },
+   {
+    "id": "c16:empty_parent_headquarters_saskatoon",
+    "split": "c16",
+    "question": "How many universities headquartered in city whose official website is http://www.saskatoon.ca/ whose population is 222189?",
+    "gold": null,
+    "kind": "decline_empty",
+    "outcome": "declined_expected",
+    "status": "clarification",
+    "path": "act:clarify|vessel:receipt",
+    "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"How many universities headquartered in city whose official website is http://www.saskatoon.ca/ whose popul",
+    "decision": "refused",
+    "group": 1,
+    "decided_by": [
+     "engine"
+    ],
+    "candidates": {
+     "native:reader": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": "native:reader>unknown"
+     },
+     "organ:acoustics": {
+      "outcome": "no_reading",
+      "status": "withheld",
+      "agreement_key": null,
+      "path": ""
+     },
+     "engine": {
+      "outcome": "refusal",
+      "status": "clarification",
+      "agreement_key": null,
+      "path": "act:clarify|vessel:receipt"
+     }
+    },
+    "seconds": 0.296,
+    "native_control": null,
+    "engine_control": "declined_expected",
+    "reader7_control": "declined_expected"
+   }
+  ]
+ },
+ "panels": {
+  "harness": "tools/parity/harness.py --answerer 'tools/parity/answerers/oracle_host.py --url ...' --split both",
+  "counts": {
+   "acoustics.dev": {
+    "n": 70,
+    "right_falseyes_wrong": [
+     70,
+     0,
+     0
+    ],
+    "errors": 0,
+    "panel_sha": "3206b79d8252a20b240155a5e2f166d78ec59dc046aebe397af98ef244c9b898",
+    "fails": [],
+    "items_sha256": "b8bb43ba2961e326b9890593749b9a20a427df36256a73549f7504da8601e9a3"
+   },
+   "acoustics.heldout": {
+    "n": 69,
+    "right_falseyes_wrong": [
+     68,
+     1,
+     0
+    ],
+    "errors": 0,
+    "panel_sha": "19839bd71524584bf227be0784fc129d7e868170228b74de9a38d677c94de16f",
+    "fails": [
+     {
+      "q": "A jet's 800 Hz whine approaches a listener at 500 m/s. What is the observed frequency?",
+      "expected": "(decline)",
+      "got": "The frequency is 5.996e+05 Hz (f = c/λ = 299,792,458 m/s ÷ 500 m). [optics-v5]",
+      "status": "answered",
+      "path": "specialist_call>specialist:optics-v5>frequency",
+      "by": "answerer"
+     }
+    ],
+    "items_sha256": "0d9e8459d3898d24e631b30d1a8f374d943058609d8221ddb65d5208a4acae8b"
+   },
+   "networking.dev": {
+    "n": 74,
+    "right_falseyes_wrong": [
+     74,
+     0,
+     0
+    ],
+    "errors": 0,
+    "panel_sha": "497617e67dbd7d809225c991807d6af82dce93b7d363ccbedc8202182beb0159",
+    "fails": [],
+    "items_sha256": "bdce39f6d1bae43c8ea9c59f132fa96de8348fb834391c24a04381e914cb107f"
+   },
+   "networking.heldout": {
+    "n": 71,
+    "right_falseyes_wrong": [
+     67,
+     1,
+     0
+    ],
+    "errors": 0,
+    "panel_sha": "d54e881aa91a998a0aa3c8580958697ab68d91eaf35bf6c43fb4a229d7432144",
+    "fails": [
+     {
+      "q": "Which prefix would you use to fit 4000 devices?",
+      "expected": "20",
+      "got": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, ",
+      "status": "clarification",
+      "path": "act:clarify|vessel:receipt",
+      "by": "answerer"
+     },
+     {
+      "q": "Which prefix would you use to fit 200 devices?",
+      "expected": "24",
+      "got": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, ",
+      "status": "clarification",
+      "path": "act:clarify|vessel:receipt",
+      "by": "answerer"
+     },
+     {
+      "q": "Which prefix would you use to fit 2 devices?",
+      "expected": "30",
+      "got": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, ",
+      "status": "clarification",
+      "path": "act:clarify|vessel:receipt",
+      "by": "answerer"
+     },
+     {
+      "q": "How many /20 networks can you carve out of a /24?",
+      "expected": "(decline)",
+      "got": "You've reached Oracle7, an AI assistant rather than a person or a front desk, so I can't do that part myself. I can look things up, work through problems, write",
+      "status": "answered",
+      "path": "organ:converse>addressed",
+      "by": "answerer"
+     }
+    ],
+    "items_sha256": "4698707d4460c0345c189574774a7fb23e08a4d7597eb3b8d21b6eff8a34abfa"
+   }
+  },
+  "board_rows": {
+   "acoustics.heldout": {
+    "veri7vn organ in front of w540 (W5-11)": [
+     68,
+     1,
+     0
+    ],
+    "shipped composition, head w363": [
+     69,
+     0,
+     0
+    ],
+    "head w540 alone": [
+     62,
+     2,
+     0
+    ]
+   },
+   "acoustics.dev": {
+    "veri7vn organ in front of w540 (W5-11)": [
+     70,
+     0,
+     0
+    ]
+   },
+   "networking.heldout": {
+    "shipped composition, head w503 (full board)": [
+     67,
+     1,
+     0
+    ],
+    "head w503 alone": [
+     2,
+     2,
+     14
+    ]
+   }
+  }
+ },
+ "invoke_differential": {
+  "tool": "native/oracle-host/tools/differential_invoke.py",
+  "reference": "tools/appliance/native_service.py over the PyO3 extension built from the same provider crates (var/i2-host/bin/oracle_native.abi3.so)",
+  "summary": {
+   "descriptors_identical": 15,
+   "identical": 65,
+   "invocations": 65,
+   "operations": 15
+  },
+  "extension_sha256": "14e8a49c33e26b9ed3255d5e68df9398f8afaa38ce1f1cb3eb0089f82d14186a",
+  "host_sha256": "d0dc0181c7485cb5eef06bb3734a9d5918e5b3c0f5f255791324a00b3b9ded51",
+  "excluded": "wall-time fields named *_us; identity digests normalized",
+  "cases": {
+   "algebra.optimize_dimensional_polynomial": [
+    [
+     "example",
+     200,
+     "answered",
+     null,
+     true
+    ],
+    [
+     "extra_field",
+     400,
+     null,
+     "invalid_arguments",
+     true
+    ],
+    [
+     "empty",
+     400,
+     null,
+     "invalid_arguments",
+     true
+    ],
+    [
+     "mismatched_dimensions",
+     200,
+     "withheld",
+     "native_request_refused",
+     true
+    ]
+   ],
+   "algebra.optimize_polynomial": [
+    [
+     "example",
+     200,
+     "answered",
+     null,
+     true
+    ],
+    [
+     "extra_field",
+     400,
+     null,
+     "invalid_arguments",
+     true
+    ],
+    [
+     "empty",
+     400,
+     null,
+     "invalid_arguments",
+     true
+    ],
+    [
+     "parse_error",
+     200,
+     "withheld",
+     "native_request_refused",
+     true
+    ]
+   ],
+   "algebra.simplify_rational": [
+    [
+     "example",
+     200,
+     "answered",
+     null,
+     true
+    ],
+    [
+     "extra_field",
+     400,
+     null,
+     "invalid_arguments",
+     true
+    ],
+    [
+     "empty",
+     400,
+     null,
+     "invalid_arguments",
+     true
+    ]
+   ],
+   "bio.align_pairwise": [
+    [
+     "example",
+     200,
+     "answered",
+     null,
+     true
+    ],
+    [
+     "extra_field",
+     400,
+     null,
+     "invalid_arguments",
+     true
+    ],
+    [
+     "empty",
+     400,
+     null,
+     "invalid_arguments",
+     true
+    ],
+    [
+     "ambiguous_rejected",
+     200,
+     "withheld",
+     "native_request_refused",
+     true
+    ],
+    [
+     "local",
+     200,
+     "answered",
+     null,
+     true
+    ]
+   ],
+   "chemistry.balance_reaction": [
+    [
+     "example",
+     200,
+     "answered",
+     null,
+     true
+    ],
+    [
+     "extra_field",
+     400,
+     null,
+     "invalid_arguments",
+     true
+    ],
+    [
+     "empty",
+     400,
+     null,
+     "invalid_arguments",
+     true
+    ],
+    [
+     "no_balance",
+     200,
+     "answered",
+     null,
+     true
+    ],
+    [
+     "one_side",
+     400,
+     null,
+     "invalid_arguments",
+     true
+    ]
+   ],
+   "graph.minimum_spanning_forest": [
+    [
+     "example",
+     200,
+     "answered",
+     null,
+     true
+    ],
+    [
+     "extra_field",
+     400,
+     null,
+     "invalid_arguments",
+     true
+    ],
+    [
+     "empty",
+     400,
+     null,
+     "invalid_arguments",
+     true
+    ],
+    [
+     "disconnected",
+     200,
+     "answered",
+     null,
+     true
+    ],
+    [
+     "bad_endpoint",
+     400,
+     null,
+     "invalid_arguments",
+     true
+    ]
+   ],
+   "graph.shortest_path": [
+    [
+     "example",
+     200,
+     "answered",
+     null,
+     true
+    ],
+    [
+     "extra_field",
+     400,
+     null,
+     "invalid_arguments",
+     true
+    ],
+    [
+     "empty",
+     400,
+     null,
+     "invalid_arguments",
+     true
+    ],
+    [
+     "unreachable",
+     200,
+     "answered",
+     null,
+     true
+    ],
+    [
+     "negative_cycle",
+     200,
+     "answered",
+     null,
+     true
+    ],
+    [
+     "target_out_of_range",
+     400,
+     null,
+     "invalid_arguments",
+     true
+    ]
+   ],
+   "incremental.dependencies": [
+    [
+     "example",
+     200,
+     "answered",
+     null,
+     true
+    ],
+    [
+     "extra_field",
+     400,
+     null,
+     "invalid_arguments",
+     true
+    ],
+    [
+     "empty",
+     400,
+     null,
+     "invalid_arguments",
+     true
+    ],
+    [
+     "non_increasing",
+     200,
+     "withheld",
+     "native_request_refused",
+     true
+    ]
+   ],
+   "incremental.rooted_dependencies": [
+    [
+     "example",
+     200,
+     "answered",
+     null,
+     true
+    ],
+    [
+     "extra_field",
+     400,
+     null,
+     "invalid_arguments",
+     true
+    ],
+    [
+     "empty",
+     400,
+     null,
+     "invalid_arguments",
+     true
+    ]
+   ],
+   "logic.enumerate": [
+    [
+     "example",
+     200,
+     "answered",
+     null,
+     true
+    ],
+    [
+     "extra_field",
+     400,
+     null,
+     "invalid_arguments",
+     true
+    ],
+    [
+     "empty",
+     400,
+     null,
+     "invalid_arguments",
+     true
+    ],
+    [
+     "example_again",
+     200,
+     "answered",
+     null,
+     true
+    ]
+   ],
+   "logic.query": [
+    [
+     "example",
+     200,
+     "answered",
+     null,
+     true
+    ],
+    [
+     "extra_field",
+     400,
+     null,
+     "invalid_arguments",
+     true
+    ],
+    [
+     "empty",
+     400,
+     null,
+     "invalid_arguments",
+     true
+    ],
+    [
+     "wrong_tenant",
+     403,
+     null,
+     "tenant_scope_mismatch",
+     true
+    ],
+    [
+     "inconsistent",
+     200,
+     "answered",
+     null,
+     true
+    ]
+   ],
+   "science.least_squares": [
+    [
+     "example",
+     200,
+     "answered",
+     null,
+     true
+    ],
+    [
+     "extra_field",
+     400,
+     null,
+     "invalid_arguments",
+     true
+    ],
+    [
+     "empty",
+     400,
+     null,
+     "invalid_arguments",
+     true
+    ],
+    [
+     "rank_deficient",
+     200,
+     "answered",
+     null,
+     true
+    ]
+   ],
+   "science.solve_linear": [
+    [
+     "example",
+     200,
+     "answered",
+     null,
+     true
+    ],
+    [
+     "extra_field",
+     400,
+     null,
+     "invalid_arguments",
+     true
+    ],
+    [
+     "empty",
+     400,
+     null,
+     "invalid_arguments",
+     true
+    ],
+    [
+     "inconsistent",
+     200,
+     "withheld",
+     "inconsistent_within_tolerance",
+     true
+    ],
+    [
+     "ragged",
+     200,
+     "withheld",
+     "native_request_refused",
+     true
+    ]
+   ],
+   "science.thermal_network": [
+    [
+     "example",
+     200,
+     "answered",
+     null,
+     true
+    ],
+    [
+     "extra_field",
+     400,
+     null,
+     "invalid_arguments",
+     true
+    ],
+    [
+     "empty",
+     400,
+     null,
+     "invalid_arguments",
+     true
+    ]
+   ],
+   "statistics.linear_regression": [
+    [
+     "example",
+     200,
+     "answered",
+     null,
+     true
+    ],
+    [
+     "extra_field",
+     400,
+     null,
+     "invalid_arguments",
+     true
+    ],
+    [
+     "empty",
+     400,
+     null,
+     "invalid_arguments",
+     true
+    ],
+    [
+     "rank_deficient",
+     200,
+     "withheld",
+     "native_request_refused",
+     true
+    ],
+    [
+     "hc3",
+     200,
+     "answered",
+     null,
+     true
+    ]
+   ]
+  }
+ },
+ "tests": {
+  "unit": "cargo test -p oracle-host --lib: 9 passed",
+  "journey": "cargo test -p oracle-host --features reasoning,science,incremental,bio,statistics,logic --test journey: 3 passed",
+  "clippy": "cargo clippy -p oracle-host --no-deps --all-targets [--features all] -- -D warnings: clean with and without features",
+  "clippy_note": "without --no-deps clippy also lints oracle-science, which fails needless_range_loop at oracle-science/src/lib.rs:395 (not this lane's code)",
+  "fmt": "cargo fmt -p oracle-host --check: clean"
+ }
+}

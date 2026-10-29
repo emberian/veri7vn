@@ -1154,6 +1154,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "oracle-host"
+version = "0.2.0"
+dependencies = [
+ "nix",
+ "oracle-bio",
+ "oracle-incremental",
+ "oracle-logic",
+ "oracle-reasoning",
+ "oracle-runtime-core",
+ "oracle-science",
+ "oracle-statistics",
+ "regex",
+ "rusqlite",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tempfile",
+]
+
+[[package]]
 name = "oracle-incremental"
 version = "0.2.0"
 dependencies = [

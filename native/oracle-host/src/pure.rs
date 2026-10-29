@@ -1,0 +1,1068 @@
+//! Pure supplied-argument operations linked into the host (no extension, no
+//! Python). Declarations come from `descriptors/pure.json`, generated from the
+//! reference adapters by `tools/snapshot_descriptors.py`; the reply checks
+//! below port each adapter's `interpret` (`oracle_components/native_*.py`,
+//! `reasoning.py`, `logic.py`). Native refusals become withheld replies, as
+//! `native_service.py` reports them. Computations are cooperative: the host
+//! raises the cancel flag at the deadline and keeps the capacity slot until
+//! the call returns.
+
+use crate::config::{self, err, Artifact, ConfigError};
+use crate::schema::strict_valid;
+use crate::wire::{self, as_i128, is_integer};
+use crate::Failure;
+use serde_json::{json, Value};
+use std::collections::BTreeSet;
+use std::sync::atomic::AtomicBool;
+
+const SNAPSHOT: &str = include_str!("../descriptors/pure.json");
+const MAX_REASONING_REPLY: usize = 262144;
+
+/// Compiled catalogs as exact text, keyed by profile.
+#[allow(clippy::vec_init_then_push)] // each push is feature-gated
+pub fn catalogs() -> Vec<(&'static str, String)> {
+    #[allow(unused_mut)]
+    let mut rows: Vec<(&'static str, String)> = Vec::new();
+    #[cfg(feature = "reasoning")]
+    rows.push(("reasoning", oracle_reasoning::catalog().to_string()));
+    #[cfg(feature = "science")]
+    rows.push(("science", oracle_science::catalog().to_string()));
+    #[cfg(feature = "incremental")]
+    rows.push(("incremental", oracle_incremental::catalog().to_string()));
+    #[cfg(feature = "bio")]
+    rows.push(("bio", oracle_bio::catalog().to_string()));
+    #[cfg(feature = "statistics")]
+    rows.push(("statistics", oracle_statistics::catalog().to_string()));
+    #[cfg(feature = "logic")]
+    rows.push(("logic", oracle_logic::hosted::catalog().to_string()));
+    rows
+}
+
+struct Profile {
+    name: &'static str,
+    catalog: Value,
+    declarations: Vec<Value>,
+}
+
+pub struct Pure {
+    pub profiles: Vec<&'static str>,
+    loaded: Vec<Profile>,
+    identity_prefix: String,
+    solver: Option<(tempfile::TempDir, std::path::PathBuf, String)>,
+}
+
+fn replace_strings(value: &mut Value, from: &str, to: &str) {
+    match value {
+        Value::String(s) if s.contains(from) => *s = s.replace(from, to),
+        Value::Array(items) => items.iter_mut().for_each(|v| replace_strings(v, from, to)),
+        Value::Object(map) => map.values_mut().for_each(|v| replace_strings(v, from, to)),
+        _ => {}
+    }
+}
+
+/// Copy the admitted solver into a private directory and re-hash the copy, so
+/// a later replacement of the operator path cannot change what runs.
+fn snapshot_solver(
+    solver: &Artifact,
+) -> Result<(tempfile::TempDir, std::path::PathBuf, String), ConfigError> {
+    use std::os::unix::fs::PermissionsExt;
+    config::admit("pure.solver", solver)?;
+    let dir = tempfile::tempdir().map_err(|e| err(format!("native.solver snapshot: {e}")))?;
+    let copy = dir.path().join("clingo");
+    std::fs::copy(&solver.path, &copy).map_err(|e| err(format!("native.solver snapshot: {e}")))?;
+    std::fs::set_permissions(&copy, std::fs::Permissions::from_mode(0o500))
+        .map_err(|e| err(format!("native.solver snapshot: {e}")))?;
+    let digest =
+        config::sha256_file(&copy).map_err(|e| err(format!("native.solver snapshot: {e}")))?;
+    if digest != solver.sha256 {
+        return Err(err(
+            "native.solver: snapshot digest differs from the admitted digest",
+        ));
+    }
+    Ok((dir, copy, digest))
+}
+
+impl Pure {
+    pub fn open(
+        requested: &[String],
+        host_sha256: &str,
+        solver: Option<&Artifact>,
+    ) -> Result<Self, ConfigError> {
+        let snapshot = wire::parse(SNAPSHOT.as_bytes())
+            .map_err(|e| err(format!("descriptor snapshot: {}", e.0)))?;
+        let placeholder = snapshot["host_placeholder"]
+            .as_str()
+            .unwrap_or("@HOST_SHA256@")
+            .to_owned();
+        let solver_placeholder = snapshot["solver_placeholder"]
+            .as_str()
+            .unwrap_or("")
+            .to_owned();
+        let compiled = catalogs();
+        let wants_logic = requested.iter().any(|p| p == "logic");
+        if wants_logic != solver.is_some() {
+            return Err(err(
+                "pure.solver is required by, and only by, the logic profile",
+            ));
+        }
+        let solver = solver.map(snapshot_solver).transpose()?;
+        let mut loaded = Vec::new();
+        let mut profiles = Vec::new();
+        let mut seen = BTreeSet::new();
+        for name in requested {
+            if !seen.insert(name.as_str()) {
+                return Err(err(format!("pure.profiles: duplicate profile {name}")));
+            }
+            let Some((name, text)) = compiled.iter().find(|(p, _)| p == name) else {
+                return Err(err(format!(
+                    "pure.profiles: profile {name} is not compiled into this host"
+                )));
+            };
+            let entry = &snapshot["profiles"][*name];
+            if entry["catalog_sha256"].as_str()
+                != Some(config::sha256_bytes(text.as_bytes()).as_str())
+            {
+                return Err(err(format!(
+                    "pure.profiles: {name} catalog differs from descriptors/pure.json; regenerate with tools/snapshot_descriptors.py"
+                )));
+            }
+            let mut declarations = entry["declarations"]
+                .as_array()
+                .cloned()
+                .unwrap_or_default();
+            for declaration in &mut declarations {
+                replace_strings(declaration, &placeholder, host_sha256);
+                if let Some((_, _, digest)) = &solver {
+                    replace_strings(declaration, &solver_placeholder, digest);
+                }
+            }
+            let catalog = wire::parse(text.as_bytes())
+                .map_err(|e| err(format!("{name} catalog: {}", e.0)))?;
+            profiles.push(*name);
+            loaded.push(Profile {
+                name,
+                catalog,
+                declarations,
+            });
+        }
+        Ok(Self {
+            profiles,
+            loaded,
+            identity_prefix: host_sha256.to_owned(),
+            solver,
+        })
+    }
+
+    pub fn solver_sha256(&self) -> Option<&str> {
+        self.solver.as_ref().map(|s| s.2.as_str())
+    }
+
+    pub fn declarations(&self) -> Vec<(&'static str, Value)> {
+        self.loaded
+            .iter()
+            .flat_map(|p| p.declarations.iter().map(move |d| (p.name, d.clone())))
+            .collect()
+    }
+
+    fn profile(&self, name: &str) -> Option<&Profile> {
+        self.loaded.iter().find(|p| p.name == name)
+    }
+
+    fn declaration<'a>(&'a self, profile: &'a Profile, id: &str) -> Option<&'a Value> {
+        profile.declarations.iter().find(|d| d["id"] == id)
+    }
+
+    pub fn invoke(
+        &self,
+        name: &str,
+        id: &str,
+        arguments: &Value,
+        tenant: &str,
+        cancel: &AtomicBool,
+    ) -> Result<Value, Failure> {
+        let profile = self
+            .profile(name)
+            .ok_or_else(|| Failure::plain(404, "unknown_operation"))?;
+        let identity = format!("{}:{name}", self.identity_prefix);
+        if name == "reasoning" {
+            return self.reasoning(profile, id, arguments, &identity, cancel);
+        }
+        if name == "logic"
+            && arguments.pointer("/scope/tenant").and_then(Value::as_str) != Some(tenant)
+        {
+            return Err(Failure::plain(403, "tenant_scope_mismatch"));
+        }
+        let request = if name == "incremental" {
+            if id == "incremental.dependencies" {
+                arguments.clone()
+            } else {
+                let mut body = arguments.as_object().cloned().unwrap_or_default();
+                body.insert("operation".into(), json!("rooted_v2"));
+                Value::Object(body)
+            }
+        } else {
+            json!({"operation": id, "arguments": arguments})
+        };
+        let text = String::from_utf8(wire::encode(&request)).expect("utf-8");
+        let raw = match self.call(name, &text, cancel) {
+            Ok(raw) => raw,
+            Err(detail) => return Ok(refused(id, &detail, true)),
+        };
+        let result = parse_reply(&raw)?;
+        let structured = Structured {
+            id,
+            identity: &identity,
+            catalog: &profile.catalog,
+        };
+        Ok(match name {
+            "science" => structured.science(&result),
+            "incremental" => structured.incremental(&result),
+            "bio" => structured.bio(&result),
+            "statistics" => structured.statistics(&result),
+            "logic" => structured.logic(
+                arguments,
+                result,
+                self.solver.as_ref().map(|s| s.2.as_str()).unwrap_or(""),
+            ),
+            _ => return Err(Failure::plain(404, "unknown_operation")),
+        })
+    }
+
+    #[allow(unused_variables)]
+    fn call(&self, name: &str, request: &str, cancel: &AtomicBool) -> Result<String, String> {
+        let detail = |e: String| e.chars().take(512).collect::<String>();
+        match name {
+            #[cfg(feature = "reasoning")]
+            "reasoning" => oracle_reasoning::call(request, &oracle_reasoning::Limits::default())
+                .map_err(|e| detail(e.to_string())),
+            #[cfg(feature = "science")]
+            "science" => oracle_science::call(request, &oracle_science::Limits::default(), cancel)
+                .map_err(|e| detail(e.to_string())),
+            #[cfg(feature = "incremental")]
+            "incremental" => Ok(oracle_incremental::call_json(request)),
+            #[cfg(feature = "bio")]
+            "bio" => oracle_bio::call(request, &oracle_bio::Limits::default(), cancel)
+                .map_err(|e| detail(e.to_string())),
+            #[cfg(feature = "statistics")]
+            "statistics" => {
+                oracle_statistics::call(request, &oracle_statistics::Limits::default(), cancel)
+                    .map_err(|e| detail(e.to_string()))
+            }
+            #[cfg(feature = "logic")]
+            "logic" => {
+                let solver = self
+                    .solver
+                    .as_ref()
+                    .map(|s| s.1.display().to_string())
+                    .unwrap_or_default();
+                let host = json!({"solver": solver}).to_string();
+                oracle_logic::hosted::call(request, &host, &oracle_logic::Limits::default(), cancel)
+                    .map_err(|e| detail(e.to_string()))
+            }
+            _ => Err("profile not compiled".into()),
+        }
+    }
+
+    fn reasoning(
+        &self,
+        profile: &Profile,
+        id: &str,
+        arguments: &Value,
+        identity: &str,
+        cancel: &AtomicBool,
+    ) -> Result<Value, Failure> {
+        let declaration = self
+            .declaration(profile, id)
+            .ok_or_else(|| Failure::plain(404, "unknown_operation"))?;
+        let invalid = || Failure::plain(400, "invalid_arguments");
+        reasoning_arguments(id, arguments, declaration, &profile.catalog).map_err(|_| invalid())?;
+        let request = String::from_utf8(wire::encode(
+            &json!({"operation": id, "arguments": arguments}),
+        ))
+        .expect("utf-8");
+        let request_bytes = profile
+            .catalog
+            .pointer("/limits/request_bytes")
+            .and_then(Value::as_u64)
+            .unwrap_or(0);
+        if request.len() as u64 > request_bytes {
+            return Err(invalid());
+        }
+        let raw = match self.call("reasoning", &request, cancel) {
+            Ok(raw) => raw,
+            Err(detail) => return Ok(refused(id, &detail, false)),
+        };
+        let row = |key: &str| {
+            catalog_row(&profile.catalog, id)
+                .and_then(|r| r.pointer(key))
+                .and_then(Value::as_u64)
+        };
+        let maximum = match id {
+            "graph.shortest_path" => row("/path_limits/reply_bytes")
+                .map_or(MAX_REASONING_REPLY, |n| {
+                    (n as usize).min(MAX_REASONING_REPLY)
+                }),
+            "algebra.simplify_rational" => row("/rational_limits/formula_reply_bytes")
+                .map_or(MAX_REASONING_REPLY, |n| {
+                    (n as usize).min(MAX_REASONING_REPLY)
+                }),
+            _ => MAX_REASONING_REPLY,
+        };
+        let results = declaration
+            .pointer("/output_schema/anyOf/0/properties/result")
+            .cloned()
+            .unwrap_or(Value::Null);
+        let checked = (|| -> Option<Value> {
+            if raw.len() > maximum {
+                return None;
+            }
+            let result = wire::parse(raw.as_bytes()).ok()?;
+            if !strict_valid(&result, &results) {
+                return None;
+            }
+            match id {
+                "graph.shortest_path" => check_path(arguments, &result)?,
+                "chemistry.balance_reaction" => check_chemistry(arguments, &result)?,
+                "algebra.simplify_rational" => check_rational(arguments, &result)?,
+                _ => {}
+            }
+            Some(result)
+        })();
+        let Some(result) = checked else {
+            return Ok(
+                json!({"status": "withheld", "operation_id": id, "reason": "native_reply_invalid"}),
+            );
+        };
+        let mut reply = json!({"status": "answered", "operation_id": id, "result": result,
+                               "runtime_identity": identity, "authority": "computation_only"});
+        if id == "chemistry.balance_reaction" {
+            reply["scope"] = json!("Exact conservation of caller-supplied species inventories and charge only; no reaction feasibility, chemical identity, kinetics or thermodynamics claim.");
+            if reply["result"]["status"] == "multiple_search_inconclusive" {
+                reply["status"] = json!("withheld");
+                reply["answer_kind"] = json!("search_inconclusive");
+                reply["reason"] = json!("positive_balance_search_inconclusive");
+            } else {
+                reply["answer_kind"] = json!(if reply["result"]["coefficients"].is_null() {
+                    "mathematical_negative"
+                } else {
+                    "positive_balance"
+                });
+            }
+        }
+        Ok(reply)
+    }
+}
+
+fn refused(id: &str, detail: &str, computation_only: bool) -> Value {
+    let mut reply =
+        json!({"status": "withheld", "operation_id": id, "reason": "native_request_refused"});
+    if !detail.is_empty() {
+        reply["detail"] = json!(detail);
+    }
+    if computation_only {
+        reply["authority"] = json!("computation_only");
+    }
+    reply
+}
+
+fn parse_reply(raw: &str) -> Result<Value, Failure> {
+    let failure = Failure::new(
+        503,
+        "native_reply_invalid",
+        json!({"retryable": false,
+        "state_may_have_changed": false, "exact_retry_required": false}),
+    );
+    match wire::parse(raw.as_bytes()) {
+        Ok(value @ Value::Object(_)) => Ok(value),
+        _ => Err(failure),
+    }
+}
+
+fn catalog_row<'a>(catalog: &'a Value, id: &str) -> Option<&'a Value> {
+    catalog["operations"]
+        .as_array()?
+        .iter()
+        .find(|r| r["id"] == id)
+}
+
+fn int(value: &Value) -> Option<i128> {
+    as_i128(value)
+}
+
+fn is_finite_number(value: &Value) -> bool {
+    value.is_number() // the strict decoder admits only finite numbers
+}
+
+/// `NativeStructuredOperations` answered/withheld shapes.
+struct Structured<'a> {
+    id: &'a str,
+    identity: &'a str,
+    catalog: &'a Value,
+}
+
+impl Structured<'_> {
+    fn withheld(&self, reason: &str, result: Option<Value>) -> Value {
+        let mut reply = json!({"status": "withheld", "operation_id": self.id, "reason": reason,
+                               "authority": "computation_only"});
+        if let Some(result) = result {
+            reply["result"] = result;
+        }
+        reply
+    }
+
+    fn answered(&self, result: Value, classification: &str) -> Value {
+        json!({"status": "answered", "operation_id": self.id, "result": result,
+               "classification": classification, "authority": "computation_only",
+               "runtime_identity": self.identity})
+    }
+
+    fn invalid(&self) -> Value {
+        self.withheld("native_reply_invalid", None)
+    }
+
+    fn science(&self, result: &Value) -> Value {
+        let outcome = result.get("outcome").and_then(Value::as_str).unwrap_or("");
+        let thermal = self.id == "science.thermal_network";
+        let has = |keys: &[&str]| keys.iter().all(|k| result.get(*k).is_some());
+        let valid = if thermal {
+            has(&[
+                "operation",
+                "nodes",
+                "links",
+                "components",
+                "conservation",
+                "linear_diagnostics",
+                "warnings",
+            ]) && result["operation"] == self.id
+                && result["nodes"].is_array()
+                && result["conservation"].is_object()
+        } else {
+            has(&[
+                "operation",
+                "candidate",
+                "candidate_interpretation",
+                "diagnostics",
+                "model",
+                "tolerances",
+                "warnings",
+            ]) && result["operation"].as_str() == self.id.strip_prefix("science.")
+                && result["candidate"]
+                    .as_array()
+                    .is_some_and(|c| !c.is_empty() && c.iter().all(is_finite_number))
+                && result["diagnostics"].as_object().is_some_and(|d| {
+                    [
+                        "numerical_rank",
+                        "nullity",
+                        "residuals",
+                        "equations_consistent_within_tolerance",
+                    ]
+                    .iter()
+                    .all(|k| d.contains_key(*k))
+                })
+        };
+        if !valid {
+            return self.invalid();
+        }
+        let linear = [
+            "consistent_unique_within_tolerance",
+            "consistent_underdetermined_within_tolerance",
+            "inconsistent_within_tolerance",
+            "least_squares_unique_within_rank_policy",
+            "least_squares_underdetermined_within_rank_policy",
+        ];
+        let thermals = [
+            "solved_within_tolerance",
+            "underdetermined_within_tolerance",
+            "inconsistent_within_tolerance",
+            "numerical_rank_unresolved",
+            "below_absolute_zero_candidate",
+        ];
+        let allowed: &[&str] = if thermal { &thermals } else { &linear };
+        if result.get("schema") != self.catalog.get("schema") || !allowed.contains(&outcome) {
+            return self.invalid();
+        }
+        if [
+            "inconsistent_within_tolerance",
+            "numerical_rank_unresolved",
+            "below_absolute_zero_candidate",
+        ]
+        .contains(&outcome)
+        {
+            return self.withheld(outcome, Some(result.clone()));
+        }
+        let classification = if outcome.contains("underdetermined") {
+            "numerical_underdetermined"
+        } else {
+            "numerical"
+        };
+        self.answered(result.clone(), classification)
+    }
+
+    fn incremental(&self, result: &Value) -> Value {
+        if result["status"] == "refused" && result["error"].is_object() {
+            return self.withheld("native_request_refused", Some(result.clone()));
+        }
+        if result["status"] != "ok" || !result["result"].is_object() {
+            return self.invalid();
+        }
+        let body = &result["result"];
+        let graph = if self.id == "incremental.rooted_dependencies" {
+            &body["result"]
+        } else {
+            body
+        };
+        let settled = graph["epochs"].as_array().is_some_and(|epochs| {
+            epochs
+                .iter()
+                .all(|e| e.is_object() && e["settled"] == Value::Bool(true))
+        });
+        if !graph.is_object() || !settled {
+            return self.withheld("native_unsettled_or_invalid_reply", Some(result.clone()));
+        }
+        self.answered(body.clone(), "finite_supplied_graph_computation")
+    }
+
+    fn bio(&self, result: &Value) -> Value {
+        let candidate = &result["candidate"];
+        let checks = &result["checks"];
+        let score = candidate.get("score").filter(|v| is_integer(v));
+        let valid = result.get("schema") == self.catalog.get("schema")
+            && candidate.is_object()
+            && checks.is_object()
+            && score.is_some()
+            && checks.get("replayed_score").is_some_and(is_integer)
+            && checks
+                .get("independently_computed_optimal_score")
+                .is_some_and(is_integer)
+            && score.and_then(int) == int(&checks["replayed_score"])
+            && score.and_then(int) == int(&checks["independently_computed_optimal_score"])
+            && candidate["operations"].as_array().is_some_and(|ops| {
+                ops.iter().all(|e| {
+                    ["match", "substitution", "insertion", "deletion"]
+                        .iter()
+                        .any(|k| e == k)
+                })
+            })
+            && ["global", "local", "query_global"]
+                .iter()
+                .any(|m| result["mode"] == *m)
+            && ["reject", "always_mismatch"]
+                .iter()
+                .any(|m| result["ambiguity"] == *m)
+            && ["query_length", "reference_length"]
+                .iter()
+                .all(|k| int(&result[*k]).is_some_and(|n| n >= 1));
+        if !valid {
+            return self.invalid();
+        }
+        for prefix in ["query", "reference"] {
+            let (start, end, length) = (
+                int(&candidate[format!("{prefix}_start")]),
+                int(&candidate[format!("{prefix}_end")]),
+                int(&result[format!("{prefix}_length")]),
+            );
+            match (start, end, length) {
+                (Some(s), Some(e), Some(n)) if 0 <= s && s <= e && e <= n => {}
+                _ => return self.invalid(),
+            }
+        }
+        self.answered(
+            result.clone(),
+            "integer_alignment_with_independent_score_checks",
+        )
+    }
+
+    fn statistics(&self, result: &Value) -> Value {
+        let beta = result["coefficient_candidate"].as_array();
+        let diagnostics = &result["diagnostics"];
+        let outcome = result["outcome"].as_str().unwrap_or("");
+        let inference = &result["inference"];
+        let reasons = result["inference_unavailable_reasons"].as_array();
+        let valid = result.get("schema") == self.catalog.get("schema")
+            && result["operation"] == self.id
+            && [
+                "rank_deficient_fit",
+                "fit_without_inference",
+                "fit_with_conditional_inference",
+            ]
+            .contains(&outcome)
+            && beta.is_some_and(|b| !b.is_empty() && b.iter().all(is_finite_number))
+            && diagnostics.is_object()
+            && int(&diagnostics["parameters"]) == beta.map(|b| b.len() as i128)
+            && result["observations"].is_array()
+            && int(&diagnostics["observations"])
+                == result["observations"].as_array().map(|o| o.len() as i128)
+            && result["predictions"].is_array()
+            && result["model"].is_object()
+            && reasons.is_some_and(|r| r.iter().all(|x| x.as_str().is_some_and(|s| !s.is_empty())));
+        if !valid {
+            return self.invalid();
+        }
+        let p = beta.map_or(0, |b| b.len()) as i128;
+        let (rank, n, df) = (
+            int(&diagnostics["numerical_rank"]),
+            int(&diagnostics["observations"]),
+            int(&diagnostics["residual_degrees_of_freedom"]),
+        );
+        let (Some(rank), Some(n), Some(df)) = (rank, n, df) else {
+            return self.invalid();
+        };
+        if !(0 <= rank && rank <= p.min(n))
+            || df != n - rank
+            || (outcome == "rank_deficient_fit") != (rank < p)
+        {
+            return self.invalid();
+        }
+        let reasons = reasons.expect("checked");
+        let classification = if outcome == "fit_with_conditional_inference" {
+            let assumptions = inference["required_assumptions"].as_array();
+            if !inference.is_object()
+                || !reasons.is_empty()
+                || df <= 0
+                || !assumptions.is_some_and(|a| {
+                    !a.is_empty() && a.iter().all(|x| x.as_str().is_some_and(|s| !s.is_empty()))
+                })
+                || inference["coefficients"]
+                    .as_array()
+                    .map(|c| c.len() as i128)
+                    != Some(p)
+            {
+                return self.invalid();
+            }
+            "numerical_fit_with_conditional_inference"
+        } else {
+            if !inference.is_null() || reasons.is_empty() {
+                return self.invalid();
+            }
+            if outcome == "rank_deficient_fit" {
+                "numerical_unidentifiable_fit"
+            } else {
+                "numerical_fit_without_inference"
+            }
+        };
+        self.answered(result.clone(), classification)
+    }
+
+    fn logic(&self, arguments: &Value, result: Value, solver: &str) -> Value {
+        if !logic_valid(self.id, arguments, &result) {
+            return self.invalid();
+        }
+        let mut result = result;
+        result["admitted_solver_sha256"] = json!(solver);
+        match result["status"].as_str() {
+            Some("inconclusive") => self.withheld("inconclusive", Some(result)),
+            Some("inconsistent") => self.answered(
+                result,
+                "inconsistent_solver_trusted_absence_of_stable_models",
+            ),
+            _ if self.id == "logic.enumerate" => self.answered(
+                result,
+                "enumerated_checked_models_solver_trusted_completeness",
+            ),
+            _ => self.answered(result, "checked_witnesses_solver_trusted_absence"),
+        }
+    }
+}
+
+fn hex64(value: &Value) -> bool {
+    value.as_str().is_some_and(config::is_hash)
+}
+
+fn logic_valid(id: &str, arguments: &Value, result: &Value) -> bool {
+    let (Some(models), Some(answers)) = (result["models"].as_array(), result["answers"].as_array())
+    else {
+        return false;
+    };
+    let status = result["status"].as_str().unwrap_or("");
+    if result["schema"] != "oracle-logic-experimental-v1"
+        || result["operation_id"] != id
+        || !["consistent", "inconsistent", "inconclusive"].contains(&status)
+        || result.get("scope") != arguments.get("scope")
+        || !hex64(&result["program_identity"])
+        || !hex64(&result["request_identity"])
+        || !result["enumeration_complete"].is_boolean()
+        || result["witness_check"] != "handwritten_gl_reduct"
+    {
+        return false;
+    }
+    let atoms = arguments["atoms"].as_array().map_or(0, Vec::len) as i128;
+    let mut sets = Vec::new();
+    for model in models {
+        let Some(items) = model.as_array() else {
+            return false;
+        };
+        let mut previous = -1;
+        let mut set = BTreeSet::new();
+        for atom in items {
+            let Some(a) = (is_integer(atom)).then(|| int(atom)).flatten() else {
+                return false;
+            };
+            if !(0..atoms).contains(&a) || a <= previous {
+                return false; // must equal sorted(set(model))
+            }
+            previous = a;
+            set.insert(a);
+        }
+        sets.push(set);
+    }
+    let queries = arguments["queries"].as_array().cloned().unwrap_or_default();
+    if answers.len() != queries.len()
+        || answers.iter().zip(&queries).any(|(a, q)| {
+            !a.is_object() || !crate::wire::numbers_equal(&a["atom"], q) || !is_integer(&a["atom"])
+        })
+    {
+        return false;
+    }
+    if status == "inconsistent" && !models.is_empty() {
+        return false;
+    }
+    if id == "logic.query" && result["enumeration_complete"] == Value::Bool(true) {
+        return false;
+    }
+    for answer in answers {
+        let (skeptical, credulous) = (&answer["skeptical"], &answer["credulous"]);
+        if status == "inconsistent" && (!skeptical.is_null() || !credulous.is_null()) {
+            return false;
+        }
+        if status == "consistent" && (!skeptical.is_boolean() || !credulous.is_boolean()) {
+            return false;
+        }
+        let atom = int(&answer["atom"]).unwrap_or(-1);
+        for (key, present) in [("true_witness", true), ("false_witness", false)] {
+            let index = &answer[key];
+            if index.is_null() || answer.get(key).is_none() {
+                continue;
+            }
+            let Some(i) = is_integer(index).then(|| int(index)).flatten() else {
+                return false;
+            };
+            if i < 0 || i as usize >= sets.len() || sets[i as usize].contains(&atom) != present {
+                return false;
+            }
+        }
+        if (skeptical == &Value::Bool(true) && !answer["false_witness"].is_null())
+            || (credulous == &Value::Bool(false) && !answer["true_witness"].is_null())
+        {
+            return false;
+        }
+    }
+    true
+}
+
+/// `ReasoningOperations._validate_arguments`, after the schema check.
+fn reasoning_arguments(
+    id: &str,
+    arguments: &Value,
+    declaration: &Value,
+    catalog: &Value,
+) -> Result<(), ()> {
+    let schema = &declaration["input_schema"];
+    let args = arguments.as_object().ok_or(())?;
+    let properties = schema["properties"].as_object().ok_or(())?;
+    let required: Vec<&str> = schema["required"]
+        .as_array()
+        .map_or(vec![], |r| r.iter().filter_map(Value::as_str).collect());
+    if !required.iter().all(|k| args.contains_key(*k))
+        || !args.keys().all(|k| properties.contains_key(k))
+    {
+        return Err(());
+    }
+    let limits = &catalog["limits"];
+    let limit = |k: &str| limits[k].as_u64().unwrap_or(0) as i128;
+    let label = regex::Regex::new(r"^[A-Z][a-z]?(?:-[1-9][0-9]{0,2})?$").expect("constant");
+    let name_re = regex::Regex::new(r"^[A-Za-z_][A-Za-z0-9_]*$").expect("constant");
+    if id == "chemistry.balance_reaction" {
+        let chemistry = catalog_row(catalog, id)
+            .map(|r| &r["chemistry_limits"])
+            .ok_or(())?;
+        let cap = |k: &str| chemistry[k].as_u64().unwrap_or(0) as usize;
+        let species = args["species"].as_array().ok_or(())?;
+        if species.len() < 2 || species.len() > cap("species") {
+            return Err(());
+        }
+        let (mut names, mut sides, mut inventories) = (
+            BTreeSet::new(),
+            BTreeSet::new(),
+            BTreeSet::from(["charge".to_owned()]),
+        );
+        for row in species {
+            let row = row.as_object().ok_or(())?;
+            let keys: BTreeSet<&str> = row.keys().map(String::as_str).collect();
+            if keys != BTreeSet::from(["name", "side", "composition", "charge"]) {
+                return Err(());
+            }
+            let name = row["name"].as_str().ok_or(())?;
+            let charge = int(&row["charge"])
+                .filter(|_| is_integer(&row["charge"]))
+                .ok_or(())?;
+            let composition = row["composition"].as_object().ok_or(())?;
+            let side = row["side"].as_str().unwrap_or("");
+            if name.trim().is_empty()
+                || name.len() > 128
+                || names.contains(name)
+                || !["reactant", "product"].contains(&side)
+                || !(i128::from(i64::MIN)..=i128::from(i64::MAX)).contains(&charge)
+                || composition.len() >= cap("conserved_rows")
+                || (composition.is_empty() && charge != -1)
+            {
+                return Err(());
+            }
+            names.insert(name);
+            sides.insert(side);
+            for (key, count) in composition {
+                let n = int(count).filter(|_| is_integer(count)).ok_or(())?;
+                if !label.is_match(key) || !(1..=i128::from(u64::MAX)).contains(&n) {
+                    return Err(());
+                }
+                inventories.insert(key.clone());
+            }
+            if inventories.len() > cap("conserved_rows") {
+                return Err(());
+            }
+        }
+        return if sides.len() == 2 { Ok(()) } else { Err(()) };
+    }
+    if [
+        "algebra.optimize_polynomial",
+        "algebra.optimize_dimensional_polynomial",
+        "algebra.simplify_rational",
+    ]
+    .contains(&id)
+    {
+        let expression = args["expression"].as_str().ok_or(())?;
+        let n = expression.chars().count() as i128;
+        if n < 1 || n > limit("request_bytes") || expression.len() as i128 > limit("request_bytes")
+        {
+            return Err(());
+        }
+        if id == "algebra.simplify_rational" {
+            for key in ["bounds", "point"] {
+                let rows = &args.get(key).cloned().unwrap_or(Value::Null);
+                if rows.is_null() && (key == "point" || !args.contains_key(key)) {
+                    continue;
+                }
+                let shape = if key == "bounds" {
+                    &properties[key]
+                } else {
+                    &properties[key]["anyOf"][0]
+                };
+                let names: Option<BTreeSet<&str>> = rows
+                    .as_array()
+                    .map(|r| r.iter().filter_map(|x| x["name"].as_str()).collect());
+                if !strict_valid(rows, shape)
+                    || names.map(|s| s.len()) != rows.as_array().map(Vec::len)
+                {
+                    return Err(());
+                }
+            }
+        }
+        if id != "algebra.optimize_polynomial" {
+            let annotations = args["variables"].as_array().ok_or(())?;
+            if annotations.len() as i128 > limit("expression_nodes") {
+                return Err(());
+            }
+            let dimension = &properties["variables"]["items"]["properties"]["dimension"];
+            let mut seen = BTreeSet::new();
+            for row in annotations {
+                let row = row.as_object().ok_or(())?;
+                let name = row.get("name").and_then(Value::as_str).ok_or(())?;
+                let keys_ok = row.contains_key("dimension")
+                    && row
+                        .keys()
+                        .all(|k| ["name", "dimension", "kind"].contains(&k.as_str()));
+                let kind_ok = row.get("kind").is_none_or(|k| k == "linear");
+                if !keys_ok
+                    || name.chars().count() > 64
+                    || !name_re.is_match(name)
+                    || !kind_ok
+                    || seen.contains(name)
+                    || !strict_valid(&row["dimension"], dimension)
+                {
+                    return Err(());
+                }
+                seen.insert(name);
+            }
+            if let Some(output) = args.get("output_dimension") {
+                if !strict_valid(output, &properties["output_dimension"]) {
+                    return Err(());
+                }
+            }
+        }
+        return Ok(());
+    }
+    let vertices = int(&args["vertices"])
+        .filter(|_| is_integer(&args["vertices"]))
+        .ok_or(())?;
+    if !(0..=limit("vertices")).contains(&vertices) {
+        return Err(());
+    }
+    if id == "graph.shortest_path" {
+        if vertices < 1 {
+            return Err(());
+        }
+        for key in ["source", "target"] {
+            let v = int(&args[key])
+                .filter(|_| is_integer(&args[key]))
+                .ok_or(())?;
+            if !(0..vertices).contains(&v) {
+                return Err(());
+            }
+        }
+    }
+    let edges = args["edges"].as_array().ok_or(())?;
+    if edges.len() as i128 > limit("edges") {
+        return Err(());
+    }
+    for edge in edges {
+        let edge = edge
+            .as_array()
+            .filter(|e| e.len() == 3 && e.iter().all(is_integer))
+            .ok_or(())?;
+        let (a, b, w) = (
+            int(&edge[0]).ok_or(())?,
+            int(&edge[1]).ok_or(())?,
+            int(&edge[2]).ok_or(())?,
+        );
+        if !(0..vertices).contains(&a)
+            || !(0..vertices).contains(&b)
+            || !(i128::from(i64::MIN)..=i128::from(i64::MAX)).contains(&w)
+        {
+            return Err(());
+        }
+    }
+    Ok(())
+}
+
+fn text_int(value: &Value) -> Option<i128> {
+    value.as_str()?.parse().ok()
+}
+
+/// Walk edge IDs from `start`; (end vertex, total weight).
+fn walk(arguments: &Value, path: &Value, start: i128) -> Option<(i128, i128)> {
+    let vertices = int(&arguments["vertices"])?;
+    let edges = arguments["edges"].as_array()?;
+    let path = path.as_array()?;
+    if path.len() as i128 > vertices {
+        return None;
+    }
+    let (mut vertex, mut total) = (start, 0i128);
+    for id in path {
+        let id = int(id)? as usize;
+        let edge = edges.get(id)?.as_array()?;
+        if int(&edge[0])? != vertex {
+            return None;
+        }
+        vertex = int(&edge[1])?;
+        total = total.checked_add(int(&edge[2])?)?;
+    }
+    Some((vertex, total))
+}
+
+/// `_check_path_reply`: transport coverage and edge walks; Rust checked optimality.
+fn check_path(arguments: &Value, result: &Value) -> Option<()> {
+    let vertices = int(&arguments["vertices"])? as usize;
+    let (source, target) = (int(&arguments["source"])?, int(&arguments["target"])?);
+    match result["outcome"].as_str()? {
+        "finite" => {
+            let labels = result["labels"].as_array()?;
+            let ok = labels.len() == vertices
+                && labels.get(source as usize)? == "0"
+                && labels.get(target as usize)? == &result["distance"]
+                && walk(arguments, &result["path"], source)?
+                    == (target, text_int(&result["distance"])?)
+                && labels.iter().all(|v| v.is_null() || text_int(v).is_some());
+            ok.then_some(())
+        }
+        "unreachable" => {
+            let reachable = result["reachable"].as_array()?;
+            let at = |i: i128| reachable.get(i as usize).and_then(Value::as_bool);
+            let edges = arguments["edges"].as_array()?;
+            let ok = reachable.len() == vertices
+                && at(source)?
+                && !at(target)?
+                && edges.iter().all(|e| {
+                    let (a, z) = (int(&e[0]).unwrap_or(-1), int(&e[1]).unwrap_or(-1));
+                    !(at(a).unwrap_or(false) && !at(z).unwrap_or(false))
+                });
+            ok.then_some(())
+        }
+        _ => {
+            let (anchor, _) = walk(arguments, &result["prefix"], source)?;
+            let (end, weight) = walk(arguments, &result["cycle"], anchor)?;
+            let (finish, _) = walk(arguments, &result["suffix"], anchor)?;
+            (end == anchor && weight < 0 && finish == target).then_some(())
+        }
+    }
+}
+
+/// `_check_rational_reply`: transport consistency only.
+fn check_rational(arguments: &Value, result: &Value) -> Option<()> {
+    if let Some(requested) = arguments.get("output_dimension").filter(|v| !v.is_null()) {
+        if &result["output_dimension"] != requested {
+            return None;
+        }
+    }
+    let point = arguments.get("point").is_none_or(Value::is_null);
+    let evaluation = &result["evaluation"];
+    if point != evaluation.is_null() {
+        return None;
+    }
+    if !evaluation.is_null() && (evaluation["status"] == "value") != !evaluation["value"].is_null()
+    {
+        return None;
+    }
+    if !result["selection_fallback"].is_null() && result["selected_cost"] != result["original_cost"]
+    {
+        return None;
+    }
+    Some(())
+}
+
+/// `_check_chemistry_reply`: transport shape and coverage, no recomputation.
+fn check_chemistry(arguments: &Value, result: &Value) -> Option<()> {
+    let species = arguments["species"].as_array()?;
+    let size = species.len() as i128;
+    let nullity = int(&result["nullity"])?;
+    let status = result["status"].as_str()?;
+    let basis = result["nullspace_basis"].as_array()?;
+    let free = result["free_species_indices"].as_array()?;
+    let free_set: BTreeSet<i128> = free.iter().filter_map(int).collect();
+    if int(&result["rank"])? + nullity != size
+        || basis.len() as i128 != nullity
+        || basis
+            .iter()
+            .any(|v| v.as_array().map(|v| v.len() as i128) != Some(size))
+        || free.len() as i128 != nullity
+        || free_set.len() as i128 != nullity
+        || free_set.iter().any(|&i| i >= size)
+    {
+        return None;
+    }
+    let positive = ["unique_positive", "multiple_with_positive_candidate"].contains(&status);
+    if (status == "no_nonzero_balance" && nullity != 0)
+        || (["unique_positive", "no_strictly_positive_balance"].contains(&status) && nullity != 1)
+        || (status.starts_with("multiple_") && nullity < 2)
+    {
+        return None;
+    }
+    let rows = result["conservation"].as_array()?;
+    if positive {
+        let mut labels: BTreeSet<String> = BTreeSet::from(["charge".to_owned()]);
+        for row in species {
+            labels.extend(row["composition"].as_object()?.keys().cloned());
+        }
+        let inventories: BTreeSet<String> = rows
+            .iter()
+            .filter_map(|r| r["inventory"].as_str().map(str::to_owned))
+            .collect();
+        let ok = result["coefficients"]
+            .as_array()
+            .is_some_and(|c| c.len() as i128 == size)
+            && rows.len() == labels.len()
+            && inventories == labels
+            && rows.iter().all(|r| r["reactant"] == r["product"]);
+        ok.then_some(())
+    } else {
+        (result["coefficients"].is_null() && rows.is_empty()).then_some(())
+    }
+}

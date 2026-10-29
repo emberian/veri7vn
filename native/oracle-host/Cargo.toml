@@ -1,0 +1,38 @@
+[package]
+name = "oracle-host"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Loopback appliance host: native runtime, resident extracted organs and a contained Python Engine behind one arbitration rule"
+
+[[bin]]
+name = "oracle-host"
+path = "src/main.rs"
+
+[lib]
+name = "oracle_host"
+path = "src/lib.rs"
+
+[features]
+reasoning = ["dep:oracle-reasoning"]
+science = ["dep:oracle-science"]
+incremental = ["dep:oracle-incremental"]
+bio = ["dep:oracle-bio"]
+statistics = ["dep:oracle-statistics"]
+logic = ["dep:oracle-logic"]
+
+[dependencies]
+oracle-runtime-core = { path = "../oracle-core" }
+oracle-reasoning = { path = "../oracle-reasoning", optional = true }
+oracle-science = { path = "../oracle-science", optional = true }
+oracle-incremental = { path = "../oracle-incremental", optional = true }
+oracle-bio = { path = "../oracle-bio", optional = true }
+oracle-statistics = { path = "../oracle-statistics", optional = true }
+oracle-logic = { path = "../oracle-logic", optional = true }
+serde.workspace = true
+serde_json.workspace = true
+rusqlite.workspace = true
+sha2.workspace = true
+nix.workspace = true
+regex = "1"
+tempfile.workspace = true
