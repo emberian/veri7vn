@@ -128,3 +128,14 @@ or cm²/s are refused. Spelled unit names are case-insensitive. Polygon side
 counts remain dimensionless and do not inherit a length unit. Unlisted length
 scales, including megametres, remain unsupported even though mathematically
 convertible; they are counted as valid withheld requests in evaluation.
+
+Binomial probability roles consume the complete signed decimal/scientific
+literal and optional percent suffix. For example, `p = 0.5%` and `p = 0.5e-2`
+both mean `p = 0.005`; neither becomes `0.5`. Malformed continuations are
+refused, and signed out-of-domain probabilities reach the existing kernel
+check. Exact-parser resource limits also refuse oversized literals. This repairs the hand-written, untrusted reader; the binomial formula
+and HOL statements are unchanged. `check_binomial_binding.py --binary PATH`
+runs 302 independently specified cases in each manifest/family mode, with exact
+Bernoulli-sequence enumeration for expected masses, and the three shipped
+statistics panels through their own scorers. There is no recognizer generator;
+`generate_paired.py` generates only paired-data probes.

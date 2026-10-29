@@ -1,0 +1,144 @@
+{
+  "schema": "veri7vn-geostats-binomial-binding-v1",
+  "date": "2026-10-29",
+  "scope": "Whole decimal/percent/scientific probability literal binding into unchanged extracted binomial kernel; no new theorem or full Engine/fleet qualification.",
+  "binary": {
+    "path": "/Users/ember/dev/o7vn/var/expanded-runtime-20261029/geostats",
+    "sha256": "d02e017b383f54e8fbc69dfde24b990d23ffbdf6ad80688e6142c1b2cb17ad10",
+    "isolated": true,
+    "original_published_binary_untouched": false
+  },
+  "compile": {
+    "path": "var/geostats/native-attempts/20261029T063808Z-d241be33f712/compile-inputs.json",
+    "sha256": "6c436d938ecdadcca8672e86f21da53ed98dd7919f396bbb669edc50a6a78bbf",
+    "compile_ok": true,
+    "compiler_exit": 0,
+    "generated_sha256": "69986b697a2297ed09ea1dedb195c3bc1406109059de710900dadcfbfc5fbeec",
+    "managed_proof_receipt_path": "/Users/ember/dev/o7vn/var/c-physical-energy-geostats/paired-production/var/geostats/remote-attempts/20261018T091723Z-e0b85dc79ad2/receipt.json",
+    "managed_proof_receipt_sha256": "8d7e6b7f48d9c21fcc9bf3f655ac54aac451efaa367813053f9c4d2cd09f7b21",
+    "proof_source_match": "managed native-compile verified current sources and full generated export inventory; no Isabelle rebuild",
+    "source_sha256": {
+      "src/extract/commons/commons.sml": "1cce00aede6c14c3121ccfe8777b5bcdf3618ffcbeb6b6729e05e7b691a93962",
+      "src/extract/commons/numeric.sml": "2f313c77fadce09298f0387599e630b04a6551e800f52b6c79a88468b2cc046d",
+      "src/extract/commons/measured_input.sml": "11f703525511191a6e075930191903841d65d158544075845c0142bfc32e2cb7",
+      "src/extract/geostats/recognizer.sml": "f9d0ede6075d1ee9f9a9e00a717bb7b272ec357e43bf37a0f2d1fe0dbb184aa7",
+      "src/extract/geostats/main.sml": "1583bbc782e3f37246043b76f98e4b8bbc928880675852ee1d6c8c555e4220de"
+    }
+  },
+  "independent_check": {
+    "command": "python3 -B src/extract/geostats/check_binomial_binding.py --binary /Users/ember/dev/o7vn/var/expanded-runtime-20261029/geostats --out var/statistics-correctness-20261029/geostats-patched.json",
+    "exit_code": 0,
+    "probes_per_mode": 302,
+    "modes": 4,
+    "probe_checks": 1208,
+    "method": "Enumerate all Bernoulli outcome sequences using exact Fraction probabilities, independently of binomial coefficients; compare actual binary output with tight relative tolerance and zero absolute tolerance.",
+    "shipped_panel_items": 860,
+    "scorer_correct": 860,
+    "wrong": 0,
+    "false_yes": 0,
+    "panels_include_correct_declines": true,
+    "result_path": "var/statistics-correctness-20261029/geostats-patched.json",
+    "result_sha256": "b8b479d1085bee121faeb0eb6aecb48872eebdb4379533cde29ce4085ccf1341",
+    "result": {
+      "binary": "/Users/ember/dev/o7vn/var/expanded-runtime-20261029/geostats",
+      "modes": {
+        "family": {
+          "probes": {
+            "n": 302,
+            "passed": 302,
+            "fails": []
+          }
+        },
+        "statistics": {
+          "probes": {
+            "n": 302,
+            "passed": 302,
+            "fails": []
+          },
+          "panels": {
+            "dev": {
+              "n": 142,
+              "correct": 142,
+              "wrong": 0,
+              "false_yes": 0,
+              "withheld_valid": 0
+            },
+            "heldout": {
+              "n": 142,
+              "correct": 142,
+              "wrong": 0,
+              "false_yes": 0,
+              "withheld_valid": 0
+            }
+          }
+        },
+        "statistics-v2": {
+          "probes": {
+            "n": 302,
+            "passed": 302,
+            "fails": []
+          },
+          "panels": {
+            "dev": {
+              "n": 144,
+              "correct": 144,
+              "wrong": 0,
+              "false_yes": 0,
+              "withheld_valid": 0
+            },
+            "heldout": {
+              "n": 144,
+              "correct": 144,
+              "wrong": 0,
+              "false_yes": 0,
+              "withheld_valid": 0
+            }
+          }
+        },
+        "statistics-v3": {
+          "probes": {
+            "n": 302,
+            "passed": 302,
+            "fails": []
+          },
+          "panels": {
+            "dev": {
+              "n": 144,
+              "correct": 144,
+              "wrong": 0,
+              "false_yes": 0,
+              "withheld_valid": 0
+            },
+            "heldout": {
+              "n": 144,
+              "correct": 144,
+              "wrong": 0,
+              "false_yes": 0,
+              "withheld_valid": 0
+            }
+          }
+        }
+      },
+      "failures": 0
+    }
+  },
+  "source_sha256": {
+    "src/extract/geostats/recognizer.sml": "f9d0ede6075d1ee9f9a9e00a717bb7b272ec357e43bf37a0f2d1fe0dbb184aa7",
+    "src/extract/geostats/binomial_binding_probes.json": "f1507da1e97b1389ce1af0324d7516415916f07993b8e9315bf3d032bf63ff17",
+    "src/extract/geostats/check_binomial_binding.py": "b4b3dce11823071fd5568cc659bf9d0a8cc4e3ea83e709045488c912d157b033",
+    "src/extract/geostats/main.sml": "1583bbc782e3f37246043b76f98e4b8bbc928880675852ee1d6c8c555e4220de",
+    "src/extract/commons/commons.sml": "1cce00aede6c14c3121ccfe8777b5bcdf3618ffcbeb6b6729e05e7b691a93962",
+    "src/extract/commons/numeric.sml": "2f313c77fadce09298f0387599e630b04a6551e800f52b6c79a88468b2cc046d",
+    "src/extract/commons/measured_input.sml": "11f703525511191a6e075930191903841d65d158544075845c0142bfc32e2cb7"
+  },
+  "baseline": "Existing warm consumer passed77/302 probes per mode; shipped panel results unchanged. The new probes expose binding errors absent from regular panels.",
+  "trust": "Handwritten English recognizer/Python regression harness and compiler remain untrusted; no new axioms/theorem statements; existing exact binomial computation theorem retains its premises.",
+  "promotion": {
+    "consumer": "var/geostats/bin/geostats",
+    "previous_sha256": "0eff8efb025f0029d313a679ed3166505758e0a112c96a1d80dd705a009b2dc3",
+    "binary_sha256": "d02e017b383f54e8fbc69dfde24b990d23ffbdf6ad80688e6142c1b2cb17ad10",
+    "compile_receipt": "var/geostats/native-attempts/20261029T063808Z-d241be33f712/compile-inputs.json",
+    "compile_receipt_sha256": "6c436d938ecdadcca8672e86f21da53ed98dd7919f396bbb669edc50a6a78bbf",
+    "previous_binary": "var/geostats/promotions/20261029-binomial-binding/previous-geostats"
+  }
+}

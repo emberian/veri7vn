@@ -1,0 +1,2890 @@
+[
+ {
+  "q": "What is the probability of exactly 0 successes in 0 trials with p = 0.5%?",
+  "n": 0,
+  "k": 0,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 1 trials with p = 0.5%?",
+  "n": 1,
+  "k": 0,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 1 trials with p = 0.5%?",
+  "n": 1,
+  "k": 1,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 2 trials with p = 0.5%?",
+  "n": 2,
+  "k": 0,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 2 trials with p = 0.5%?",
+  "n": 2,
+  "k": 1,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 2 successes in 2 trials with p = 0.5%?",
+  "n": 2,
+  "k": 2,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 3 trials with p = 0.5%?",
+  "n": 3,
+  "k": 0,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 3 trials with p = 0.5%?",
+  "n": 3,
+  "k": 1,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 2 successes in 3 trials with p = 0.5%?",
+  "n": 3,
+  "k": 2,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 3 successes in 3 trials with p = 0.5%?",
+  "n": 3,
+  "k": 3,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 4 trials with p = 0.5%?",
+  "n": 4,
+  "k": 0,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 4 trials with p = 0.5%?",
+  "n": 4,
+  "k": 1,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 2 successes in 4 trials with p = 0.5%?",
+  "n": 4,
+  "k": 2,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 3 successes in 4 trials with p = 0.5%?",
+  "n": 4,
+  "k": 3,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 4 successes in 4 trials with p = 0.5%?",
+  "n": 4,
+  "k": 4,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 5 trials with p = 0.5%?",
+  "n": 5,
+  "k": 0,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 5 trials with p = 0.5%?",
+  "n": 5,
+  "k": 1,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 2 successes in 5 trials with p = 0.5%?",
+  "n": 5,
+  "k": 2,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 3 successes in 5 trials with p = 0.5%?",
+  "n": 5,
+  "k": 3,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 4 successes in 5 trials with p = 0.5%?",
+  "n": 5,
+  "k": 4,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 5 successes in 5 trials with p = 0.5%?",
+  "n": 5,
+  "k": 5,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 0 trials with p = .5%?",
+  "n": 0,
+  "k": 0,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 1 trials with p = .5%?",
+  "n": 1,
+  "k": 0,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 1 trials with p = .5%?",
+  "n": 1,
+  "k": 1,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 2 trials with p = .5%?",
+  "n": 2,
+  "k": 0,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 2 trials with p = .5%?",
+  "n": 2,
+  "k": 1,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 2 successes in 2 trials with p = .5%?",
+  "n": 2,
+  "k": 2,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 3 trials with p = .5%?",
+  "n": 3,
+  "k": 0,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 3 trials with p = .5%?",
+  "n": 3,
+  "k": 1,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 2 successes in 3 trials with p = .5%?",
+  "n": 3,
+  "k": 2,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 3 successes in 3 trials with p = .5%?",
+  "n": 3,
+  "k": 3,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 4 trials with p = .5%?",
+  "n": 4,
+  "k": 0,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 4 trials with p = .5%?",
+  "n": 4,
+  "k": 1,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 2 successes in 4 trials with p = .5%?",
+  "n": 4,
+  "k": 2,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 3 successes in 4 trials with p = .5%?",
+  "n": 4,
+  "k": 3,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 4 successes in 4 trials with p = .5%?",
+  "n": 4,
+  "k": 4,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 5 trials with p = .5%?",
+  "n": 5,
+  "k": 0,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 5 trials with p = .5%?",
+  "n": 5,
+  "k": 1,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 2 successes in 5 trials with p = .5%?",
+  "n": 5,
+  "k": 2,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 3 successes in 5 trials with p = .5%?",
+  "n": 5,
+  "k": 3,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 4 successes in 5 trials with p = .5%?",
+  "n": 5,
+  "k": 4,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 5 successes in 5 trials with p = .5%?",
+  "n": 5,
+  "k": 5,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 0 trials with p = 0.5 %?",
+  "n": 0,
+  "k": 0,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 1 trials with p = 0.5 %?",
+  "n": 1,
+  "k": 0,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 1 trials with p = 0.5 %?",
+  "n": 1,
+  "k": 1,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 2 trials with p = 0.5 %?",
+  "n": 2,
+  "k": 0,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 2 trials with p = 0.5 %?",
+  "n": 2,
+  "k": 1,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 2 successes in 2 trials with p = 0.5 %?",
+  "n": 2,
+  "k": 2,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 3 trials with p = 0.5 %?",
+  "n": 3,
+  "k": 0,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 3 trials with p = 0.5 %?",
+  "n": 3,
+  "k": 1,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 2 successes in 3 trials with p = 0.5 %?",
+  "n": 3,
+  "k": 2,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 3 successes in 3 trials with p = 0.5 %?",
+  "n": 3,
+  "k": 3,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 4 trials with p = 0.5 %?",
+  "n": 4,
+  "k": 0,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 4 trials with p = 0.5 %?",
+  "n": 4,
+  "k": 1,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 2 successes in 4 trials with p = 0.5 %?",
+  "n": 4,
+  "k": 2,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 3 successes in 4 trials with p = 0.5 %?",
+  "n": 4,
+  "k": 3,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 4 successes in 4 trials with p = 0.5 %?",
+  "n": 4,
+  "k": 4,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 5 trials with p = 0.5 %?",
+  "n": 5,
+  "k": 0,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 5 trials with p = 0.5 %?",
+  "n": 5,
+  "k": 1,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 2 successes in 5 trials with p = 0.5 %?",
+  "n": 5,
+  "k": 2,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 3 successes in 5 trials with p = 0.5 %?",
+  "n": 5,
+  "k": 3,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 4 successes in 5 trials with p = 0.5 %?",
+  "n": 5,
+  "k": 4,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 5 successes in 5 trials with p = 0.5 %?",
+  "n": 5,
+  "k": 5,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 0 trials with p = 50.0%?",
+  "n": 0,
+  "k": 0,
+  "probability": [
+   1,
+   2
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 1 trials with p = 50.0%?",
+  "n": 1,
+  "k": 0,
+  "probability": [
+   1,
+   2
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 1 trials with p = 50.0%?",
+  "n": 1,
+  "k": 1,
+  "probability": [
+   1,
+   2
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 2 trials with p = 50.0%?",
+  "n": 2,
+  "k": 0,
+  "probability": [
+   1,
+   2
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 2 trials with p = 50.0%?",
+  "n": 2,
+  "k": 1,
+  "probability": [
+   1,
+   2
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 2 successes in 2 trials with p = 50.0%?",
+  "n": 2,
+  "k": 2,
+  "probability": [
+   1,
+   2
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 3 trials with p = 50.0%?",
+  "n": 3,
+  "k": 0,
+  "probability": [
+   1,
+   2
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 3 trials with p = 50.0%?",
+  "n": 3,
+  "k": 1,
+  "probability": [
+   1,
+   2
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 2 successes in 3 trials with p = 50.0%?",
+  "n": 3,
+  "k": 2,
+  "probability": [
+   1,
+   2
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 3 successes in 3 trials with p = 50.0%?",
+  "n": 3,
+  "k": 3,
+  "probability": [
+   1,
+   2
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 4 trials with p = 50.0%?",
+  "n": 4,
+  "k": 0,
+  "probability": [
+   1,
+   2
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 4 trials with p = 50.0%?",
+  "n": 4,
+  "k": 1,
+  "probability": [
+   1,
+   2
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 2 successes in 4 trials with p = 50.0%?",
+  "n": 4,
+  "k": 2,
+  "probability": [
+   1,
+   2
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 3 successes in 4 trials with p = 50.0%?",
+  "n": 4,
+  "k": 3,
+  "probability": [
+   1,
+   2
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 4 successes in 4 trials with p = 50.0%?",
+  "n": 4,
+  "k": 4,
+  "probability": [
+   1,
+   2
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 5 trials with p = 50.0%?",
+  "n": 5,
+  "k": 0,
+  "probability": [
+   1,
+   2
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 5 trials with p = 50.0%?",
+  "n": 5,
+  "k": 1,
+  "probability": [
+   1,
+   2
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 2 successes in 5 trials with p = 50.0%?",
+  "n": 5,
+  "k": 2,
+  "probability": [
+   1,
+   2
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 3 successes in 5 trials with p = 50.0%?",
+  "n": 5,
+  "k": 3,
+  "probability": [
+   1,
+   2
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 4 successes in 5 trials with p = 50.0%?",
+  "n": 5,
+  "k": 4,
+  "probability": [
+   1,
+   2
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 5 successes in 5 trials with p = 50.0%?",
+  "n": 5,
+  "k": 5,
+  "probability": [
+   1,
+   2
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 0 trials with p = 1.5%?",
+  "n": 0,
+  "k": 0,
+  "probability": [
+   3,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 1 trials with p = 1.5%?",
+  "n": 1,
+  "k": 0,
+  "probability": [
+   3,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 1 trials with p = 1.5%?",
+  "n": 1,
+  "k": 1,
+  "probability": [
+   3,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 2 trials with p = 1.5%?",
+  "n": 2,
+  "k": 0,
+  "probability": [
+   3,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 2 trials with p = 1.5%?",
+  "n": 2,
+  "k": 1,
+  "probability": [
+   3,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 2 successes in 2 trials with p = 1.5%?",
+  "n": 2,
+  "k": 2,
+  "probability": [
+   3,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 3 trials with p = 1.5%?",
+  "n": 3,
+  "k": 0,
+  "probability": [
+   3,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 3 trials with p = 1.5%?",
+  "n": 3,
+  "k": 1,
+  "probability": [
+   3,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 2 successes in 3 trials with p = 1.5%?",
+  "n": 3,
+  "k": 2,
+  "probability": [
+   3,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 3 successes in 3 trials with p = 1.5%?",
+  "n": 3,
+  "k": 3,
+  "probability": [
+   3,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 4 trials with p = 1.5%?",
+  "n": 4,
+  "k": 0,
+  "probability": [
+   3,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 4 trials with p = 1.5%?",
+  "n": 4,
+  "k": 1,
+  "probability": [
+   3,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 2 successes in 4 trials with p = 1.5%?",
+  "n": 4,
+  "k": 2,
+  "probability": [
+   3,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 3 successes in 4 trials with p = 1.5%?",
+  "n": 4,
+  "k": 3,
+  "probability": [
+   3,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 4 successes in 4 trials with p = 1.5%?",
+  "n": 4,
+  "k": 4,
+  "probability": [
+   3,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 5 trials with p = 1.5%?",
+  "n": 5,
+  "k": 0,
+  "probability": [
+   3,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 5 trials with p = 1.5%?",
+  "n": 5,
+  "k": 1,
+  "probability": [
+   3,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 2 successes in 5 trials with p = 1.5%?",
+  "n": 5,
+  "k": 2,
+  "probability": [
+   3,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 3 successes in 5 trials with p = 1.5%?",
+  "n": 5,
+  "k": 3,
+  "probability": [
+   3,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 4 successes in 5 trials with p = 1.5%?",
+  "n": 5,
+  "k": 4,
+  "probability": [
+   3,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 5 successes in 5 trials with p = 1.5%?",
+  "n": 5,
+  "k": 5,
+  "probability": [
+   3,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 0 trials with p = 100.0%?",
+  "n": 0,
+  "k": 0,
+  "probability": [
+   1,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 1 trials with p = 100.0%?",
+  "n": 1,
+  "k": 0,
+  "probability": [
+   1,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 1 trials with p = 100.0%?",
+  "n": 1,
+  "k": 1,
+  "probability": [
+   1,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 2 trials with p = 100.0%?",
+  "n": 2,
+  "k": 0,
+  "probability": [
+   1,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 2 trials with p = 100.0%?",
+  "n": 2,
+  "k": 1,
+  "probability": [
+   1,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 2 successes in 2 trials with p = 100.0%?",
+  "n": 2,
+  "k": 2,
+  "probability": [
+   1,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 3 trials with p = 100.0%?",
+  "n": 3,
+  "k": 0,
+  "probability": [
+   1,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 3 trials with p = 100.0%?",
+  "n": 3,
+  "k": 1,
+  "probability": [
+   1,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 2 successes in 3 trials with p = 100.0%?",
+  "n": 3,
+  "k": 2,
+  "probability": [
+   1,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 3 successes in 3 trials with p = 100.0%?",
+  "n": 3,
+  "k": 3,
+  "probability": [
+   1,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 4 trials with p = 100.0%?",
+  "n": 4,
+  "k": 0,
+  "probability": [
+   1,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 4 trials with p = 100.0%?",
+  "n": 4,
+  "k": 1,
+  "probability": [
+   1,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 2 successes in 4 trials with p = 100.0%?",
+  "n": 4,
+  "k": 2,
+  "probability": [
+   1,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 3 successes in 4 trials with p = 100.0%?",
+  "n": 4,
+  "k": 3,
+  "probability": [
+   1,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 4 successes in 4 trials with p = 100.0%?",
+  "n": 4,
+  "k": 4,
+  "probability": [
+   1,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 5 trials with p = 100.0%?",
+  "n": 5,
+  "k": 0,
+  "probability": [
+   1,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 5 trials with p = 100.0%?",
+  "n": 5,
+  "k": 1,
+  "probability": [
+   1,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 2 successes in 5 trials with p = 100.0%?",
+  "n": 5,
+  "k": 2,
+  "probability": [
+   1,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 3 successes in 5 trials with p = 100.0%?",
+  "n": 5,
+  "k": 3,
+  "probability": [
+   1,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 4 successes in 5 trials with p = 100.0%?",
+  "n": 5,
+  "k": 4,
+  "probability": [
+   1,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 5 successes in 5 trials with p = 100.0%?",
+  "n": 5,
+  "k": 5,
+  "probability": [
+   1,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 0 trials with p = +0.5%?",
+  "n": 0,
+  "k": 0,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 1 trials with p = +0.5%?",
+  "n": 1,
+  "k": 0,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 1 trials with p = +0.5%?",
+  "n": 1,
+  "k": 1,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 2 trials with p = +0.5%?",
+  "n": 2,
+  "k": 0,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 2 trials with p = +0.5%?",
+  "n": 2,
+  "k": 1,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 2 successes in 2 trials with p = +0.5%?",
+  "n": 2,
+  "k": 2,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 3 trials with p = +0.5%?",
+  "n": 3,
+  "k": 0,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 3 trials with p = +0.5%?",
+  "n": 3,
+  "k": 1,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 2 successes in 3 trials with p = +0.5%?",
+  "n": 3,
+  "k": 2,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 3 successes in 3 trials with p = +0.5%?",
+  "n": 3,
+  "k": 3,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 4 trials with p = +0.5%?",
+  "n": 4,
+  "k": 0,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 4 trials with p = +0.5%?",
+  "n": 4,
+  "k": 1,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 2 successes in 4 trials with p = +0.5%?",
+  "n": 4,
+  "k": 2,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 3 successes in 4 trials with p = +0.5%?",
+  "n": 4,
+  "k": 3,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 4 successes in 4 trials with p = +0.5%?",
+  "n": 4,
+  "k": 4,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 5 trials with p = +0.5%?",
+  "n": 5,
+  "k": 0,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 5 trials with p = +0.5%?",
+  "n": 5,
+  "k": 1,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 2 successes in 5 trials with p = +0.5%?",
+  "n": 5,
+  "k": 2,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 3 successes in 5 trials with p = +0.5%?",
+  "n": 5,
+  "k": 3,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 4 successes in 5 trials with p = +0.5%?",
+  "n": 5,
+  "k": 4,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 5 successes in 5 trials with p = +0.5%?",
+  "n": 5,
+  "k": 5,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 0 trials with p = 0.5e-2?",
+  "n": 0,
+  "k": 0,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 1 trials with p = 0.5e-2?",
+  "n": 1,
+  "k": 0,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 1 trials with p = 0.5e-2?",
+  "n": 1,
+  "k": 1,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 2 trials with p = 0.5e-2?",
+  "n": 2,
+  "k": 0,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 2 trials with p = 0.5e-2?",
+  "n": 2,
+  "k": 1,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 2 successes in 2 trials with p = 0.5e-2?",
+  "n": 2,
+  "k": 2,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 3 trials with p = 0.5e-2?",
+  "n": 3,
+  "k": 0,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 3 trials with p = 0.5e-2?",
+  "n": 3,
+  "k": 1,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 2 successes in 3 trials with p = 0.5e-2?",
+  "n": 3,
+  "k": 2,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 3 successes in 3 trials with p = 0.5e-2?",
+  "n": 3,
+  "k": 3,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 4 trials with p = 0.5e-2?",
+  "n": 4,
+  "k": 0,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 4 trials with p = 0.5e-2?",
+  "n": 4,
+  "k": 1,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 2 successes in 4 trials with p = 0.5e-2?",
+  "n": 4,
+  "k": 2,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 3 successes in 4 trials with p = 0.5e-2?",
+  "n": 4,
+  "k": 3,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 4 successes in 4 trials with p = 0.5e-2?",
+  "n": 4,
+  "k": 4,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 5 trials with p = 0.5e-2?",
+  "n": 5,
+  "k": 0,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 5 trials with p = 0.5e-2?",
+  "n": 5,
+  "k": 1,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 2 successes in 5 trials with p = 0.5e-2?",
+  "n": 5,
+  "k": 2,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 3 successes in 5 trials with p = 0.5e-2?",
+  "n": 5,
+  "k": 3,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 4 successes in 5 trials with p = 0.5e-2?",
+  "n": 5,
+  "k": 4,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 5 successes in 5 trials with p = 0.5e-2?",
+  "n": 5,
+  "k": 5,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 0 trials with p = 5e-1%?",
+  "n": 0,
+  "k": 0,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 1 trials with p = 5e-1%?",
+  "n": 1,
+  "k": 0,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 1 trials with p = 5e-1%?",
+  "n": 1,
+  "k": 1,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 2 trials with p = 5e-1%?",
+  "n": 2,
+  "k": 0,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 2 trials with p = 5e-1%?",
+  "n": 2,
+  "k": 1,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 2 successes in 2 trials with p = 5e-1%?",
+  "n": 2,
+  "k": 2,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 3 trials with p = 5e-1%?",
+  "n": 3,
+  "k": 0,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 3 trials with p = 5e-1%?",
+  "n": 3,
+  "k": 1,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 2 successes in 3 trials with p = 5e-1%?",
+  "n": 3,
+  "k": 2,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 3 successes in 3 trials with p = 5e-1%?",
+  "n": 3,
+  "k": 3,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 4 trials with p = 5e-1%?",
+  "n": 4,
+  "k": 0,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 4 trials with p = 5e-1%?",
+  "n": 4,
+  "k": 1,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 2 successes in 4 trials with p = 5e-1%?",
+  "n": 4,
+  "k": 2,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 3 successes in 4 trials with p = 5e-1%?",
+  "n": 4,
+  "k": 3,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 4 successes in 4 trials with p = 5e-1%?",
+  "n": 4,
+  "k": 4,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 5 trials with p = 5e-1%?",
+  "n": 5,
+  "k": 0,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 5 trials with p = 5e-1%?",
+  "n": 5,
+  "k": 1,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 2 successes in 5 trials with p = 5e-1%?",
+  "n": 5,
+  "k": 2,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 3 successes in 5 trials with p = 5e-1%?",
+  "n": 5,
+  "k": 3,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 4 successes in 5 trials with p = 5e-1%?",
+  "n": 5,
+  "k": 4,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 5 successes in 5 trials with p = 5e-1%?",
+  "n": 5,
+  "k": 5,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 0 trials with p = 5E-1%?",
+  "n": 0,
+  "k": 0,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 1 trials with p = 5E-1%?",
+  "n": 1,
+  "k": 0,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 1 trials with p = 5E-1%?",
+  "n": 1,
+  "k": 1,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 2 trials with p = 5E-1%?",
+  "n": 2,
+  "k": 0,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 2 trials with p = 5E-1%?",
+  "n": 2,
+  "k": 1,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 2 successes in 2 trials with p = 5E-1%?",
+  "n": 2,
+  "k": 2,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 3 trials with p = 5E-1%?",
+  "n": 3,
+  "k": 0,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 3 trials with p = 5E-1%?",
+  "n": 3,
+  "k": 1,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 2 successes in 3 trials with p = 5E-1%?",
+  "n": 3,
+  "k": 2,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 3 successes in 3 trials with p = 5E-1%?",
+  "n": 3,
+  "k": 3,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 4 trials with p = 5E-1%?",
+  "n": 4,
+  "k": 0,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 4 trials with p = 5E-1%?",
+  "n": 4,
+  "k": 1,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 2 successes in 4 trials with p = 5E-1%?",
+  "n": 4,
+  "k": 2,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 3 successes in 4 trials with p = 5E-1%?",
+  "n": 4,
+  "k": 3,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 4 successes in 4 trials with p = 5E-1%?",
+  "n": 4,
+  "k": 4,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 5 trials with p = 5E-1%?",
+  "n": 5,
+  "k": 0,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 5 trials with p = 5E-1%?",
+  "n": 5,
+  "k": 1,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 2 successes in 5 trials with p = 5E-1%?",
+  "n": 5,
+  "k": 2,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 3 successes in 5 trials with p = 5E-1%?",
+  "n": 5,
+  "k": 3,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 4 successes in 5 trials with p = 5E-1%?",
+  "n": 5,
+  "k": 4,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 5 successes in 5 trials with p = 5E-1%?",
+  "n": 5,
+  "k": 5,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 0 trials with p = 0?",
+  "n": 0,
+  "k": 0,
+  "probability": [
+   0,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 1 trials with p = 0?",
+  "n": 1,
+  "k": 0,
+  "probability": [
+   0,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 1 trials with p = 0?",
+  "n": 1,
+  "k": 1,
+  "probability": [
+   0,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 2 trials with p = 0?",
+  "n": 2,
+  "k": 0,
+  "probability": [
+   0,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 2 trials with p = 0?",
+  "n": 2,
+  "k": 1,
+  "probability": [
+   0,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 2 successes in 2 trials with p = 0?",
+  "n": 2,
+  "k": 2,
+  "probability": [
+   0,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 3 trials with p = 0?",
+  "n": 3,
+  "k": 0,
+  "probability": [
+   0,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 3 trials with p = 0?",
+  "n": 3,
+  "k": 1,
+  "probability": [
+   0,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 2 successes in 3 trials with p = 0?",
+  "n": 3,
+  "k": 2,
+  "probability": [
+   0,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 3 successes in 3 trials with p = 0?",
+  "n": 3,
+  "k": 3,
+  "probability": [
+   0,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 4 trials with p = 0?",
+  "n": 4,
+  "k": 0,
+  "probability": [
+   0,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 4 trials with p = 0?",
+  "n": 4,
+  "k": 1,
+  "probability": [
+   0,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 2 successes in 4 trials with p = 0?",
+  "n": 4,
+  "k": 2,
+  "probability": [
+   0,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 3 successes in 4 trials with p = 0?",
+  "n": 4,
+  "k": 3,
+  "probability": [
+   0,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 4 successes in 4 trials with p = 0?",
+  "n": 4,
+  "k": 4,
+  "probability": [
+   0,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 5 trials with p = 0?",
+  "n": 5,
+  "k": 0,
+  "probability": [
+   0,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 5 trials with p = 0?",
+  "n": 5,
+  "k": 1,
+  "probability": [
+   0,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 2 successes in 5 trials with p = 0?",
+  "n": 5,
+  "k": 2,
+  "probability": [
+   0,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 3 successes in 5 trials with p = 0?",
+  "n": 5,
+  "k": 3,
+  "probability": [
+   0,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 4 successes in 5 trials with p = 0?",
+  "n": 5,
+  "k": 4,
+  "probability": [
+   0,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 5 successes in 5 trials with p = 0?",
+  "n": 5,
+  "k": 5,
+  "probability": [
+   0,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 0 trials with p = 1?",
+  "n": 0,
+  "k": 0,
+  "probability": [
+   1,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 1 trials with p = 1?",
+  "n": 1,
+  "k": 0,
+  "probability": [
+   1,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 1 trials with p = 1?",
+  "n": 1,
+  "k": 1,
+  "probability": [
+   1,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 2 trials with p = 1?",
+  "n": 2,
+  "k": 0,
+  "probability": [
+   1,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 2 trials with p = 1?",
+  "n": 2,
+  "k": 1,
+  "probability": [
+   1,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 2 successes in 2 trials with p = 1?",
+  "n": 2,
+  "k": 2,
+  "probability": [
+   1,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 3 trials with p = 1?",
+  "n": 3,
+  "k": 0,
+  "probability": [
+   1,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 3 trials with p = 1?",
+  "n": 3,
+  "k": 1,
+  "probability": [
+   1,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 2 successes in 3 trials with p = 1?",
+  "n": 3,
+  "k": 2,
+  "probability": [
+   1,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 3 successes in 3 trials with p = 1?",
+  "n": 3,
+  "k": 3,
+  "probability": [
+   1,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 4 trials with p = 1?",
+  "n": 4,
+  "k": 0,
+  "probability": [
+   1,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 4 trials with p = 1?",
+  "n": 4,
+  "k": 1,
+  "probability": [
+   1,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 2 successes in 4 trials with p = 1?",
+  "n": 4,
+  "k": 2,
+  "probability": [
+   1,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 3 successes in 4 trials with p = 1?",
+  "n": 4,
+  "k": 3,
+  "probability": [
+   1,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 4 successes in 4 trials with p = 1?",
+  "n": 4,
+  "k": 4,
+  "probability": [
+   1,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 5 trials with p = 1?",
+  "n": 5,
+  "k": 0,
+  "probability": [
+   1,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 5 trials with p = 1?",
+  "n": 5,
+  "k": 1,
+  "probability": [
+   1,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 2 successes in 5 trials with p = 1?",
+  "n": 5,
+  "k": 2,
+  "probability": [
+   1,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 3 successes in 5 trials with p = 1?",
+  "n": 5,
+  "k": 3,
+  "probability": [
+   1,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 4 successes in 5 trials with p = 1?",
+  "n": 5,
+  "k": 4,
+  "probability": [
+   1,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 5 successes in 5 trials with p = 1?",
+  "n": 5,
+  "k": 5,
+  "probability": [
+   1,
+   1
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 0 trials with p = 25%?",
+  "n": 0,
+  "k": 0,
+  "probability": [
+   1,
+   4
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 1 trials with p = 25%?",
+  "n": 1,
+  "k": 0,
+  "probability": [
+   1,
+   4
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 1 trials with p = 25%?",
+  "n": 1,
+  "k": 1,
+  "probability": [
+   1,
+   4
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 2 trials with p = 25%?",
+  "n": 2,
+  "k": 0,
+  "probability": [
+   1,
+   4
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 2 trials with p = 25%?",
+  "n": 2,
+  "k": 1,
+  "probability": [
+   1,
+   4
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 2 successes in 2 trials with p = 25%?",
+  "n": 2,
+  "k": 2,
+  "probability": [
+   1,
+   4
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 3 trials with p = 25%?",
+  "n": 3,
+  "k": 0,
+  "probability": [
+   1,
+   4
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 3 trials with p = 25%?",
+  "n": 3,
+  "k": 1,
+  "probability": [
+   1,
+   4
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 2 successes in 3 trials with p = 25%?",
+  "n": 3,
+  "k": 2,
+  "probability": [
+   1,
+   4
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 3 successes in 3 trials with p = 25%?",
+  "n": 3,
+  "k": 3,
+  "probability": [
+   1,
+   4
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 4 trials with p = 25%?",
+  "n": 4,
+  "k": 0,
+  "probability": [
+   1,
+   4
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 4 trials with p = 25%?",
+  "n": 4,
+  "k": 1,
+  "probability": [
+   1,
+   4
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 2 successes in 4 trials with p = 25%?",
+  "n": 4,
+  "k": 2,
+  "probability": [
+   1,
+   4
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 3 successes in 4 trials with p = 25%?",
+  "n": 4,
+  "k": 3,
+  "probability": [
+   1,
+   4
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 4 successes in 4 trials with p = 25%?",
+  "n": 4,
+  "k": 4,
+  "probability": [
+   1,
+   4
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 5 trials with p = 25%?",
+  "n": 5,
+  "k": 0,
+  "probability": [
+   1,
+   4
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 5 trials with p = 25%?",
+  "n": 5,
+  "k": 1,
+  "probability": [
+   1,
+   4
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 2 successes in 5 trials with p = 25%?",
+  "n": 5,
+  "k": 2,
+  "probability": [
+   1,
+   4
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 3 successes in 5 trials with p = 25%?",
+  "n": 5,
+  "k": 3,
+  "probability": [
+   1,
+   4
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 4 successes in 5 trials with p = 25%?",
+  "n": 5,
+  "k": 4,
+  "probability": [
+   1,
+   4
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 5 successes in 5 trials with p = 25%?",
+  "n": 5,
+  "k": 5,
+  "probability": [
+   1,
+   4
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "Probability of exactly 1 success in 2 trials, chance of success is 0.5%?",
+  "n": 2,
+  "k": 1,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "Probability of exactly 1 success in 2 trials, probability of success on each trial is 0.5%?",
+  "n": 2,
+  "k": 1,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "Probability of exactly 1 success in 2 trials, success probability is 0.5%?",
+  "n": 2,
+  "k": 1,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "Probability of exactly 1 success in 2 trials, with probability 0.5%?",
+  "n": 2,
+  "k": 1,
+  "probability": [
+   1,
+   200
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 success in 2 trials with p = -0.5?",
+  "status": "withheld"
+ },
+ {
+  "q": "What is the probability of exactly 1 success in 2 trials with p = -0.5%?",
+  "status": "withheld"
+ },
+ {
+  "q": "What is the probability of exactly 1 success in 2 trials with p = 1.01?",
+  "status": "withheld"
+ },
+ {
+  "q": "What is the probability of exactly 1 success in 2 trials with p = 101%?",
+  "status": "withheld"
+ },
+ {
+  "q": "What is the probability of exactly 1 success in 2 trials with p = 100.1%?",
+  "status": "withheld"
+ },
+ {
+  "q": "What is the probability of exactly 1 success in 2 trials with p = 2?",
+  "status": "withheld"
+ },
+ {
+  "q": "What is the probability of exactly 1 success in 2 trials with p = 1e2?",
+  "status": "withheld"
+ },
+ {
+  "q": "What is the probability of exactly 1 success in 2 trials with p = 0.5e?",
+  "status": "withheld"
+ },
+ {
+  "q": "What is the probability of exactly 1 success in 2 trials with p = 0.5e-?",
+  "status": "withheld"
+ },
+ {
+  "q": "What is the probability of exactly 1 success in 2 trials with p = 0.5.2?",
+  "status": "withheld"
+ },
+ {
+  "q": "What is the probability of exactly 1 success in 2 trials with p = 0.5%%?",
+  "status": "withheld"
+ },
+ {
+  "q": "What is the probability of exactly 1 success in 2 trials with p = 0.5abc?",
+  "status": "withheld"
+ },
+ {
+  "q": "What is the probability of exactly 1 success in 2 trials with p = 0.5/2?",
+  "status": "withheld"
+ },
+ {
+  "q": "What is the probability of exactly 1 success in 2 trials with p = 0.5+0.1?",
+  "status": "withheld"
+ },
+ {
+  "q": "What is the probability of exactly 1 success in 2 trials with p = 0.5,2?",
+  "status": "withheld"
+ },
+ {
+  "q": "What is the probability of exactly 1 success in 2 trials with p = 0.5 % %?",
+  "status": "withheld"
+ },
+ {
+  "q": "What is the probability of exactly 1 success in 2 trials with p = 0.5e-2oops?",
+  "status": "withheld"
+ },
+ {
+  "q": "What is the probability of exactly 1 success in 2 trials with p = 1e10001?",
+  "status": "withheld"
+ },
+ {
+  "q": "What is the probability of exactly 1 success in 2 trials with p = 1e-10001?",
+  "status": "withheld"
+ },
+ {
+  "q": "What is the probability of exactly 1 success in 2 trials with p = 1.000000000000000000000000001?",
+  "status": "withheld"
+ },
+ {
+  "q": "What is the probability of exactly 1 success in 2 trials with p = 100.000000000000000000000001%?",
+  "status": "withheld"
+ },
+ {
+  "q": "What is the probability of exactly 1 success in 2 trials with p = -1e-30?",
+  "status": "withheld"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 1 trials with p = 0.999999999999999999999999999?",
+  "n": 1,
+  "k": 0,
+  "probability": [
+   999999999999999999999999999,
+   1000000000000000000000000000
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 1 successes in 1 trials with p = 1e-30?",
+  "n": 1,
+  "k": 1,
+  "probability": [
+   1,
+   1000000000000000000000000000000
+  ],
+  "status": "answered"
+ },
+ {
+  "q": "What is the probability of exactly 0 successes in 1 trials with p = 99.9999999999999999999999999%?",
+  "n": 1,
+  "k": 0,
+  "probability": [
+   999999999999999999999999999,
+   1000000000000000000000000000
+  ],
+  "status": "answered"
+ }
+]

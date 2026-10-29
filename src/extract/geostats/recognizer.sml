@@ -470,11 +470,16 @@ struct
 
     fun pairOf low m = (valOf (grp low m 1), valOf (grp low m 2))
 
-    (* "p" of the binomial readers: a decimal or a percentage, as an exact fraction *)
-    fun probOf (ps : string) : S.rat =
-      if String.isSuffix "%" ps
-      then let val (a, b) = parseDec (String.substring (ps, 0, size ps - 1)) in G.mk_rat a (b * 100) end
-      else toRat (parseDec ps)
+    (* Bind the entire probability literal before applying percent scaling.
+       An optional percent must not be lost to the decimal alternative;
+       malformed continuations cannot fall back to a numeric prefix. *)
+    val P = "([+-]?(?:\\d+(?:\\.\\d+)?|\\.\\d+)(?:e[+-]?\\d+)?(?:\\s*%)?)(?![\\w%/]|[.,]\\d|[+-]|\\s*%)"
+    fun probOf (literal : string) : S.rat =
+      let val ps = String.translate (fn #" " => "" | c => String.str c) literal
+          val percent = String.isSuffix "%" ps
+          val scalar = if percent then String.substring(ps,0,size ps - 1) else ps
+          val (a,b) = Geo.parseDec scalar
+      in G.mk_rat a (if percent then b * 100 else b) end
 
     (* organ_stats_v1.StatsOrgan.answer on the collapsed, lower-cased text *)
     fun v1 (low : string) : S.srequest option =
@@ -519,7 +524,7 @@ struct
               else NONE
         fun binom () =
           case search ("\\bprobability\\b.*?\\bexactly (\\d+)\\b.*?\\b(\\d+) (?:trials|flips|tosses|rolls|attempts|times)\\b"
-                       ^ ".*?\\b(?:p|probability of success|chance)\\s*(?:=|of|is)?\\s*(0?\\.\\d+|\\d+(?:\\.\\d+)?%)") low of
+                       ^ ".*?\\b(?:p|probability of success|chance)\\s*(?:=|of|is)?\\s*" ^ P) low of
             NONE => NONE
           | SOME m =>
               SOME (S.S_binom (natOf (g1 low m), natOf (valOf (grp low m 2)), probOf (valOf (grp low m 3)), false))
@@ -556,7 +561,6 @@ struct
 
     (* organ_stats_v2 *)
     val D = "(\\d+)"
-    val P = "(\\d*\\.\\d+|\\d+(?:\\.\\d+)?\\s*%|0|1)"
 
     (* (rx, order): "nk" = first group is n, "kn" = first group is k *)
     fun knFrom low (rxs : (string * string) list) : (IntInf.int * IntInf.int) option =
@@ -646,6 +650,7 @@ struct
 
     fun norm text = lower (collapse text)
     fun reply f text = Option.map S.s_reply (f (norm text))
+      handle Geo.BadGeometry => NONE
     (* The list grammar owns commas as observation separators. Each complete
        scalar literal is then parsed exactly; no numeric-prefix extraction. *)
     val LISTNUM = "[+\\-\226\136\146]?(?:\\d+(?:\\.\\d+)?|\\.\\d+)(?:e[+-]?\\d+)?(?:\\s*/\\s*[+\\-\226\136\146]?(?:\\d+(?:\\.\\d+)?|\\.\\d+)(?:e[+-]?\\d+)?)?"
