@@ -1,0 +1,319 @@
+{
+  "checked_date": "2026-10-30",
+  "scope": "Live Hugging Face metadata and selected source inspection; no Engine execution or release qualification. Open discussion status does not establish whether code was incorporated.",
+  "discussions": [
+    {
+      "repo": "psiloceyeben/oracle7-slim",
+      "number": 1,
+      "status": "open",
+      "title": "Correct quantity binding, final-outcome evidence and isolated runtime state",
+      "latest_comment": {
+        "author": "emberian",
+        "created_at": "2026-10-27 17:16:12+00:00"
+      },
+      "latest_maintainer_comment": null
+    },
+    {
+      "repo": "psiloceyeben/oracle7-slim",
+      "number": 2,
+      "status": "open",
+      "title": "Preserve quantity, relation and conversation meaning in legacy runtime paths",
+      "latest_comment": {
+        "author": "emberian",
+        "created_at": "2026-10-27 17:13:57+00:00"
+      },
+      "latest_maintainer_comment": null
+    },
+    {
+      "repo": "psiloceyeben/oracle7-slim",
+      "number": 3,
+      "status": "open",
+      "title": "Counted orbital-year conversion still falls back to one Earth year",
+      "latest_comment": {
+        "author": "emberian",
+        "created_at": "2026-10-27 17:16:12+00:00"
+      },
+      "latest_maintainer_comment": null
+    },
+    {
+      "repo": "psiloceyeben/oracle7-slim",
+      "number": 4,
+      "status": "open",
+      "title": "Date readers infer exact days from timestamps without source precision",
+      "latest_comment": {
+        "author": "emberian",
+        "created_at": "2026-10-27 21:41:17+00:00"
+      },
+      "latest_maintainer_comment": null
+    },
+    {
+      "repo": "psiloceyeben/oracle7-slim",
+      "number": 5,
+      "status": "open",
+      "title": "Building a shared Oracle7/veri7vn appliance for users and agents \u2014 interfaces and collaboration",
+      "latest_comment": {
+        "author": "emberian",
+        "created_at": "2026-10-29 12:07:40+00:00"
+      },
+      "latest_maintainer_comment": {
+        "author": "psiloceyeben",
+        "created_at": "2026-10-27 20:18:32+00:00"
+      }
+    },
+    {
+      "repo": "psiloceyeben/oracle7-slim",
+      "number": 6,
+      "status": "open",
+      "title": "Inverse relation readers select the first target before checking answer uniqueness",
+      "latest_comment": {
+        "author": "emberian",
+        "created_at": "2026-10-27 18:42:48+00:00"
+      },
+      "latest_maintainer_comment": null
+    },
+    {
+      "repo": "psiloceyeben/oracle7-slim",
+      "number": 7,
+      "status": "open",
+      "title": "Relation kind guard treats title words as requested domains; composer path also affected",
+      "latest_comment": {
+        "author": "emberian",
+        "created_at": "2026-10-27 18:42:48+00:00"
+      },
+      "latest_maintainer_comment": null
+    },
+    {
+      "repo": "psiloceyeben/oracle7-slim",
+      "number": 8,
+      "status": "open",
+      "title": "Respect explicit DNA strand direction during transcription",
+      "latest_comment": {
+        "author": "emberian",
+        "created_at": "2026-10-29 05:39:45+00:00"
+      },
+      "latest_maintainer_comment": null
+    },
+    {
+      "repo": "psiloceyeben/oracle7-slim",
+      "number": 9,
+      "status": "open",
+      "title": "Fix decimal percentages and scientific probability literals in binomial questions",
+      "latest_comment": {
+        "author": "emberian",
+        "created_at": "2026-10-29 06:50:15+00:00"
+      },
+      "latest_maintainer_comment": null
+    },
+    {
+      "repo": "psiloceyeben/oracle7-slim",
+      "number": 10,
+      "status": "open",
+      "title": "Prefer canonical concept plurals over learned aliases in Reader7.align",
+      "latest_comment": {
+        "author": "emberian",
+        "created_at": "2026-10-29 11:11:53+00:00"
+      },
+      "latest_maintainer_comment": null
+    },
+    {
+      "repo": "psiloceyeben/oracle7-trafficcop",
+      "number": 1,
+      "status": "open",
+      "title": "Abstain on ambiguous bindings and bind receipts to the full request",
+      "latest_comment": {
+        "author": "emberian",
+        "created_at": "2026-10-27 17:10:18+00:00"
+      },
+      "latest_maintainer_comment": null
+    },
+    {
+      "repo": "psiloceyeben/oracle7-deepspace",
+      "number": 1,
+      "status": "open",
+      "title": "Require executable action targets and post-onset responses in scoring",
+      "latest_comment": {
+        "author": "emberian",
+        "created_at": "2026-10-27 17:10:19+00:00"
+      },
+      "latest_maintainer_comment": null
+    },
+    {
+      "repo": "psiloceyeben/oracle7-infrastructure",
+      "number": 1,
+      "status": "open",
+      "title": "Compare forecast methods against matched naive events",
+      "latest_comment": {
+        "author": "emberian",
+        "created_at": "2026-10-27 17:10:20+00:00"
+      },
+      "latest_maintainer_comment": null
+    },
+    {
+      "repo": "psiloceyeben/oracle7-vision",
+      "number": 1,
+      "status": "open",
+      "title": "Handle full-store nearest-neighbour queries and single-class votes",
+      "latest_comment": {
+        "author": "emberian",
+        "created_at": "2026-10-27 17:10:21+00:00"
+      },
+      "latest_maintainer_comment": null
+    },
+    {
+      "repo": "psiloceyeben/oracle7-artist",
+      "number": 1,
+      "status": "open",
+      "title": "Preserve requested counts and object groups in layout and verification",
+      "latest_comment": {
+        "author": "emberian",
+        "created_at": "2026-10-27 17:10:23+00:00"
+      },
+      "latest_maintainer_comment": null
+    }
+  ],
+  "slim_head": "312aa011bc7e12badd52b8e0b0dda447533df648",
+  "source_comparisons": [
+    {
+      "path": "workbench/swarm/reader_v7.py",
+      "base_sha256": "f37f687e8190f08ff862738543790d6bcd56185a1a807ffdbd5cf8340da85354",
+      "current_sha256": "f37f687e8190f08ff862738543790d6bcd56185a1a807ffdbd5cf8340da85354",
+      "unchanged": true
+    },
+    {
+      "path": "root/specialists/biology/organ_biology_v1.py",
+      "base_sha256": "bd4c508c4c78efb609d521a2ac15534827ba3c34fc4cca38ff986dbf420d9d8d",
+      "current_sha256": "bd4c508c4c78efb609d521a2ac15534827ba3c34fc4cca38ff986dbf420d9d8d",
+      "unchanged": true
+    },
+    {
+      "path": "root/specialists/statistics/organ_stats_v1.py",
+      "base_sha256": "b959b76309ce640fc10ae4ddd4995bb8a9c10937d53f3f8063d8f46b2eefb13b",
+      "current_sha256": "b959b76309ce640fc10ae4ddd4995bb8a9c10937d53f3f8063d8f46b2eefb13b",
+      "unchanged": true
+    },
+    {
+      "path": "root/specialists/statistics-v2/organ_stats_v1.py",
+      "base_sha256": "b959b76309ce640fc10ae4ddd4995bb8a9c10937d53f3f8063d8f46b2eefb13b",
+      "current_sha256": "b959b76309ce640fc10ae4ddd4995bb8a9c10937d53f3f8063d8f46b2eefb13b",
+      "unchanged": true
+    },
+    {
+      "path": "root/specialists/statistics-v2/organ_stats_v2.py",
+      "base_sha256": "47c932e8694e9bfa132b4b5474be60d117737358a1f165d406dd083232235724",
+      "current_sha256": "47c932e8694e9bfa132b4b5474be60d117737358a1f165d406dd083232235724",
+      "unchanged": true
+    },
+    {
+      "path": "root/specialists/statistics-v3/organ_stats_v1.py",
+      "base_sha256": "b959b76309ce640fc10ae4ddd4995bb8a9c10937d53f3f8063d8f46b2eefb13b",
+      "current_sha256": "b959b76309ce640fc10ae4ddd4995bb8a9c10937d53f3f8063d8f46b2eefb13b",
+      "unchanged": true
+    },
+    {
+      "path": "root/specialists/statistics-v3/organ_stats_v2.py",
+      "base_sha256": "47c932e8694e9bfa132b4b5474be60d117737358a1f165d406dd083232235724",
+      "current_sha256": "47c932e8694e9bfa132b4b5474be60d117737358a1f165d406dd083232235724",
+      "unchanged": true
+    }
+  ],
+  "siblings": [
+    {
+      "repo": "psiloceyeben/oracle7-trafficcop",
+      "head": "08a9f1e70b8e78d9078b4bd9f308b99b9800bcb0",
+      "date": "2026-10-15 05:08:05+00:00",
+      "title": "Upload folder using huggingface_hub"
+    },
+    {
+      "repo": "psiloceyeben/oracle7-deepspace",
+      "head": "3538060dbb55f287d060820f7b7c42fe3487632d",
+      "date": "2026-10-15 05:08:03+00:00",
+      "title": "Upload folder using huggingface_hub"
+    },
+    {
+      "repo": "psiloceyeben/oracle7-infrastructure",
+      "head": "74456ba7db9172f5822433308943647ecd67cdf0",
+      "date": "2026-10-15 05:08:23+00:00",
+      "title": "Upload folder using huggingface_hub"
+    },
+    {
+      "repo": "psiloceyeben/oracle7-vision",
+      "head": "271c1832780c25980253fd4816f8e812b064325c",
+      "date": "2026-10-15 05:08:11+00:00",
+      "title": "Upload folder using huggingface_hub"
+    },
+    {
+      "repo": "psiloceyeben/oracle7-artist",
+      "head": "df155c6a96626f9d3bc4146c9d4a516a0b8a2ba8",
+      "date": "2026-10-15 05:08:20+00:00",
+      "title": "Upload folder using huggingface_hub"
+    }
+  ],
+  "source_manifest": {
+    "repo": "psiloceyeben/oracle7-slim",
+    "revision": "312aa011bc7e12badd52b8e0b0dda447533df648",
+    "files": [
+      {
+        "path": "CHANGELOG_102.md",
+        "sha256": "c144131f55e779f3fecf5c6b7a4c1ccbd571a986cd2e35b63cb9f8c919fa180f"
+      },
+      {
+        "path": "oracle7.py",
+        "sha256": "1c05ef290e1afca4175057e809d3d7413085f9973e7000df1a92023d0d0eb88f"
+      },
+      {
+        "path": "workbench/swarm/reader_v7.py",
+        "sha256": "f37f687e8190f08ff862738543790d6bcd56185a1a807ffdbd5cf8340da85354"
+      },
+      {
+        "path": "root/specialists/biology/organ_biology_v1.py",
+        "sha256": "bd4c508c4c78efb609d521a2ac15534827ba3c34fc4cca38ff986dbf420d9d8d"
+      },
+      {
+        "path": "root/specialists/statistics/organ_stats_v1.py",
+        "sha256": "b959b76309ce640fc10ae4ddd4995bb8a9c10937d53f3f8063d8f46b2eefb13b"
+      },
+      {
+        "path": "root/specialists/statistics-v2/organ_stats_v2.py",
+        "sha256": "47c932e8694e9bfa132b4b5474be60d117737358a1f165d406dd083232235724"
+      },
+      {
+        "path": "root/specialists/statistics-v3/organ_stats_v3.py",
+        "sha256": "5426aaf125313968aa96d2f5d4b5a534ce7055b4a297a712c1b83246e863d452"
+      },
+      {
+        "path": "workbench/examples/mcp_demo.py",
+        "sha256": "1b0939f8a1d103c04c2a89aa46c09eeb92bbeccf459525f032ebf6c6f4e79a8f"
+      },
+      {
+        "path": "workbench/mcp.py",
+        "sha256": "797d8daba0fe377348bc4fe9d965974ddaf7a59bb600b65dd77c46080ac011ad"
+      },
+      {
+        "path": "workbench/swarm/mcp102.py",
+        "sha256": "60fc34731841e95be1f4b40830a0c7df5c4db6c38c31e9bd214baffc8a704ff4"
+      },
+      {
+        "path": "workbench/swarm/operations102.py",
+        "sha256": "34508328aa5a5bf1aa716874d46739563ba3538a47efd88a09a08bc1e3f5f102"
+      }
+    ]
+  },
+  "release_claims_not_independently_executed": [
+    "10.2 relation fixes for issues6/7, one issue7 test deliberately unmet",
+    "10.2 flash threshold development results37right11wrong",
+    "MCP and oracle7-operation-v1 implemented in fetched source",
+    "Digit-based date answers labelled unconfirmed; arithmetic ordering policy still needs semantic review"
+  ],
+  "local_review_candidates": [
+    "Host turn calls Engine then journal.bind; failure propagates to query Err branch that forgets pending request. Reproduce registry-full and storage-error cases before repair.",
+    "Host journal lacks explicit release binding; Engine state isolation and pure-process containment remain documented gaps.",
+    "operations102._validate checks top-level types/required/unknown fields but not all advertised JSON Schema bounds or nested items; author portable regressions before claiming contract validation."
+  ],
+  "followup_posted": {
+    "repo": "psiloceyeben/oracle7-slim",
+    "discussion": 5,
+    "comment_id": "6ae4f252d2c9c6930d33cee6",
+    "date": "2026-10-30 19:38:58+00:00"
+  },
+  "followup_scope": "Corrected our broad zero-wrong claim in discussion5 and acknowledged fetched10.2 interfaces. No PR statuses changed."
+}

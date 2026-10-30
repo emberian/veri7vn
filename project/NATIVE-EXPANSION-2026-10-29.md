@@ -1,113 +1,145 @@
-# Native capability and performance expansion
+# Native Oracle work: current plan
 
-Owner: root. Active goal authorized 29 October: improve domain coverage and
-performance across Oracle7, the shared native appliance, and veri7vn/extracted
-implementations; integrate useful capabilities without requiring a formal proof
-for everything shipped. Preserve the distinction between computed, checked,
-sourced, numerical and theorem-backed claims. Ordinary committed checkpoints
-and an upstream issue/PR update are authorized.
+Updated 30 October 2026 after reading Claude's changes, the actual host paths and
+upstream 10.2. This is a plan, not a claim that the work below has run. The broad
+goal remains useful domain coverage, lower serving cost and a complete shared
+agent service, with scoped assurance where it helps.
 
-## Checkpoint — 29 October evening, Claude root
+## Current state
 
-Root's review and the day's lanes are in [DIRECTION-2026-10-29.md](DIRECTION-2026-10-29.md).
-What changed since the morning handoff:
+The Rust `oracle-host` owns a private HTTP entry point and routes to native
+reading, extracted specialists and a contained Python fallback. It is not yet a
+signed or qualified Mini deployment. The separately materialized U8 appliance
+uses 10.1. Its 57-task usage check preserves U7's results; the new host was
+qualified against the older w540 Engine, not U8 or 10.2.
 
-| Work | Result | Record |
-| --- | --- | --- |
-| Four design prototypes | Compile, lint clean, 40 tests pass on macOS; caveats rewritten | [receipt](../native/evidence/2026-10-29-experiments-execution.json) |
-| Plural-first reader patch | Unpatched source fails exactly the two predicted tests, patched passes all eight | [receipt](../native/evidence/2026-10-29-plural-first-regressions.json) |
-| Upstream control on the 116 reader questions | Native 36/4/60/0 against Reader7 alone 32 or 37 with 0 wrong; the shipped Engine answers none in gold form | [receipt](../native/evidence/2026-10-29-upstream-reader-control.json) |
-| Composition storage (O1) | Readings live in a request-local arena; the four byte errors are gone, one new correct answer, two new expected declines, zero wrong; peak accounting 46% of the envelope | [receipt](../native/evidence/2026-10-29-composition-arena.json) |
-| Scalar query demand (O2) | Viability asks SQLite for existence instead of fetching every reply; answers identical; no speedup established in debug builds | [receipt](../native/evidence/2026-10-29-scalar-output.json) |
-| Hosted logic (O3) | `logic.query` and `logic.enumerate` as the optional `logic` profile with an operator-admitted, hash-pinned clingo | [receipt](../native/evidence/2026-10-29-logic-hosted.json) |
-| Rational formulas (O4) | `algebra.simplify_rational` with a replayed proof and domain obligations; agrees with the densities specialist on three items | [receipt](../native/evidence/2026-10-29-rational-formulas.json) |
+The composition arena removed four storage failures. Linux/macOS retain 36
+correct / 4 refused / 60 unknown on the original 100 questions; the new 16 give
+2 correct / 6 expected declines / 8 unanswered / 0 wrong or errors. Platform
+builds and deadlines differ; no cross-platform speedup follows from that result.
+The scalar-demand implementation avoids full reply materialization for consumers
+that only need existence/count. Hosted logic and rational formula operations
+now exist, with macOS qualification. `algorithms-native` scores 18 right / 0
+false yes / 0 wrong out of 42 on each split; the composed dev run still has eight
+wrong fallback answers. No consolidated current fleet score exists.
 
-| Combined Linux and macOS qualification (S4) | 16-case cohort 2/6/8/0/0 and the 100 at 36/4/60/0/0 on both platforms, release build under `swarm-build` | [receipt](../native/evidence/2026-10-29-combined-qualification.json) |
-| `algorithms-native` specialist folder (I1) | 18 / 0 / 0 on dev and held-out by the shipped scorer; ADMIT in front of the head on held-out | [receipt](../native/evidence/2026-10-29-algorithms-native-panel.json) |
-| Plural-first patch upstream (I3) | [PR 10](https://huggingface.co/psiloceyeben/oracle7-slim/discussions/10) open | [lane](lanes/I3-UPSTREAM-PLURAL-PR-2026-10-29.md) |
-| `oracle-host` (I2) | One Rust program on Mini's HTTP contract; native reader and organs first, agreement or refusal, Python Engine as a contained child; reproduces the board's acoustics and networking rows | [HOST.md](../native/docs/HOST.md), [receipt](../native/evidence/2026-10-29-host.json) |
-| Appliance on upstream 10.1 (A1) | Upstream absorbed our correctness, usage, conversation, geometry and date repairs; three local patches remain; U8 matches U7 on the usage set and six panels | [receipt](../docs/deploy/appliance-2026-10-29.json) |
+Start with [capabilities](../native/docs/CAPABILITIES.md),
+[host contract and limits](../native/docs/HOST.md), and
+[remaining Engine migration](../native/docs/MIGRATION.md).
 
-The temporary diagnostic instrumentation is removed; its snapshots stay under
-`var/composition-byte-four-20261029/`. The macOS extension links for the first
-time (`native/.cargo/config.toml`). The scoreboard's `upstream/` checkout is the
-15 October full release at head `w540`; slim 10.1 has 375 specialists and the
-board has never scored 68 of them.
+## Upstream changed the next step
 
-Next in order: the host becomes the appliance (its config takes the U8
-materialization; sign it); the full board on 10.1's 375 specialists; reader
-retrain with the plural patch and the code-only, data-only, combined comparison;
-statistics as the next native specialist folder; the three Engine misses and the
-`optics-v5` false yes reported upstream.
+The [live review](../native/evidence/2026-10-30-upstream-status.json) checked all
+10 slim discussions and five sibling PRs. They remain open. No new maintainer
+comment followed the 27 October reply in #5; Claude's 29 October update is the
+latest comment there at inspection. We then posted a correction to that update's
+blanket zero-wrong claim: the composed service receipts contain fallback errors.
+Open status is not evidence of non-incorporation: earlier repairs were already
+included in releases.
 
-## Morning checkpoint — 29 October, after `259d7b9` (superseded above)
+Slim 10.2 is `312aa011bc7e12badd52b8e0b0dda447533df648`. Its
+[release notes](https://huggingface.co/psiloceyeben/oracle7-slim/blob/312aa011bc7e12badd52b8e0b0dda447533df648/CHANGELOG_102.md)
+announce relation fixes for #6/#7, labelled unconfirmed digit dates, MCP and
+`oracle7-operation-v1`. One #7 expectation is deliberately unmet. The new flash
+reader reports 37 correct / 11 wrong at its chosen threshold on the same
+**development** data used to choose it. These are upstream's measurements.
+Do not treat the new fallback as a checked answer source merely because a
+wrapper labels an answer `checked`.
 
-This page tracks current work. Detailed measurements are linked below.
-The native service now has a relocatable Linux package, optional durable runtime
-hosting, shared workers, restart/retry checks, permanent namespace retirement,
-resident extracted MST checking and exact shortest paths. Invalid pure requests
-can leave a healthy worker resident. The refreshed package contains reader code
-`2fda9fe`; the later `259d7b9` stable-model reasoning crate is qualified separately
-and is **not hosted or included as a callable package operation**.
+The actual files changed by biology PR8, statistics PR9 and plural PR10 remain
+byte-identical to 10.1, so those repairs are not incorporated in the inspected
+10.2 paths. The five sibling heads still date to 15 October and have no replies.
+The operation implementation adopts our suggested dotted IDs, input schemas,
+reply evidence and catalog-bound cursors. Prefer compatibility over another
+parallel discovery format; retain distinct authority and evidence semantics.
 
-Reader composition preserves the original 100 results: 36 correct, four refused,
-60 unknown, zero wrong and zero operational errors. That sample has no answer
-gain, and its historical timings do not establish a speedup. The new frozen
-[16-case challenge](lanes/NCOMP-CASES-2026-10-29.md) failed: one newly correct
-answer, seven unanswered positives, four expected declines and four composition
-storage-limit errors. No wrong answers were returned. The learned `which X1`
-source admits conflicting Count and entity readings; byte-error ownership is
-still under diagnosis. Keep the questions, bounds and expected facts unchanged.
+## Proposed batches and completion conditions
 
-### Outstanding work, including work displaced by this batch
+### 1. Make the host safe to compose and recover
 
-1. Diagnose and repair the four composition storage failures; investigate the
-   learned answer-form conflict without suppressing legitimate interpretations.
-2. Integrate stable-model reasoning through shared workspace/PyO3, discovery and
-   HTTP, with an operator-admitted solver resource and bounded child lifetime.
-3. Complete Engine compatibility: other relation/document stores and reader
-   families, route ordering, dialogue state adapters and real effect executors.
-4. Qualify the fresh signed Mini/Hermes agent/browser/restart journey. Independent
-   native HTTP checks do not establish that integration or a public deployment.
-5. Measure sustained mixed multitenant load, fairness and memory; finish gateway
-   authentication/admission, containment, retention operations and explicit
-   release-history migration. Bounded pools alone do not establish production SLOs.
-6. Turn the public native branch checkpoints into small reviewable upstream
-   provider/backend contributions. Biology PR 8 and statistics PR 9 remain open;
-   they are not a native-runtime PR.
-7. Resume the wider specialist and assurance burndown. This native batch did not
-   re-audit the old Wave-6 backlog or establish a current consolidated fleet score.
-8. Revisit deeper symbolic/interval reasoning and verified CAS, ephemerides,
-   optimization, richer biological/statistical models and learned representation
-   probes. These remain candidates for implementation, not delivered features.
+Keep the Rust coordinator. Specify request phases and state ownership, then fix
+these concrete gaps before signing it:
 
-Start with [native overview](../native/README.md),
-[service use](../native/docs/STANDALONE.md),
-[runtime hosting](../native/docs/RUNTIME-HOST.md),
-[distribution](../native/docs/DISTRIBUTION.md) and
-[migration boundaries](../native/docs/MIGRATION.md).
+- `Service::turn` asks the Engine before `journal.bind`; a later bind error
+  propagates to `query`'s before-work error path, which forgets the pending
+  request. Reproduce registry exhaustion/storage failure after a counted Engine
+  action. Reserve conversation capacity before execution and retain uncertain
+  results after execution. Exact retry must not repeat a changed turn.
+- Bind host journals and cached results to admitted implementation/data/config
+  identity. Decide explicitly how old records survive or refuse a release change.
+- Separate tenant-private Engine state from shared public resources. A session
+  name alone does not isolate learned/global state. Avoid an Engine per idle
+  tenant; use bounded owned workers with explicit state export/reset boundaries
+  until those state owners are extracted.
+- Restore a killable containment boundary for providers that cannot guarantee
+  bounded cooperative work. Share immutable mappings across bounded workers;
+  do not trade the old pool's containment for a smaller-looking host process.
+- Define cross-provider conversation behavior before claiming a complete turn.
+  Native `/query` currently reads alone and Engine memory is separate.
 
-## Exploratory implementation sprint
+Completion: focused fault-injection tests prove no duplicate execution, no private
+state crossing tenants, and truthful reset/uncertainty on restart, saturation and
+cancellation. Then Linux mixed-load tests measure whole-process-tree PSS, tail
+latency and fairness. Astra reviews the combined state machine before deployment.
 
-The next four designs are separate from the packaged service. They were authored
-for design review, without compiling, running fixtures or measuring performance.
-They must not appear as available hosted operations.
+### 2. Integrate upstream interfaces and choose a release deliberately
 
-- [Streaming queries](../native/experiments/streaming-query/README.md): shared
-  integer postings, pull operators and scalar consumers; ordered relation
-  projection and existing language-stage semantics constrain integration.
-- [Maintained views](../native/experiments/maintained-views/README.md): shared
-  public graph, private support overlays and cached demands. Insertions extend
-  results; affected deletions rederive them to avoid circular support.
-- [Conditional symbolic formulas](../native/experiments/conditional-symbolics/README.md):
-  exact typed DAGs, assumptions and replayable rewrites that preserve domains.
-- [Nonmonotonic scenarios](../native/oracle-logic/DEMOS.md): evidence revisions,
-  defaults, alternative actions, diagnosis and explicit repair of inconsistencies.
+Use isolated 10.1/10.2 candidates; leave qualified U8 intact. Compare the newly
+exposed MCP/operation contract with our descriptors and exercise both actual
+consumers. Source inspection finds `_validate` only checks top-level required
+fields, unknown keys and basic types: advertised lengths, patterns, nested items
+and numerical limits need portable adversarial checks and fixes.
 
-Sol authors the prototypes; Astra reviews their composition and failure cases.
-The next decision is which design earns a narrow execution experiment, not whether
-all four should be wired into production. Existing specialist and Mini obligations
-above remain in the backlog.
+Replay #6/#7 counterexamples through the whole head, including unaffected title
+questions. Inspect dates for calendar validity, precision claims and ordering;
+a label alone does not justify a numerical uncertainty interval. Measure the
+new flash route separately with independent examples and preserve its empirical
+status. Choose the release/profile only after those comparisons; no automatic
+10.2 upgrade or silent removal of its new capabilities.
+
+Completion: a compatibility map, focused regression results and a pinned candidate
+whose exposed operations preserve evidence/refusal/state distinctions. Then build
+and sign the Rust-host appliance and run the fresh Mini/Hermes agent/browser,
+restart and exact-retry journey. This requires current Mini source orientation.
+
+### 3. Turn the reader repair into useful answers
+
+PR10 is posted and its eight source regressions pass. Retrain and re-export from
+an isolated patched source, then compare code-only, data-only and combined against
+the frozen 16/100 sets. Keep all expected facts, failures and declined questions.
+After that, investigate packed demand-driven composition instead of accepting
+large syntax enumeration as inevitable. An arena reduces storage; it does not
+remove unnecessary work. New reading coverage needs independent questions, not
+only agreement with the old reader.
+
+### 4. Grow capabilities through real consumers
+
+Build the next statistical specialist around the existing native provider and
+score its actual supported tasks plus independent cases. Do not force unrelated
+binomial questions through linear regression merely to fill a panel. Keep a
+useful supplied-data agent operation even when old language templates are narrow.
+Extend graph coverage where it earns capability beyond the existing 18/42.
+
+For nonmonotonic reasoning, exercise evidence revisions, conflicting observations
+and alternative plans through hosted calls; keep candidate actions separate from
+execution authority. General astronomy, convex optimization, richer bio/statistics
+and learned readouts remain open ambitions. Choose one substantive consumer at a
+time rather than installing crates without users.
+
+Maintained views remain an experiment, with both the negative small workload and
+positive rooted-workload result retained below. Neither settles adoption. Formal
+assurance and the older beyond-parity specialist backlog still need a current
+audit; hosting progress is not completion of those obligations.
+
+## Execution shape
+
+First run host recovery and 10.2 contract work as two independent implementation
+batches; reader export and one domain consumer can proceed alongside them. Keep
+one coordinated expensive build/integration runner. Use Sol for implementation,
+Terra for bounded cheaper work, and Astra for the final cross-cutting review.
+Commit each reviewed batch with its actual result; aggregate expensive release
+checks only when the components are ready. This planning turn starts no swarm,
+changes no runtime, and leaves the prior autonomous goal paused.
 
 ## Measurements and source records
 
@@ -129,13 +161,3 @@ one component do not qualify the whole Engine, appliance or specialist fleet.
 | Standalone stable-model core (`259d7b9`) | [Validation](../native/evidence/2026-10-29-logic-validation.json), [solver build](../native/evidence/2026-10-29-clingo-build.json) |
 | Extracted statistics probability repair | [Geostats binding](../native/evidence/2026-10-29-geostats-binding.json) |
 
-## Upstream
-
-[Discussion 5](https://huggingface.co/psiloceyeben/oracle7-slim/discussions/5)
-now includes checkpoint `ab05020`, covering durable hosting, the refreshed
-package, reader failures and standalone logic. The implementation remains on
-veri7vn's `dev` branch; no native-runtime PR has been opened.
-The focused [biology PR 8](https://huggingface.co/psiloceyeben/oracle7-slim/discussions/8)
-and [statistics PR 9](https://huggingface.co/psiloceyeben/oracle7-slim/discussions/9)
-were open at the latest check.
-The [plural-first reader PR 10](https://huggingface.co/psiloceyeben/oracle7-slim/discussions/10) (canonical plurals before learned aliases in `Reader7.align`, eight tests) was posted on 29 October and is open.

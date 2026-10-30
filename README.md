@@ -66,14 +66,20 @@ An optional [durable runtime profile](native/docs/RUNTIME-HOST.md) adds shared
 indexed data, complete KQA programs, learned language composition, atomic turns
 and release-bound retry journals. Actual HTTP checks cover restart, lost-response
 retry and tenant separation. The full Engine cascade, authenticated public
-hosting and fresh signed Mini integration remain unfinished. The separate
-stable-model reasoning prototype is tested but not yet exposed by this service.
+hosting and fresh signed Mini integration remain unfinished. Stable-model
+reasoning now has optional `logic.query` and `logic.enumerate` operations with
+an operator-admitted solver; hosted qualification is currently macOS-only.
+
+The [Rust host](native/docs/HOST.md) combines native reading, extracted specialists
+and a Python fallback behind one question endpoint. Tenant-private Engine state,
+cross-provider conversations and provider containment remain incomplete.
 
 The [migration map](native/docs/MIGRATION.md) separates native capabilities from
 remaining Python providers. The [current native checkpoint and backlog](project/NATIVE-EXPANSION-2026-10-29.md)
-records delivered work and failures: the original 100-question reader result is
-preserved, but a new 16-question composition challenge still has unanswered
-questions and storage-limit errors. These samples are not a specialist-fleet score.
+records delivered work and failures. The arena preserves the original 100-question
+reader result and removes the storage errors in the new 16-question challenge:
+two correct answers, six expected declines, eight unanswered, zero wrong/errors.
+These samples are not a specialist-fleet score.
 
 Separate [Rust design experiments](native/experiments/README.md) explore
 streaming queries, maintained views, conditional formulas and nonmonotonic
