@@ -160,4 +160,3 @@ one component do not qualify the whole Engine, appliance or specialist fleet.
 | Expanded reader and refreshed package (`2fda9fe`) | [Validation](../native/evidence/2026-10-29-segment-reader-validation.json), [failed new cohort](../native/evidence/2026-10-29-targeted-composition.json) |
 | Standalone stable-model core (`259d7b9`) | [Validation](../native/evidence/2026-10-29-logic-validation.json), [solver build](../native/evidence/2026-10-29-clingo-build.json) |
 | Extracted statistics probability repair | [Geostats binding](../native/evidence/2026-10-29-geostats-binding.json) |
-
