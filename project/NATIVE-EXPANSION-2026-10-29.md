@@ -6,6 +6,47 @@ changes from actual execution. The broad
 goal remains useful domain coverage, lower serving cost and a complete shared
 agent service, with scoped assurance where it helps.
 
+## Current ownership and next development
+
+Ember clarified on 31 October: Mini receiving, hosting and its agent/browser
+journey belong to the Mini team. This project owns Oracle/veri7vn capability,
+correctness, native performance and a usable runtime artifact/interface. The
+signed package is an integration input for that team, not a reason to keep
+working on Mini. Older receiving requirements below record the cross-project
+release dependency; they are not this team's next assignment.
+
+Prioritize these native development avenues alongside continued specialist repair:
+
+- Typed Rust provider calls and a shared execution context: remove internal JSON
+  round trips, propagate cancellation/deadlines/work budgets, and isolate calls
+  that cannot cooperate. Keep JSON/PyO3 at external boundaries. Measure release
+  builds on useful workloads, including memory, allocations and concurrent tails.
+- Reader coverage and execution planning: consume the repaired reader export,
+  share repeated parse/program subproblems, push demanded projections into data
+  execution, and judge new composition against independent truth cases.
+- Persistent evidence revision: connect retained fact identities, dependency
+  maintenance and stable-model reasoning. Retract conclusions when their support
+  disappears; expose conflicting alternatives and explanations. The existing
+  incremental API is a batch of epochs, not a persistent cross-call service.
+- Useful solver/checker composition: grow symbolic, graph and scientific
+  operations around typed inputs and independently checkable results. Reuse the
+  extracted kernels where their statements cover the result; extend assurance
+  selectively rather than recoding them just to use Rust everywhere.
+- Broader statistical and biological specialists: the current native surfaces
+  are bounded linear regression and pairwise DNA alignment. Start a substantive
+  statistical modeling consumer and retain bioinformatics as a parallel growth
+  avenue. Score affected shipped panels and independent cases separately.
+- Explicit conversation state: migrate hot state owners into the existing typed
+  session record, including referents, quantities and pending conversions. This
+  enables cross-provider follow-ups and cheaper tenant switching; worker
+  isolation alone does not provide either.
+- Learned computation/readouts: evaluate useful computations or typed candidate
+  programs from learned representations against independent cases. Preserve
+  empirical status where no checker establishes correctness; do not discard a
+  useful learned computation merely because it is not yet symbolically derived.
+
+These are proposed next batches, not claims that implementation has started.
+
 ## Current state
 
 The 31 October implementation batch connects recovery and packaging to the same
@@ -213,7 +254,10 @@ positive rooted-workload result retained below. Neither settles adoption. Formal
 assurance and the older beyond-parity specialist backlog still need a current
 audit; hosting progress is not completion of those obligations.
 
-## Execution shape
+## Previous batch execution shape
+
+This describes the completed recovery/packaging batch; current ownership and
+next development priorities are above.
 
 First run host recovery and 10.2 contract work as two independent implementation
 batches; reader export and one domain consumer can proceed alongside them. Keep
