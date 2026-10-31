@@ -255,6 +255,13 @@ impl ExecutionInner {
 /// including verification; it does not measure wall time or allocated bytes.
 pub trait WorkControl: Send + Sync {
     fn checkpoint(&self, work: u64) -> Result<()>;
+    /// Check cancellation, deadline and sticky exhaustion without charging work.
+    /// Compatibility controls retain their existing zero-work checkpoint behavior.
+    /// Known-extent loops may precharge once, then check at every iteration;
+    /// cancellation does not refund the conservatively prepaid work.
+    fn check(&self) -> Result<()> {
+        self.checkpoint(0)
+    }
 }
 /// Preserve shared ownership at legacy and budgeted provider boundaries.
 /// Delegation observes the original control state without copying or resetting it.
@@ -262,10 +269,16 @@ impl<T: WorkControl + ?Sized> WorkControl for Arc<T> {
     fn checkpoint(&self, work: u64) -> Result<()> {
         self.as_ref().checkpoint(work)
     }
+    fn check(&self) -> Result<()> {
+        self.as_ref().check()
+    }
 }
 impl WorkControl for ExecutionContext {
     fn checkpoint(&self, work: u64) -> Result<()> {
         self.spend(work)
+    }
+    fn check(&self) -> Result<()> {
+        ExecutionContext::check(self)
     }
 }
 /// Compatibility for existing provider callers. This checks cancellation only;
@@ -612,5 +625,133 @@ mod memory_work_identity_tests {
             Err(ExecutionError::Deadline)
         );
         root.check().unwrap();
+    }
+}
+
+#[cfg(test)]
+mod prepaid_work_tests {
+    use super::*;
+    use std::sync::atomic::AtomicUsize;
+
+    fn context(fuel: u64) -> ExecutionContext {
+        ExecutionContext::new(fuel, Duration::from_secs(60), Cancellation::default()).unwrap()
+    }
+    fn block(control: &dyn WorkControl, count: u64, mut body: impl FnMut(u64)) -> Result<()> {
+        control.checkpoint(count)?;
+        for i in 0..count {
+            control.check()?;
+            body(i);
+        }
+        Ok(())
+    }
+    #[test]
+    fn exact_block_total_and_check_only_do_not_charge_more_fuel() {
+        let context = context(5);
+        let shared: Arc<dyn WorkControl> = Arc::new(context.clone());
+        let mut visits = 0;
+        block(&shared, 5, |_| visits += 1).unwrap();
+        assert_eq!(visits, 5);
+        assert_eq!(context.0.remaining.load(Ordering::Relaxed), 0);
+        WorkControl::check(&shared).unwrap();
+        assert_eq!(context.spend(1), Err(ExecutionError::FuelExhausted));
+        assert_eq!(
+            WorkControl::check(&shared),
+            Err(ExecutionError::FuelExhausted)
+        );
+    }
+    #[test]
+    fn insufficient_block_enters_no_body_and_stays_exhausted() {
+        let context = context(2);
+        assert_eq!(
+            block(&context, 3, |_| panic!("body entered")),
+            Err(ExecutionError::FuelExhausted)
+        );
+        assert_eq!(context.0.remaining.load(Ordering::Relaxed), 2);
+        assert_eq!(
+            block(&context, 1, |_| panic!("retried body entered")),
+            Err(ExecutionError::FuelExhausted)
+        );
+    }
+    #[test]
+    fn midblock_cancel_keeps_entire_precharge_and_precedence() {
+        let context = context(8);
+        let mut visits = 0;
+        assert_eq!(
+            block(&context, 5, |_| {
+                visits += 1;
+                context.cancellation().cancel();
+            }),
+            Err(ExecutionError::Cancelled)
+        );
+        assert_eq!(visits, 1);
+        assert_eq!(context.0.remaining.load(Ordering::Relaxed), 3);
+        assert_eq!(WorkControl::check(&context), Err(ExecutionError::Cancelled));
+        let expired = ExecutionContext::with_deadline(5, Instant::now(), Cancellation::default());
+        assert_eq!(
+            block(&expired, 5, |_| panic!("expired body")),
+            Err(ExecutionError::Deadline)
+        );
+    }
+    #[test]
+    fn prepaid_siblings_and_restricted_parent_never_refresh_allowance() {
+        let parent = context(10);
+        let a = parent.restricted(4, Duration::from_secs(60)).unwrap();
+        let b = parent.restricted(4, Duration::from_secs(60)).unwrap();
+        block(&a, 4, |_| {}).unwrap();
+        block(&b, 4, |_| {}).unwrap();
+        assert_eq!(parent.0.remaining.load(Ordering::Relaxed), 2);
+        // Existing conservative ordering charges the parent before discovering
+        // local exhaustion, but never refunds either completed block.
+        assert_eq!(
+            block(&a, 1, |_| panic!("local bypass")),
+            Err(ExecutionError::FuelExhausted)
+        );
+        assert_eq!(parent.0.remaining.load(Ordering::Relaxed), 1);
+        assert_eq!(WorkControl::check(&a), Err(ExecutionError::FuelExhausted));
+        block(&parent, 1, |_| {}).unwrap();
+        assert_eq!(parent.spend(1), Err(ExecutionError::FuelExhausted));
+        assert_eq!(WorkControl::check(&b), Err(ExecutionError::FuelExhausted));
+    }
+    #[test]
+    fn concurrent_prepaid_blocks_cannot_multiply_shared_fuel() {
+        let parent = context(12);
+        let start = Arc::new(std::sync::Barrier::new(5));
+        let workers: Vec<_> = (0..4)
+            .map(|_| {
+                let parent = parent.clone();
+                let start = start.clone();
+                std::thread::spawn(move || {
+                    start.wait();
+                    parent.checkpoint(4).is_ok()
+                })
+            })
+            .collect();
+        start.wait();
+        assert_eq!(
+            workers
+                .into_iter()
+                .map(|w| usize::from(w.join().unwrap()))
+                .sum::<usize>(),
+            3
+        );
+        assert_eq!(parent.0.remaining.load(Ordering::Relaxed), 0);
+        assert_eq!(
+            WorkControl::check(&parent),
+            Err(ExecutionError::FuelExhausted)
+        );
+    }
+    #[test]
+    fn default_check_remains_zero_checkpoint_compatible() {
+        struct Legacy(AtomicUsize);
+        impl WorkControl for Legacy {
+            fn checkpoint(&self, work: u64) -> Result<()> {
+                assert_eq!(work, 0);
+                self.0.fetch_add(1, Ordering::Relaxed);
+                Ok(())
+            }
+        }
+        let legacy = Arc::new(Legacy(AtomicUsize::new(0)));
+        WorkControl::check(&legacy).unwrap();
+        assert_eq!(legacy.0.load(Ordering::Relaxed), 1);
     }
 }

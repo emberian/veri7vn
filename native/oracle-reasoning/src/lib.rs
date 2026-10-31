@@ -26,16 +26,20 @@ pub enum Error {
 }
 pub type Result<T> = std::result::Result<T, Error>;
 
-pub(crate) fn checkpoint(control: &dyn oracle_execution::WorkControl, work: u64) -> Result<()> {
+fn execution_error(error: oracle_execution::ExecutionError) -> Error {
     use oracle_execution::ExecutionError;
-    control.checkpoint(work).map_err(|error| {
-        Error::Limit(match error {
-            ExecutionError::Cancelled => "shared cancellation",
-            ExecutionError::Deadline => "shared deadline",
-            ExecutionError::FuelExhausted => "shared work",
-            _ => "shared execution budget",
-        })
+    Error::Limit(match error {
+        ExecutionError::Cancelled => "shared cancellation",
+        ExecutionError::Deadline => "shared deadline",
+        ExecutionError::FuelExhausted => "shared work",
+        _ => "shared execution budget",
     })
+}
+pub(crate) fn checkpoint(control: &dyn oracle_execution::WorkControl, work: u64) -> Result<()> {
+    control.checkpoint(work).map_err(execution_error)
+}
+pub(crate) fn check_control(control: &dyn oracle_execution::WorkControl) -> Result<()> {
+    control.check().map_err(execution_error)
 }
 
 /// Operator configuration. Search limits are cooperative, not hard containment.
@@ -144,9 +148,9 @@ fn execute_inner(
         context.map_or(&legacy as &dyn oracle_execution::WorkControl, |c| c);
     checkpoint(control, 1)?;
     let reply = match request {
-        Request::OptimizeLinear(input) => Response::OptimizeLinear(lp_optimize::optimize_controlled(
-            input, &lp_optimize::Limits::default(), control,
-        )?),
+        Request::OptimizeLinear(input) => Response::OptimizeLinear(
+            lp_optimize::optimize_controlled(input, &lp_optimize::Limits::default(), control)?,
+        ),
         Request::ExactLinear(input) => Response::ExactLinear(exact_lp::solve_controlled(
             input,
             &exact_lp::Limits::default(),
