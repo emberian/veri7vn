@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-31",
+  "slim": {
+    "repo": "psiloceyeben/oracle7-slim",
+    "revision": "0ab769781e33ef169b1a3c2a7f055a83c62dca7d"
+  },
+  "full": {
+    "repo": "psiloceyeben/oracle7",
+    "revision": "9f52489c6c26533258dcafa23ad9f1e7e0dfc37c"
+  },
+  "source_files": [
+    {
+      "path": "root/specialists/statistics/organ_stats_v1.py",
+      "baseline_sha256": "880553438effc6a6a5995355f91bc57db0d96c9f979f069ca921d837703448c8",
+      "patched_sha256": "b6fbab66f2abde01632176b1f55bf838f28159d1b2b44b926182bab8457d3788"
+    },
+    {
+      "path": "root/specialists/statistics-v2/organ_stats_v1.py",
+      "baseline_sha256": "880553438effc6a6a5995355f91bc57db0d96c9f979f069ca921d837703448c8",
+      "patched_sha256": "b6fbab66f2abde01632176b1f55bf838f28159d1b2b44b926182bab8457d3788"
+    },
+    {
+      "path": "root/specialists/statistics-v2/organ_stats_v2.py",
+      "baseline_sha256": "99258bbf6aeb2a99369b48c3cea66387bb00556262d539ba955ef0f2ebc0d066",
+      "patched_sha256": "8c6cf096e70d85cfb8bef90449446dca5dccdc50aee12b123b393e60c3a33399"
+    },
+    {
+      "path": "root/specialists/statistics-v3/organ_stats_v1.py",
+      "baseline_sha256": "880553438effc6a6a5995355f91bc57db0d96c9f979f069ca921d837703448c8",
+      "patched_sha256": "b6fbab66f2abde01632176b1f55bf838f28159d1b2b44b926182bab8457d3788"
+    },
+    {
+      "path": "root/specialists/statistics-v3/organ_stats_v2.py",
+      "baseline_sha256": "99258bbf6aeb2a99369b48c3cea66387bb00556262d539ba955ef0f2ebc0d066",
+      "patched_sha256": "8c6cf096e70d85cfb8bef90449446dca5dccdc50aee12b123b393e60c3a33399"
+    }
+  ],
+  "patch_sha256": "062794782482e9bcae8c52ce824d686ddf54ef6fe735ace617f6fb315b788adf",
+  "portable_test_sha256": "0ebc582c2c07f4c051bc211dce579570e929f27e8f859ae4497ab1183a896df6"
+}

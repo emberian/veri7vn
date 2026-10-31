@@ -1,0 +1,386 @@
+diff --git a/root/specialists/statistics/organ_stats_v1.py b/root/specialists/statistics/organ_stats_v1.py
+--- a/root/specialists/statistics/organ_stats_v1.py
++++ b/root/specialists/statistics/organ_stats_v1.py
+@@ -15,6 +15,25 @@
+ PROBABILITY = r"([+-]?(?:\d+(?:\.\d+)?|\.\d+)(?:e[+-]?\d+)?(?:\s*%)?)(?![\w%/]|[.,]\d|[+-]|\s*%)"
+ 
+ NUMS = re.compile(r"-?\d+(?:\.\d+)?")
++
++
++# Consume the complete numeric token, including ordinary outer punctuation.
++# Never search inside a negative, fractional, scientific or ratio literal.
++BINOMIAL_COUNT = r"(?<!\S)(\(*[+-]?(?:\d|\.\d)\S*)"
++
++
++def binomial_count_value(literal):
++    """Admit an integer atom with comma/parenthesis delimiters, not an expression."""
++    if len(literal) > 4096:
++        return None
++    # A comma may finish a clause; parentheses may enclose the count or the
++    # whole trial phrase, e.g. "(3 trials)". Interior punctuation is retained.
++    token = literal[:-1] if literal.endswith(",") else literal
++    token = token.lstrip("(").rstrip(")")
++    if re.fullmatch(r"[+-]?\d+", token) is None:
++        return None
++    value = int(token)
++    return value if value >= 0 else None
+ 
+ 
+ def probability_value(literal):
+@@ -78,12 +97,14 @@
+             v = math.perm(n, k) if k is not None else math.factorial(n)
+             return self._say("permutations", "There are %d ordered arrangements (%s)." % (v, "P(%d, %d)" % (n, k) if k is not None else "%d!" % n), v)
+         # binomial P(X = k)
+-        m = re.search(r"\bprobability\b.*?\bexactly (\d+)\b.*?\b(\d+) (?:trials|flips|tosses|rolls|attempts|times)\b.*?\b(?:p|probability of success|chance)\s*(?:=|of|is)?\s*" + PROBABILITY, low)
++        m = re.search(r"\bprobability\b.*?\bexactly\s+" + BINOMIAL_COUNT + r".*?" + BINOMIAL_COUNT + r" (?:trials|flips|tosses|rolls|attempts|times)\b.*?\b(?:p|probability of success|chance)\s*(?:=|of|is)?\s*" + PROBABILITY, low)
+         if m:
+-            k, n, p = int(m.group(1)), int(m.group(2)), m.group(3)
++            k, n, p = binomial_count_value(m.group(1)), binomial_count_value(m.group(2)), m.group(3)
+             p = probability_value(p)
+-            if p is None or k > n:
+-                return self._say("impossible", "That isn't a supported binomial setup (need 0 ≤ p ≤ 1, a safely representable p, and k ≤ n).", status="withheld")
++            if p is None or k is None or n is None:
++                return self._say("impossible", "That isn't a supported binomial setup (need complete nonnegative integer counts and a safely representable 0 ≤ p ≤ 1).", status="withheld")
++            if k > n:
++                return self._say("binomial", "P(X = %d) = 0 for %d trials: the successes count exceeds the trials count." % (k, n), 0.0)
+             v = math.comb(n, k) * p ** k * (1 - p) ** (n - k)
+             return self._say("binomial", "P(X = %d) = %.6g for %d trials with p = %g (C(%d,%d) · p^%d · (1−p)^%d)." % (k, v, n, p, n, k, k, n - k), v)
+         m = re.search(r"\bz[- ]?score\b.*?(-?\d+(?:\.\d+)?)\D+?(?:mean|average|μ)\D*?(-?\d+(?:\.\d+)?)\D+?(?:standard deviation|sd|std|σ)\D*?(\d+(?:\.\d+)?)", low)
+diff --git a/root/specialists/statistics-v2/organ_stats_v1.py b/root/specialists/statistics-v2/organ_stats_v1.py
+--- a/root/specialists/statistics-v2/organ_stats_v1.py
++++ b/root/specialists/statistics-v2/organ_stats_v1.py
+@@ -15,6 +15,25 @@
+ PROBABILITY = r"([+-]?(?:\d+(?:\.\d+)?|\.\d+)(?:e[+-]?\d+)?(?:\s*%)?)(?![\w%/]|[.,]\d|[+-]|\s*%)"
+ 
+ NUMS = re.compile(r"-?\d+(?:\.\d+)?")
++
++
++# Consume the complete numeric token, including ordinary outer punctuation.
++# Never search inside a negative, fractional, scientific or ratio literal.
++BINOMIAL_COUNT = r"(?<!\S)(\(*[+-]?(?:\d|\.\d)\S*)"
++
++
++def binomial_count_value(literal):
++    """Admit an integer atom with comma/parenthesis delimiters, not an expression."""
++    if len(literal) > 4096:
++        return None
++    # A comma may finish a clause; parentheses may enclose the count or the
++    # whole trial phrase, e.g. "(3 trials)". Interior punctuation is retained.
++    token = literal[:-1] if literal.endswith(",") else literal
++    token = token.lstrip("(").rstrip(")")
++    if re.fullmatch(r"[+-]?\d+", token) is None:
++        return None
++    value = int(token)
++    return value if value >= 0 else None
+ 
+ 
+ def probability_value(literal):
+@@ -78,12 +97,14 @@
+             v = math.perm(n, k) if k is not None else math.factorial(n)
+             return self._say("permutations", "There are %d ordered arrangements (%s)." % (v, "P(%d, %d)" % (n, k) if k is not None else "%d!" % n), v)
+         # binomial P(X = k)
+-        m = re.search(r"\bprobability\b.*?\bexactly (\d+)\b.*?\b(\d+) (?:trials|flips|tosses|rolls|attempts|times)\b.*?\b(?:p|probability of success|chance)\s*(?:=|of|is)?\s*" + PROBABILITY, low)
++        m = re.search(r"\bprobability\b.*?\bexactly\s+" + BINOMIAL_COUNT + r".*?" + BINOMIAL_COUNT + r" (?:trials|flips|tosses|rolls|attempts|times)\b.*?\b(?:p|probability of success|chance)\s*(?:=|of|is)?\s*" + PROBABILITY, low)
+         if m:
+-            k, n, p = int(m.group(1)), int(m.group(2)), m.group(3)
++            k, n, p = binomial_count_value(m.group(1)), binomial_count_value(m.group(2)), m.group(3)
+             p = probability_value(p)
+-            if p is None or k > n:
+-                return self._say("impossible", "That isn't a supported binomial setup (need 0 ≤ p ≤ 1, a safely representable p, and k ≤ n).", status="withheld")
++            if p is None or k is None or n is None:
++                return self._say("impossible", "That isn't a supported binomial setup (need complete nonnegative integer counts and a safely representable 0 ≤ p ≤ 1).", status="withheld")
++            if k > n:
++                return self._say("binomial", "P(X = %d) = 0 for %d trials: the successes count exceeds the trials count." % (k, n), 0.0)
+             v = math.comb(n, k) * p ** k * (1 - p) ** (n - k)
+             return self._say("binomial", "P(X = %d) = %.6g for %d trials with p = %g (C(%d,%d) · p^%d · (1−p)^%d)." % (k, v, n, p, n, k, k, n - k), v)
+         m = re.search(r"\bz[- ]?score\b.*?(-?\d+(?:\.\d+)?)\D+?(?:mean|average|μ)\D*?(-?\d+(?:\.\d+)?)\D+?(?:standard deviation|sd|std|σ)\D*?(\d+(?:\.\d+)?)", low)
+diff --git a/root/specialists/statistics-v2/organ_stats_v2.py b/root/specialists/statistics-v2/organ_stats_v2.py
+--- a/root/specialists/statistics-v2/organ_stats_v2.py
++++ b/root/specialists/statistics-v2/organ_stats_v2.py
+@@ -7,7 +7,7 @@
+    and a counting question whose order it cannot read is not taken.
+ 2. Binomial probability read as a class (v1's held-out missed "when the chance of success is 0.3"): exactly-k, n trials
+    and p are each found wherever they are stated (p = 0.3, probability/chance of success is 0.3, 30%, each with
+-   probability 0.3). A p outside [0, 1] or k > n is withheld.
++   probability 0.3). A p outside [0, 1] or unsupported count literal is withheld; k > n has probability zero.
+ Everything else is v1 unchanged. Returns {kind, status, response, value}."""
+ from __future__ import annotations
+ 
+@@ -15,7 +15,7 @@
+ from fractions import Fraction
+ import re
+ 
+-from organ_stats_v1 import StatsOrgan, PROBABILITY, probability_value
++from organ_stats_v1 import StatsOrgan, PROBABILITY, probability_value, BINOMIAL_COUNT, binomial_count_value
+ 
+ D = r"(\d+)"
+ P = PROBABILITY
+@@ -70,16 +70,18 @@
+             v = math.comb(n, k)
+             return self._say("combinations", "There are %d combinations. That is C(%d, %d) = %d!/(%d!·%d!), the ways to choose %d from %d." % (v, n, k, n, k, n - k, k, n), v)
+         if re.search(r"\bprobability\b|\bchance\b", low) and re.search(r"\bexactly\b", low) and re.search(r"\btrials?\b|\bflips?\b|\btosses\b|\brolls?\b|\battempts?\b|\bshots?\b", low):
+-            km = re.search(r"\bexactly\s+" + D + r"\b", low)
+-            nm = re.search(D + r"\s+(?:independent\s+)?(?:trials?|flips?|tosses|rolls?|attempts?|shots?)\b", low)
++            km = re.search(r"\bexactly\s+" + BINOMIAL_COUNT, low)
++            nm = re.search(BINOMIAL_COUNT + r"\s+(?:independent\s+)?(?:trials?|flips?|tosses|rolls?|attempts?|shots?)\b", low)
+             pm = (re.search(r"\bp\s*=\s*" + P, low) or re.search(r"\b(?:probability|chance) of (?:a )?success(?: on each trial)?\s*(?:is|of|=)?\s*" + P, low)
+                   or re.search(r"\bsuccess (?:probability|chance|rate)\s*(?:is|of|=)?\s*" + P, low)
+                   or re.search(r"\bwith (?:a )?(?:probability|chance)\s*(?:of)?\s*" + P, low))
+             if km and nm and pm:
+-                k, n, ps = int(km.group(1)), int(nm.group(1)), pm.group(1).replace(" ", "")
++                k, n, ps = binomial_count_value(km.group(1)), binomial_count_value(nm.group(1)), pm.group(1).replace(" ", "")
+                 p = probability_value(ps)
+-                if p is None or k > n:
+-                    return self._say("impossible", "That isn't a supported binomial setup (need 0 ≤ p ≤ 1, a safely representable p, and k ≤ n).", status="withheld")
++                if p is None or k is None or n is None:
++                    return self._say("impossible", "That isn't a supported binomial setup (need complete nonnegative integer counts and a safely representable 0 ≤ p ≤ 1).", status="withheld")
++                if k > n:
++                    return self._say("binomial", "P(X = %d) = 0 for %d trials: the successes count exceeds the trials count." % (k, n), 0.0)
+                 v = math.comb(n, k) * p ** k * (1 - p) ** (n - k)
+                 return self._say("binomial", "P(X = %d) = %s for n = %d trials with p = %s (C(%d, %d) p^%d (1 − p)^%d)." % (
+                     k, "%.6g" % v, n, "%g" % p, n, k, k, n - k), v)
+diff --git a/root/specialists/statistics-v3/organ_stats_v1.py b/root/specialists/statistics-v3/organ_stats_v1.py
+--- a/root/specialists/statistics-v3/organ_stats_v1.py
++++ b/root/specialists/statistics-v3/organ_stats_v1.py
+@@ -15,6 +15,25 @@
+ PROBABILITY = r"([+-]?(?:\d+(?:\.\d+)?|\.\d+)(?:e[+-]?\d+)?(?:\s*%)?)(?![\w%/]|[.,]\d|[+-]|\s*%)"
+ 
+ NUMS = re.compile(r"-?\d+(?:\.\d+)?")
++
++
++# Consume the complete numeric token, including ordinary outer punctuation.
++# Never search inside a negative, fractional, scientific or ratio literal.
++BINOMIAL_COUNT = r"(?<!\S)(\(*[+-]?(?:\d|\.\d)\S*)"
++
++
++def binomial_count_value(literal):
++    """Admit an integer atom with comma/parenthesis delimiters, not an expression."""
++    if len(literal) > 4096:
++        return None
++    # A comma may finish a clause; parentheses may enclose the count or the
++    # whole trial phrase, e.g. "(3 trials)". Interior punctuation is retained.
++    token = literal[:-1] if literal.endswith(",") else literal
++    token = token.lstrip("(").rstrip(")")
++    if re.fullmatch(r"[+-]?\d+", token) is None:
++        return None
++    value = int(token)
++    return value if value >= 0 else None
+ 
+ 
+ def probability_value(literal):
+@@ -78,12 +97,14 @@
+             v = math.perm(n, k) if k is not None else math.factorial(n)
+             return self._say("permutations", "There are %d ordered arrangements (%s)." % (v, "P(%d, %d)" % (n, k) if k is not None else "%d!" % n), v)
+         # binomial P(X = k)
+-        m = re.search(r"\bprobability\b.*?\bexactly (\d+)\b.*?\b(\d+) (?:trials|flips|tosses|rolls|attempts|times)\b.*?\b(?:p|probability of success|chance)\s*(?:=|of|is)?\s*" + PROBABILITY, low)
++        m = re.search(r"\bprobability\b.*?\bexactly\s+" + BINOMIAL_COUNT + r".*?" + BINOMIAL_COUNT + r" (?:trials|flips|tosses|rolls|attempts|times)\b.*?\b(?:p|probability of success|chance)\s*(?:=|of|is)?\s*" + PROBABILITY, low)
+         if m:
+-            k, n, p = int(m.group(1)), int(m.group(2)), m.group(3)
++            k, n, p = binomial_count_value(m.group(1)), binomial_count_value(m.group(2)), m.group(3)
+             p = probability_value(p)
+-            if p is None or k > n:
+-                return self._say("impossible", "That isn't a supported binomial setup (need 0 ≤ p ≤ 1, a safely representable p, and k ≤ n).", status="withheld")
++            if p is None or k is None or n is None:
++                return self._say("impossible", "That isn't a supported binomial setup (need complete nonnegative integer counts and a safely representable 0 ≤ p ≤ 1).", status="withheld")
++            if k > n:
++                return self._say("binomial", "P(X = %d) = 0 for %d trials: the successes count exceeds the trials count." % (k, n), 0.0)
+             v = math.comb(n, k) * p ** k * (1 - p) ** (n - k)
+             return self._say("binomial", "P(X = %d) = %.6g for %d trials with p = %g (C(%d,%d) · p^%d · (1−p)^%d)." % (k, v, n, p, n, k, k, n - k), v)
+         m = re.search(r"\bz[- ]?score\b.*?(-?\d+(?:\.\d+)?)\D+?(?:mean|average|μ)\D*?(-?\d+(?:\.\d+)?)\D+?(?:standard deviation|sd|std|σ)\D*?(\d+(?:\.\d+)?)", low)
+diff --git a/root/specialists/statistics-v3/organ_stats_v2.py b/root/specialists/statistics-v3/organ_stats_v2.py
+--- a/root/specialists/statistics-v3/organ_stats_v2.py
++++ b/root/specialists/statistics-v3/organ_stats_v2.py
+@@ -7,7 +7,7 @@
+    and a counting question whose order it cannot read is not taken.
+ 2. Binomial probability read as a class (v1's held-out missed "when the chance of success is 0.3"): exactly-k, n trials
+    and p are each found wherever they are stated (p = 0.3, probability/chance of success is 0.3, 30%, each with
+-   probability 0.3). A p outside [0, 1] or k > n is withheld.
++   probability 0.3). A p outside [0, 1] or unsupported count literal is withheld; k > n has probability zero.
+ Everything else is v1 unchanged. Returns {kind, status, response, value}."""
+ from __future__ import annotations
+ 
+@@ -15,7 +15,7 @@
+ from fractions import Fraction
+ import re
+ 
+-from organ_stats_v1 import StatsOrgan, PROBABILITY, probability_value
++from organ_stats_v1 import StatsOrgan, PROBABILITY, probability_value, BINOMIAL_COUNT, binomial_count_value
+ 
+ D = r"(\d+)"
+ P = PROBABILITY
+@@ -70,16 +70,18 @@
+             v = math.comb(n, k)
+             return self._say("combinations", "There are %d combinations. That is C(%d, %d) = %d!/(%d!·%d!), the ways to choose %d from %d." % (v, n, k, n, k, n - k, k, n), v)
+         if re.search(r"\bprobability\b|\bchance\b", low) and re.search(r"\bexactly\b", low) and re.search(r"\btrials?\b|\bflips?\b|\btosses\b|\brolls?\b|\battempts?\b|\bshots?\b", low):
+-            km = re.search(r"\bexactly\s+" + D + r"\b", low)
+-            nm = re.search(D + r"\s+(?:independent\s+)?(?:trials?|flips?|tosses|rolls?|attempts?|shots?)\b", low)
++            km = re.search(r"\bexactly\s+" + BINOMIAL_COUNT, low)
++            nm = re.search(BINOMIAL_COUNT + r"\s+(?:independent\s+)?(?:trials?|flips?|tosses|rolls?|attempts?|shots?)\b", low)
+             pm = (re.search(r"\bp\s*=\s*" + P, low) or re.search(r"\b(?:probability|chance) of (?:a )?success(?: on each trial)?\s*(?:is|of|=)?\s*" + P, low)
+                   or re.search(r"\bsuccess (?:probability|chance|rate)\s*(?:is|of|=)?\s*" + P, low)
+                   or re.search(r"\bwith (?:a )?(?:probability|chance)\s*(?:of)?\s*" + P, low))
+             if km and nm and pm:
+-                k, n, ps = int(km.group(1)), int(nm.group(1)), pm.group(1).replace(" ", "")
++                k, n, ps = binomial_count_value(km.group(1)), binomial_count_value(nm.group(1)), pm.group(1).replace(" ", "")
+                 p = probability_value(ps)
+-                if p is None or k > n:
+-                    return self._say("impossible", "That isn't a supported binomial setup (need 0 ≤ p ≤ 1, a safely representable p, and k ≤ n).", status="withheld")
++                if p is None or k is None or n is None:
++                    return self._say("impossible", "That isn't a supported binomial setup (need complete nonnegative integer counts and a safely representable 0 ≤ p ≤ 1).", status="withheld")
++                if k > n:
++                    return self._say("binomial", "P(X = %d) = 0 for %d trials: the successes count exceeds the trials count." % (k, n), 0.0)
+                 v = math.comb(n, k) * p ** k * (1 - p) ** (n - k)
+                 return self._say("binomial", "P(X = %d) = %s for n = %d trials with p = %s (C(%d, %d) p^%d (1 − p)^%d)." % (
+                     k, "%.6g" % v, n, "%g" % p, n, k, k, n - k), v)
+diff --git a/tests/statistics/test_binomial_support.py b/tests/statistics/test_binomial_support.py
+new file mode 100644
+--- /dev/null
++++ b/tests/statistics/test_binomial_support.py
+@@ -0,0 +1,147 @@
++"""Portable untrusted regressions for complete binomial count/support binding.
++
++ORACLE7_TEST_ROOT selects a read-only source tree. If installed under upstream
++ tests/statistics/, the source root is inferred. Truth for small trials is an
++independent enumeration of Bernoulli sequences, not the organ's comb formula.
++"""
++from fractions import Fraction
++from itertools import product
++import importlib
++import math
++import os
++from pathlib import Path
++import sys
++import unittest
++
++ROOT=Path(os.environ.get('ORACLE7_TEST_ROOT',Path(__file__).resolve().parents[2]))
++SPECS=[('statistics','organ_stats_v1','StatsOrgan'),
++       ('statistics-v2','organ_stats_v1','StatsOrgan'),
++       ('statistics-v2','organ_stats_v2','StatsOrganV2'),
++       ('statistics-v3','organ_stats_v1','StatsOrgan'),
++       ('statistics-v3','organ_stats_v2','StatsOrganV2'),
++       ('statistics-v3','organ_stats_v3','StatsOrganV3')]
++LITERALS=[('0',Fraction(0)),('1',Fraction(1)),('0.5',Fraction(1,2)),
++          ('25%',Fraction(1,4)),('0.5%',Fraction(1,200)),('0.5e-2',Fraction(1,200)),('100%',Fraction(1))]
++
++
++def organ(spec):
++    sid,module,cls=spec
++    for name in ('organ_stats_v1','organ_stats_v2','organ_stats_v3'):
++        sys.modules.pop(name,None)
++    sys.path.insert(0,str(ROOT/'root/specialists'/sid))
++    try:
++        return getattr(importlib.import_module(module),cls)()
++    finally:
++        sys.path.pop(0)
++
++
++def question(k,n,p):
++    return f'What is the probability of exactly {k} successes in {n} trials with p = {p}?'
++
++
++def mass(k,n,p):
++    return sum((math.prod(p if bit else 1-p for bit in bits)
++                for bits in product((0,1),repeat=n) if sum(bits)==k),Fraction())
++
++
++class BinomialSupport(unittest.TestCase):
++    def test_outside_support_is_zero_including_zero_trials_and_endpoints(self):
++        for spec in SPECS:
++            instance=organ(spec)
++            for n in range(6):
++                for k in range(n+1,n+5):
++                    for literal,p in LITERALS:
++                        with self.subTest(spec=spec,n=n,k=k,p=literal):
++                            reply=instance.answer(question(k,n,literal))
++                            self.assertIsNotNone(reply)
++                            self.assertEqual(reply['status'],'answered')
++                            self.assertEqual(reply['kind'],'binomial')
++                            self.assertEqual(reply['value'],float(mass(k,n,p)))
++                            self.assertNotIn('^-',reply['response'])
++
++    def test_within_support_small_exact_sequence_truth_is_unchanged(self):
++        for spec in SPECS:
++            instance=organ(spec)
++            for n in range(6):
++                for k in range(n+1):
++                    for literal,p in LITERALS:
++                        with self.subTest(spec=spec,n=n,k=k,p=literal):
++                            reply=instance.answer(question(k,n,literal))
++                            self.assertIsNotNone(reply)
++                            self.assertEqual(reply['status'],'answered')
++                            self.assertAlmostEqual(reply['value'],float(mass(k,n,p)),places=13)
++
++    def test_invalid_or_unsafe_probability_cannot_be_rescued_by_k_above_n(self):
++        invalid=['-0.5','-0.5%','1.01','101%','1e2','1e-10000','0.'+'9'*400,
++                 '0.5%%','0.5/2','0.5e-2x','1.2.3','0.5e+']
++        for spec in SPECS:
++            instance=organ(spec)
++            for p in invalid:
++                with self.subTest(spec=spec,p=p):
++                    reply=instance.answer(question(5,3,p))
++                    self.assertTrue(reply is None or reply['status']!='answered')
++
++    def test_negative_fractional_and_scientific_count_tokens_are_not_digit_prefixes(self):
++        bad=['-3','3.5','.5','3/2','3e2','3e-2','3e+','3e+2x','3%','3,5']
++        for spec in SPECS:
++            instance=organ(spec)
++            for token in bad:
++                # Both previously masked out-of-support and in-support parses.
++                for k,n in [(50,token),(0,token),(token,1),(token,50)]:
++                    with self.subTest(spec=spec,k=k,n=n):
++                        reply=instance.answer(question(k,n,'0.5'))
++                        self.assertTrue(reply is None or reply['status']!='answered')
++
++    def test_probability_roles_use_the_same_support_rule(self):
++        roles=['p = 0.5%','chance of success is 0.5%','probability of success on each trial is 0.5%',
++               'success probability is 0.5%','with probability 0.5%']
++        for spec in [s for s in SPECS if s[1]!='organ_stats_v1']:
++            instance=organ(spec)
++            for role in roles:
++                with self.subTest(spec=spec,role=role):
++                    reply=instance.answer(f'Probability of exactly 5 successes in 3 trials, {role}?')
++                    self.assertIsNotNone(reply)
++                    self.assertEqual(reply['status'],'answered')
++                    self.assertEqual(reply['value'],0.0)
++
++    def test_complete_signed_nonnegative_integer_counts(self):
++        for spec in SPECS:
++            instance=organ(spec)
++            for k,n,wanted in [('+5','+3',0.0),('1','-0',0.0),('+0','+0',1.0)]:
++                with self.subTest(spec=spec,k=k,n=n):
++                    reply=instance.answer(question(k,n,'1'))
++                    self.assertIsNotNone(reply)
++                    self.assertEqual(reply['status'],'answered')
++                    self.assertEqual(reply['value'],wanted)
++
++    def test_comma_and_parenthesis_delimiters_preserve_integer_atoms(self):
++        forms=[
++            'What is the probability of exactly {k}, in {n} trials with p = 0.5?',
++            'What is the probability of exactly {k} successes in ({n} trials) with p = 0.5?',
++            'What is the probability of exactly {k}, in ({n} trials) with p = 0.5?',
++            'What is the probability of exactly ({k}) successes in ({n}) trials with p = 0.5?',
++            'What is the probability of exactly (({k})), in (({n} trials)) with p = 0.5?']
++        for spec in SPECS:
++            instance=organ(spec)
++            for form in forms:
++                for k,n in [(2,3),(5,3),(1,0)]:
++                    with self.subTest(spec=spec,form=form,k=k,n=n):
++                        reply=instance.answer(form.format(k=k,n=n))
++                        self.assertIsNotNone(reply)
++                        self.assertEqual(reply['status'],'answered')
++                        self.assertEqual(reply['value'],float(mass(k,n,Fraction(1,2))))
++
++    def test_delimiters_do_not_hide_invalid_tokens_or_count_expressions(self):
++        bad=['(-3)','(3.5)','(3e2)','(3e-2)','(3/2)','3,5,','(3,5)',
++             '(2+3)','2+3','(2)*3','3/(2)','(3)/(2)','3e(2)']
++        for spec in SPECS:
++            instance=organ(spec)
++            for token in bad:
++                for k,n in [(0,token),(token,50)]:
++                    with self.subTest(spec=spec,k=k,n=n):
++                        reply=instance.answer(question(k,n,'0.5'))
++                        self.assertTrue(reply is None or reply['status']!='answered')
++
++
++if __name__=='__main__':
++    unittest.main()

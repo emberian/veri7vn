@@ -1,0 +1,21 @@
+{
+  "repo": "psiloceyeben/oracle7-slim",
+  "base": "0ab769781e33ef169b1a3c2a7f055a83c62dca7d",
+  "commit": "9c5867ff7372468b16da84a3097b7daab8d4883f",
+  "url": "https://huggingface.co/psiloceyeben/oracle7-slim/discussions/11",
+  "files": [
+    "root/specialists/statistics/organ_stats_v1.py",
+    "root/specialists/statistics-v2/organ_stats_v1.py",
+    "root/specialists/statistics-v2/organ_stats_v2.py",
+    "root/specialists/statistics-v3/organ_stats_v1.py",
+    "root/specialists/statistics-v3/organ_stats_v2.py",
+    "tests/statistics/test_binomial_support.py"
+  ],
+  "patch_sha256": "062794782482e9bcae8c52ce824d686ddf54ef6fe735ace617f6fb315b788adf",
+  "followup": {
+    "discussion": 9,
+    "id": "6ae6092677373232a4eba978",
+    "url": "https://huggingface.co/psiloceyeben/oracle7-slim/discussions/9#6ae6092677373232a4eba978",
+    "body_sha256": "8d9fef8efd67b21b87092e701b9c99c880639d3572582bd552121c9e0801b85b"
+  }
+}

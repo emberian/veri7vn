@@ -1,4 +1,4 @@
-> Current, 31 October: [native architectural foundation](lanes/NATIVE-FOUNDATION-2026-10-31.md), following the [code and literature synthesis](scouts/native-2026-10-31/README.md). Oracle/veri7vn scope; Mini integration belongs to its team.
+> Current, 31 October: [next native work cycles](lanes/NATIVE-NEXT-CYCLES-2026-10-31.md) and [upstream checkpoint](lanes/NATIVE-UPSTREAM-CHECKPOINT-2026-10-31.md). The [foundation](lanes/NATIVE-FOUNDATION-2026-10-31.md) and [wider expansion](lanes/NATIVE-SOL-EXPANSION-2026-10-31.md) are integrated and validated. Oracle/veri7vn scope; Mini integration belongs to its team.
 
 > Current, 29 October evening: [root direction review](DIRECTION-2026-10-29.md) and the [evening checkpoint](NATIVE-EXPANSION-2026-10-29.md): one Rust host, appliance on slim 10.1, native work scored as specialist folders.
 > Current, 29 October: [native capabilities, performance and extracted integration](NATIVE-EXPANSION-2026-10-29.md).

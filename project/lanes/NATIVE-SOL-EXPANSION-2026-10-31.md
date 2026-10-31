@@ -102,6 +102,8 @@ typed computation, checking, admission, dispatch and encoding; count allocations
 and intermediate work; and use symmetric warmup/output lifetimes. Packed reader
 representations and eliminating repeated work take priority over raising limits.
 
-Convergence: commit this validated source and documentation, publish an immutable
-review cut to the existing upstream discussion, and submit the focused binomial
-support repair separately. Further feature expansion is held for that checkpoint.
+The validated source and documentation are committed and pushed as `feca38a`.
+The immutable review cut is published in upstream discussion #5, and the plural
+comparison is posted to #10. The [upstream checkpoint](NATIVE-UPSTREAM-CHECKPOINT-2026-10-31.md)
+records publication links, the separate binomial support correction and the
+remaining implementation queue.

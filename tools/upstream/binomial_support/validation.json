@@ -1,0 +1,435 @@
+{
+  "date": "2026-10-31",
+  "scope": "Scoped Python binomial specialist source/test/panel checks; no full head, release gate, Isabelle or SML qualification",
+  "pinned_sources": {
+    "slim": {
+      "repo": "psiloceyeben/oracle7-slim",
+      "revision": "0ab769781e33ef169b1a3c2a7f055a83c62dca7d"
+    },
+    "full": {
+      "repo": "psiloceyeben/oracle7",
+      "revision": "9f52489c6c26533258dcafa23ad9f1e7e0dfc37c"
+    }
+  },
+  "source_hashes": [
+    {
+      "path": "root/specialists/statistics/organ_stats_v1.py",
+      "baseline_sha256": "880553438effc6a6a5995355f91bc57db0d96c9f979f069ca921d837703448c8",
+      "patched_sha256": "b6fbab66f2abde01632176b1f55bf838f28159d1b2b44b926182bab8457d3788"
+    },
+    {
+      "path": "root/specialists/statistics-v2/organ_stats_v1.py",
+      "baseline_sha256": "880553438effc6a6a5995355f91bc57db0d96c9f979f069ca921d837703448c8",
+      "patched_sha256": "b6fbab66f2abde01632176b1f55bf838f28159d1b2b44b926182bab8457d3788"
+    },
+    {
+      "path": "root/specialists/statistics-v2/organ_stats_v2.py",
+      "baseline_sha256": "99258bbf6aeb2a99369b48c3cea66387bb00556262d539ba955ef0f2ebc0d066",
+      "patched_sha256": "8c6cf096e70d85cfb8bef90449446dca5dccdc50aee12b123b393e60c3a33399"
+    },
+    {
+      "path": "root/specialists/statistics-v3/organ_stats_v1.py",
+      "baseline_sha256": "880553438effc6a6a5995355f91bc57db0d96c9f979f069ca921d837703448c8",
+      "patched_sha256": "b6fbab66f2abde01632176b1f55bf838f28159d1b2b44b926182bab8457d3788"
+    },
+    {
+      "path": "root/specialists/statistics-v3/organ_stats_v2.py",
+      "baseline_sha256": "99258bbf6aeb2a99369b48c3cea66387bb00556262d539ba955ef0f2ebc0d066",
+      "patched_sha256": "8c6cf096e70d85cfb8bef90449446dca5dccdc50aee12b123b393e60c3a33399"
+    }
+  ],
+  "maintained_files": {
+    "binomial-support.patch": "062794782482e9bcae8c52ce824d686ddf54ef6fe735ace617f6fb315b788adf",
+    "test_binomial_support.py": "0ebc582c2c07f4c051bc211dce579570e929f27e8f859ae4497ab1183a896df6",
+    "check_panels.py": "5ca9748905bcc270f1354e5746a7af5f038abcf7d8438ecf1788278847cbfb60",
+    "pins.json": "ac0d8c0f0c8352d983af36c3fc74831f5bf4c46c900341887e7335fcda73925f"
+  },
+  "new_suite": {
+    "slim": {
+      "baseline": {
+        "methods": 8,
+        "failures_or_subtests": 1206,
+        "errors_or_subtests": 0,
+        "success": false,
+        "failure_methods": {
+          "test_comma_and_parenthesis_delimiters_preserve_integer_atoms": 72,
+          "test_complete_signed_nonnegative_integer_counts": 18,
+          "test_delimiters_do_not_hide_invalid_tokens_or_count_expressions": 30,
+          "test_negative_fractional_and_scientific_count_tokens_are_not_digit_prefixes": 63,
+          "test_outside_support_is_zero_including_zero_trials_and_endpoints": 1008,
+          "test_probability_roles_use_the_same_support_rule": 15
+        },
+        "existing_binding": {
+          "methods": 5,
+          "failures": 0,
+          "errors": 0,
+          "success": true
+        }
+      },
+      "checkout": {
+        "methods": 8,
+        "failures_or_subtests": 0,
+        "errors_or_subtests": 0,
+        "success": true,
+        "failure_methods": {},
+        "existing_binding": {
+          "methods": 5,
+          "failures": 0,
+          "errors": 0,
+          "success": true
+        }
+      }
+    },
+    "full": {
+      "full-baseline": {
+        "methods": 8,
+        "failures_or_subtests": 1206,
+        "errors_or_subtests": 0,
+        "success": false,
+        "failure_methods": {
+          "test_comma_and_parenthesis_delimiters_preserve_integer_atoms": 72,
+          "test_complete_signed_nonnegative_integer_counts": 18,
+          "test_delimiters_do_not_hide_invalid_tokens_or_count_expressions": 30,
+          "test_negative_fractional_and_scientific_count_tokens_are_not_digit_prefixes": 63,
+          "test_outside_support_is_zero_including_zero_trials_and_endpoints": 1008,
+          "test_probability_roles_use_the_same_support_rule": 15
+        },
+        "existing_binding": {
+          "methods": 5,
+          "failures": 0,
+          "errors": 0,
+          "success": true
+        }
+      },
+      "full-checkout": {
+        "methods": 8,
+        "failures_or_subtests": 0,
+        "errors_or_subtests": 0,
+        "success": true,
+        "failure_methods": {},
+        "existing_binding": {
+          "methods": 5,
+          "failures": 0,
+          "errors": 0,
+          "success": true
+        }
+      }
+    }
+  },
+  "panel_controls": {
+    "slim": {
+      "statistics": {
+        "baseline": {
+          "dev": {
+            "n": 142,
+            "right": 140,
+            "wrong": 0,
+            "false_yes": 0,
+            "withheld_valid": 0,
+            "correct_decline": 2
+          },
+          "heldout": {
+            "n": 142,
+            "right": 126,
+            "wrong": 0,
+            "false_yes": 0,
+            "withheld_valid": 14,
+            "correct_decline": 2
+          }
+        },
+        "patched": {
+          "dev": {
+            "n": 142,
+            "right": 140,
+            "wrong": 0,
+            "false_yes": 0,
+            "withheld_valid": 0,
+            "correct_decline": 2
+          },
+          "heldout": {
+            "n": 142,
+            "right": 126,
+            "wrong": 0,
+            "false_yes": 0,
+            "withheld_valid": 14,
+            "correct_decline": 2
+          }
+        },
+        "changed_replies": 0
+      },
+      "statistics-v2": {
+        "baseline": {
+          "dev": {
+            "n": 144,
+            "right": 140,
+            "wrong": 0,
+            "false_yes": 0,
+            "withheld_valid": 0,
+            "correct_decline": 4
+          },
+          "heldout": {
+            "n": 144,
+            "right": 126,
+            "wrong": 0,
+            "false_yes": 0,
+            "withheld_valid": 14,
+            "correct_decline": 4
+          }
+        },
+        "patched": {
+          "dev": {
+            "n": 144,
+            "right": 140,
+            "wrong": 0,
+            "false_yes": 0,
+            "withheld_valid": 0,
+            "correct_decline": 4
+          },
+          "heldout": {
+            "n": 144,
+            "right": 126,
+            "wrong": 0,
+            "false_yes": 0,
+            "withheld_valid": 14,
+            "correct_decline": 4
+          }
+        },
+        "changed_replies": 0
+      },
+      "statistics-v3": {
+        "baseline": {
+          "dev": {
+            "n": 144,
+            "right": 140,
+            "wrong": 0,
+            "false_yes": 0,
+            "withheld_valid": 0,
+            "correct_decline": 4
+          },
+          "heldout": {
+            "n": 144,
+            "right": 140,
+            "wrong": 0,
+            "false_yes": 0,
+            "withheld_valid": 0,
+            "correct_decline": 4
+          }
+        },
+        "patched": {
+          "dev": {
+            "n": 144,
+            "right": 140,
+            "wrong": 0,
+            "false_yes": 0,
+            "withheld_valid": 0,
+            "correct_decline": 4
+          },
+          "heldout": {
+            "n": 144,
+            "right": 140,
+            "wrong": 0,
+            "false_yes": 0,
+            "withheld_valid": 0,
+            "correct_decline": 4
+          }
+        },
+        "changed_replies": 0
+      }
+    },
+    "full": {
+      "statistics": {
+        "baseline": {
+          "dev": {
+            "n": 142,
+            "right": 140,
+            "wrong": 0,
+            "false_yes": 0,
+            "withheld_valid": 0,
+            "correct_decline": 2
+          },
+          "heldout": {
+            "n": 142,
+            "right": 126,
+            "wrong": 0,
+            "false_yes": 0,
+            "withheld_valid": 14,
+            "correct_decline": 2
+          }
+        },
+        "patched": {
+          "dev": {
+            "n": 142,
+            "right": 140,
+            "wrong": 0,
+            "false_yes": 0,
+            "withheld_valid": 0,
+            "correct_decline": 2
+          },
+          "heldout": {
+            "n": 142,
+            "right": 126,
+            "wrong": 0,
+            "false_yes": 0,
+            "withheld_valid": 14,
+            "correct_decline": 2
+          }
+        },
+        "changed_replies": 0
+      },
+      "statistics-v2": {
+        "baseline": {
+          "dev": {
+            "n": 144,
+            "right": 140,
+            "wrong": 0,
+            "false_yes": 0,
+            "withheld_valid": 0,
+            "correct_decline": 4
+          },
+          "heldout": {
+            "n": 144,
+            "right": 126,
+            "wrong": 0,
+            "false_yes": 0,
+            "withheld_valid": 14,
+            "correct_decline": 4
+          }
+        },
+        "patched": {
+          "dev": {
+            "n": 144,
+            "right": 140,
+            "wrong": 0,
+            "false_yes": 0,
+            "withheld_valid": 0,
+            "correct_decline": 4
+          },
+          "heldout": {
+            "n": 144,
+            "right": 126,
+            "wrong": 0,
+            "false_yes": 0,
+            "withheld_valid": 14,
+            "correct_decline": 4
+          }
+        },
+        "changed_replies": 0
+      },
+      "statistics-v3": {
+        "baseline": {
+          "dev": {
+            "n": 144,
+            "right": 140,
+            "wrong": 0,
+            "false_yes": 0,
+            "withheld_valid": 0,
+            "correct_decline": 4
+          },
+          "heldout": {
+            "n": 144,
+            "right": 140,
+            "wrong": 0,
+            "false_yes": 0,
+            "withheld_valid": 0,
+            "correct_decline": 4
+          }
+        },
+        "patched": {
+          "dev": {
+            "n": 144,
+            "right": 140,
+            "wrong": 0,
+            "false_yes": 0,
+            "withheld_valid": 0,
+            "correct_decline": 4
+          },
+          "heldout": {
+            "n": 144,
+            "right": 140,
+            "wrong": 0,
+            "false_yes": 0,
+            "withheld_valid": 0,
+            "correct_decline": 4
+          }
+        },
+        "changed_replies": 0
+      }
+    }
+  },
+  "patch_apply_checks": [
+    {
+      "tree": "baseline",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "command": "git apply --check --unsafe-paths --directory <baseline> binomial-support.patch"
+    },
+    {
+      "tree": "full-baseline",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "command": "git apply --check --unsafe-paths --directory <full-baseline> binomial-support.patch"
+    }
+  ],
+  "raw_log_references": [
+    {
+      "path": "var/upstream-binomial-support-20261031/tests-baseline.txt",
+      "sha256": "46d22c0483eec70ccd63d11e6dcfa5701103abfe5b37dad7aee597d7629b4cf4"
+    },
+    {
+      "path": "var/upstream-binomial-support-20261031/tests-checkout.txt",
+      "sha256": "ab0189149694706a45c26c51de846497c97c38a953232bd283a57297f82094e8"
+    },
+    {
+      "path": "var/upstream-binomial-support-20261031/binding-baseline.txt",
+      "sha256": "1cdf214166552e24ae8f9b90c9d54941e966e57976f7db056a218922c3b3ddd7"
+    },
+    {
+      "path": "var/upstream-binomial-support-20261031/binding-checkout.txt",
+      "sha256": "2d0b103e3b5f77385467a6e8c52458d75509cd5689b38a60d7cb5444d91d5a5f"
+    },
+    {
+      "path": "var/upstream-binomial-support-20261031/tests-full-baseline.txt",
+      "sha256": "f03581e8871c307074375c9cff53d78098aa4dbc6819920634707dd5a2526c14"
+    },
+    {
+      "path": "var/upstream-binomial-support-20261031/tests-full-checkout.txt",
+      "sha256": "5401e7870b0f67d5939575a0612ca57f82cea286340dc20db0dc632b471e1a3c"
+    },
+    {
+      "path": "var/upstream-binomial-support-20261031/binding-full-baseline.txt",
+      "sha256": "0dbc39286200a89b79d8bd27496e0e1b3c2fd6feec1aba4cb1ab0070b96ba627"
+    },
+    {
+      "path": "var/upstream-binomial-support-20261031/binding-full-checkout.txt",
+      "sha256": "7f01c3ac2ab1c251b831aac3d5156f696fa4ae2d5f9c5740fb5a59cee45e194a"
+    },
+    {
+      "path": "var/upstream-binomial-support-20261031/panel-results.json",
+      "sha256": "4c456d96ebbdd607a05ddf8166cca1261f70fe65d510aa12d857905ee3b17b90"
+    },
+    {
+      "path": "var/upstream-binomial-support-20261031/full-panel-results.json",
+      "sha256": "4c456d96ebbdd607a05ddf8166cca1261f70fe65d510aa12d857905ee3b17b90"
+    },
+    {
+      "path": "var/upstream-binomial-support-20261031/isolated-gate-probes.json",
+      "sha256": "c821e5476cf838e1858983f5390da5746fcc7cf4d8b031a0161a6335110800f2"
+    },
+    {
+      "path": "var/upstream-binomial-support-20261031/fetched-files.json",
+      "sha256": "234b190eb6210558a195a9e1df2beb1601416ffa06aa535b5e724cee928a959d"
+    },
+    {
+      "path": "var/upstream-binomial-support-20261031/full-fetched-files.json",
+      "sha256": "8671cf5f63dbf5f71b17021bfcf2d96a87be8d9a636a9212a60439e12d38e8b6"
+    }
+  ],
+  "routing_limits": [
+    "No whole head/chat run.",
+    "Pinned operations102 marks specialists text and refuses direct invocation.",
+    "Isolated one-specialist dependence probe: outside-support zero0/3 givens, ordinary one-of-two3/3; owner folds require all givens."
+  ],
+  "extraction_limit": "GeoStats_Stats.sdecline_of still refuses n<k; binomial_value assumes k<=n,n<=10000,0<=p<=1. No extracted proof extension."
+}
