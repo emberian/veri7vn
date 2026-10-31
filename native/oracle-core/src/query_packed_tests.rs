@@ -207,3 +207,177 @@ fn packed_relation_retains_statement_witness_and_previous_scope() {
         .unwrap()
         .is_none());
 }
+
+fn checked_root(
+    workspace: &crate::packed_program::ProgramWorkspace,
+    wire: Value,
+) -> Arc<crate::packed_program::CheckedProgram> {
+    let source = crate::packed_program::from_flat(serde_json::from_value(wire).unwrap());
+    workspace
+        .compile(
+            crate::packed_program::PackedProgramRef::new(&source),
+            crate::packed_program::CompileOrigin::Whole,
+        )
+        .unwrap()
+        .unwrap()
+}
+
+#[test]
+fn checked_stage_reuse_skips_encoding_and_sql_construction_preserving_witnesses() {
+    let (_directory, image) = fixture();
+    let cancellation = crate::Cancellation::default();
+    let budget = Budget::new(&image.limits, cancellation.clone()).unwrap();
+    let programs = crate::packed_program::ProgramWorkspace::new(&image.limits, &budget);
+    let root = checked_root(
+        &programs,
+        json!([
+            {"function":"Find","inputs":["Alice"],"dependencies":[]},
+            {"function":"Find","inputs":["Alice"],"dependencies":[]},
+            {"function":"Relate","inputs":["knows","forward"],"dependencies":[1]}
+        ]),
+    );
+    let worker = image.acquire("stable-stage", &budget).unwrap();
+    let mut shared = LanguageWorkspace::new(&worker).unwrap();
+    let previous = Selection::default();
+    let execute = |shared: &mut LanguageWorkspace| {
+        evaluate_language_packed(
+            &worker,
+            image.verified_identity(),
+            root.as_ref(),
+            &previous,
+            &image.limits,
+            &budget,
+            shared,
+            Demand::Full,
+        )
+    };
+    let first = execute(&mut shared).unwrap().unwrap().into_full().unwrap();
+    assert_eq!(shared.stage_costs(), (1, 0, 2, 3));
+    let retained = (shared.retained_rows, shared.retained_bytes);
+    let stage_storage = shared.stage_storage();
+    let second = execute(&mut shared).unwrap().unwrap().into_full().unwrap();
+    assert_eq!(first, second);
+    assert_eq!(second.1.facts.len(), 1);
+    assert_eq!(shared.stage_costs(), (4, 0, 2, 3));
+    assert_eq!((shared.retained_rows, shared.retained_bytes), retained);
+    assert_eq!(shared.stage_storage(), stage_storage);
+    cancellation.cancel();
+    assert!(matches!(execute(&mut shared), Err(Error::Cancelled)));
+    assert_eq!(shared.stage_costs(), (4, 0, 2, 3));
+}
+
+#[test]
+fn checked_stage_ids_do_not_collide_between_program_workspaces_or_previous() {
+    let (_directory, image) = fixture();
+    let budget = Budget::new(&image.limits, crate::Cancellation::default()).unwrap();
+    let first_workspace = crate::packed_program::ProgramWorkspace::new(&image.limits, &budget);
+    let second_workspace = crate::packed_program::ProgramWorkspace::new(&image.limits, &budget);
+    let alice = checked_root(
+        &first_workspace,
+        json!([{"function":"Find","inputs":["Alice"],"dependencies":[]}]),
+    );
+    let bob = checked_root(
+        &second_workspace,
+        json!([{"function":"Find","inputs":["Bob"],"dependencies":[]}]),
+    );
+    let worker = image.acquire("stable-collision", &budget).unwrap();
+    let mut shared = LanguageWorkspace::new(&worker).unwrap();
+    let previous = Selection::default();
+    for (root, expected) in [(&alice, "A"), (&bob, "B"), (&bob, "B"), (&alice, "A")] {
+        let selected = evaluate_language_packed(
+            &worker,
+            image.verified_identity(),
+            root.as_ref(),
+            &previous,
+            &image.limits,
+            &budget,
+            &mut shared,
+            Demand::Full,
+        )
+        .unwrap()
+        .unwrap()
+        .into_full()
+        .unwrap()
+        .1;
+        assert_eq!(selected.ids, BTreeSet::from([expected.to_owned()]));
+    }
+    assert_eq!(shared.stage_costs(), (2, 0, 2, 2));
+    let changed = Selection {
+        ids: BTreeSet::from(["B".into()]),
+        ..Selection::default()
+    };
+    assert!(matches!(
+        evaluate_language_packed(
+            &worker,
+            image.verified_identity(),
+            alice.as_ref(),
+            &changed,
+            &image.limits,
+            &budget,
+            &mut shared,
+            Demand::Full
+        ),
+        Err(Error::Invalid(_))
+    ));
+    assert!(matches!(
+        evaluate_language_packed(
+            &worker,
+            "different-image",
+            alice.as_ref(),
+            &previous,
+            &image.limits,
+            &budget,
+            &mut shared,
+            Demand::Full
+        ),
+        Err(Error::Invalid(_))
+    ));
+}
+
+#[test]
+fn stage_insert_metadata_counts_successful_duplicates_and_utf8_bytes() {
+    let (_directory, image) = fixture();
+    let budget = Budget::new(&image.limits, crate::Cancellation::default()).unwrap();
+    let worker = image.acquire("insert-metadata", &budget).unwrap();
+    let mut shared = LanguageWorkspace::new(&worker).unwrap();
+    let mut meter = Meter {
+        stage_rows: 0,
+        stage_bytes: 0,
+        rows: 0,
+        bytes: 0,
+        limits: &image.limits,
+        budget: &budget,
+    };
+    insert_id(&worker, 0, "é", &mut meter).unwrap();
+    insert_id(&worker, 0, "é", &mut meter).unwrap();
+    let attribute = AttributeFact {
+        subject: "é".into(),
+        key: "色".into(),
+        position: 7,
+        value_json: r#"{"type":"string","value":"青"}"#.into(),
+        qualifiers_json: "{}".into(),
+    };
+    insert_attribute(&worker, 0, &attribute, &mut meter).unwrap();
+    insert_attribute(&worker, 0, &attribute, &mut meter).unwrap();
+    assert_eq!(
+        (meter.stage_rows, meter.stage_bytes),
+        (2, "é".len() + attribute_bytes(&attribute))
+    );
+    shared
+        .retain(
+            &worker,
+            StageKey::Checked(CheckedStageId {
+                workspace: 0,
+                operation: 0,
+            }),
+            0,
+            true,
+            &meter,
+        )
+        .unwrap();
+    assert_eq!(shared.retained_rows, 2);
+    assert_eq!(
+        shared.retained_bytes,
+        "é".len() + attribute_bytes(&attribute) + std::mem::size_of::<CheckedStageId>() + 64
+    );
+}

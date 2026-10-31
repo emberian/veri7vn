@@ -185,7 +185,38 @@ impl NodeKey {
 
 /// Existing chart interner, now retaining persistent splice recipes. Raw
 /// function/literal leaves are shared; occurrence recipes retain every use.
-type RawStep = (String, Vec<Value>);
+struct RawStep {
+    function: String,
+    inputs: Vec<Value>,
+    spec_key: String,
+    // Encoded object with an empty dependency array; decimal indices are added
+    // by the immutable occurrence summary, never by serializing occurrences.
+    encoded_base: usize,
+}
+impl RawStep {
+    fn new(function: &str, inputs: &[Value], spec_key: String) -> Result<Self> {
+        #[derive(serde::Serialize)]
+        struct EmptyStep<'a> {
+            function: &'a str,
+            dependencies: &'a [usize],
+            inputs: &'a [Value],
+        }
+        let encoded_base = crate::query::encoded_size(
+            &EmptyStep {
+                function,
+                dependencies: &[],
+                inputs,
+            },
+            usize::MAX,
+        )?;
+        Ok(Self {
+            function: function.into(),
+            inputs: inputs.into(),
+            spec_key,
+            encoded_base,
+        })
+    }
+}
 struct RecipeOperation {
     step: Arc<RawStep>,
     identity: u32,
@@ -201,6 +232,93 @@ struct Recipe {
     _memory: SharedChartMemory,
     entries: Box<[RecipeEntry]>,
     count: usize,
+    admission: AdmissionSummary,
+}
+/// Every dependency occurrence is retained, including duplicate and dead steps.
+/// Offsets are merged at construction, so a cached root's byte check is O(1).
+#[derive(Default)]
+struct AdmissionSummary {
+    bytes: usize,
+    base_bytes: usize,
+    dependencies_valid: bool,
+    dependencies: Box<[(usize, usize)]>,
+}
+impl AdmissionSummary {
+    fn for_entries(entries: &[RecipeEntry], count: usize) -> Result<Self> {
+        let mut base_bytes = 2usize
+            .checked_add(count.saturating_sub(1))
+            .ok_or(Error::Limit("request bytes"))?;
+        let mut dependencies = BTreeMap::<usize, usize>::new();
+        let mut add = |index: usize, multiplicity: usize| -> Result<()> {
+            let slot = dependencies.entry(index).or_default();
+            *slot = slot
+                .checked_add(multiplicity)
+                .ok_or(Error::Limit("request bytes"))?;
+            Ok(())
+        };
+        let mut position = 0usize;
+        let mut dependencies_valid = true;
+        for entry in entries {
+            let contribution = match entry {
+                RecipeEntry::Operation(step) => {
+                    dependencies_valid &= step
+                        .dependencies
+                        .iter()
+                        .all(|&dependency| dependency < position);
+                    position += 1;
+                    for &dependency in &step.dependencies {
+                        add(dependency, 1)?;
+                    }
+                    step.step
+                        .encoded_base
+                        .checked_add(step.dependencies.len().saturating_sub(1))
+                        .ok_or(Error::Limit("request bytes"))?
+                }
+                RecipeEntry::Child { start, program } => {
+                    dependencies_valid &=
+                        program.admission.dependencies_valid && *start == position;
+                    position = position
+                        .checked_add(program.count)
+                        .ok_or(Error::Limit("request bytes"))?;
+                    for &(dependency, multiplicity) in &program.admission.dependencies {
+                        add(
+                            start
+                                .checked_add(dependency)
+                                .ok_or(Error::Limit("request bytes"))?,
+                            multiplicity,
+                        )?;
+                    }
+                    // Strip the child's brackets and occurrence separators:
+                    // the parent's outer array accounts for those exactly once.
+                    program.admission.base_bytes - 2 - program.count.saturating_sub(1)
+                }
+            };
+            base_bytes = base_bytes
+                .checked_add(contribution)
+                .ok_or(Error::Limit("request bytes"))?;
+        }
+        let mut bytes = base_bytes;
+        for (&index, &multiplicity) in &dependencies {
+            let digits = if index == 0 {
+                1
+            } else {
+                index.ilog10() as usize + 1
+            };
+            bytes = bytes
+                .checked_add(
+                    digits
+                        .checked_mul(multiplicity)
+                        .ok_or(Error::Limit("request bytes"))?,
+                )
+                .ok_or(Error::Limit("request bytes"))?;
+        }
+        Ok(Self {
+            bytes,
+            base_bytes,
+            dependencies_valid,
+            dependencies: dependencies.into_iter().collect(),
+        })
+    }
 }
 struct RecipeSteps<'a> {
     stack: Vec<(&'a Recipe, usize, usize)>,
@@ -236,14 +354,18 @@ impl<'a> Iterator for RecipeSteps<'a> {
     }
 }
 impl PackedProgramSource for Recipe {
+    fn admission_bytes(&self) -> Option<usize> {
+        Some(self.admission.bytes)
+    }
     fn step_count(&self) -> usize {
         self.count
     }
     fn visit_steps(&self, visitor: &mut dyn FnMut(PackedStep<'_>) -> Result<()>) -> Result<()> {
         for (operation, dependencies) in RecipeSteps::new(self) {
             visitor(PackedStep {
-                function: &operation.step.0,
-                inputs: &operation.step.1,
+                function: &operation.step.function,
+                spec_key: Some(&operation.step.spec_key),
+                inputs: &operation.step.inputs,
                 dependencies: &dependencies,
             })?;
         }
@@ -398,8 +520,8 @@ impl DiagnosticStore {
             2usize,
             |size, (step, dependencies)| {
                 let inputs =
-                    crate::query::encoded_size(&step.step.1, usize::MAX).unwrap_or(usize::MAX);
-                size.saturating_add(step.step.0.len().saturating_mul(6))
+                    crate::query::encoded_size(&step.step.inputs, usize::MAX).unwrap_or(usize::MAX);
+                size.saturating_add(step.step.function.len().saturating_mul(6))
                     .saturating_add(inputs)
                     .saturating_add(dependencies.len().saturating_mul(24))
                     .saturating_add(96)
@@ -450,8 +572,8 @@ impl DiagnosticStore {
         DIAGNOSTIC_PROGRAMS.with(|count| count.set(count.get() + 1));
         RecipeSteps::new(&self.arena.programs[id.0 as usize])
             .map(|(step, dependencies)| Step {
-                function: step.step.0.clone(),
-                inputs: step.step.1.clone(),
+                function: step.step.function.clone(),
+                inputs: step.step.inputs.clone(),
                 dependencies,
             })
             .collect()
@@ -611,12 +733,15 @@ impl<'a> Chart<'a> {
             return Ok(id);
         }
         // The key string and the parsed step are both retained once.
-        self.charge(key.len().saturating_mul(2).saturating_add(64), Owner::Arena)?;
+        self.charge(
+            key.len().saturating_mul(3).saturating_add(128),
+            Owner::Arena,
+        )?;
         let id =
             u32::try_from(self.arena.steps.len()).map_err(|_| Error::Limit("composition bytes"))?;
         self.arena
             .steps
-            .push(Arc::new((function.to_owned(), inputs.to_vec())));
+            .push(Arc::new(RawStep::new(function, inputs, key.clone())?));
         self.arena.step_ids.insert(key, id);
         Ok(id)
     }
@@ -640,7 +765,8 @@ impl<'a> Chart<'a> {
                 RecipeEntry::Child { .. } => std::mem::size_of::<RecipeEntry>(),
             })
             .sum::<usize>()
-            .saturating_add(128);
+            .saturating_add(128)
+            .saturating_add(std::mem::size_of_val(&*recipe.admission.dependencies));
         self.charge(bytes, Owner::Arena)?;
         let id = ProgramId(
             u32::try_from(self.arena.programs.len())
@@ -670,6 +796,7 @@ impl<'a> Chart<'a> {
         let count = entries.len();
         self.intern_recipe(Recipe {
             _memory: self.ledger.memory.clone(),
+            admission: AdmissionSummary::for_entries(&entries, count)?,
             entries: entries.into(),
             count,
         })
@@ -715,10 +842,8 @@ impl<'a> Chart<'a> {
                     return Ok(None);
                 }
                 // A shared child remains a fresh occurrence at every splice.
-                for (j, (_, dependencies)) in RecipeSteps::new(&program).enumerate() {
-                    if dependencies.iter().any(|d| *d >= j) {
-                        return Err(Error::Invalid("X program dependency".into()));
-                    }
+                if !program.admission.dependencies_valid {
+                    return Err(Error::Invalid("X program dependency".into()));
                 }
                 if program.count > self.limits.steps.saturating_sub(count) {
                     return Err(Error::Limit("reader program steps"));
@@ -749,6 +874,7 @@ impl<'a> Chart<'a> {
         }
         self.intern_recipe(Recipe {
             _memory: self.ledger.memory.clone(),
+            admission: AdmissionSummary::for_entries(&entries, count)?,
             entries: entries.into(),
             count,
         })
@@ -818,27 +944,30 @@ impl<'a> Chart<'a> {
         Ok(())
     }
     /// Cached semantic admission of one interned program. The caller's
-    /// closure sees the flat program; the cache is keyed by exact content id.
+    /// closure sees the packed program and its empty-output allowance. Exact
+    /// content plus allowance form the cache key, so omitted children cannot
+    /// reuse a permissive snapshot staging result.
     pub fn check<F>(
         &mut self,
         program: ProgramId,
-        cache: &mut BTreeMap<ProgramId, bool>,
+        allow_empty: bool,
+        cache: &mut BTreeMap<(ProgramId, bool), bool>,
         viable: &mut F,
     ) -> Result<bool>
     where
-        F: FnMut(PackedProgramRef<'_>) -> Result<bool>,
+        F: FnMut(PackedProgramRef<'_>, bool) -> Result<bool>,
     {
-        if let Some(value) = cache.get(&program) {
+        if let Some(value) = cache.get(&(program, allow_empty)) {
             return Ok(*value);
         }
         let source = self.source(program);
-        let value = viable(PackedProgramRef::new(&source));
+        let value = viable(PackedProgramRef::new(&source), allow_empty);
         let value = value?;
         self.charge(
-            std::mem::size_of::<(ProgramId, bool)>().saturating_add(ENTRY),
+            std::mem::size_of::<((ProgramId, bool), bool)>().saturating_add(ENTRY),
             Owner::Viability,
         )?;
-        cache.insert(program, value);
+        cache.insert((program, allow_empty), value);
         Ok(value)
     }
     fn retain(
@@ -926,23 +1055,24 @@ impl<'a> Chart<'a> {
             nested,
         })
     }
-    /// Source Reader7 admits runnable/nonempty pre-nested fragments first.
     /// All demanded bases have already been checked independently, including
-    /// unsupported alternatives beside empty siblings. Only viable choices now
-    /// enter nested products, and independent child-region witnesses survive.
+    /// unsupported alternatives beside empty siblings. Snapshot candidates may
+    /// defer live output emptiness; omitted children retain strict admission.
+    /// Independent child-region witnesses survive nested products.
     pub fn resolve<F>(
         &mut self,
         plan: &RegionPlan,
-        cache: &mut BTreeMap<ProgramId, bool>,
+        allow_empty: bool,
+        cache: &mut BTreeMap<(ProgramId, bool), bool>,
         viable: &mut F,
     ) -> Result<Vec<NodeId>>
     where
-        F: FnMut(PackedProgramRef<'_>) -> Result<bool>,
+        F: FnMut(PackedProgramRef<'_>, bool) -> Result<bool>,
     {
         let mut output = Vec::new();
         let mut seen = BTreeSet::new();
         for &id in plan.direct.iter() {
-            if cache[&self.node_program(id)] {
+            if cache[&(self.node_program(id), allow_empty)] {
                 let (region, key) = self.key(id);
                 self.admit(region, &key)?;
                 // The base node is shared, not copied: dedup by key only.
@@ -959,6 +1089,13 @@ impl<'a> Chart<'a> {
             }
         }
         for nested in &plan.nested {
+            for (ordinal, alternatives) in &nested.children {
+                if allow_empty && !splices_child(&nested.program, *ordinal) {
+                    for &id in alternatives.iter() {
+                        self.check(self.node_program(id), false, cache, viable)?;
+                    }
+                }
+            }
             let choices: Vec<(usize, Vec<NodeId>)> = nested
                 .children
                 .iter()
@@ -968,7 +1105,12 @@ impl<'a> Chart<'a> {
                         alternatives
                             .iter()
                             .copied()
-                            .filter(|&id| cache[&self.node_program(id)])
+                            .filter(|&id| {
+                                cache[&(
+                                    self.node_program(id),
+                                    allow_empty && splices_child(&nested.program, *ordinal),
+                                )]
+                            })
                             .collect(),
                     )
                 })
@@ -1016,7 +1158,7 @@ impl<'a> Chart<'a> {
                             .collect(),
                     };
                     self.admit(plan.region, &key)?;
-                    if self.check(program, cache, viable)? {
+                    if self.check(program, allow_empty, cache, viable)? {
                         let node = Node {
                             region: plan.region,
                             support: nested.support,
@@ -1209,7 +1351,7 @@ impl<'a> Chart<'a> {
                     .collect();
                 let first_is_concept = unit_steps
                     .first()
-                    .is_some_and(|&s| self.arena.steps[s as usize].0 == "FilterConcept");
+                    .is_some_and(|&s| self.arena.steps[s as usize].function == "FilterConcept");
                 if first_is_concept != concept {
                     continue;
                 }
@@ -1447,3 +1589,12 @@ fn advance(cursor: &mut [usize], sizes: &[usize]) -> bool {
 #[cfg(test)]
 #[path = "packed_recipe_tests.rs"]
 mod packed_recipe_tests;
+
+/// A child omitted by its immediate learned skeleton keeps strict obligations,
+/// even when another occurrence of the same program feeds a snapshot Count.
+pub(crate) fn splices_child(program: &Program, ordinal: usize) -> bool {
+    program.iter().any(|step| {
+        step.function == "@X"
+            && step.inputs.first().and_then(serde_json::Value::as_u64) == Some(ordinal as u64)
+    })
+}

@@ -178,6 +178,39 @@ pub(crate) fn match_composed_packed<F>(
 where
     F: FnMut(PackedProgramRef<'_>) -> Result<bool>,
 {
+    match_composed_packed_with_policy(
+        db,
+        normalized,
+        fragment_spans,
+        outer_spans,
+        level,
+        policy,
+        limits,
+        budget,
+        false,
+        |program, _| viable(program),
+    )
+}
+
+/// Snapshot staging defers live output emptiness to the complete reading.
+/// Omitted children remain strict; the boolean callback argument is part of the
+/// semantic cache key and never grants source-domain completeness.
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn match_composed_packed_with_policy<F>(
+    db: &Connection,
+    normalized: &str,
+    fragment_spans: &[GrammarSpan],
+    outer_spans: &[GrammarSpan],
+    level: u8,
+    policy: &ReaderPolicy,
+    limits: MatchLimits,
+    budget: &Budget,
+    allow_empty: bool,
+    mut viable: F,
+) -> Result<ComposedPackedMatches>
+where
+    F: FnMut(PackedProgramRef<'_>, bool) -> Result<bool>,
+{
     if level > 1 || normalized.split_whitespace().collect::<Vec<_>>().join(" ") != normalized {
         return Err(Error::Invalid("composition level or normalization".into()));
     }
@@ -209,6 +242,7 @@ where
         budget,
         &mut ledger,
         &mut viable,
+        allow_empty,
     );
     probe::record(&ledger, &result);
     let programs = result?;
@@ -245,9 +279,10 @@ fn compose<F>(
     budget: &Budget,
     ledger: &mut Ledger,
     viable: &mut F,
+    allow_empty: bool,
 ) -> Result<Vec<PackedMatchedProgram>>
 where
-    F: FnMut(PackedProgramRef<'_>) -> Result<bool>,
+    F: FnMut(PackedProgramRef<'_>, bool) -> Result<bool>,
 {
     let mut state = Search {
         db,
@@ -354,21 +389,21 @@ where
         .flat_map(|found| found.fragments.iter().copied())
         .collect();
     // Keyed by exact interned program content, equivalent to its JSON.
-    let mut viability = BTreeMap::<ProgramId, bool>::new();
+    let mut viability = BTreeMap::<(ProgramId, bool), bool>::new();
     // Source Reader7 admits pre-nested fragments before forming parent products.
     // Check the whole demanded base union first. Empty alternatives cannot hide
     // unsupported siblings, even if a parent omits the template's @X splice.
     for index in &demanded {
         for node in plans[index].base_nodes() {
             let program = regions.node_program(node);
-            regions.check(program, &mut viability, viable)?;
+            regions.check(program, allow_empty, &mut viability, viable)?;
         }
     }
     let mut chart = BTreeMap::<usize, Vec<NodeId>>::new();
     for index in &demanded {
         chart.insert(
             *index,
-            regions.resolve(&plans[index], &mut viability, viable)?,
+            regions.resolve(&plans[index], allow_empty, &mut viability, viable)?,
         );
     }
     // One aggregate envelope across admitted region nodes and resolved outers;
@@ -377,6 +412,14 @@ where
     let mut output = Vec::new();
     let mut resolved_outer = BTreeSet::new();
     for found in outer {
+        for index in &found.fragments {
+            if allow_empty && !crate::segments::splices_child(&found.program, index + 1) {
+                for &node in &chart[index] {
+                    let program = regions.node_program(node);
+                    regions.check(program, false, &mut viability, viable)?;
+                }
+            }
+        }
         let choices: Vec<Vec<NodeId>> = found
             .fragments
             .iter()
@@ -388,9 +431,16 @@ where
                         regions
                             .child_programs(node)
                             .iter()
-                            .all(|child| viability[child])
+                            .all(|child| viability[&(*child, allow_empty)])
                             && viability
-                                .get(&regions.node_program(node))
+                                .get(&(
+                                    regions.node_program(node),
+                                    allow_empty
+                                        && crate::segments::splices_child(
+                                            &found.program,
+                                            index + 1,
+                                        ),
+                                ))
                                 .copied()
                                 .unwrap_or(false)
                     })

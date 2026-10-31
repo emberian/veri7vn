@@ -148,6 +148,17 @@ impl Operation {
             _ => None,
         }
     }
+
+    /// Domain of a typed comparison literal at this input position. Attribute
+    /// names, operators and untyped query-condition literals have no fixed
+    /// domain. Reader binding uses this same contract as program validation.
+    pub(crate) fn literal_input_kind(self, input: usize) -> Option<ValueKind> {
+        let literal = match self {
+            Self::VerifyStr | Self::VerifyNum | Self::VerifyYear | Self::VerifyDate => 0,
+            _ => 1,
+        };
+        (input == literal).then(|| self.literal_kind()).flatten()
+    }
 }
 
 pub fn operation_catalog() -> Vec<OperationContract> {
@@ -217,11 +228,12 @@ pub(crate) fn validate_operation(
         return Err(invalid(index, step.function, "value literal byte limit"));
     }
     if let Some(kind) = step.function.literal_kind() {
-        let verification = matches!(
-            step.function,
-            VerifyStr | VerifyNum | VerifyYear | VerifyDate
-        );
-        let literal = &step.inputs[usize::from(!verification)];
+        let literal = step
+            .inputs
+            .iter()
+            .enumerate()
+            .find_map(|(i, text)| step.function.literal_input_kind(i).map(|_| text))
+            .expect("typed literal position");
         TypedValue::parse_literal(literal, kind, &ValueLimits::default())
             .map_err(|err| invalid(index, step.function, &err.to_string()))?;
         if kind != ValueKind::String {

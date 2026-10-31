@@ -476,6 +476,41 @@ pub fn hidden_literal(steps: &[Step]) -> bool {
         })
 }
 
+/// Fill one slot using the operation's literal domain, without consulting data.
+fn bind_input(
+    function: &str,
+    position: usize,
+    input: &Value,
+    texts: &Bindings,
+) -> Result<Option<Value>> {
+    if !input.is_array() {
+        return Ok(Some(input.clone()));
+    }
+    let (kind, ordinal, unit) = slot(input)?;
+    let Some(text) = texts.get(&(kind, ordinal)) else {
+        return Ok(None);
+    };
+    let operation = crate::program::Operation::deserialize(serde::de::value::StrDeserializer::<
+        serde::de::value::Error,
+    >::new(function))
+    .ok();
+    let domain = operation.and_then(|op| op.literal_input_kind(position));
+    let temporal = matches!(
+        domain,
+        Some(crate::value::ValueKind::Year | crate::value::ValueKind::Date)
+    );
+    // N is the learned lexical category for both quantities and dates/years.
+    // Its historical dimensionless marker is not part of a calendar literal.
+    // Keep physical units on temporal literals: typed checking must reject
+    // that interpretation, rather than silently repair or discard a competitor.
+    let append_unit = kind == 'N' && !unit.is_empty() && !(temporal && unit == "1");
+    Ok(Some(Value::String(if append_unit {
+        format!("{text} {unit}")
+    } else {
+        text.clone()
+    })))
+}
+
 /// Bind one learned syntax recipe without expanding child programs. X labels
 /// are redirected to chart holes; @NOP removal/dependency mapping matches the
 /// former singleton-placeholder expansion, with no child flattening.
@@ -518,20 +553,11 @@ pub(crate) fn bind_recipe(
                 dependencies.push(*mapped);
             }
             let mut inputs = Vec::with_capacity(step.inputs.len());
-            for input in &step.inputs {
-                if input.is_array() {
-                    let (kind, ordinal, unit) = slot(input)?;
-                    let Some(text) = texts.get(&(kind, ordinal)) else {
-                        return Ok(None);
-                    };
-                    inputs.push(Value::String(if kind == 'N' && !unit.is_empty() {
-                        format!("{text} {unit}")
-                    } else {
-                        text.clone()
-                    }));
-                } else {
-                    inputs.push(input.clone());
-                }
+            for (position, input) in step.inputs.iter().enumerate() {
+                let Some(input) = bind_input(&step.function, position, input, texts)? else {
+                    return Ok(None);
+                };
+                inputs.push(input);
             }
             output.push(Step {
                 function: step.function.clone(),
@@ -599,20 +625,11 @@ pub fn expand(
                 dependencies.push(*mapped);
             }
             let mut inputs = Vec::new();
-            for input in &step.inputs {
-                if input.is_array() {
-                    let (kind, ordinal, unit) = slot(input)?;
-                    let Some(text) = texts.get(&(kind, ordinal)) else {
-                        return Ok(None);
-                    };
-                    inputs.push(Value::String(if kind == 'N' && !unit.is_empty() {
-                        format!("{text} {unit}")
-                    } else {
-                        text.clone()
-                    }));
-                } else {
-                    inputs.push(input.clone());
-                }
+            for (position, input) in step.inputs.iter().enumerate() {
+                let Some(input) = bind_input(&step.function, position, input, texts)? else {
+                    return Ok(None);
+                };
+                inputs.push(input);
             }
             if program.len() >= max_steps {
                 return Err(Error::Limit("reader program steps"));
@@ -1044,4 +1061,145 @@ pub fn outer_shapes(
         });
     }
     Ok(out)
+}
+
+#[cfg(test)]
+mod literal_binding_tests {
+    use super::*;
+    use crate::{build_image, Cancellation, Image, Limits};
+    use serde_json::json;
+
+    fn comparison(function: &str, key: &str, unit: &str, operator: &str) -> Program {
+        serde_json::from_value(json!([
+            {"function":"FindAll","dependencies":[],"inputs":[]},
+            {"function":function,"dependencies":[0],"inputs":[key,["@","N",1,unit],operator]},
+            {"function":"Count","dependencies":[1],"inputs":[]}
+        ]))
+        .unwrap()
+    }
+
+    /// Both adapters must bind identical literals. Recipe binding is also used
+    /// by fragments; the public adapter exercises the explicit expanded path.
+    fn bound(skeleton: &[Step], literal: &str) -> Program {
+        let bindings = BTreeMap::from([(('N', 1), literal.to_owned())]);
+        let expanded = expand(skeleton, &bindings, &BTreeMap::new(), 100)
+            .unwrap()
+            .unwrap();
+        let recipe = bind_recipe(skeleton, &bindings, &BTreeMap::new(), 100)
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            serde_json::to_value(&recipe).unwrap(),
+            serde_json::to_value(&expanded).unwrap()
+        );
+        expanded
+    }
+
+    fn checked(program: &Program) -> crate::Result<crate::program::Program> {
+        crate::program::Program::parse(&serde_json::to_string(program).unwrap(), &Limits::default())
+    }
+
+    #[test]
+    fn calendar_slots_omit_only_the_dimensionless_marker() {
+        for function in ["FilterDate", "QFilterDate", "FilterYear", "QFilterYear"] {
+            let program = bound(&comparison(function, "commissioned", "1", ">"), "2000");
+            assert_eq!(program[1].inputs[1], "2000");
+            assert!(checked(&program).is_ok(), "{function}");
+            let physical = bound(
+                &comparison(function, "commissioned", "kilogram", ">"),
+                "2000",
+            );
+            assert_eq!(physical[1].inputs[1], "2000 kilogram");
+            assert!(checked(&physical).is_err(), "{function}");
+        }
+        let date = bound(
+            &comparison("FilterDate", "commissioned", "1", ">"),
+            "2000-02-29",
+        );
+        assert!(checked(&date).is_ok());
+        let invalid = bound(
+            &comparison("FilterDate", "commissioned", "1", ">"),
+            "1900-02-29",
+        );
+        assert!(checked(&invalid).is_err());
+        let year = bound(
+            &comparison("FilterYear", "commissioned", "1", ">"),
+            "2000-02-29",
+        );
+        assert!(checked(&year).is_err());
+        let quantity = bound(&comparison("FilterNum", "mass", "kilogram", ">"), "2");
+        assert_eq!(quantity[1].inputs[1], "2 kilogram");
+        assert!(checked(&quantity).is_ok());
+        let date_as_quantity = bound(&comparison("FilterNum", "mass", "1", ">"), "2000-02-29");
+        assert!(checked(&date_as_quantity).is_err());
+    }
+
+    #[test]
+    fn verification_literal_domain_uses_its_first_input() {
+        for function in ["VerifyDate", "VerifyYear", "VerifyNum"] {
+            let skeleton: Program = serde_json::from_value(json!([
+                {"function":"FindAll","dependencies":[],"inputs":[]},
+                {"function":"QueryAttr","dependencies":[0],"inputs":["commissioned"]},
+                {"function":function,"dependencies":[1],"inputs":[["@","N",1,"1"],"="]}
+            ]))
+            .unwrap();
+            let program = bound(&skeleton, "2000");
+            assert_eq!(
+                program[2].inputs[0],
+                if function == "VerifyNum" {
+                    "2000 1"
+                } else {
+                    "2000"
+                }
+            );
+            assert!(checked(&program).is_ok());
+        }
+    }
+
+    #[test]
+    fn bound_calendar_precision_and_explicit_quantity_units_answer_finite_store() {
+        let directory = tempfile::tempdir().unwrap();
+        let source = directory.path().join("source.json");
+        let destination = directory.path().join("image.sqlite");
+        let kb = json!({"concepts":{},"entities":{
+            "A":{"name":"Earlier","instanceOf":[],"relations":[],"attributes":[
+                {"key":"commissioned","value":{"type":"date","value":"1999-12-31"},"qualifiers":{}},
+                {"key":"mass","value":{"type":"quantity","value":3,"unit":"kilogram"},"qualifiers":{}}]},
+            "B":{"name":"Same year day","instanceOf":[],"relations":[],"attributes":[
+                {"key":"commissioned","value":{"type":"date","value":"2000-02-29"},"qualifiers":{}},
+                {"key":"mass","value":{"type":"quantity","value":3000,"unit":"gram"},"qualifiers":{}}]},
+            "C":{"name":"Later","instanceOf":[],"relations":[],"attributes":[
+                {"key":"commissioned","value":{"type":"date","value":"2001-01-01"},"qualifiers":{}},
+                {"key":"mass","value":{"type":"quantity","value":3,"unit":"1"},"qualifiers":{}}]},
+            "D":{"name":"Year only","instanceOf":[],"relations":[],"attributes":[
+                {"key":"commissioned","value":{"type":"year","value":2000},"qualifiers":{}}]}
+        }});
+        std::fs::write(&source, kb.to_string()).unwrap();
+        let receipt = build_image(&source, &destination, 1_000_000, 100_000).unwrap();
+        let image = Image::open(&destination, &receipt.image_sha256, Limits::default()).unwrap();
+        let run = |function, key, unit, operator, literal| {
+            let program = bound(&comparison(function, key, unit, operator), literal);
+            let plan = checked(&program).unwrap().compile(&image.limits).unwrap();
+            let result: Value = serde_json::from_str(
+                &image
+                    .query(
+                        "binding",
+                        &serde_json::to_string(&plan).unwrap(),
+                        Cancellation::default(),
+                    )
+                    .unwrap(),
+            )
+            .unwrap();
+            result["value"].clone()
+        };
+        // A whole-year Date comparison cannot place a day within that year.
+        assert_eq!(run("FilterDate", "commissioned", "1", ">", "2000"), 1);
+        assert_eq!(run("FilterDate", "commissioned", "1", ">", "2000-02-28"), 2);
+        // Explicit Year comparison deliberately compares at year precision.
+        assert_eq!(run("FilterYear", "commissioned", "1", "=", "2000"), 2);
+        // Exact-label policy neither guesses a stored unit nor converts grams.
+        assert_eq!(run("FilterNum", "mass", "kilogram", ">", "2"), 1);
+        assert_eq!(run("FilterNum", "mass", "", ">", "2"), 1);
+        assert_eq!(image.active_workers(), 0);
+    }
 }

@@ -9,31 +9,44 @@ fn memory() -> SharedChartMemory {
     ))
 }
 
+fn recipe(entries: Vec<RecipeEntry>, count: usize) -> Recipe {
+    Recipe {
+        _memory: memory(),
+        admission: AdmissionSummary::for_entries(&entries, count).unwrap(),
+        entries: entries.into(),
+        count,
+    }
+}
+
 fn operation(identity: u32, function: &str, dependencies: &[usize]) -> RecipeEntry {
     RecipeEntry::Operation(RecipeOperation {
-        step: Arc::new((function.into(), vec![])),
+        step: Arc::new(
+            RawStep::new(
+                function,
+                &[],
+                serde_json::to_string(&(function, Vec::<Value>::new())).unwrap(),
+            )
+            .unwrap(),
+        ),
         identity,
         dependencies: dependencies.into(),
     })
 }
 fn source() -> Arc<Recipe> {
-    Arc::new(Recipe {
-        _memory: memory(),
-        entries: vec![
+    Arc::new(recipe(
+        vec![
             operation(0, "FindAll", &[]),
             operation(1, "FilterConcept", &[0]),
-        ]
-        .into(),
-        count: 2,
-    })
+        ],
+        2,
+    ))
 }
 
 #[test]
 fn packed_recipe_repeated_child_keeps_occurrences_and_exact_dependencies() {
     let child = source();
-    let root = Recipe {
-        _memory: memory(),
-        entries: vec![
+    let root = recipe(
+        vec![
             RecipeEntry::Child {
                 start: 0,
                 program: child.clone(),
@@ -43,10 +56,9 @@ fn packed_recipe_repeated_child_keeps_occurrences_and_exact_dependencies() {
                 program: child.clone(),
             },
             operation(2, "And", &[1, 3]),
-        ]
-        .into(),
-        count: 5,
-    };
+        ],
+        5,
+    );
     let mut visits = Vec::new();
     root.visit_steps(&mut |step| {
         visits.push((step.function.to_owned(), step.dependencies.to_vec()));
@@ -76,44 +88,42 @@ fn packed_recipe_repeated_child_keeps_occurrences_and_exact_dependencies() {
 #[test]
 fn packed_recipe_partition_does_not_change_exact_syntax_identity() {
     let child = source();
-    let packed = Recipe {
-        _memory: memory(),
-        entries: vec![
+    let packed = recipe(
+        vec![
             RecipeEntry::Child {
                 start: 0,
                 program: child,
             },
             operation(2, "Count", &[1]),
-        ]
-        .into(),
-        count: 3,
-    };
-    let direct = Recipe {
-        _memory: memory(),
-        entries: vec![
+        ],
+        3,
+    );
+    let direct = recipe(
+        vec![
             operation(0, "FindAll", &[]),
             operation(1, "FilterConcept", &[0]),
             operation(2, "Count", &[1]),
-        ]
-        .into(),
-        count: 3,
-    };
+        ],
+        3,
+    );
     assert!(packed.same_content(&direct));
     assert_eq!(packed.fingerprint(), direct.fingerprint());
+    assert_eq!(
+        assert_admission(Arc::new(packed)),
+        assert_admission(Arc::new(direct))
+    );
 }
 
 #[test]
 fn packed_recipe_unused_occurrence_is_not_removed_by_root_sharing() {
-    let root = Recipe {
-        _memory: memory(),
-        entries: vec![
+    let root = recipe(
+        vec![
             operation(0, "FindAll", &[]),
             operation(3, "Unsupported", &[]),
             operation(2, "Count", &[0]),
-        ]
-        .into(),
-        count: 3,
-    };
+        ],
+        3,
+    );
     let mut functions = Vec::new();
     root.visit_steps(&mut |step| {
         functions.push(step.function.to_owned());
@@ -155,8 +165,9 @@ fn packed_chart_callback_error_keeps_source_memory_without_flat_diagnostics() {
             .unwrap();
         let result = chart.check(
             root,
+            false,
             &mut BTreeMap::new(),
-            &mut |source: PackedProgramRef<'_>| {
+            &mut |source: PackedProgramRef<'_>, _allow_empty: bool| {
                 held = Some(source.owned());
                 Err(Error::Invalid("injected callback error".into()))
             },
@@ -223,6 +234,17 @@ fn packed_chart_repeated_child_cannot_evade_original_step_limit() {
             inputs: vec![],
         },
     ];
+    assert!(matches!(
+        chart.splice(&skeleton, &BTreeMap::from([(1, child)])),
+        Err(Error::Limit("reader program steps"))
+    ));
+    chart.limits.steps = 5;
+    let accepted = chart
+        .splice(&skeleton, &BTreeMap::from([(1, child)]))
+        .unwrap()
+        .unwrap();
+    assert_eq!(chart.source(accepted).step_count(), 5);
+    chart.limits.steps = 4;
     assert!(matches!(
         chart.splice(&skeleton, &BTreeMap::from([(1, child)])),
         Err(Error::Limit("reader program steps"))
@@ -322,4 +344,169 @@ fn empty_packed_batch_does_not_pin_chart_or_release_escaped_callback_source() {
     // The empty returned batch remains alive, but owns no retired chart data.
     assert_eq!(budget.memory().snapshot().live, 0);
     drop(empty_batch_memory);
+}
+
+// Independent oracle: serialize expanded public Steps, never the summary or its
+// histogram. Escapes, commas and decimal index widths are serde's responsibility.
+fn assert_admission(root: Arc<Recipe>) -> usize {
+    let mut expanded = Vec::new();
+    root.visit_steps(&mut |step| {
+        expanded.push(Step {
+            function: step.function.into(),
+            inputs: step.inputs.into(),
+            dependencies: step.dependencies.into(),
+        });
+        Ok(())
+    })
+    .unwrap();
+    let expected = serde_json::to_vec(&expanded).unwrap().len();
+    assert_eq!(root.admission.bytes, expected);
+    let source: OwnedPackedProgram = root;
+    let source = PackedProgramRef::new(&source);
+    assert_eq!(
+        crate::packed_program::source_bytes(source, expected).unwrap(),
+        expected
+    );
+    assert!(matches!(
+        crate::packed_program::source_bytes(source, expected - 1),
+        Err(Error::Limit(_))
+    ));
+    expected
+}
+
+#[test]
+fn packed_recipe_exact_admission_rebases_decimal_widths_and_unicode() {
+    let inputs = vec![
+        Value::String("雪\n\"\\\u{0001}é".into()),
+        serde_json::json!({"nested": [false, 12]}),
+    ];
+    let raw = Arc::new(
+        RawStep::new(
+            "Filter\"Unicode",
+            &inputs,
+            serde_json::to_string(&("Filter\"Unicode", &inputs)).unwrap(),
+        )
+        .unwrap(),
+    );
+    let child = Arc::new(recipe(
+        vec![
+            operation(0, "FindAll", &[]),
+            RecipeEntry::Operation(RecipeOperation {
+                step: raw,
+                identity: 1,
+                dependencies: vec![0, 0].into(),
+            }),
+        ],
+        2,
+    ));
+    for start in [0, 9, 10, 99, 100] {
+        let mut entries = (0..start)
+            .map(|_| operation(0, "FindAll", &[]))
+            .collect::<Vec<_>>();
+        entries.push(RecipeEntry::Child {
+            start,
+            program: child.clone(),
+        });
+        entries.push(RecipeEntry::Child {
+            start: start + 2,
+            program: child.clone(),
+        });
+        // Dead and repeated occurrences still contribute bytes.
+        entries.push(operation(2, "Unsupported", &[]));
+        entries.push(operation(3, "Count", &[start + 1]));
+        let root = Arc::new(recipe(entries, start + 6));
+        assert_admission(root.clone());
+        let nested = Arc::new(recipe(
+            vec![RecipeEntry::Child {
+                start: 0,
+                program: root.clone(),
+            }],
+            root.count,
+        ));
+        assert_eq!(assert_admission(nested), root.admission.bytes);
+    }
+    assert_admission(Arc::new(recipe(vec![], 0)));
+}
+
+#[test]
+fn packed_recipe_cached_rejection_still_checks_exact_admission() {
+    let root = Arc::new(recipe(vec![operation(7, "Unsupported", &[])], 1));
+    let bytes = assert_admission(root.clone());
+    let source: OwnedPackedProgram = root;
+    let source = PackedProgramRef::new(&source);
+    let mut limits = crate::Limits::default();
+    limits.request_bytes = bytes;
+    let budget = Budget::new(&limits, crate::Cancellation::default()).unwrap();
+    let workspace = crate::packed_program::ProgramWorkspace::new(&limits, &budget);
+    for _ in 0..2 {
+        assert!(workspace
+            .compile(source, crate::packed_program::CompileOrigin::Fragment)
+            .unwrap()
+            .is_none());
+    }
+    assert_eq!(workspace.stats().rejected_cache_hits, 1);
+    limits.request_bytes = bytes - 1;
+    let constrained = crate::packed_program::ProgramWorkspace::new(&limits, &budget);
+    assert!(matches!(
+        constrained.compile(source, crate::packed_program::CompileOrigin::Fragment),
+        Err(Error::Limit(_))
+    ));
+}
+
+#[test]
+fn packed_recipe_admission_uses_summary_without_visiting_occurrences() {
+    struct SummaryOnly(Arc<Recipe>);
+    impl PackedProgramSource for SummaryOnly {
+        fn step_count(&self) -> usize {
+            self.0.count
+        }
+        fn admission_bytes(&self) -> Option<usize> {
+            self.0.admission_bytes()
+        }
+        fn visit_steps(&self, _: &mut dyn FnMut(PackedStep<'_>) -> Result<()>) -> Result<()> {
+            panic!("cached admission traversed or serialized occurrences")
+        }
+    }
+    let root = source();
+    let expected = assert_admission(root.clone());
+    let source: OwnedPackedProgram = Arc::new(SummaryOnly(root));
+    let source = PackedProgramRef::new(&source);
+    for _ in 0..3 {
+        assert_eq!(
+            crate::packed_program::source_bytes(source, expected).unwrap(),
+            expected
+        );
+        assert!(matches!(
+            crate::packed_program::source_bytes(source, expected - 1),
+            Err(Error::Limit(_))
+        ));
+    }
+}
+
+#[test]
+fn packed_recipe_dependency_admission_includes_dead_and_nested_steps() {
+    let invalid = Arc::new(recipe(
+        vec![
+            operation(0, "FindAll", &[]),
+            operation(1, "Unsupported", &[1]),
+        ],
+        2,
+    ));
+    assert!(!invalid.admission.dependencies_valid);
+    let nested = recipe(
+        vec![RecipeEntry::Child {
+            start: 0,
+            program: invalid,
+        }],
+        2,
+    );
+    assert!(!nested.admission.dependencies_valid);
+    let valid = recipe(
+        vec![
+            operation(0, "FindAll", &[]),
+            operation(1, "Unsupported", &[0]),
+        ],
+        2,
+    );
+    assert!(valid.admission.dependencies_valid);
 }

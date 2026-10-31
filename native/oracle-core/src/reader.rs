@@ -8,7 +8,7 @@ use crate::grammar::{self, GrammarSpan, MatchLimits};
 use crate::lexicon::{self, CandidateOptions, LexiconLimits};
 use crate::packed_program::{self, CompileOrigin, PackedProgramRef, ProgramWorkspace};
 use crate::program::Operation;
-use crate::query::{encode, evaluate_language_packed, LanguageWorkspace, Selection};
+use crate::query::{encode, LanguageWorkspace, Selection};
 use crate::{Budget, Cancellation, Error, Image, Limits, QueryResult, Result};
 use rusqlite::Connection;
 use serde::{Deserialize, Serialize};
@@ -18,6 +18,32 @@ use std::hash::Hasher;
 use std::io::Write;
 use std::ops::Deref;
 use std::sync::Arc;
+
+#[path = "reader_count.rs"]
+mod count_policy;
+pub(crate) use count_policy::{refusals as empty_refusals, EmptyPolicy};
+
+/// Explicitly counts matching entities stored in the supplied image. Missing
+/// source facts are not evidence about the world or a complete external domain.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum CountScope {
+    SuppliedSnapshot,
+}
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[serde(default, deny_unknown_fields)]
+pub struct ReaderOptions {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub count_scope: Option<CountScope>,
+}
+impl ReaderOptions {
+    fn empty_policy(&self) -> EmptyPolicy {
+        match self.count_scope {
+            None => EmptyPolicy::Existing,
+            Some(CountScope::SuppliedSnapshot) => EmptyPolicy::SnapshotCount,
+        }
+    }
+}
 
 pub const COVERAGE: &str = "whole_and_exact_fragment_outer_v1+exact_segment_and_single_nested_v1";
 
@@ -186,6 +212,9 @@ pub struct ReaderReading {
 }
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ReaderResult {
+    /// Explicit counting premise; omission retains the existing reader policy.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub count_scope: Option<CountScope>,
     pub image: String,
     pub coverage: String,
     pub status: ReaderStatus,
@@ -201,6 +230,7 @@ pub struct ReaderResult {
 impl ReaderResult {
     fn empty(identity: &str, reason: ReaderReason) -> Self {
         Self {
+            count_scope: None,
             image: identity.into(),
             coverage: COVERAGE.into(),
             status: ReaderStatus::Unknown,
@@ -229,6 +259,29 @@ pub(crate) fn evaluate_whole(
     reader_limits: &ReaderLimits,
     budget: &Budget,
 ) -> Result<(ReaderResult, Option<ReaderShared<Selection>>)> {
+    evaluate_whole_with_options(
+        db,
+        identity,
+        raw_question,
+        previous,
+        limits,
+        reader_limits,
+        &ReaderOptions::default(),
+        budget,
+    )
+}
+
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn evaluate_whole_with_options(
+    db: &Connection,
+    identity: &str,
+    raw_question: &str,
+    previous: &Selection,
+    limits: &Limits,
+    reader_limits: &ReaderLimits,
+    options: &ReaderOptions,
+    budget: &Budget,
+) -> Result<(ReaderResult, Option<ReaderShared<Selection>>)> {
     let outcome = evaluate_inner(
         db,
         identity,
@@ -236,6 +289,7 @@ pub(crate) fn evaluate_whole(
         previous,
         limits,
         reader_limits,
+        options,
         budget,
     );
     // Preserve cancellation/deadline/fuel when SQLite reports only Interrupted.
@@ -251,6 +305,7 @@ fn evaluate_inner(
     previous: &Selection,
     limits: &Limits,
     reader_limits: &ReaderLimits,
+    options: &ReaderOptions,
     budget: &Budget,
 ) -> Result<(ReaderResult, Option<ReaderShared<Selection>>)> {
     reader_limits.validate()?;
@@ -260,6 +315,7 @@ fn evaluate_inner(
     }
     if grammar::unreadable(raw_question) {
         let mut result = ReaderResult::empty(identity, ReaderReason::UnreadableScript);
+        result.count_scope = options.count_scope;
         result.status = ReaderStatus::Refused;
         return Ok((result, None));
     }
@@ -278,6 +334,7 @@ fn evaluate_inner(
         materialized_bytes: bytes_limit,
     };
     let mut result = ReaderResult::empty(identity, ReaderReason::NoTemplate);
+    result.count_scope = options.count_scope;
     let mut shared = LanguageWorkspace::new(db)?;
     let compilation = ProgramWorkspace::new(limits, budget);
     let mut evidence = EvidenceWorkspace::default();
@@ -293,7 +350,7 @@ fn evaluate_inner(
     // R7.read's whole path uses R6.candidates with R7's selected normalizer.
     // Its fragment found() function has different plural/function-word rules.
     for level in 0..=1 {
-        let options = CandidateOptions {
+        let candidate_options = CandidateOptions {
             normalization,
             compositional: false,
             level2: level == 1,
@@ -301,7 +358,8 @@ fn evaluate_inner(
             plural: false,
             max_words: reader_limits.max_name_words,
         };
-        let candidates = lexical_workspace.candidates(&options, &lexical_limits, budget)?;
+        let candidates =
+            lexical_workspace.candidates(&candidate_options, &lexical_limits, budget)?;
         let spans: Vec<_> = candidates
             .spans
             .into_iter()
@@ -334,7 +392,7 @@ fn evaluate_inner(
         let normalized = candidates.normalized;
         let mut composition_spans = Vec::new();
         for outer in [false, true] {
-            let options = CandidateOptions {
+            let candidate_options = CandidateOptions {
                 normalization,
                 compositional: true,
                 level2: level == 1,
@@ -342,7 +400,8 @@ fn evaluate_inner(
                 plural: true,
                 max_words: reader_limits.max_name_words,
             };
-            let lexical = lexical_workspace.candidates(&options, &lexical_limits, budget)?;
+            let lexical =
+                lexical_workspace.candidates(&candidate_options, &lexical_limits, budget)?;
             let spans: Vec<_> = lexical
                 .spans
                 .into_iter()
@@ -358,7 +417,7 @@ fn evaluate_inner(
             composition_spans.push(spans);
         }
         let mut unsupported_fragments = 0usize;
-        let composed = crate::composition::match_composed_packed(
+        let composed = crate::composition::match_composed_packed_with_policy(
             db,
             &normalized,
             &composition_spans[0],
@@ -367,7 +426,8 @@ fn evaluate_inner(
             &policy,
             match_limits,
             budget,
-            |fragment| {
+            options.count_scope.is_some(),
+            |fragment, allow_empty| {
                 let Some(compiled) = compilation.compile(fragment, CompileOrigin::Fragment)? else {
                     // A demanded unsupported child vetoes certainty, including
                     // when a learned parent omits its X splice. Keep checking
@@ -381,12 +441,11 @@ fn evaluate_inner(
                     unsupported_fragments += 1;
                     return Ok(false);
                 }
-                // Viability needs one boolean, so no ids, facts or attributes
-                // are fetched. The guard and stage caching are unchanged; with
-                // the fragment's Entities projection an admitted plan has a
-                // nonempty output, so this equals the former `is_some()`.
+                // Scalar staging fetches no ids/facts/attributes. Snapshot
+                // candidates may have empty live output; omitted children use
+                // Strict, and complete readings reapply actual projection rules.
                 Ok(matches!(
-                    crate::query::evaluate_language_packed(
+                    crate::query::evaluate_language_packed_with_policy(
                         db,
                         identity,
                         compiled.as_ref(),
@@ -395,8 +454,13 @@ fn evaluate_inner(
                         budget,
                         &mut shared,
                         crate::query::Demand::Exists,
+                        if allow_empty {
+                            EmptyPolicy::SnapshotFragment
+                        } else {
+                            EmptyPolicy::Strict
+                        },
                     )?,
-                    Some(crate::query::Delivered::Exists(true))
+                    Some(crate::query::Delivered::Exists(_))
                 ))
             },
         )?;
@@ -437,15 +501,15 @@ fn evaluate_inner(
                 result.unsupported_programs += 1;
                 continue;
             };
-            // The language mode examines every entity-producing intermediate,
-            // including dead branches; terminal Count alone permits empties.
+            // Every original entity occurrence remains an obligation. Explicit
+            // snapshot Counts permit empties only in their output ancestry.
             // The common evaluator owns DAG execution, typed values and budgets.
             let execution = if let Some(cached) = compiled.execution.get() {
                 execution_cache_hits += 1;
                 budget.spend(1)?;
                 cached.clone()
             } else {
-                let evaluation = evaluate_language_packed(
+                let evaluation = crate::query::evaluate_language_packed_with_policy(
                     db,
                     identity,
                     compiled.as_ref(),
@@ -454,6 +518,7 @@ fn evaluate_inner(
                     budget,
                     &mut shared,
                     crate::query::Demand::Full,
+                    options.empty_policy(),
                 );
                 budget.check()?;
                 let execution = evaluation?
@@ -756,6 +821,23 @@ impl Image {
         reader_limits: &ReaderLimits,
         budget: &Budget,
     ) -> Result<String> {
+        self.read_whole_with_options_and_budget(
+            tenant,
+            question,
+            reader_limits,
+            &ReaderOptions::default(),
+            budget,
+        )
+    }
+
+    pub fn read_whole_with_options_and_budget(
+        self: &Arc<Self>,
+        tenant: &str,
+        question: &str,
+        reader_limits: &ReaderLimits,
+        options: &ReaderOptions,
+        budget: &Budget,
+    ) -> Result<String> {
         crate::runtime::identifier(tenant)?;
         if self.capabilities.reader.is_none() {
             return Err(Error::Format("image has no learned reader tables".into()));
@@ -763,13 +845,14 @@ impl Image {
         let budget = budget.restricted_to(&self.limits)?;
         budget.check()?;
         let worker = self.acquire(tenant, &budget)?;
-        let outcome = evaluate_whole(
+        let outcome = evaluate_whole_with_options(
             &worker,
             &self.identity,
             question,
             &Selection::default(),
             &self.limits,
             reader_limits,
+            options,
             &budget,
         );
         budget.check()?;

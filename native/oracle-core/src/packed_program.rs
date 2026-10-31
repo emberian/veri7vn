@@ -5,7 +5,7 @@ use crate::grammar;
 use crate::program::{
     lower_operation, validate_operation, Lowered, Operation, ProgramStep, ProgramType,
 };
-use crate::query::{CheckedPlanView, Node, Projection};
+use crate::query::{CheckedPlanView, CheckedStage, CheckedStageId, Node, Projection};
 use crate::{Budget, Error, Limits, Result};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -16,10 +16,14 @@ use std::sync::{Arc, OnceLock};
 
 pub(crate) struct PackedStep<'a> {
     pub function: &'a str,
+    pub spec_key: Option<&'a str>,
     pub inputs: &'a [Value],
     pub dependencies: &'a [usize],
 }
 pub(crate) trait PackedProgramSource: Send + Sync {
+    fn admission_bytes(&self) -> Option<usize> {
+        None
+    }
     fn step_count(&self) -> usize;
     fn visit_steps(&self, visitor: &mut dyn FnMut(PackedStep<'_>) -> Result<()>) -> Result<()>;
 }
@@ -56,6 +60,7 @@ impl PackedProgramSource for FlatSource {
     fn visit_steps(&self, visitor: &mut dyn FnMut(PackedStep<'_>) -> Result<()>) -> Result<()> {
         for step in &self.program {
             visitor(PackedStep {
+                spec_key: None,
                 function: &step.function,
                 inputs: &step.inputs,
                 dependencies: &step.dependencies,
@@ -112,6 +117,24 @@ fn source_bytes_budget(
     limit: usize,
     budget: Option<&Budget>,
 ) -> Result<usize> {
+    if let Some(bytes) = source.source().admission_bytes() {
+        if let Some(budget) = budget {
+            budget.check()?;
+        }
+        if bytes > limit {
+            return Err(Error::Limit("encoded bytes"));
+        }
+        if let Some(budget) = budget {
+            let count = source.step_count();
+            budget.spend(
+                bytes
+                    .saturating_sub(2)
+                    .saturating_sub(count.saturating_sub(1))
+                    .saturating_add(count) as u64,
+            )?;
+        }
+        return Ok(bytes);
+    }
     let mut bytes = 2usize;
     let mut count = 0usize;
     source.visit_steps(&mut |step| {
@@ -163,6 +186,7 @@ pub(crate) struct WorkspaceStats {
     pub fragment_materializations: usize,
     pub resident_roots: usize,
     pub syntax_specs: usize,
+    pub serialized_spec_keys: usize,
     pub validation_failures: usize,
     pub lowered_operations: usize,
     pub root_cache_hits: usize,
@@ -200,6 +224,7 @@ struct EntityOccurrence {
 /// scalar/dead/duplicate occurrence for diagnostics and original byte/step caps.
 pub(crate) struct CheckedProgram {
     pub terminal: Operation,
+    workspace: u64,
     source: OwnedPackedProgram,
     entities: Vec<EntityOccurrence>,
     output: usize,
@@ -238,6 +263,21 @@ fn rebase_node(node: &mut Node, inputs: &[usize]) {
     }
 }
 impl CheckedPlanView for CheckedProgram {
+    fn checked_stage(&self, index: usize) -> Option<CheckedStage<'_>> {
+        let occurrence = &self.entities[index];
+        Some(CheckedStage {
+            id: CheckedStageId {
+                workspace: self.workspace,
+                operation: occurrence.operation.id,
+            },
+            node: occurrence
+                .operation
+                .node
+                .as_ref()
+                .expect("entity occurrence"),
+            dependencies: &occurrence.inputs,
+        })
+    }
     fn node_count(&self) -> usize {
         self.entities.len()
     }
@@ -276,6 +316,7 @@ struct Storage {
     roots: HashMap<Box<[Occurrence]>, RootEntry>,
 }
 pub(crate) struct ProgramWorkspace {
+    identity: u64,
     limits: Limits,
     budget: Budget,
     storage: RefCell<Storage>,
@@ -310,9 +351,11 @@ impl Drop for FragmentMaterializationScope<'_> {
         self.stats.set(stats);
     }
 }
+static NEXT_WORKSPACE: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(1);
 impl ProgramWorkspace {
     pub fn new(limits: &Limits, budget: &Budget) -> Self {
         Self {
+            identity: NEXT_WORKSPACE.fetch_add(1, std::sync::atomic::Ordering::Relaxed),
             limits: limits.clone(),
             budget: budget.clone(),
             storage: RefCell::new(Storage::default()),
@@ -335,8 +378,14 @@ impl ProgramWorkspace {
     fn intern_spec(&self, source: &PackedStep<'_>) -> Result<usize> {
         // This is a content key for one raw operation specification, not a flat
         // program. Exact literal spellings stay distinct even if values agree.
-        let key = serde_json::to_string(&(source.function, source.inputs))?;
-        if let Some(id) = self.storage.borrow().spec_keys.get(&key) {
+        let key = match source.spec_key {
+            Some(key) => Cow::Borrowed(key),
+            None => {
+                self.update(|stats| stats.serialized_spec_keys += 1);
+                Cow::Owned(serde_json::to_string(&(source.function, source.inputs))?)
+            }
+        };
+        if let Some(id) = self.storage.borrow().spec_keys.get(key.as_ref()) {
             return Ok(*id);
         }
         let memory = self
@@ -379,7 +428,7 @@ impl ProgramWorkspace {
             step,
             _memory: memory,
         });
-        storage.spec_keys.insert(key, id);
+        storage.spec_keys.insert(key.into_owned(), id);
         Ok(id)
     }
     pub fn compile(
@@ -589,6 +638,7 @@ impl ProgramWorkspace {
         }
         let last = local.last().expect("nonempty");
         let root = CheckedProgram {
+            workspace: self.identity,
             terminal,
             source: source.owned(),
             entities,

@@ -506,12 +506,18 @@ impl Projection {
 }
 
 struct Meter<'a> {
+    stage_rows: usize,
+    stage_bytes: usize,
     rows: usize,
     bytes: usize,
     limits: &'a Limits,
     budget: &'a Budget,
 }
 impl Meter<'_> {
+    fn inserted(&mut self, rows: usize, bytes: usize) {
+        self.stage_rows = self.stage_rows.saturating_add(rows);
+        self.stage_bytes = self.stage_bytes.saturating_add(bytes.saturating_mul(rows));
+    }
     fn charge(&mut self, bytes: usize) -> Result<()> {
         self.budget.spend(1)?;
         self.rows = self.rows.checked_add(1).ok_or(Error::Limit("rows"))?;
@@ -627,7 +633,33 @@ pub(crate) fn evaluate(
 /// The producer retains original source byte/step admission and validates every
 /// operation/literal before exposing this crate-private view. Interning unique
 /// operations must never replace that occurrence/admission ledger.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub(crate) struct CheckedStageId {
+    pub workspace: u64,
+    pub operation: usize,
+}
+pub(crate) struct CheckedStage<'a> {
+    pub id: CheckedStageId,
+    pub node: &'a Node,
+    pub dependencies: &'a [usize],
+}
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+enum StageKey {
+    Plan(String),
+    Checked(CheckedStageId),
+}
+impl StageKey {
+    fn bytes(&self) -> usize {
+        match self {
+            Self::Plan(key) => key.len(),
+            Self::Checked(_) => std::mem::size_of::<CheckedStageId>(),
+        }
+    }
+}
 pub(crate) trait CheckedPlanView {
+    fn checked_stage(&self, _index: usize) -> Option<CheckedStage<'_>> {
+        None
+    }
     fn node_count(&self) -> usize;
     fn node(&self, index: usize) -> std::borrow::Cow<'_, Node>;
     fn output(&self) -> usize;
@@ -662,7 +694,32 @@ pub(crate) fn evaluate_language_packed(
     shared: &mut LanguageWorkspace,
     demand: Demand,
 ) -> Result<Option<Delivered>> {
-    evaluate_with_mode(
+    evaluate_language_packed_with_policy(
+        db,
+        identity,
+        plan,
+        previous,
+        limits,
+        budget,
+        shared,
+        demand,
+        crate::reader::EmptyPolicy::Existing,
+    )
+}
+
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn evaluate_language_packed_with_policy(
+    db: &Connection,
+    identity: &str,
+    plan: &dyn CheckedPlanView,
+    previous: &Selection,
+    limits: &Limits,
+    budget: &Budget,
+    shared: &mut LanguageWorkspace,
+    demand: Demand,
+    policy: crate::reader::EmptyPolicy,
+) -> Result<Option<Delivered>> {
+    evaluate_with_policy(
         db,
         identity,
         plan,
@@ -672,6 +729,7 @@ pub(crate) fn evaluate_language_packed(
         true,
         Some(shared),
         demand,
+        policy,
     )
 }
 
@@ -718,7 +776,13 @@ pub(crate) fn evaluate_language(
 /// The worker lease clears every scratch table on success, refusal or cancellation.
 #[derive(Default)]
 pub(crate) struct LanguageWorkspace {
-    stages: BTreeMap<String, (usize, bool)>,
+    stages: BTreeMap<StageKey, StageMetadata>,
+    scope: Option<(String, Selection, bool)>,
+    aliases: BTreeMap<(usize, usize), [String; 3]>,
+    checked_hits: usize,
+    canonical_encodings: usize,
+    stage_sql_builds: usize,
+    alias_builds: usize,
     stage_hits: usize,
     column_hits: usize,
     column_rows_decoded: usize,
@@ -727,6 +791,13 @@ pub(crate) struct LanguageWorkspace {
     columns: BTreeMap<(usize, String), AttributeColumn>,
     // Rust stage-key ownership only: SQLite scratch storage is foreign.
     memory: Vec<crate::budget::MemoryReservation>,
+}
+#[derive(Clone, Copy)]
+struct StageMetadata {
+    slot: usize,
+    nonempty: bool,
+    rows: usize,
+    bytes: usize,
 }
 /// A shared typed source column is indexed independently of any one predicate.
 /// Statement positions and qualifiers remain attached to every matching value.
@@ -749,6 +820,60 @@ impl LanguageWorkspace {
             self.columns.len(),
             self.column_hits,
             self.column_rows_decoded,
+        )
+    }
+    pub(crate) fn stage_storage(&self) -> (usize, usize) {
+        self.stages
+            .values()
+            .fold((0usize, 0usize), |(rows, bytes), stage| {
+                (
+                    rows.saturating_add(stage.rows),
+                    bytes.saturating_add(stage.bytes),
+                )
+            })
+    }
+    fn append_aliases(
+        &mut self,
+        ctes: &mut Vec<String>,
+        index: usize,
+        slot: usize,
+        meter: &Meter<'_>,
+    ) -> Result<()> {
+        if !self.aliases.contains_key(&(index, slot)) {
+            let aliases = [
+                format!("n{index}(id) AS (SELECT id FROM temp.oracle_sets WHERE node={slot})"),
+                format!(
+                    "f{index}(subject,predicate,direction,object,qualifiers) AS ({})",
+                    fact_scratch(slot)
+                ),
+                format!(
+                    "a{index}(subject,key,position,value,qualifiers) AS ({})",
+                    attribute_scratch(slot)
+                ),
+            ];
+            self.memory.push(
+                meter.budget.reserve_memory(
+                    aliases
+                        .iter()
+                        .map(String::capacity)
+                        .sum::<usize>()
+                        .saturating_add(128),
+                )?,
+            );
+            self.aliases.insert((index, slot), aliases);
+            self.alias_builds += 1;
+        }
+        ctes.extend(self.aliases[&(index, slot)].iter().cloned());
+        Ok(())
+    }
+    /// Structural work counts: checked hits, canonical encodings, stage SQL
+    /// builds and scratch-alias builds. No elapsed-time inference is made.
+    pub(crate) fn stage_costs(&self) -> (usize, usize, usize, usize) {
+        (
+            self.checked_hits,
+            self.canonical_encodings,
+            self.stage_sql_builds,
+            self.alias_builds,
         )
     }
     fn filter_column(
@@ -830,7 +955,7 @@ impl LanguageWorkspace {
                 for index in indices {
                     let attribute = &column.rows[*index].0;
                     insert_id(db, output, &attribute.subject, meter)?;
-                    insert_attribute(db, output, attribute)?;
+                    insert_attribute(db, output, attribute, meter)?;
                 }
             }
         }
@@ -846,7 +971,7 @@ impl LanguageWorkspace {
                 .spend(attribute.value_json.len() as u64 + predicate.literal.len() as u64 + 1)?;
             if matcher.test_typed(typed)? == Some(true) {
                 insert_id(db, output, &attribute.subject, meter)?;
-                insert_attribute(db, output, attribute)?;
+                insert_attribute(db, output, attribute, meter)?;
             }
             Ok(())
         };
@@ -863,25 +988,19 @@ impl LanguageWorkspace {
     }
     fn retain(
         &mut self,
-        db: &Connection,
-        key: String,
+        _db: &Connection,
+        key: StageKey,
         slot: usize,
         nonempty: bool,
         meter: &Meter<'_>,
     ) -> Result<()> {
-        let (rows,bytes): (i64,i64) = db.query_row(
-            "SELECT sum(n),sum(b) FROM (
-             SELECT count(*) n,coalesce(sum(length(CAST(id AS BLOB))),0) b FROM temp.oracle_sets WHERE node=?1
-             UNION ALL SELECT count(*),coalesce(sum(length(CAST(subject AS BLOB))+length(CAST(predicate AS BLOB))+length(CAST(direction AS BLOB))+length(CAST(object AS BLOB))+length(CAST(qualifiers AS BLOB))),0) FROM temp.oracle_facts WHERE node=?1
-             UNION ALL SELECT count(*),coalesce(sum(length(CAST(subject AS BLOB))+length(CAST(key AS BLOB))+8+length(CAST(value AS BLOB))+length(CAST(qualifiers AS BLOB))),0) FROM temp.oracle_attributes WHERE node=?1)",
-            [slot as i64], |row| Ok((row.get(0)?,row.get(1)?)))?;
-        let rows = usize::try_from(rows).map_err(|_| Error::Limit("language shared rows"))?;
-        let bytes = usize::try_from(bytes).map_err(|_| Error::Limit("language shared bytes"))?;
+        let rows = meter.stage_rows;
+        let bytes = meter.stage_bytes;
         self.retained_rows = self.retained_rows.saturating_add(rows);
         self.retained_bytes = self
             .retained_bytes
             .saturating_add(bytes)
-            .saturating_add(key.len())
+            .saturating_add(key.bytes())
             .saturating_add(64);
         if self.retained_rows > meter.limits.materialized_rows {
             return Err(Error::Limit("language shared rows"));
@@ -889,13 +1008,21 @@ impl LanguageWorkspace {
         if self.retained_bytes > meter.limits.materialized_bytes {
             return Err(Error::Limit("language shared bytes"));
         }
-        meter.budget.spend(key.len() as u64 + 1)?;
+        meter.budget.spend(key.bytes() as u64 + 1)?;
         self.memory.push(
             meter
                 .budget
-                .reserve_memory(key.capacity().saturating_add(128))?,
+                .reserve_memory(key.bytes().saturating_add(128))?,
         );
-        self.stages.insert(key, (slot, nonempty));
+        self.stages.insert(
+            key,
+            StageMetadata {
+                slot,
+                nonempty,
+                rows,
+                bytes,
+            },
+        );
         Ok(())
     }
 }
@@ -1013,7 +1140,58 @@ fn evaluate_with_mode(
     shared: Option<&mut LanguageWorkspace>,
     demand: Demand,
 ) -> Result<Option<Delivered>> {
+    evaluate_with_policy(
+        db,
+        identity,
+        plan,
+        previous,
+        limits,
+        budget,
+        language,
+        shared,
+        demand,
+        crate::reader::EmptyPolicy::Existing,
+    )
+}
+
+#[allow(clippy::too_many_arguments)]
+fn evaluate_with_policy(
+    db: &Connection,
+    identity: &str,
+    plan: &dyn CheckedPlanView,
+    previous: &Selection,
+    limits: &Limits,
+    budget: &Budget,
+    language: bool,
+    mut shared: Option<&mut LanguageWorkspace>,
+    demand: Demand,
+    policy: crate::reader::EmptyPolicy,
+) -> Result<Option<Delivered>> {
+    budget.check()?;
+    if let Some(cache) = shared.as_deref_mut() {
+        match &cache.scope {
+            Some((image, selected, mode))
+                if image != identity || selected != previous || *mode != language =>
+            {
+                return Err(Error::Invalid("language workspace scope changed".into()));
+            }
+            Some(_) => {}
+            None => {
+                cache.memory.push(
+                    budget.reserve_memory(
+                        identity
+                            .len()
+                            .saturating_add(selection_retained_bytes(previous))
+                            .saturating_add(64),
+                    )?,
+                );
+                cache.scope = Some((identity.to_owned(), previous.clone(), language));
+            }
+        }
+    }
     let mut meter = Meter {
+        stage_rows: 0,
+        stage_bytes: 0,
         rows: 0,
         bytes: 0,
         limits,
@@ -1022,7 +1200,9 @@ fn evaluate_with_mode(
     // Ordinary graph execution preserves SQL pushdown and materializes shared
     // subplans. Language admission materializes every stage exactly once so its
     // intermediate-empty guard cannot be bypassed by dead code or a union.
-    let Some(compiled) = compile(db, plan, previous, &mut meter, language, shared)? else {
+    let Some(compiled) =
+        compile_with_policy(db, plan, previous, &mut meter, language, shared, policy)?
+    else {
         return Ok(None);
     };
     // A scalar demand asks SQLite one aggregate over the output stage. In
@@ -1134,9 +1314,33 @@ fn compile(
     previous: &Selection,
     meter: &mut Meter<'_>,
     language: bool,
-    mut shared: Option<&mut LanguageWorkspace>,
+    shared: Option<&mut LanguageWorkspace>,
 ) -> Result<Option<Compiled>> {
-    let refuse_empty = language && !matches!(plan.projection(), Projection::Count);
+    compile_with_policy(
+        db,
+        plan,
+        previous,
+        meter,
+        language,
+        shared,
+        crate::reader::EmptyPolicy::Existing,
+    )
+}
+#[allow(clippy::too_many_arguments)]
+fn compile_with_policy(
+    db: &Connection,
+    plan: &dyn CheckedPlanView,
+    previous: &Selection,
+    meter: &mut Meter<'_>,
+    language: bool,
+    mut shared: Option<&mut LanguageWorkspace>,
+    policy: crate::reader::EmptyPolicy,
+) -> Result<Option<Compiled>> {
+    let refusals = if language {
+        crate::reader::empty_refusals(plan, policy)
+    } else {
+        vec![false; plan.node_count()]
+    };
     let mut ctes = Vec::new();
     let mut parameters = Vec::new();
     let mut live = vec![language; plan.node_count()];
@@ -1160,77 +1364,88 @@ fn compile(
     // CTEs (e.g. repeatedly unioning a result with itself). Keep DAG sharing.
     let mut uses = vec![0usize; plan.node_count()];
     for index in 0..plan.node_count() {
-        let node = plan.node(index);
-        let node = node.as_ref();
         if !live[index] {
             continue;
         }
-        match node {
-            Node::Relate { input, .. }
-            | Node::FilterConcept { input, .. }
-            | Node::FilterAttribute { input, .. }
-            | Node::FilterQualifier { input, .. } => uses[*input] += 1,
-            Node::And { left, right } | Node::Or { left, right } => {
-                uses[*left] += 1;
-                uses[*right] += 1;
+        if let Some(stage) = plan.checked_stage(index) {
+            for &dependency in stage.dependencies {
+                uses[dependency] += 1;
             }
-            _ => {}
+        } else {
+            match plan.node(index).as_ref() {
+                Node::Relate { input, .. }
+                | Node::FilterConcept { input, .. }
+                | Node::FilterAttribute { input, .. }
+                | Node::FilterQualifier { input, .. } => uses[*input] += 1,
+                Node::And { left, right } | Node::Or { left, right } => {
+                    uses[*left] += 1;
+                    uses[*right] += 1;
+                }
+                _ => {}
+            }
         }
     }
     let mut slots = vec![0usize; plan.node_count()];
     for i in 0..plan.node_count() {
-        let node = plan.node(i);
-        let node = node.as_ref();
         if !live[i] {
             continue;
         }
         meter.budget.spend(1)?;
-        let mut canonical = node.clone();
-        match &mut canonical {
-            Node::Relate { input, .. }
-            | Node::FilterConcept { input, .. }
-            | Node::FilterAttribute { input, .. }
-            | Node::FilterQualifier { input, .. } => *input = slots[*input],
-            Node::And { left, right } | Node::Or { left, right } => {
-                *left = slots[*left];
-                *right = slots[*right];
-            }
-            _ => {}
-        }
+        let checked = plan.checked_stage(i);
         let key = if shared.is_some() {
-            Some(serde_json::to_string(&canonical)?)
+            if let Some(stage) = &checked {
+                Some(StageKey::Checked(stage.id))
+            } else {
+                let mut canonical = plan.node(i).into_owned();
+                match &mut canonical {
+                    Node::Relate { input, .. }
+                    | Node::FilterConcept { input, .. }
+                    | Node::FilterAttribute { input, .. }
+                    | Node::FilterQualifier { input, .. } => *input = slots[*input],
+                    Node::And { left, right } | Node::Or { left, right } => {
+                        *left = slots[*left];
+                        *right = slots[*right];
+                    }
+                    _ => {}
+                }
+                let encoded = serde_json::to_string(&canonical)?;
+                meter.budget.spend(encoded.len() as u64 + 1)?;
+                if let Some(cache) = shared.as_deref_mut() {
+                    cache.canonical_encodings += 1;
+                }
+                Some(StageKey::Plan(encoded))
+            }
         } else {
             None
         };
-        if let Some(key) = &key {
-            meter.budget.spend(key.len() as u64 + 1)?;
-        }
-
         let slot = if let Some(cache) = shared.as_deref_mut() {
-            if let Some(&(slot, nonempty)) = cache.stages.get(key.as_ref().expect("shared key")) {
+            if let Some(&StageMetadata { slot, nonempty, .. }) =
+                cache.stages.get(key.as_ref().expect("shared key"))
+            {
                 cache.stage_hits = cache.stage_hits.saturating_add(1);
+                cache.checked_hits += usize::from(checked.is_some());
                 slots[i] = slot;
-                ctes.push(format!(
-                    "n{i}(id) AS (SELECT id FROM temp.oracle_sets WHERE node={slot})"
-                ));
-                ctes.push(format!(
-                    "f{i}(subject,predicate,direction,object,qualifiers) AS ({})",
-                    fact_scratch(slot)
-                ));
-                ctes.push(format!(
-                    "a{i}(subject,key,position,value,qualifiers) AS ({})",
-                    attribute_scratch(slot)
-                ));
-                if refuse_empty && !nonempty {
+                cache.append_aliases(&mut ctes, i, slot, meter)?;
+                if refusals[i] && !nonempty {
                     return Ok(None);
                 }
                 continue;
             }
+            cache.stage_sql_builds += 1;
             cache.stages.len()
         } else {
             i
         };
         slots[i] = slot;
+        meter.stage_rows = 0;
+        meter.stage_bytes = 0;
+        // Checked operations keep semantic dependency IDs internally. Borrow
+        // their literals and use the original occurrence's local dependencies.
+        let node = match &checked {
+            Some(stage) => std::borrow::Cow::Borrowed(stage.node),
+            None => plan.node(i),
+        };
+        let node = node.as_ref();
         let mut bind = |text: String| {
             parameters.push(text);
             format!("?{}", parameters.len())
@@ -1256,6 +1471,9 @@ fn compile(
                 predicate,
                 direction,
             } => {
+                let input = checked
+                    .as_ref()
+                    .map_or(input, |stage| &stage.dependencies[0]);
                 let pred = bind(predicate.clone());
                 let dir = bind(direction.clone());
                 let filter=format!("FROM edges WHERE subject IN (SELECT id FROM n{input}) AND predicate={pred} AND direction={dir}");
@@ -1263,6 +1481,9 @@ fn compile(
                 format!("SELECT DISTINCT object {filter}")
             }
             Node::FilterConcept { input, name } => {
+                let input = checked
+                    .as_ref()
+                    .map_or(input, |stage| &stage.dependencies[0]);
                 let name = bind(name.clone());
                 ctes.push(format!("c{i}(id) AS (SELECT id FROM nodes WHERE kind='concept' AND name={name} UNION SELECT p.child FROM parents p JOIN c{i} ON p.parent=c{i}.id WHERE p.kind='concept')"));
                 // Enumerate membership candidates from the typed adjacency index,
@@ -1274,6 +1495,9 @@ fn compile(
                 key,
                 predicate,
             } => {
+                let input = checked
+                    .as_ref()
+                    .map_or(input, |stage| &stage.dependencies[0]);
                 // Use the attribute key index, then intersect the input set;
                 // exact comparisons run in Rust without float coercion in SQL.
                 if let Some(cache) = shared.as_deref_mut() {
@@ -1292,6 +1516,9 @@ fn compile(
                 key,
                 predicate,
             } => {
+                let input = checked
+                    .as_ref()
+                    .map_or(input, |stage| &stage.dependencies[0]);
                 filter_qualifiers(db, &ctes, &parameters, *input, slot, key, predicate, meter)?;
                 attributes = attribute_scratch(slot);
                 facts = fact_scratch(slot);
@@ -1299,6 +1526,12 @@ fn compile(
                 format!("SELECT id FROM temp.oracle_sets WHERE node={slot}")
             }
             Node::And { left, right } | Node::Or { left, right } => {
+                let left = checked
+                    .as_ref()
+                    .map_or(left, |stage| &stage.dependencies[0]);
+                let right = checked
+                    .as_ref()
+                    .map_or(right, |stage| &stage.dependencies[1]);
                 let op = if matches!(node, Node::And { .. }) {
                     "INTERSECT"
                 } else {
@@ -1330,7 +1563,7 @@ fn compile(
                 attribute_scratch(slot)
             );
             Some(nonempty)
-        } else if already_materialized && (refuse_empty || shared.is_some()) {
+        } else if already_materialized && (refusals[i] || shared.is_some()) {
             meter.budget.spend(1)?;
             Some(db.query_row(
                 "SELECT EXISTS(SELECT 1 FROM temp.oracle_sets WHERE node=?1)",
@@ -1341,6 +1574,8 @@ fn compile(
             None
         };
         if let Some(cache) = shared.as_deref_mut() {
+            ctes.truncate(ctes.len() - 3);
+            cache.append_aliases(&mut ctes, i, slot, meter)?;
             cache.retain(
                 db,
                 key.expect("shared key"),
@@ -1349,7 +1584,7 @@ fn compile(
                 meter,
             )?;
         }
-        if refuse_empty && nonempty == Some(false) {
+        if refusals[i] && nonempty == Some(false) {
             return Ok(None);
         }
     }
@@ -1378,7 +1613,8 @@ fn materialize(
             let id: String = row.get(0)?;
             meter.charge(id.len())?;
             nonempty = true;
-            insert.execute(params![slot as i64, id])?;
+            let inserted = insert.execute(params![slot as i64, id])?;
+            meter.inserted(inserted, id.len());
         }
     }
     {
@@ -1394,7 +1630,7 @@ fn materialize(
                 .map(|i| row.get(i))
                 .collect::<std::result::Result<_, _>>()?;
             meter.charge(fields.iter().map(String::len).sum())?;
-            insert.execute(params![
+            let inserted = insert.execute(params![
                 slot as i64,
                 fields[0],
                 fields[1],
@@ -1402,6 +1638,7 @@ fn materialize(
                 fields[3],
                 fields[4]
             ])?;
+            meter.inserted(inserted, fields.iter().map(String::len).sum());
         }
     }
     {
@@ -1419,7 +1656,7 @@ fn materialize(
                     + attribute.qualifiers_json.len()
                     + 8,
             )?;
-            insert_attribute(db, slot, &attribute)?;
+            insert_attribute(db, slot, &attribute, meter)?;
         }
     }
     Ok(nonempty)
@@ -1453,8 +1690,14 @@ fn attribute_evidence(a: &AttributeFact) -> Result<Value> {
         "qualifiers":serde_json::from_str::<Value>(&a.qualifiers_json)?}),
     )
 }
-fn insert_attribute(db: &Connection, node: usize, a: &AttributeFact) -> Result<()> {
-    db.prepare_cached("INSERT OR IGNORE INTO temp.oracle_attributes VALUES (?1,?2,?3,?4,?5,?6)")?
+fn insert_attribute(
+    db: &Connection,
+    node: usize,
+    a: &AttributeFact,
+    meter: &mut Meter<'_>,
+) -> Result<()> {
+    let inserted = db
+        .prepare_cached("INSERT OR IGNORE INTO temp.oracle_attributes VALUES (?1,?2,?3,?4,?5,?6)")?
         .execute(params![
             node as i64,
             a.subject,
@@ -1463,12 +1706,15 @@ fn insert_attribute(db: &Connection, node: usize, a: &AttributeFact) -> Result<(
             a.value_json,
             a.qualifiers_json
         ])?;
+    meter.inserted(inserted, attribute_bytes(a));
     Ok(())
 }
 fn insert_id(db: &Connection, node: usize, id: &str, meter: &mut Meter<'_>) -> Result<()> {
     meter.charge(id.len())?;
-    db.prepare_cached("INSERT OR IGNORE INTO temp.oracle_sets VALUES (?1,?2)")?
+    let inserted = db
+        .prepare_cached("INSERT OR IGNORE INTO temp.oracle_sets VALUES (?1,?2)")?
         .execute(params![node as i64, id])?;
+    meter.inserted(inserted, id.len());
     Ok(())
 }
 fn filter_attributes(
@@ -1492,7 +1738,7 @@ fn filter_attributes(
         )? == Some(true)
         {
             insert_id(db, node, &attribute.subject, meter)?;
-            insert_attribute(db, node, &attribute)?;
+            insert_attribute(db, node, &attribute, meter)?;
         }
     }
     Ok(())
@@ -1550,7 +1796,7 @@ fn filter_qualifiers(
             meter.charge(fields.iter().map(String::len).sum())?;
             if qualifier_matches(&fields[4], key, &mut predicate, meter.budget)? {
                 insert_id(db, node, &fields[3], meter)?;
-                insert.execute(params![
+                let inserted = insert.execute(params![
                     node as i64,
                     fields[0],
                     fields[1],
@@ -1558,6 +1804,7 @@ fn filter_qualifiers(
                     fields[3],
                     fields[4]
                 ])?;
+                meter.inserted(inserted, fields.iter().map(String::len).sum());
             }
         }
     }
@@ -1577,7 +1824,7 @@ fn filter_qualifiers(
                 meter.budget,
             )? {
                 insert_id(db, node, &attribute.subject, meter)?;
-                insert_attribute(db, node, &attribute)?;
+                insert_attribute(db, node, &attribute, meter)?;
             }
         }
     }
@@ -2240,6 +2487,8 @@ mod language_guard_contract {
             json!({"kind":"entities"}),
         );
         let mut meter = Meter {
+            stage_rows: 0,
+            stage_bytes: 0,
             rows: 0,
             bytes: 0,
             limits: &image.limits,
@@ -2256,6 +2505,8 @@ mod language_guard_contract {
         .unwrap()
         .is_some());
         let mut meter = Meter {
+            stage_rows: 0,
+            stage_bytes: 0,
             rows: 0,
             bytes: 0,
             limits: &image.limits,
@@ -2643,7 +2894,7 @@ mod output_contract {
         demand: Demand,
     ) -> (
         Vec<(String, Option<Delivered>)>,
-        Vec<(String, usize, bool)>,
+        Vec<(StageKey, usize, bool)>,
         (usize, usize),
     ) {
         let budget = Budget::new(&image.limits, Cancellation::default()).unwrap();
@@ -2669,7 +2920,7 @@ mod output_contract {
         let stages = shared
             .stages
             .iter()
-            .map(|(key, &(slot, nonempty))| (key.clone(), slot, nonempty))
+            .map(|(key, stage)| (key.clone(), stage.slot, stage.nonempty))
             .collect();
         (
             outcomes,
