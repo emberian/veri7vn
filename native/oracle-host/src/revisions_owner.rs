@@ -3,7 +3,7 @@
 use oracle_logic::{revisions::*, revisions_owner as domain};
 use oracle_runtime_core::{
     self as core,
-    session::{NativeSessionOwner, SessionBinding},
+    session::{CheckedNativeSessionOwner, NativeSessionOwner, SessionBinding},
 };
 use serde::{Deserialize, Serialize};
 
@@ -92,6 +92,21 @@ impl NativeSessionOwner for EvidenceOwner {
             .map(|_| ())
             .map_err(error)
     }
+    fn validate_with_budget(
+        state: &Self::State,
+        binding: &SessionBinding,
+        _revision: i64,
+        budget: &core::Budget,
+    ) -> core::Result<()> {
+        Workspace::import_with_control(
+            state.clone(),
+            &scope(binding),
+            MAX_RECORDS,
+            budget.execution_context(),
+        )
+        .map(|_| ())
+        .map_err(error)
+    }
     fn transition(
         binding: &SessionBinding,
         _revision: i64,
@@ -102,7 +117,7 @@ impl NativeSessionOwner for EvidenceOwner {
     ) -> core::Result<(Self::State, Self::Reply)> {
         budget.check()?;
         budget.spend(state.as_ref().map_or(1, |s| s.history.len() as u64 + 1))?;
-        let result = domain::revise(
+        let result = domain::revise_with_control(
             &binding.tenant,
             state,
             domain::Mutation {
@@ -110,6 +125,7 @@ impl NativeSessionOwner for EvidenceOwner {
                 revision: command.revision,
             },
             MAX_RECORDS,
+            budget.execution_context(),
         )
         .map_err(error)?;
         budget.check()?;
@@ -136,4 +152,65 @@ pub fn prepare_solve(
         limits,
     )
     .map_err(error)
+}
+
+impl CheckedNativeSessionOwner for EvidenceOwner {
+    type Checked = Workspace;
+    fn restore_checked(
+        state: Self::State,
+        binding: &SessionBinding,
+        _revision: i64,
+        budget: &core::Budget,
+    ) -> core::Result<Workspace> {
+        Workspace::import_with_control(
+            state,
+            &scope(binding),
+            MAX_RECORDS,
+            budget.execution_context(),
+        )
+        .map_err(error)
+    }
+}
+
+/// Receipt from an already checked authenticated read. No history replay.
+pub fn checkpoint_checked(
+    binding: &SessionBinding,
+    workspace: Option<&Workspace>,
+    session_version: i64,
+    expected_revision: u64,
+    expected_snapshot_identity: Option<&str>,
+    budget: &core::Budget,
+) -> core::Result<CheckpointReply> {
+    budget.check()?;
+    let empty;
+    let workspace = match workspace {
+        Some(workspace) => workspace,
+        None => {
+            empty = Workspace::new(scope(binding)).map_err(error)?;
+            &empty
+        }
+    };
+    if workspace.scope() != &scope(binding) {
+        return Err(core::Error::Invalid("checked evidence scope".into()));
+    }
+    let checkpoint =
+        domain::checkpoint_checked(workspace, expected_revision, expected_snapshot_identity)
+            .map_err(error)?;
+    budget.check()?;
+    Ok(CheckpointReply {
+        schema: "oracle-evidence-checkpoint-v1",
+        runtime_identity: binding.image.clone(),
+        session_version,
+        checkpoint,
+    })
+}
+
+/// Prepare from the immutable checked handle while its read reservation lives.
+pub fn prepare_solve_checked(
+    workspace: &Workspace,
+    expected_revision: u64,
+    queries: Vec<String>,
+    limits: &oracle_logic::Limits,
+) -> core::Result<Prepared> {
+    domain::prepare_solve_checked(workspace, expected_revision, queries, limits).map_err(error)
 }

@@ -10,25 +10,25 @@ use std::{
     path::Path,
     sync::{
         atomic::{AtomicBool, Ordering},
-        Mutex,
+        Arc, Mutex,
     },
 };
 
 pub struct Journal {
     db: Mutex<Connection>,
     _owner: Flock<File>,
-    busy: Mutex<HashSet<(String, String)>>,
+    busy: Arc<Mutex<HashSet<(String, String)>>>,
     failed: AtomicBool,
     retained: u64,
     conversations: u64,
 }
-pub struct ConversationLease<'a> {
-    journal: &'a Journal,
+pub struct ConversationLease {
+    busy: Arc<Mutex<HashSet<(String, String)>>>,
     key: (String, String),
 }
-impl Drop for ConversationLease<'_> {
+impl Drop for ConversationLease {
     fn drop(&mut self) {
-        lock(&self.journal.busy).remove(&self.key);
+        lock(&self.busy).remove(&self.key);
     }
 }
 pub(crate) enum EncodedLookup {
@@ -156,6 +156,10 @@ impl Journal {
             )
             .map_err(|e| e.to_string())?;
         }
+        if !conversation_columns.iter().any(|n| n == "poisoned_by") {
+            db.execute_batch("ALTER TABLE conversations ADD COLUMN poisoned_by TEXT")
+                .map_err(|e| e.to_string())?;
+        }
         let tx = db.transaction().map_err(|e| e.to_string())?;
         if previous.is_none() {
             tx.execute("INSERT INTO deployment VALUES(?1)", [identity])
@@ -166,25 +170,15 @@ impl Journal {
             tx.execute("UPDATE deployment SET identity=?1", [identity])
                 .map_err(|e| e.to_string())?;
         }
-        // Persist a final interrupted response even for admitted requests. Never
-        // silently rerun a retained ID after a crash.
-        tx.execute(
-            "UPDATE requests SET result=?1,phase='uncertain' WHERE result IS NULL AND phase='dispatched'",
-            [wire::encode(&crate::failure(
-                "interrupted",
-                json!({"state_may_have_changed":true,"exact_retry_required":true}),
-            ))],
-        )
-        .map_err(|e| e.to_string())?;
-        tx.execute(
-            "UPDATE requests SET result=?1,phase='completed' WHERE result IS NULL AND phase='admitted'",
-            [wire::encode(&crate::failure("interrupted",json!({"state_may_have_changed":false,"executed":false,"exact_retry_required":true})))],
-        ).map_err(|e| e.to_string())?;
+        // Defer classification until retry: covered core completion is the
+        // authority, and may have committed immediately before this host died.
+        tx.execute("UPDATE requests SET phase='recovered_' || phase WHERE result IS NULL AND phase IN ('admitted','dispatched')", [])
+            .map_err(|e| e.to_string())?;
         tx.commit().map_err(|e| e.to_string())?;
         Ok(Self {
             db: Mutex::new(db),
             _owner: owner,
-            busy: Mutex::new(HashSet::new()),
+            busy: Arc::new(Mutex::new(HashSet::new())),
             failed: AtomicBool::new(false),
             retained,
             conversations,
@@ -194,12 +188,15 @@ impl Journal {
         self.failed.store(true, Ordering::Release);
         storage(changed)
     }
-    pub fn lease(&self, tenant: &str, id: &str) -> Result<ConversationLease<'_>, Failure> {
+    pub fn lease(&self, tenant: &str, id: &str) -> Result<ConversationLease, Failure> {
         let key = (tenant.to_owned(), id.to_owned());
         if !lock(&self.busy).insert(key.clone()) {
             return Err(Failure::new(429, "busy", json!({"retryable":true})));
         }
-        Ok(ConversationLease { journal: self, key })
+        Ok(ConversationLease {
+            busy: self.busy.clone(),
+            key,
+        })
     }
     pub fn begin(
         &self,
@@ -225,17 +222,34 @@ impl Journal {
         reply_bytes: usize,
     ) -> Result<EncodedLookup, Failure> {
         let db = lock(&self.db);
-        let row: Option<(Vec<u8>, Option<Vec<u8>>)> = db
+        let row: Option<(Vec<u8>, Option<Vec<u8>>, String)> = db
             .query_row(
-                "SELECT body,result FROM requests WHERE tenant=?1 AND id=?2",
+                "SELECT body,result,phase FROM requests WHERE tenant=?1 AND id=?2",
                 params![tenant, id],
-                |r| Ok((r.get(0)?, r.get(1)?)),
+                |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?)),
             )
             .optional()
             .map_err(|_| self.error(true))?;
-        if let Some((previous, result)) = row {
+        if let Some((previous, mut result, phase)) = row {
             if previous != body {
                 return Err(Failure::plain(409, "request_id_conflict"));
+            }
+            if result.is_none() && phase.starts_with("recovered_") {
+                let dispatched = phase == "recovered_dispatched";
+                let mut interrupted = crate::failure(
+                    "interrupted",
+                    json!({"state_may_have_changed":dispatched,"exact_retry_required":true}),
+                );
+                if !dispatched {
+                    interrupted["executed"] = json!(false);
+                }
+                let bytes = wire::encode(&interrupted);
+                db.execute(
+                    "UPDATE requests SET result=?3,phase='uncertain' WHERE tenant=?1 AND id=?2",
+                    params![tenant, id, &bytes],
+                )
+                .map_err(|_| self.error(dispatched))?;
+                result = Some(bytes);
             }
             let Some(result) = result else {
                 return Err(if self.failed.load(Ordering::Acquire) {
@@ -273,6 +287,46 @@ impl Journal {
         .map_err(|_| self.error(false))?;
         Ok(EncodedLookup::Fresh)
     }
+    /// Read collision/recovery information without classifying an unfinished
+    /// dispatch. Covered callers consult core completion before legacy recovery.
+    pub(crate) fn retained_request(
+        &self,
+        tenant: &str,
+        id: &str,
+    ) -> Result<Option<(Vec<u8>, Option<Vec<u8>>, String)>, Failure> {
+        lock(&self.db)
+            .query_row(
+                "SELECT body,result,phase FROM requests WHERE tenant=?1 AND id=?2",
+                params![tenant, id],
+                |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?)),
+            )
+            .optional()
+            .map_err(|_| self.error(false))
+    }
+
+    /// Core has durably committed the exact reply and checked state. This ledger
+    /// acknowledges dispatch only; it never creates a second successful reply.
+    pub(crate) fn acknowledge_core(
+        &self,
+        tenant: &str,
+        id: &str,
+        conversation: &str,
+    ) -> Result<(), Failure> {
+        let mut db = lock(&self.db);
+        let tx = db.transaction().map_err(|_| self.error(true))?;
+        tx.execute(
+            "UPDATE requests SET phase='core_completed' WHERE tenant=?1 AND id=?2",
+            params![tenant, id],
+        )
+        .map_err(|_| self.error(true))?;
+        tx.execute(
+            "UPDATE conversations SET poisoned=0,poisoned_by=NULL WHERE tenant=?1 AND id=?2 AND poisoned_by=?3",
+            params![tenant, conversation, id],
+        )
+        .map_err(|_| self.error(true))?;
+        tx.commit().map_err(|_| self.error(true))
+    }
+
     pub fn dispatch(&self, tenant: &str, id: &str, conversation: &str) -> Result<(), Failure> {
         let mut db = lock(&self.db);
         let tx = db.transaction().map_err(|_| self.error(false))?;
@@ -301,8 +355,8 @@ impl Journal {
         // Opaque Python may mutate context before returning or raising. Poison
         // before dispatch; only the atomic reply commit below may clear it.
         tx.execute(
-            "UPDATE conversations SET poisoned=1 WHERE tenant=?1 AND id=?2",
-            params![tenant, conversation],
+            "UPDATE conversations SET poisoned=1,poisoned_by=?3 WHERE tenant=?1 AND id=?2",
+            params![tenant, conversation, id],
         )
         .map_err(|_| self.error(false))?;
         tx.execute(
@@ -349,8 +403,8 @@ impl Journal {
         .map_err(|_| self.error(true))?;
         if completed {
             tx.execute(
-                "UPDATE conversations SET poisoned=0 WHERE tenant=?1 AND id=?2",
-                params![tenant, conversation],
+                "UPDATE conversations SET poisoned=0,poisoned_by=NULL WHERE tenant=?1 AND id=?2 AND poisoned_by=?3",
+                params![tenant, conversation, id],
             )
             .map_err(|_| self.error(true))?;
         }
@@ -366,8 +420,8 @@ impl Journal {
         // an explicit preexecution refusal. A racing admitted request cannot.
         if dispatched {
             tx.execute(
-                "UPDATE conversations SET poisoned=0 WHERE tenant=?1 AND id=?2",
-                params![tenant, conversation],
+                "UPDATE conversations SET poisoned=0,poisoned_by=NULL WHERE tenant=?1 AND id=?2 AND poisoned_by=?3",
+                params![tenant, conversation, id],
             )
             .map_err(|_| self.error(false))?;
         }
@@ -407,5 +461,99 @@ impl Journal {
             )
             .map(|_| ())
             .map_err(|_| self.error(true))
+    }
+}
+
+#[cfg(test)]
+mod conversation_recovery_tests {
+    use super::*;
+
+    #[test]
+    fn restart_keeps_dispatch_unclassified_until_authority_is_consulted() {
+        let directory = tempfile::tempdir().unwrap();
+        let path = directory.path().join("journal.sqlite3");
+        let journal = Journal::open(&path, 8, 8, "deployment").unwrap();
+        let raw = br#"{"conversation_id":"c","request_id":"r","text":"hello"}"#;
+        assert!(matches!(
+            journal.begin_encoded("t", "r", raw, 4096).unwrap(),
+            EncodedLookup::Fresh
+        ));
+        journal.dispatch("t", "r", "c").unwrap();
+        drop(journal);
+        let journal = Journal::open(&path, 8, 8, "deployment").unwrap();
+        let (body, result, phase) = journal.retained_request("t", "r").unwrap().unwrap();
+        assert_eq!(body, raw);
+        assert!(
+            result.is_none(),
+            "startup must not override a committed core reply"
+        );
+        assert_eq!(phase, "recovered_dispatched");
+        journal.acknowledge_core("t", "r", "c").unwrap();
+        let (_, result, phase) = journal.retained_request("t", "r").unwrap().unwrap();
+        assert!(result.is_none(), "only core owns successful reply bytes");
+        assert_eq!(phase, "core_completed");
+        assert_ne!(
+            journal.conversation("t", "c").unwrap().unwrap().1,
+            "poisoned"
+        );
+    }
+
+    #[test]
+    fn lease_survives_transfer_and_blocks_other_endpoint_until_worker_cleanup() {
+        let directory = tempfile::tempdir().unwrap();
+        let journal = Journal::open(&directory.path().join("journal"), 8, 8, "deployment").unwrap();
+        let lease = journal.lease("tenant", "conversation").unwrap();
+        assert!(journal.lease("tenant", "conversation").is_err());
+        let (release, wait) = std::sync::mpsc::channel();
+        let worker = std::thread::spawn(move || {
+            let _lease = lease;
+            wait.recv().unwrap();
+        });
+        assert!(journal.lease("tenant", "conversation").is_err());
+        assert!(journal.lease("other-tenant", "conversation").is_ok());
+        release.send(()).unwrap();
+        worker.join().unwrap();
+        assert!(journal.lease("tenant", "conversation").is_ok());
+    }
+
+    #[test]
+    fn old_core_replay_cannot_clear_a_later_uncertain_turn() {
+        let directory = tempfile::tempdir().unwrap();
+        let journal = Journal::open(&directory.path().join("journal"), 8, 8, "deployment").unwrap();
+        journal.begin_encoded("t", "a", b"a", 4096).unwrap();
+        journal.dispatch("t", "a", "c").unwrap();
+        journal.acknowledge_core("t", "a", "c").unwrap();
+        journal.begin_encoded("t", "b", b"b", 4096).unwrap();
+        journal.dispatch("t", "b", "c").unwrap();
+        journal.acknowledge_core("t", "a", "c").unwrap();
+        assert_eq!(
+            journal.conversation("t", "c").unwrap().unwrap().1,
+            "poisoned"
+        );
+        journal.acknowledge_core("t", "b", "c").unwrap();
+        assert_ne!(
+            journal.conversation("t", "c").unwrap().unwrap().1,
+            "poisoned"
+        );
+    }
+
+    #[test]
+    fn legacy_completed_reply_survives_restart_byte_for_byte() {
+        let directory = tempfile::tempdir().unwrap();
+        let path = directory.path().join("journal");
+        let journal = Journal::open(&path, 8, 8, "deployment").unwrap();
+        let raw = b"query identity";
+        journal.begin_encoded("t", "r", raw, 4096).unwrap();
+        let bytes = br#"{ "outcome":"completed", "reply":{"response":"old reply"} }"#;
+        journal.finish_bytes("t", "r", "c", bytes, true).unwrap();
+        drop(journal);
+        let journal = Journal::open(&path, 8, 8, "deployment").unwrap();
+        match journal.begin_encoded("t", "r", raw, 4096).unwrap() {
+            EncodedLookup::Replay(reply) => assert_eq!(reply.body(), bytes),
+            EncodedLookup::Fresh => panic!("completed legacy request was lost"),
+        }
+        assert!(journal
+            .begin_encoded("t", "r", b"invoke identity", 4096)
+            .is_err());
     }
 }

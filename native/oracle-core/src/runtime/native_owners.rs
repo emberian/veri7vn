@@ -1,12 +1,15 @@
 //! Typed owners over the existing durable session/reply transaction.
 use super::*;
-use crate::session::{ExtensionState, NativeOwnerSnapshot, NativeSessionOwner};
+use crate::session::{
+    CheckedNativeSessionOwner, ExtensionState, NativeCheckedOwnerSnapshot, NativeOwnerSnapshot,
+    NativeSessionOwner,
+};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
 pub(super) struct OwnerPolicy {
     version: u32,
-    validate: fn(&serde_json::Value, &SessionBinding, i64) -> Result<()>,
+    validate: fn(&serde_json::Value, &SessionBinding, i64, &Budget) -> Result<()>,
 }
 type EvaluateOwner<'a> = dyn Fn(&SessionEnvelope, &Budget) -> Result<(ExtensionState, String)> + 'a;
 pub(super) struct OwnerEvaluation<'a> {
@@ -26,9 +29,10 @@ fn validate<T: NativeSessionOwner>(
     payload: &serde_json::Value,
     binding: &SessionBinding,
     revision: i64,
+    budget: &Budget,
 ) -> Result<()> {
     let state = T::State::deserialize(payload)?;
-    T::validate(&state, binding, revision)
+    T::validate_with_budget(&state, binding, revision, budget)
 }
 
 impl Runtime {
@@ -63,7 +67,7 @@ impl Runtime {
             .collect()
     }
 
-    fn require_native_owner<T: NativeSessionOwner>(&self) -> Result<()> {
+    pub(super) fn require_native_owner<T: NativeSessionOwner>(&self) -> Result<()> {
         if self
             .native_owners
             .get(T::OWNER)
@@ -83,6 +87,15 @@ impl Runtime {
         envelope: &SessionEnvelope,
         budget: &Budget,
     ) -> Result<()> {
+        self.validate_native_owners_except(envelope, budget, None)
+    }
+
+    fn validate_native_owners_except(
+        &self,
+        envelope: &SessionEnvelope,
+        budget: &Budget,
+        selected: Option<&str>,
+    ) -> Result<()> {
         for (owner, state) in &envelope.native_extensions {
             budget.spend(1 + state.payload_bytes as u64)?;
             let _memory = budget.reserve_memory(state.payload_bytes.saturating_mul(8))?;
@@ -96,7 +109,9 @@ impl Runtime {
             if let Some(release) = &self.release {
                 release.require_schema(owner, state.version)?;
             }
-            (policy.validate)(&state.payload, &envelope.binding, envelope.revision)?;
+            if selected != Some(owner.as_str()) {
+                (policy.validate)(&state.payload, &envelope.binding, envelope.revision, budget)?;
+            }
         }
         Ok(())
     }
@@ -166,7 +181,7 @@ impl Runtime {
                 budget,
             )?;
             budget.check()?;
-            T::validate(&state, &envelope.binding, expected_version + 1)?;
+            T::validate_with_budget(&state, &envelope.binding, expected_version + 1, budget)?;
             let payload = serde_json::to_value(state)?;
             let extension = ExtensionState::new(T::OWNER.into(), T::VERSION, payload)?;
             if extension.payload_bytes > SessionLimits::default().max_extension_bytes {
@@ -270,6 +285,65 @@ impl Runtime {
         budget: &Budget,
     ) -> Result<NativeOwnerSnapshot<T>> {
         self.require_native_owner::<T>()?;
+        let budget = budget.restricted_to(&self.image.limits)?;
+        let budget = &budget;
+        let (envelope, memory) =
+            self.read_native_envelope(tenant, session, expected_version, budget)?;
+        self.validate_native_owners(&envelope, budget)?;
+        let state = envelope
+            .native_extensions
+            .get(T::OWNER)
+            .map(|value| T::State::deserialize(&value.payload))
+            .transpose()?;
+        budget.check()?;
+        Ok(NativeOwnerSnapshot {
+            binding: envelope.binding,
+            revision: envelope.revision,
+            state,
+            _memory: memory,
+        })
+    }
+
+    /// Authenticate storage once and restore the selected domain handle once.
+    /// Other retained owners remain validated; selected schema admission is also
+    /// checked before its controlled restoration. No client snapshot is accepted.
+    pub fn read_checked_native_owner_with_budget<T: CheckedNativeSessionOwner>(
+        &self,
+        tenant: &str,
+        session: &str,
+        expected_version: i64,
+        budget: &Budget,
+    ) -> Result<NativeCheckedOwnerSnapshot<T>> {
+        self.require_native_owner::<T>()?;
+        let budget = budget.restricted_to(&self.image.limits)?;
+        let budget = &budget;
+        let (envelope, memory) =
+            self.read_native_envelope(tenant, session, expected_version, budget)?;
+        self.validate_native_owners_except(&envelope, budget, Some(T::OWNER))?;
+        let state = envelope
+            .native_extensions
+            .get(T::OWNER)
+            .map(|value| {
+                let state = T::State::deserialize(&value.payload)?;
+                T::restore_checked(state, &envelope.binding, envelope.revision, budget)
+            })
+            .transpose()?;
+        budget.check()?;
+        Ok(NativeCheckedOwnerSnapshot {
+            binding: envelope.binding,
+            revision: envelope.revision,
+            state,
+            _memory: memory,
+        })
+    }
+
+    fn read_native_envelope(
+        &self,
+        tenant: &str,
+        session: &str,
+        expected_version: i64,
+        budget: &Budget,
+    ) -> Result<(SessionEnvelope, crate::budget::MemoryReservation)> {
         identifier(tenant)?;
         identifier(session)?;
         if expected_version < 0 {
@@ -285,6 +359,7 @@ impl Runtime {
         };
         let policy = SessionLimits {
             max_bytes: self.image.limits.state_bytes,
+            extension_versions: self.oracle_extensions.clone(),
             native_extension_versions: self.native_owner_versions(),
             ..SessionLimits::default()
         };
@@ -321,19 +396,8 @@ impl Runtime {
                 _ => return Err(Error::Conflict("snapshot identity or revision changed")),
             }
         };
-        self.validate_native_owners(&envelope, &budget)?;
-        let state = envelope
-            .native_extensions
-            .get(T::OWNER)
-            .map(|value| T::State::deserialize(&value.payload))
-            .transpose()?;
         budget.check()?;
-        Ok(NativeOwnerSnapshot {
-            binding,
-            revision: envelope.revision,
-            state,
-            _memory: memory,
-        })
+        Ok((envelope, memory))
     }
 
     pub fn relation_coverage(

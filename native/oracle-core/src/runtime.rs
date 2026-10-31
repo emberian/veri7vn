@@ -1,3 +1,4 @@
+pub mod conversation;
 mod host_effects;
 mod native_owners;
 use crate::query::{encode, evaluate, Selection};
@@ -271,13 +272,16 @@ impl Drop for StateGuard<'_> {
     }
 }
 
-/// Host-internal pure-query runtime. No Python callbacks or external effects run
-/// between snapshot and commit. It is therefore safe to reevaluate an uncommitted
-/// request after a crash. Completed replies and state commit in one transaction.
+/// Shared data and authoritative session/reply storage. Native evaluation is
+/// pure; compiled hosts can also prepare covered conversation candidates outside
+/// the database lock. Opaque Engine dispatch recovery remains the host's duty:
+/// an uncommitted external turn is not automatically safe to reevaluate.
+/// Completed replies and their candidate state commit in one transaction.
 pub struct Runtime {
     pub image: Arc<Image>,
     state: StateStore,
     release: Option<AdmittedRelease>,
+    oracle_extensions: std::collections::BTreeMap<String, u32>,
     native_owners: std::collections::BTreeMap<String, native_owners::OwnerPolicy>,
 }
 
@@ -360,6 +364,23 @@ impl Runtime {
         self.require_operation("reader.whole")?;
         self.image.read_whole_with_budget(tenant, question, budget)
     }
+    /// Explicit source-snapshot counting policy; omission uses legacy reader admission.
+    pub fn read_whole_with_options_and_budget(
+        &self,
+        tenant: &str,
+        question: &str,
+        options: &crate::reader::ReaderOptions,
+        budget: &Budget,
+    ) -> Result<String> {
+        self.require_operation("reader.whole")?;
+        self.image.read_whole_with_options_and_budget(
+            tenant,
+            question,
+            &crate::reader::ReaderLimits::default(),
+            options,
+            budget,
+        )
+    }
     pub(crate) fn require_operation(&self, name: &str) -> Result<()> {
         if let Some(release) = &self.release {
             if release.require_implemented(name)?.version != 1 {
@@ -440,6 +461,7 @@ impl Runtime {
             image,
             state: StateStore::new(db),
             release,
+            oracle_extensions: std::collections::BTreeMap::new(),
             native_owners: std::collections::BTreeMap::new(),
         };
         runtime.register_native_owner::<crate::context_delta::ScalarOwner>()
@@ -869,6 +891,7 @@ impl Runtime {
         let worker = self.image.acquire(tenant, &budget)?;
         let session_policy = SessionLimits {
             max_bytes: limits.state_bytes,
+            extension_versions: self.oracle_extensions.clone(),
             native_extension_versions: self.native_owner_versions(),
             ..Default::default()
         };

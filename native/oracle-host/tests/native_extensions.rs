@@ -67,6 +67,8 @@ fn context_http_retry_tenant_restart_and_pure_image_calls() {
     .unwrap();
     let receipt = oracle_runtime_core::build_image(&source, &image, 1_000_000, 100_000).unwrap();
     let mut config = Config {
+        conversation_profile: None,
+        conversation_entity_namespace: None,
         schema: "oracle-host-v1".into(),
         port: 0,
         limits: HostLimits::default(),

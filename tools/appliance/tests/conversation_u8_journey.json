@@ -1,0 +1,95 @@
+{
+  "status": "authored_acceptance_fixture_not_yet_executed",
+  "protocol": "oracle-conversation-v1",
+  "adapter": "oracle-readonly-context-v1",
+  "tip": "oracle_release_runtime_w574",
+  "appliance_sha256": "97286fb824bb102a24ac9e7458fc8d8426212ad0bff2b585bd00d6e0462d00a5",
+  "entity_namespace_configuration": "wikidata",
+  "steps": [
+    {
+      "q": "Who wrote Hamlet?",
+      "consumer": "manufactured native reader fixture delivers its own typed answer wd:Q692 (William Shakespeare); projection uses returned ID, never label-based linking"
+    },
+    {
+      "q": "Where was he born?",
+      "consumer": "retained delivered typed person ID wd:Q692; actual U8 P19 has exactly one object wd:Q189288",
+      "expected_adapter_path": "chat:resolved>adapter:relation_store"
+    },
+    {
+      "q": "new topic: What is the kinetic energy when the mechanical energy is 30 J and the potential energy is 10 J?",
+      "expected_adapter_path": "organ:physics60>proved",
+      "expected_value": 20,
+      "expected_unit": "J"
+    },
+    {
+      "q": "What does that cost at $0.20 per kWh?",
+      "expected_adapter_path": "adapter:quantity_cost",
+      "expected_unit": "$",
+      "expected_value_tolerance": {
+        "value": 1.1111111111111112e-06,
+        "absolute": 1e-18
+      }
+    },
+    {
+      "q": "got it",
+      "expected_adapter_path": "act:acknowledge",
+      "state_transition": "preserve"
+    },
+    {
+      "action": "retire_worker_generation_or_restart_host",
+      "requirement": "restore committed canonical state, no automatic question replay"
+    },
+    {
+      "q": "multiply that by 2",
+      "expected_adapter_path": "adapter:quantity_scale",
+      "expected_unit": "$",
+      "expected_value_tolerance": {
+        "value": 2.2222222222222225e-06,
+        "absolute": 1e-18
+      }
+    }
+  ],
+  "refutations": [
+    {
+      "q": "2 + 2%",
+      "expect": "unsupported before source arithmetic evaluation"
+    },
+    {
+      "q": "teach me",
+      "expect": "unsupported adapter route; legacy Engine keeps reset/uncertainty boundary"
+    },
+    {
+      "q": "write a file",
+      "expect": "unsupported adapter route"
+    },
+    {
+      "state": "revision above zero with oracle null",
+      "expect": "explicit reset required, never fabricate empty owners"
+    },
+    {
+      "state": "source pin mismatch",
+      "expect": "reject before evaluation"
+    },
+    {
+      "delivered_entity": {
+        "id": "wd:Q81438",
+        "label": "Walt Whitman"
+      },
+      "q": "Where was he born?",
+      "expect": "explicit nonunique birthplace refusal; actual U8 P19 objects wd:Q18438 and wd:Q3461211; neither selected"
+    },
+    {
+      "q": "new topic: 1 / 0",
+      "expected_adapter_path": "adapter:withheld>arithmetic_refused",
+      "state_transition": "preserve complete prior covered owners including precision and pending conversion"
+    },
+    {
+      "q": "divide that by 0",
+      "expected_adapter_path": "adapter:withheld>undefined_quantity_division",
+      "state_transition": "preserve complete prior covered owners"
+    }
+  ],
+  "native_fixture_scope": "Manufactured deterministic tiny native image declares Hamlet author William Shakespeare (wd:Q692). Identity and unique birthplace wd:Q189288 are verified against pinned U8 data; this is not a gold claim about the full reader image.",
+  "semantic_refusal_policy": "Known bounded unsupported or nonunique requests return withheld with context_transition preserve after restoring original committed owners, then real capture. Source-pin, restore, codec and capture failures remain operational worker errors.",
+  "physics_decline_policy": "Pinned grow60.ask kinds form/no_part/no_value/disagree produce semantic withheld with prior-state preservation. None, malformed replies, error/unknown statuses or decline kinds remain operational failures."
+}

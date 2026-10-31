@@ -169,6 +169,35 @@ impl NativeRuntime {
         })
     }
 
+    pub(crate) fn enable_conversation(mut self, wikidata: bool) -> Result<Self, ConfigError> {
+        if wikidata {
+            if let Some(release) = self.runtime.release() {
+                release.require_schema("oracle_wikidata_namespace", 1)
+                    .map_err(|e| err(format!("conversation namespace: {e}")))?;
+            }
+        }
+        let runtime = Arc::try_unwrap(self.runtime)
+            .map_err(|_| err("conversation runtime already shared"))?;
+        self.runtime = Arc::new(
+            runtime
+                .with_oracle_extensions(
+                    [
+                        "runtime_dialogue",
+                        "runtime_an_transition",
+                        "runtime_an_paths",
+                        "runtime_v4_disc",
+                        "oracle_readonly_adapter",
+                        "runtime_an_conversion",
+                    ]
+                    .into_iter()
+                    .map(|owner| (owner.to_owned(), 1))
+                    .collect(),
+                )
+                .map_err(|e| err(format!("native.conversation: {e}")))?,
+        );
+        Ok(self)
+    }
+
     /// Immutable operations admitted at startup; callers cannot widen a release.
     pub fn operations(&self) -> &[&'static str] {
         &self.operations
@@ -203,7 +232,10 @@ impl NativeRuntime {
                         json!({"type": "integer", "minimum": 0, "maximum": (1u64 << 63) - 2}));
                     example["expected_version"] = json!(0);
                 }
-                let required: Vec<&String> = properties.keys().collect();
+                let required: Vec<String> = properties.keys().cloned().collect();
+                if id.starts_with("reader.") {
+                    properties.insert("count_scope".into(),json!({"type":"string","enum":["supplied_snapshot"]}));
+                }
                 let input = json!({"type": "object", "properties": properties, "required": required,
                                    "additionalProperties": false});
                 json!({"id": id, "name": id.replace('.', " "),
@@ -307,14 +339,25 @@ impl NativeRuntime {
             }),
             "graph.query" => runtime.query_with_budget(tenant, input, &budget),
             "kqa.query" => runtime.query_program_with_budget(tenant, input, &budget),
-            "reader.whole" => runtime.read_whole_with_budget(tenant, input, &budget),
+            "reader.whole" => {
+                let options: core::reader::ReaderOptions =
+                    serde_json::from_value(json!({"count_scope":arguments.get("count_scope")}))
+                        .map_err(|_| uncertain("native_refused", 503))?;
+                runtime.read_whole_with_options_and_budget(tenant, input, &options, &budget)
+            }
             "graph.execute" => {
                 runtime.execute_with_budget(tenant, &session, &request, expected, input, &budget)
             }
             "kqa.execute" => runtime
                 .execute_program_with_budget(tenant, &session, &request, expected, input, &budget),
-            _ => runtime
-                .execute_language_with_budget(tenant, &session, &request, expected, input, &budget),
+            _ => {
+                let options: core::reader::ReaderOptions =
+                    serde_json::from_value(json!({"count_scope":arguments.get("count_scope")}))
+                        .map_err(|_| uncertain("native_refused", 503))?;
+                runtime.execute_language_with_options_and_budget(
+                    tenant, &session, &request, expected, input, &options, &budget,
+                )
+            }
         };
         let raw = raw.map_err(|e| match e {
             core::Error::Conflict(_) => Failure::new(
@@ -479,6 +522,23 @@ pub fn manifest_template(
     limits: &core::Limits,
     host_sha256: &str,
 ) -> Result<Value, String> {
+    manifest_template_with_conversation(image_sha256, limits, host_sha256, None, None)
+}
+
+/// Explicit conversation/identifier contracts participate in release identity.
+pub fn manifest_template_with_conversation(
+    image_sha256: &str,
+    limits: &core::Limits,
+    host_sha256: &str,
+    conversation_profile: Option<&str>,
+    entity_namespace: Option<&str>,
+) -> Result<Value, String> {
+    if !matches!(conversation_profile, None | Some("readonly-v1"))
+        || !matches!(entity_namespace, None | Some("wikidata"))
+        || (entity_namespace.is_some() && conversation_profile.is_none())
+    {
+        return Err("unsupported conversation profile or entity namespace".into());
+    }
     let profile = core::release::runtime_profile_sha256(limits).map_err(|e| e.to_string())?;
     let operations: Vec<Value> = OPERATIONS
         .iter()
@@ -496,6 +556,17 @@ pub fn manifest_template(
         json!({"id":"graph","version":1}),
         json!({"id":"kqa_program","version":1}),
     ];
+    if conversation_profile.is_some() {
+        for owner in [
+            "runtime_dialogue", "runtime_an_transition", "runtime_an_paths",
+            "runtime_v4_disc", "oracle_readonly_adapter", "runtime_an_conversion",
+        ] {
+            schemas.push(json!({"id":owner,"version":1}));
+        }
+    }
+    if entity_namespace.is_some() {
+        schemas.push(json!({"id":"oracle_wikidata_namespace","version":1}));
+    }
     #[cfg(feature = "logic")]
     schemas.push(json!({"id":"oracle.logic.revisions","version":1}));
     let manifest = json!({"schema": "oracle-native-release-v1", "runtime_artifact_sha256": host_sha256,
@@ -520,7 +591,7 @@ impl NativeRuntime {
         question: &str,
         context: oracle_execution::ExecutionContext,
     ) -> crate::front::Candidate {
-        use crate::front::{Candidate, Offer};
+        use crate::front::Candidate;
         let route = "native:reader".to_owned();
         let started = std::time::Instant::now();
         let budget = core::Budget::from_execution_context(context);
@@ -532,6 +603,12 @@ impl NativeRuntime {
             Ok(raw) => raw,
             Err(error) => return Candidate::unavailable(route, 0, &error.to_string(), ms),
         };
+        self.reader_candidate(&raw, ms)
+    }
+
+    pub(crate) fn reader_candidate(&self, raw: &str, ms: f64) -> crate::front::Candidate {
+        use crate::front::{Candidate, Offer};
+        let route = "native:reader".to_owned();
         let Ok(result) = wire::parse(raw.as_bytes()) else {
             return Candidate::unavailable(route, 0, "reader reply is not strict JSON", ms);
         };
@@ -762,15 +839,15 @@ impl NativeRuntime {
                 )?;
                 let snapshot = self
                     .runtime
-                    .read_native_owner_with_budget::<crate::revisions_owner::EvidenceOwner>(
+                    .read_checked_native_owner_with_budget::<crate::revisions_owner::EvidenceOwner>(
                         tenant, session, expected, budget,
                     )?;
-                let checkpoint = crate::revisions_owner::checkpoint(
+                let checkpoint = crate::revisions_owner::checkpoint_checked(
                     snapshot.binding(),
-                    snapshot.state().cloned(),
+                    snapshot.state(),
                     snapshot.revision(),
                     expected_revision,
-                    expected_snapshot_identity,
+                    expected_snapshot_identity.as_deref(),
                     budget,
                 )?;
                 bounded_encode(&checkpoint, self.runtime.image.limits.result_bytes)
@@ -792,16 +869,14 @@ impl NativeRuntime {
                 )?;
                 let snapshot = self
                     .runtime
-                    .read_native_owner_with_budget::<crate::revisions_owner::EvidenceOwner>(
+                    .read_checked_native_owner_with_budget::<crate::revisions_owner::EvidenceOwner>(
                         tenant, session, expected, budget,
                     )?;
                 let state = snapshot
                     .state()
-                    .cloned()
                     .ok_or_else(|| core::Error::Invalid("evidence workspace absent".into()))?;
                 let limits = oracle_logic::Limits::default();
-                let prepared = crate::revisions_owner::prepare_solve(
-                    snapshot.binding(),
+                let prepared = crate::revisions_owner::prepare_solve_checked(
                     state,
                     expected_revision,
                     queries,
@@ -882,4 +957,101 @@ fn bounded_encode(value: &impl serde::Serialize, limit: usize) -> core::Result<S
     }
     result?;
     String::from_utf8(writer.bytes).map_err(|_| core::Error::Invalid("native JSON encoding".into()))
+}
+
+/// Errors before conversation commit cannot have changed durable core state.
+pub(crate) fn conversation_failure(error: core::Error) -> Failure {
+    let (status, code) = match error {
+        core::Error::Conflict(_) => (409, "request_or_revision_conflict"),
+        core::Error::Busy => (429, "runtime_busy"),
+        core::Error::Cancelled | core::Error::Deadline => (503, "runtime_budget"),
+        core::Error::Limit(_) => (413, "conversation_limit"),
+        _ => (503, "conversation_unavailable"),
+    };
+    Failure::new(
+        status,
+        code,
+        json!({"state_may_have_changed":false,"retryable":status==429}),
+    )
+}
+
+impl NativeRuntime {
+    pub(crate) fn propose_invocation(
+        &self,
+        candidate: &mut core::conversation::ConversationCandidate,
+        id: &str,
+        arguments: &Value,
+        budget: &core::Budget,
+    ) -> Result<Value, Failure> {
+        let expected = candidate.revision();
+        let (_, field, _) =
+            operation(id).ok_or_else(|| Failure::plain(404, "unknown_operation"))?;
+        let input = arguments[field].as_str().unwrap_or("");
+        let raw = match id {
+            "context.execute" => serde_json::from_value(arguments[field].clone())
+                .map_err(core::Error::from)
+                .and_then(|command| {
+                    self.runtime
+                        .conversation_execute_owner::<core::context_delta::ScalarOwner>(
+                            candidate, command, budget,
+                        )
+                }),
+            #[cfg(feature = "logic")]
+            "logic.workspace" => {
+                let command: oracle_logic::revisions_owner::Command =
+                    serde_json::from_value(arguments[field].clone())
+                        .map_err(core::Error::from)
+                        .map_err(conversation_failure)?;
+                match command {
+                    oracle_logic::revisions_owner::Command::Revise { revision } => {
+                        self.runtime
+                            .conversation_execute_owner::<crate::revisions_owner::EvidenceOwner>(
+                                candidate,
+                                crate::revisions_owner::MutationCommand { revision },
+                                budget,
+                            )
+                    }
+                    _ => Err(core::Error::Invalid(
+                        "workspace command does not match operation".into(),
+                    )),
+                }
+            }
+            "graph.execute" => self.runtime.conversation_execute(
+                candidate,
+                core::RequestDialect::Graph,
+                input,
+                budget,
+            ),
+            "kqa.execute" => self.runtime.conversation_execute(
+                candidate,
+                core::RequestDialect::KqaProgram,
+                input,
+                budget,
+            ),
+            "reader.execute" => {
+                let options: core::reader::ReaderOptions =
+                    serde_json::from_value(json!({"count_scope":arguments.get("count_scope")}))
+                        .map_err(|_| Failure::plain(400, "invalid_reader_options"))?;
+                self.runtime.conversation_execute_with_reader_options(
+                    candidate,
+                    core::RequestDialect::Language,
+                    input,
+                    &options,
+                    budget,
+                )
+            }
+            _ => Err(core::Error::Invalid(
+                "unsupported conversation operation".into(),
+            )),
+        }
+        .map_err(conversation_failure)?;
+        if id=="context.execute" {
+            self.project_extension(id,true,expected,raw)
+        } else if id=="logic.workspace" {
+            return Ok(json!({"status":"answered","operation_id":id,"authority":"supplied_evidence",
+                "stateful":true,"runtime_identity":self.identity(),"resource_identity":self.resource_identity,
+                "core_reply_json":raw,"version":expected+1}));
+        } else { self.project(id,true,expected,raw) }
+        .map_err(|_|Failure::plain(502,"native_adapter_invalid_reply"))
+    }
 }

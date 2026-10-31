@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Untrusted legacy Engine worker; process ownership is the isolation boundary.
 
-Operator supplies immutable --checkout and private --state. No state export is
-claimed: a new worker generation must start with an empty state directory.
+Operator supplies immutable --checkout and private --state. Versioned read-only owner export is opt-in; unsupported work retains whole-process
+isolation. A new worker generation must start with an empty state directory.
 JSON lines stdout: one protocol ready record, then replies bearing request ids.
 Code below preserves reference answerer composition semantics; it is not proof.
 """
@@ -19,6 +19,7 @@ from pathlib import Path
 
 UPSTREAM = None
 MAX_REQUEST_BYTES = 1024 * 1024
+_CONVERSATION_ADAPTER = None
 
 # the gate measures the core with a fixed hash seed (oracle7.py re-execs only when it is __main__ itself)
 if os.environ.get("PYTHONHASHSEED") != "0" or os.environ.get("PYTHONDONTWRITEBYTECODE") != "1":
@@ -281,7 +282,10 @@ def main():
             req = json.loads(line)
             rid, q, sess = req.get("id"), str(req.get("q", "")), str(req.get("session", "default"))
             try:
-                out = answer(eng, sp, fillable if sp else None, q, sess, a.alone)
+                if "conversation" in req:
+                    out = conversation_answer(eng, sp, fillable if sp else None, q, sess, a.alone, req["conversation"])
+                else:
+                    out = answer(eng, sp, fillable if sp else None, q, sess, a.alone)
             except Exception as e:  # noqa: BLE001 - the harness records it and scores the item as withheld
                 out = {"error": "%s: %s" % (type(e).__name__, e), "response": "", "path": ""}
             out["runtime_readiness"] = runtime_readiness(eng)
@@ -402,6 +406,47 @@ def redirect_self_loop(dst):
     return moved
 
 
+def conversation_answer(eng, sp, fillable, q, sess, alone, request):
+    """Restore/evaluate/capture in one executor loan; no automatic retry.
+
+    Specialist composition has independent owners and is explicitly uncovered.
+    A failed capture propagates as worker error; host retires this generation.
+    """
+    if alone or sp is not None or eng is None:
+        raise ValueError("conversation_owner_coverage_missing: specialist")
+    global _CONVERSATION_ADAPTER
+    if _CONVERSATION_ADAPTER is None:
+        _CONVERSATION_ADAPTER = _load("_oracle_admitted_conversation_adapter",
+                                     Path(__file__).resolve().with_name("conversation_adapter.py"))
+    Adapter, protocol = _CONVERSATION_ADAPTER.Adapter, _CONVERSATION_ADAPTER.PROTOCOL
+    if type(request) is not dict or request.get("protocol") != protocol:
+        raise ValueError("conversation_protocol")
+    def turn():
+        adapter = Adapter(eng._rt, eng.tip)
+        adapter.restore(sess, request.get("state"))
+        if request.get("op", "evaluate") == "project":
+            result = dict(request["delivered"])
+            adapter.project(sess, result)
+        elif request.get("op", "evaluate") == "evaluate":
+            try:
+                result = adapter.evaluate(sess, q)
+            except _CONVERSATION_ADAPTER.SemanticWithheld as error:
+                # evaluate's finally has already released the module-global
+                # context loan. Restore committed owners on this same executor;
+                # a failed restore remains an operational worker error.
+                adapter.restore(sess, request.get("state"))
+                result = {"status": "withheld", "response": error.response,
+                          "path": "adapter:withheld>" + error.reason,
+                          "provenance": {"kind": "semantic_withheld", "reason": error.reason,
+                                         "context_transition": "preserve"}}
+            result["provenance"] = {**(result.get("provenance") or {}), "tip": eng.tip}
+        else:
+            raise ValueError("conversation_protocol_operation")
+        result["conversation"] = adapter.capture(sess)
+        return result
+    return eng._ex.submit(turn).result()
+
+
 def answer(eng, sp, fillable, q, sess, alone):
     if alone:
         t0 = time.perf_counter()
@@ -414,12 +459,12 @@ def answer(eng, sp, fillable, q, sess, alone):
     r = eng.chat(q, session_id=sess)
     head = {"status": r.get("status"), "response": r.get("response", ""), "path": r.get("path", "")}
     out = {"status": r.get("status"), "response": r.get("response", ""), "path": r.get("path", ""),
-           "provenance": {"tip": eng.tip}}
+           "provenance": {**(r.get("provenance") or {}), "tip": eng.tip}}
     if r.get("references"):
         out["references"] = r.get("references")
     if sp is None:
         return out
-    prov = {"tip": eng.tip, "head": head, "consulted": False, "specialist_ms": None}
+    prov = {**(r.get("provenance") or {}), "tip": eng.tip, "head": head, "consulted": False, "specialist_ms": None}
     out["provenance"] = prov
     if isinstance(sp, FrontComposed):
         prov["compose"] = "combo" if sp.parts else "front"

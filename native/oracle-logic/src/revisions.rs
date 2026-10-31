@@ -369,6 +369,10 @@ impl Workspace {
         }
         Ok(w)
     }
+    /// Authenticated scope retained by checked restoration.
+    pub fn scope(&self) -> &ScopeKey {
+        &self.initial
+    }
     pub fn history(&self) -> &[Revision] {
         &self.history
     }

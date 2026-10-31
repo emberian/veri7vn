@@ -57,6 +57,10 @@ pub enum NumericOrigin {
     ExactDecimal,
     /// Decimal spelling of an already rounded Python float, not source precision.
     PythonFloat,
+    /// Delivered decimal token from a provider whose rounding/precision is not
+    /// declared. Arithmetic may use its numerical value but cannot upgrade it
+    /// into exact source data or claim a Python floating-point origin.
+    DisplayedDecimal,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -182,6 +186,16 @@ pub trait NativeSessionOwner {
     type Command: Serialize + serde::de::DeserializeOwned;
     type Reply: Serialize;
     fn validate(state: &Self::State, binding: &SessionBinding, revision: i64) -> Result<()>;
+    fn validate_with_budget(
+        state: &Self::State,
+        binding: &SessionBinding,
+        revision: i64,
+        budget: &crate::Budget,
+    ) -> Result<()> {
+        budget.check()?;
+        Self::validate(state, binding, revision)?;
+        budget.check()
+    }
     fn transition(
         binding: &SessionBinding,
         revision: i64,
@@ -190,6 +204,35 @@ pub trait NativeSessionOwner {
         command: Self::Command,
         budget: &crate::Budget,
     ) -> Result<(Self::State, Self::Reply)>;
+}
+
+/// Restore a retained owner once into a checked domain handle under inherited control.
+pub trait CheckedNativeSessionOwner: NativeSessionOwner {
+    type Checked;
+    fn restore_checked(
+        state: Self::State,
+        binding: &SessionBinding,
+        revision: i64,
+        budget: &crate::Budget,
+    ) -> Result<Self::Checked>;
+}
+
+pub struct NativeCheckedOwnerSnapshot<T: CheckedNativeSessionOwner> {
+    pub(crate) binding: SessionBinding,
+    pub(crate) revision: i64,
+    pub(crate) state: Option<T::Checked>,
+    pub(crate) _memory: crate::budget::MemoryReservation,
+}
+impl<T: CheckedNativeSessionOwner> NativeCheckedOwnerSnapshot<T> {
+    pub fn binding(&self) -> &SessionBinding {
+        &self.binding
+    }
+    pub fn revision(&self) -> i64 {
+        self.revision
+    }
+    pub fn state(&self) -> Option<&T::Checked> {
+        self.state.as_ref()
+    }
 }
 
 /// Immutable checked read; the reservation lives as long as the typed snapshot.

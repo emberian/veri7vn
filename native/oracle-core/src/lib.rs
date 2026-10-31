@@ -5,23 +5,23 @@
 pub mod admission;
 pub mod batch;
 pub mod binding_proposal;
+mod budget;
+pub mod composition;
 pub mod context_delta;
 pub mod coverage;
-pub mod composition;
-mod budget;
 pub mod effects;
 pub mod grammar;
 mod image;
 pub mod kernel;
 pub mod lexicon;
-pub mod program;
 pub(crate) mod packed_program;
+pub mod program;
 mod query;
 pub mod reader;
 pub mod release;
 mod runtime;
-pub mod session;
 mod segments;
+pub mod session;
 pub mod value;
 
 pub use budget::{Budget, Cancellation, Limits};
@@ -39,6 +39,7 @@ pub use query::{
     AttributeFact, Node, Plan, Projection, QualifierCondition, QueryResult, SelectionOrder,
     ValuePredicate,
 };
+pub use runtime::conversation;
 pub use runtime::{Execution, HostEffects, LanguageExecution, RequestDialect, Runtime};
 
 pub type Result<T> = std::result::Result<T, Error>;

@@ -40,11 +40,15 @@ fn main() {
                 None => oracle_runtime_core::Limits::default(),
             };
             let host = oracle_host::host_binary_sha256().unwrap_or_else(|e| fail(e));
-            let template = native::manifest_template(&image, &limits, &host).unwrap_or_else(|e| fail(e));
+            let profile = option(&args, "--conversation-profile");
+            let namespace = option(&args, "--conversation-entity-namespace");
+            let template = native::manifest_template_with_conversation(
+                &image, &limits, &host, profile.as_deref(), namespace.as_deref(),
+            ).unwrap_or_else(|e| fail(e));
             println!("{}", String::from_utf8(wire::encode(&template)).expect("utf-8"));
         }
         Some("--config") => serve(args.get(1).unwrap_or_else(|| fail("--config needs a path"))),
-        _ => fail("usage: oracle-host --config PATH | catalogs | manifest --image-sha256 HEX [--core-limits JSON]"),
+        _ => fail("usage: oracle-host --config PATH | catalogs | manifest --image-sha256 HEX [--core-limits JSON] [--conversation-profile readonly-v1] [--conversation-entity-namespace wikidata]"),
     }
 }
 

@@ -149,3 +149,44 @@ pub fn solve(
         support_templates: prepared.supports().to_vec(),
     })
 }
+
+/// Restore once under inherited work control, then revise atomically in memory.
+/// The host persists the returned payload and acknowledgement together.
+pub fn revise_with_control(
+    tenant: &str,
+    previous: Option<StoredWorkspace>,
+    command: Mutation,
+    max_records: usize,
+    control: &dyn oracle_execution::WorkControl,
+) -> Result<(StoredWorkspace, MutationReply), Error> {
+    crate::revisions::restore_checkpoint(control, 0)?;
+    let scope = ScopeKey {
+        tenant: tenant.into(),
+        workspace: command.workspace,
+    };
+    let mut workspace = match previous {
+        Some(state) => Workspace::import_with_control(state, &scope, max_records, control)?,
+        None => Workspace::new(scope.clone())?,
+    };
+    crate::revisions::restore_checkpoint(
+        control,
+        1 + command.revision.insert.len() as u64 + command.revision.withdraw.len() as u64,
+    )?;
+    let commit = workspace.apply(command.revision, max_records)?;
+    crate::revisions::restore_checkpoint(control, 0)?;
+    Ok((workspace.export(), MutationReply { scope, commit }))
+}
+
+/// No durable admission or replay: callers retain the authenticated checked handle.
+pub fn prepare_solve_checked(
+    workspace: &Workspace,
+    expected_revision: u64,
+    queries: Vec<String>,
+    limits: &Limits,
+) -> Result<Prepared, Error> {
+    let snapshot = workspace.snapshot();
+    if snapshot.revision() != expected_revision {
+        return Err(Error::Invalid("stale evidence solve revision"));
+    }
+    snapshot.prepare(queries, limits)
+}

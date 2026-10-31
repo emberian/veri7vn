@@ -13,7 +13,12 @@ use crate::pure::{CheckedPureReply, Pure};
 use crate::wire;
 use crate::workers::InvocationWorkers;
 use crate::{failure, Failure};
+use core::conversation::{
+    ConversationBegin, ConversationCandidate, ConversationHttpReply, ConversationInput,
+    ConversationRequest,
+};
 use oracle_execution::{Cancellation, ExecutionContext};
+use oracle_runtime_core as core;
 use serde::Serialize;
 use serde_json::{json, Value};
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -50,6 +55,8 @@ pub struct Service {
     pub host_sha256: String,
     boot: String,
     providers: Vec<Value>,
+    conversation_profile: bool,
+    conversation_wikidata: bool,
 }
 
 pub fn identifier(text: &str) -> bool {
@@ -118,6 +125,33 @@ impl Service {
                 .duration_since(std::time::UNIX_EPOCH)
                 .map_or(0, |d| d.as_nanos())
         );
+        let conversation_profile = match config.conversation_profile.as_deref() {
+            None => false,
+            Some("readonly-v1") if config.native.is_some() => true,
+            Some("readonly-v1") => {
+                return Err(config::err("conversation_profile requires native state"))
+            }
+            Some(_) => return Err(config::err("unsupported conversation_profile")),
+        };
+        if conversation_profile
+            && config
+                .engine
+                .as_ref()
+                .is_some_and(|engine| engine.conversation_adapter.is_none())
+        {
+            return Err(config::err(
+                "readonly-v1 Engine requires an admitted conversation_adapter",
+            ));
+        }
+        let conversation_wikidata = match config.conversation_entity_namespace.as_deref() {
+            None => false,
+            Some("wikidata") if conversation_profile => true,
+            _ => {
+                return Err(config::err(
+                    "conversation_entity_namespace requires readonly-v1 and must be wikidata",
+                ))
+            }
+        };
         let limits = config.limits.clone();
         let journal = Journal::open(
             &config.journal,
@@ -136,6 +170,11 @@ impl Service {
                     &host_sha256,
                     config.pure.as_ref().is_some_and(|p| p.solver.is_some()),
                 )?;
+                let runtime = if conversation_profile {
+                    runtime.enable_conversation(conversation_wikidata)?
+                } else {
+                    runtime
+                };
                 for declaration in runtime.declarations(&host_identity) {
                     registry
                         .add(&declaration, Route::Runtime)
@@ -203,6 +242,8 @@ impl Service {
             host_sha256,
             boot,
             providers,
+            conversation_profile,
+            conversation_wikidata,
         }))
     }
 
@@ -249,7 +290,7 @@ impl Service {
         let body = json!({"ready": ready, "backend": "oracle_host", "capacity": self.limits.capacity,
             "busy": self.admission.active(), "tenant_capacity": self.limits.tenant_capacity.unwrap_or(self.limits.capacity),
             "query_queue": 0,
-            "durable_replay": true, "query_journal": "exact retained request replay; Engine context is not persisted",
+            "durable_replay": true, "query_journal": if self.conversation_profile { "core-authoritative exact HTTP replay and admitted read-only owner snapshots" } else { "exact retained request replay; Engine context is not persisted" },
             "engine": self.engine.as_ref().map(EnginePool::health)});
         (if ready { 200 } else { 503 }, body)
     }
@@ -266,10 +307,11 @@ impl Service {
                 "agreement": {"text": "trimmed lowercase equality", "number": "within 0.5 percent with an identical explicit unit"}},
             "scope": "operator-admitted native operations, resident organs and a contained Engine; host-assigned tenant admission",
             "durable_conversations": !stateful.is_empty(), "durable_replay": true,
-            "query_journal": {"durable_replay": true, "engine_context_persisted": false,
-                "engine_conversation_recovery": "fresh conversation required after worker loss, eviction, uncertainty or host restart; exact retained requests replay"},
+            "conversation_profile": if self.conversation_profile {json!({"id":"readonly-v1","state_authority":"core session and exact HTTP reply transaction","entity_namespace":if self.conversation_wikidata {"operator-declared Wikidata: KQA Q identifiers map to wd:Q identifiers"}else{"cross-provider entity projection unsupported; no namespace admitted"},"coverage":"adapter-declared read-only entity, quantity, pending conversion and dialogue owners only","native_invocation_owners":"native selection/scalar/evidence; no implicit Python context consumption","refusal_transition":"delivered query refusals advance session revision while retaining native selection","opaque_failure":"uncertain dispatch requires reset; exact retained requests replay"})}else{Value::Null},
+            "query_journal": {"durable_replay": true, "engine_context_persisted": self.conversation_profile,
+                "engine_conversation_recovery": if self.conversation_profile { "restore only admitted covered snapshots; uncovered legacy Engine conversations require reset" } else { "fresh conversation required after worker loss, eviction, uncertainty or host restart; exact retained requests replay" }},
             "durable_operations": stateful,
-            "request_id_semantics": "/query: exact retry from the host journal; stateful native turns: exact core reply replay; pure calls: correlation only",
+            "request_id_semantics": if self.conversation_profile { "/query and stateful /invoke share endpoint-tagged request IDs and core revisions; exact completed HTTP bytes replay; legacy host replies retained, cross-journal collisions conflict; pure calls correlation only" } else { "/query: exact retry from the host journal; stateful native turns: exact core reply replay; pure calls: correlation only" },
             "tenant_header_authentication": false, "mini_qualified": false, "query_queue": 0,
             "limits": {"request_bytes": self.limits.request_bytes, "reply_bytes": self.limits.reply_bytes,
                        "capacity": self.limits.capacity, "tenant_capacity": self.limits.tenant_capacity.unwrap_or(self.limits.capacity),
@@ -309,6 +351,20 @@ impl Service {
     }
 
     pub fn invoke_encoded(self: &Arc<Self>, tenant: &str, raw: &[u8]) -> wire::EncodedReply {
+        if self.conversation_profile {
+            if let Ok(request) = envelope(raw, "/invoke", self.limits.request_bytes) {
+                if self
+                    .native
+                    .as_ref()
+                    .is_some_and(|n| n.is_stateful(request["operation_id"].as_str().unwrap_or("")))
+                {
+                    return match self.covered_invoke(tenant, raw, &request) {
+                        Ok(reply) => reply,
+                        Err(f) => self.encode_response(f.status, &f.body),
+                    };
+                }
+            }
+        }
         match self.invoke_body(tenant, raw) {
             Ok(body) => {
                 let stateful = body.durable_replay;
@@ -343,6 +399,14 @@ impl Service {
         let route = self.registry.check_arguments(&id, &request["arguments"])?;
         let stateful = matches!(route, Route::Runtime)
             && self.native.as_ref().is_some_and(|n| n.is_stateful(&id));
+        let conversation_lease = if stateful {
+            Some(
+                self.journal
+                    .lease(tenant, request["conversation_id"].as_str().unwrap_or(""))?,
+            )
+        } else {
+            None
+        };
         let permit = self.acquire(tenant).ok_or_else(|| Failure::new(429, "pool_busy",
             json!({"retryable": true, "state_may_have_changed": false, "exact_retry_required": false})))?;
         let (sender, receiver) = mpsc::channel();
@@ -356,6 +420,7 @@ impl Service {
             let id = id.clone();
             if !self.invocations.try_submit(move || {
                 let _permit = permit;
+                let _conversation_lease = conversation_lease;
                 let arguments = &request["arguments"];
                 let result = match route {
                     Route::Runtime => native
@@ -444,6 +509,12 @@ impl Service {
     }
 
     pub fn query_encoded(&self, tenant: &str, raw: &[u8]) -> wire::EncodedReply {
+        if self.conversation_profile {
+            return match self.covered_query(tenant, raw) {
+                Ok(reply) => reply,
+                Err(f) => self.encode_response(f.status, &f.body),
+            };
+        }
         let request = match envelope(raw, "/query", self.limits.request_bytes) {
             Ok(r) => r,
             Err(f) => return self.encode_response(f.status, &f.body),
@@ -735,6 +806,221 @@ impl Service {
     }
 }
 
+fn retained_core(reply: ConversationHttpReply) -> wire::EncodedReply {
+    wire::EncodedReply::retained(reply.status, reply.body)
+}
+
+impl Service {
+    fn conversation_identity(
+        &self,
+        request: &Value,
+        endpoint: &str,
+        raw: &[u8],
+    ) -> (String, String, ConversationRequest) {
+        let operation = if endpoint == "/query" {
+            "query"
+        } else {
+            request["operation_id"].as_str().unwrap_or("")
+        };
+        let input = if endpoint == "/query" {
+            ConversationInput::ExactBytes(raw.to_vec())
+        } else if request["arguments"].get("count_scope").is_some() {
+            ConversationInput::Typed(request["arguments"].clone())
+        } else if request["arguments"].get("command").is_some() {
+            ConversationInput::Typed(request["arguments"]["command"].clone())
+        } else {
+            let field = if operation == "graph.execute" {
+                "plan_json"
+            } else if operation == "kqa.execute" {
+                "program_json"
+            } else {
+                "question"
+            };
+            ConversationInput::ExactBytes(
+                request["arguments"][field]
+                    .as_str()
+                    .unwrap_or("")
+                    .as_bytes()
+                    .to_vec(),
+            )
+        };
+        (
+            crate::native::core_id("session", request["conversation_id"].as_str().unwrap_or(""))
+                .expect("validated conversation"),
+            crate::native::core_id("request", request["request_id"].as_str().unwrap_or(""))
+                .expect("validated request"),
+            ConversationRequest {
+                endpoint: endpoint.into(),
+                operation: operation.into(),
+                expected_version: if endpoint == "/query" {
+                    None
+                } else {
+                    request["arguments"]["expected_version"].as_i64()
+                },
+                input,
+            },
+        )
+    }
+
+    /// HTTP serialization is admitted before the only successful durable write.
+    /// On an unknown commit outcome, completion takes precedence over uncertainty.
+    fn commit_covered(
+        &self,
+        tenant: &str,
+        session: &str,
+        id: &str,
+        identity: &ConversationRequest,
+        candidate: ConversationCandidate,
+        encoded: wire::EncodedReply,
+        budget: &core::Budget,
+    ) -> Result<wire::EncodedReply, Failure> {
+        let native = self.native.as_ref().expect("covered native");
+        match native.runtime.conversation_commit(
+            candidate,
+            encoded.status(),
+            encoded.body(),
+            budget,
+        ) {
+            Ok(reply) => Ok(retained_core(reply)),
+            Err(error) => match native
+                .runtime
+                .conversation_completion(tenant, session, id, identity)
+            {
+                Ok(Some(reply)) => Ok(retained_core(reply)),
+                Ok(None) => Err(crate::native::conversation_failure(error)),
+                Err(_) => Err(Failure::new(
+                    507,
+                    "conversation_commit_unknown",
+                    json!({"state_may_have_changed":true,"exact_retry_required":true}),
+                )),
+            },
+        }
+    }
+
+    fn covered_invoke(
+        &self,
+        tenant: &str,
+        raw: &[u8],
+        request: &Value,
+    ) -> Result<wire::EncodedReply, Failure> {
+        let native = self.native.as_ref().expect("covered native");
+        let id = request["operation_id"].as_str().unwrap_or("");
+        self.registry.check_arguments(id, &request["arguments"])?;
+        let (session, request_id, identity) = self.conversation_identity(request, "/invoke", raw);
+        let outer_id = request["request_id"].as_str().unwrap_or("");
+        let conversation = request["conversation_id"].as_str().unwrap_or("");
+        // Typed invocation retries retain their admitted command identity even
+        // when object-key order differs on the wire.
+        let ledger_body = wire::encode(request);
+        if let Some(reply) = native
+            .runtime
+            .conversation_completion(tenant, &session, &request_id, &identity)
+            .map_err(crate::native::conversation_failure)?
+        {
+            let _ = self
+                .journal
+                .acknowledge_core(tenant, outer_id, conversation);
+            return Ok(retained_core(reply));
+        }
+        if let Some(reply) = self.covered_ledger_replay(tenant, outer_id, &ledger_body)? {
+            return Ok(reply);
+        }
+        let _lease = self
+            .journal
+            .lease(tenant, request["conversation_id"].as_str().unwrap_or(""))?;
+        let _permit = self
+            .acquire(tenant)
+            .ok_or_else(|| Failure::plain(429, "pool_busy"))?;
+        if self.stopping.load(Ordering::Acquire) {
+            return Err(Failure::plain(503, "service_stopping"));
+        }
+        let context = self.context(self.limits.invoke_ms)?;
+        let budget = core::Budget::from_execution_context(context.clone())
+            .restricted_to(&native.runtime.image.limits)
+            .map_err(crate::native::conversation_failure)?;
+        let mut candidate = match native
+            .runtime
+            .conversation_begin(tenant, &session, &request_id, &identity, &budget)
+            .map_err(crate::native::conversation_failure)?
+        {
+            ConversationBegin::Replay(reply) => return Ok(retained_core(reply)),
+            ConversationBegin::Fresh(candidate) => candidate,
+        };
+        if self.engine.is_some() {
+            if let Some((_, generation)) = self.journal.conversation(tenant, conversation)? {
+                if candidate.envelope.oracle.is_none() || generation == "poisoned" {
+                    return Err(reset_required());
+                }
+            }
+            if candidate.envelope.oracle.is_none() && !candidate.starts_new_session() {
+                return Err(reset_required());
+            }
+        }
+        match self
+            .journal
+            .begin_encoded(tenant, outer_id, &ledger_body, self.limits.reply_bytes)?
+        {
+            EncodedLookup::Replay(reply) => return Ok(reply),
+            EncodedLookup::Fresh => {}
+        }
+        let mut dispatched = false;
+        let mut binding = None;
+        let turn=std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        let started = Instant::now();
+        let reply =
+            native.propose_invocation(&mut candidate, id, &request["arguments"], &budget)?;
+        let body = CompletedInvocation {
+            outcome: "completed",
+            operation_id: id.into(),
+            reply: InvocationReply::Runtime(reply),
+            durable_replay: true,
+            native_execution: [
+                json!({"admission":{"host_sha256":self.host_sha256,"route":"runtime"},"containment":{"process":"in_host","elapsed_ms":started.elapsed().as_millis() as u64}}),
+            ],
+        };
+        let encoded = wire::EncodedReply::encode(
+            200,
+            &body,
+            self.limits
+                .reply_bytes
+                .min(native.runtime.image.limits.result_bytes),
+        )
+        .map_err(|_| {
+            Failure::new(
+                502,
+                "reply_too_large",
+                json!({"execution_completed":false,"state_may_have_changed":false}),
+            )
+        })?;
+        // Reject malformed native inputs and oversized final replies before
+        // starting any adapter work. Capture changes only Python-owned fields.
+        if self.engine.is_some() && candidate.envelope.oracle.is_none() {
+            self.initialize_invoke_snapshot(tenant,request,&mut candidate,&context,&mut dispatched,&mut binding)?;
+        }
+        self.commit_covered(
+            tenant,
+            &session,
+            &request_id,
+            &identity,
+            candidate,
+            encoded,
+            &budget,
+        )
+        })).unwrap_or_else(|_|Err(Failure::plain(502,"runtime_error")));
+        self.finish_covered_request(
+            tenant,
+            outer_id,
+            conversation,
+            &session,
+            &request_id,
+            &identity,
+            turn,
+            dispatched,
+            binding,
+        )
+    }
+}
+
 // This boundary is used only before dispatching opaque Engine effects.
 fn check_context(context: &ExecutionContext) -> Result<(), Failure> {
     context
@@ -780,3 +1066,508 @@ pub enum Discovery {
 #[cfg(test)]
 #[path = "encoded_reply_tests.rs"]
 mod encoded_reply_tests;
+
+impl Service {
+    fn covered_ledger_replay(
+        &self,
+        tenant: &str,
+        id: &str,
+        body: &[u8],
+    ) -> Result<Option<wire::EncodedReply>, Failure> {
+        if let Some((previous, result, phase)) = self.journal.retained_request(tenant, id)? {
+            if previous != body {
+                return Err(Failure::plain(409, "request_id_conflict"));
+            }
+            if result.is_some() || phase.starts_with("recovered_") {
+                return match self.journal.begin_encoded(
+                    tenant,
+                    id,
+                    body,
+                    self.limits.reply_bytes,
+                )? {
+                    EncodedLookup::Replay(reply) => Ok(Some(reply)),
+                    EncodedLookup::Fresh => Err(Failure::plain(503, "journal_inconsistent")),
+                };
+            }
+            return Err(Failure::new(429, "busy", json!({"retryable":true})));
+        }
+        Ok(None)
+    }
+
+    /// Initialize only a genuinely absent conversation by asking the admitted
+    /// adapter to capture its real empty owner state. No native result is
+    /// projected into Python; native invocation owners remain independent.
+    fn initialize_invoke_snapshot(
+        &self,
+        tenant: &str,
+        request: &Value,
+        candidate: &mut ConversationCandidate,
+        context: &ExecutionContext,
+        dispatched: &mut bool,
+        binding: &mut Option<(usize, u64)>,
+    ) -> Result<(), Failure> {
+        if !candidate.starts_new_session() || candidate.envelope.oracle.is_some() {
+            return Err(reset_required());
+        }
+        let engine = self.engine.as_ref().expect("initialization Engine");
+        let conversation = request["conversation_id"].as_str().unwrap_or("");
+        let committed = serde_json::to_value(&candidate.envelope)
+            .map_err(|_| Failure::plain(502, "state_encoding"))?;
+        let engine_session = format!(
+            "h{}",
+            &config::sha256_bytes(
+                format!("oracle-host-v1\0session\0{tenant}\0{conversation}").as_bytes()
+            )[..40]
+        );
+        self.journal.dispatch(
+            tenant,
+            request["request_id"].as_str().unwrap_or(""),
+            conversation,
+        )?;
+        *dispatched = true;
+        let delivered = json!({"conversation_projection":{"preserve":true}});
+        let (capture, worker, generation) = engine
+            .project_conversation_with_context(
+                tenant,
+                &engine_session,
+                None,
+                &committed,
+                &delivered,
+                context,
+            )
+            .map_err(|(_, place)| {
+                if place.is_none() {
+                    *dispatched = false;
+                }
+                *binding = place;
+                Failure::plain(503, "conversation_initialization_unavailable")
+            })?;
+        *binding = Some((worker, generation));
+        Self::install_capture(candidate, &capture)
+    }
+
+    fn covered_query(&self, tenant: &str, raw: &[u8]) -> Result<wire::EncodedReply, Failure> {
+        let request = envelope(raw, "/query", self.limits.request_bytes)?;
+        let native = self.native.as_ref().expect("covered native");
+        let outer_id = request["request_id"].as_str().unwrap_or("");
+        let conversation = request["conversation_id"].as_str().unwrap_or("");
+        let (session, request_id, identity) = self.conversation_identity(&request, "/query", raw);
+        // Completion precedes host crash classification, admission and cancellation.
+        if let Some(reply) = native
+            .runtime
+            .conversation_completion(tenant, &session, &request_id, &identity)
+            .map_err(crate::native::conversation_failure)?
+        {
+            let _ = self
+                .journal
+                .acknowledge_core(tenant, outer_id, conversation);
+            return Ok(retained_core(reply));
+        }
+        if let Some(reply) = self.covered_ledger_replay(tenant, outer_id, raw)? {
+            return Ok(reply);
+        }
+        let _lease = self.journal.lease(tenant, conversation)?;
+        let _permit = self
+            .acquire(tenant)
+            .ok_or_else(|| Failure::plain(429, "pool_busy"))?;
+        if self.stopping.load(Ordering::Acquire) {
+            return Err(Failure::plain(503, "service_stopping"));
+        }
+        let context = self.context(self.limits.query_ms)?;
+        let budget = core::Budget::from_execution_context(context.clone())
+            .restricted_to(&native.runtime.image.limits)
+            .map_err(crate::native::conversation_failure)?;
+        let mut candidate = match native
+            .runtime
+            .conversation_begin(tenant, &session, &request_id, &identity, &budget)
+            .map_err(crate::native::conversation_failure)?
+        {
+            ConversationBegin::Replay(reply) => return Ok(retained_core(reply)),
+            ConversationBegin::Fresh(candidate) => candidate,
+        };
+        // An uncovered retained Engine binding has no recoverable snapshot.
+        if let Some((_, generation)) = self.journal.conversation(tenant, conversation)? {
+            if candidate.envelope.oracle.is_none() || generation == "poisoned" {
+                return Err(reset_required());
+            }
+        }
+        match self
+            .journal
+            .begin_encoded(tenant, outer_id, raw, self.limits.reply_bytes)?
+        {
+            EncodedLookup::Replay(reply) => return Ok(reply),
+            EncodedLookup::Fresh => {}
+        }
+        let mut dispatched = false;
+        let mut binding = None;
+        let turn = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            self.covered_turn(
+                tenant,
+                &request,
+                &mut candidate,
+                &budget,
+                &context,
+                &mut dispatched,
+                &mut binding,
+            )
+        }))
+        .unwrap_or_else(|_| Err(Failure::plain(502, "runtime_error")));
+        let final_reply = turn.and_then(|body| {
+            let encoded = wire::EncodedReply::encode(
+                200,
+                &body,
+                self.limits
+                    .reply_bytes
+                    .min(native.runtime.image.limits.result_bytes),
+            )
+            .map_err(|_| Failure::plain(502, "reply_too_large"))?;
+            self.commit_covered(
+                tenant,
+                &session,
+                &request_id,
+                &identity,
+                candidate,
+                encoded,
+                &budget,
+            )
+        });
+        self.finish_covered_request(
+            tenant,
+            outer_id,
+            conversation,
+            &session,
+            &request_id,
+            &identity,
+            final_reply,
+            dispatched,
+            binding,
+        )
+    }
+
+    fn finish_covered_request(
+        &self,
+        tenant: &str,
+        outer_id: &str,
+        conversation: &str,
+        session: &str,
+        request_id: &str,
+        identity: &ConversationRequest,
+        final_reply: Result<wire::EncodedReply, Failure>,
+        dispatched: bool,
+        binding: Option<(usize, u64)>,
+    ) -> Result<wire::EncodedReply, Failure> {
+        let native = self.native.as_ref().expect("covered native");
+        match final_reply {
+            Ok(reply) => {
+                // Lost host acknowledgement cannot replace authoritative success.
+                let _ = self
+                    .journal
+                    .acknowledge_core(tenant, outer_id, conversation);
+                Ok(reply)
+            }
+            Err(mut f) => {
+                // Includes panic and failure during response encoding/capture.
+                // A commit acknowledgement may have been lost on any error path.
+                if let Ok(Some(reply)) =
+                    native
+                        .runtime
+                        .conversation_completion(tenant, &session, &request_id, &identity)
+                {
+                    let _ = self
+                        .journal
+                        .acknowledge_core(tenant, outer_id, conversation);
+                    return Ok(retained_core(reply));
+                }
+                if dispatched {
+                    if let (Some(engine), Some(binding)) = (&self.engine, binding) {
+                        let _ = engine.retire_binding(tenant, binding);
+                    }
+                    f.body["state_may_have_changed"] = json!(true);
+                    f.body["exact_retry_required"] = json!(true);
+                    f.body["retryable"] = json!(false);
+                    f.body["http_status"] = json!(f.status);
+                    let reply = self.encode_response(f.status, &f.body);
+                    let _ = self.journal.finish_bytes(
+                        tenant,
+                        outer_id,
+                        conversation,
+                        reply.body(),
+                        false,
+                    );
+                    Ok(reply)
+                } else {
+                    self.journal.forget(tenant, outer_id, conversation)?;
+                    Err(f)
+                }
+            }
+        }
+    }
+
+    fn install_capture(
+        candidate: &mut ConversationCandidate,
+        reply: &Value,
+    ) -> Result<(), Failure> {
+        let capture = reply
+            .get("conversation")
+            .ok_or_else(|| Failure::plain(502, "conversation_capture_missing"))?;
+        if capture["protocol"] != "oracle-conversation-v1"
+            || capture["coverage"]["complete"] != true
+            || capture["coverage"]["scope"] != "supported_adapter_routes"
+            || capture["adapter_schema"] != 1
+        {
+            return Err(Failure::plain(409, "conversation_unsupported"));
+        }
+        let source = capture["source"]
+            .as_str()
+            .filter(|s| !s.is_empty())
+            .ok_or_else(|| Failure::plain(502, "conversation_capture_source"))?;
+        let state = serde_json::from_value(capture["state"].clone())
+            .map_err(|_| Failure::plain(502, "conversation_capture_invalid"))?;
+        candidate.envelope.oracle = Some(state);
+        candidate.envelope.coverage = core::session::StateCoverage::OracleAdapter {
+            adapter_schema: 1,
+            source: source.into(),
+        };
+        Ok(())
+    }
+
+    fn covered_turn(
+        &self,
+        tenant: &str,
+        request: &Value,
+        candidate: &mut ConversationCandidate,
+        budget: &core::Budget,
+        context: &ExecutionContext,
+        dispatched: &mut bool,
+        binding: &mut Option<(usize, u64)>,
+    ) -> Result<Value, Failure> {
+        let native = self.native.as_ref().expect("covered native");
+        let text = request["text"].as_str().unwrap_or("");
+        let conversation = request["conversation_id"].as_str().unwrap_or("");
+        check_context(context)?;
+        let mut first = Vec::new();
+        let mut proposal = None;
+        if native.reader_route {
+            match native
+                .runtime
+                .conversation_reader_proposal(candidate, text, budget)
+            {
+                Ok(reader) => {
+                    let raw = serde_json::to_string(&reader.language)
+                        .map_err(|_| Failure::plain(502, "reader_encoding"))?;
+                    first.push(native.reader_candidate(&raw, 0.0));
+                    proposal = Some(reader);
+                }
+                Err(error) => first.push(Candidate::unavailable(
+                    "native:reader".into(),
+                    0,
+                    &error.to_string(),
+                    0.0,
+                )),
+            }
+        }
+        if let Some(kernels) = &self.kernels {
+            first.extend(
+                kernels
+                    .organs
+                    .iter()
+                    .map(|organ| kernels.ask(organ, tenant, text, context.clone())),
+            );
+        }
+        check_context(context)?;
+        let group: Vec<_> = first.iter().collect();
+        let decision =
+            front::decide(&group).map_err(|_| Failure::plain(502, "arbitration_error"))?;
+        if !matches!(decision, Decision::NoReading) || self.engine.is_none() {
+            let mut projection = json!({"question":text,"acknowledgement":false,"preserve":true});
+            let mut projection_supported = false;
+            if let Decision::Answered { selected, agreeing } = &decision {
+                let selected = group[*selected];
+                if let (Some(number), Some(unit)) = (&selected.number, &selected.unit) {
+                    let number: Value = wire::parse(number.as_bytes())
+                        .map_err(|_| Failure::plain(502, "quantity_projection"))?;
+                    let origin = selected
+                        .reply
+                        .get("numeric_origin")
+                        .and_then(Value::as_str)
+                        .filter(|origin| {
+                            matches!(
+                                *origin,
+                                "exact_decimal" | "python_float" | "displayed_decimal"
+                            )
+                        })
+                        .or_else(|| {
+                            selected
+                                .route
+                                .starts_with("organ:")
+                                .then_some("displayed_decimal")
+                        });
+                    if let Some(origin) = origin {
+                        let value = json!({"number":number,"unit":unit,"origin":origin});
+                        projection = json!({"question":text,"result":value,
+                            "scalar":if unit.is_empty(){value}else{Value::Null},"subject":null,"answer":null,"topic":null,"acknowledgement":false});
+                        projection_supported = true;
+                    }
+                }
+                if agreeing
+                    .iter()
+                    .any(|index| group[*index].route == "native:reader")
+                {
+                    if let Some(reader) = proposal.take() {
+                        // Only a typed unique-name value establishes an entity.
+                        // The operator must separately declare the Wikidata namespace.
+                        let mut referent = None;
+                        let mut entities = std::collections::BTreeSet::new();
+                        let mut numbers = std::collections::BTreeSet::new();
+                        for reading in &reader.language.readings {
+                            let value = &reading.result.value;
+                            if value.is_number() {
+                                numbers.insert(value.to_string());
+                            }
+                            if value["status"] == "unique" {
+                                let id = value["candidate"]["id"].as_str().unwrap_or("");
+                                let label = value["candidate"]["name"].as_str().unwrap_or("");
+                                if self.conversation_wikidata
+                                    && id.starts_with('Q')
+                                    && id.len() > 1
+                                    && id[1..].bytes().all(|b| b.is_ascii_digit())
+                                    && !label.is_empty()
+                                {
+                                    entities.insert((id.to_owned(), label.to_owned()));
+                                }
+                            }
+                        }
+                        if numbers.len() == 1
+                            && reader
+                                .language
+                                .readings
+                                .iter()
+                                .all(|r| r.result.value.is_number())
+                        {
+                            let number =
+                                wire::parse(numbers.iter().next().expect("one number").as_bytes())
+                                    .map_err(|_| {
+                                        Failure::plain(502, "reader_numeric_projection")
+                                    })?;
+                            let value = json!({"number":number,"unit":"","origin":"exact_decimal"});
+                            projection = json!({"question":text,"subject":null,"answer":null,"topic":null,
+                                "result":value,"scalar":value,"acknowledgement":false});
+                            projection_supported = true;
+                        }
+                        if entities.len() == 1 {
+                            let (id, label) = entities.into_iter().next().expect("one entity");
+                            referent =
+                                Some(json!({"id":format!("wd:{id}"),"label":label,"surface":null}));
+                        }
+                        if let Some(entity) = referent {
+                            projection_supported = true;
+                            projection = json!({"question":text,"subject":entity,"answer":entity,"topic":entity,
+                                "result":null,"scalar":null,"acknowledgement":false});
+                        }
+                        candidate
+                            .apply_reader(reader)
+                            .map_err(crate::native::conversation_failure)?;
+                    }
+                }
+            }
+            let mut result = json!({"outcome":"completed","reply":front::reply(&decision,&group,&first,
+                if matches!(decision,Decision::NoReading){None}else{Some(0)})});
+            if let Some(origin) = projection.pointer("/result/origin") {
+                result["reply"]["numeric_origin"] = origin.clone();
+            }
+            if let Some(engine) = &self.engine {
+                if matches!(decision, Decision::Answered { .. }) && !projection_supported {
+                    return Err(Failure::plain(409, "conversation_projection_unsupported"));
+                }
+                if !candidate.starts_new_session() && candidate.envelope.oracle.is_none() {
+                    return Err(reset_required());
+                }
+                let committed = serde_json::to_value(&candidate.envelope)
+                    .map_err(|_| Failure::plain(502, "state_encoding"))?;
+                let delivered =
+                    json!({"reply":result["reply"],"conversation_projection":projection});
+                let engine_session = format!(
+                    "h{}",
+                    &config::sha256_bytes(
+                        format!("oracle-host-v1\0session\0{tenant}\0{conversation}").as_bytes()
+                    )[..40]
+                );
+                self.journal.dispatch(
+                    tenant,
+                    request["request_id"].as_str().unwrap_or(""),
+                    conversation,
+                )?;
+                *dispatched = true;
+                let (capture, worker, generation) = engine
+                    .project_conversation_with_context(
+                        tenant,
+                        &engine_session,
+                        None,
+                        &committed,
+                        &delivered,
+                        context,
+                    )
+                    .map_err(|(_, place)| {
+                        if place.is_none() {
+                            *dispatched = false;
+                        }
+                        *binding = place;
+                        Failure::plain(503, "conversation_projection_unavailable")
+                    })?;
+                *binding = Some((worker, generation));
+                Self::install_capture(candidate, &capture)?;
+            }
+            return Ok(result);
+        }
+        let engine = self.engine.as_ref().expect("engine");
+        // A native-only retained envelope is explicitly uncovered for Python.
+        // First-turn initialization is admitted; continuation needs a snapshot.
+        if !candidate.starts_new_session() && candidate.envelope.oracle.is_none() {
+            return Err(reset_required());
+        }
+        let committed = serde_json::to_value(&candidate.envelope)
+            .map_err(|_| Failure::plain(502, "state_encoding"))?;
+        let engine_session = format!(
+            "h{}",
+            &config::sha256_bytes(
+                format!("oracle-host-v1\0session\0{tenant}\0{conversation}").as_bytes()
+            )[..40]
+        );
+        self.journal.dispatch(
+            tenant,
+            request["request_id"].as_str().unwrap_or(""),
+            conversation,
+        )?;
+        *dispatched = true;
+        let started = Instant::now();
+        let (reply, worker, generation) = engine
+            .ask_conversation_with_context(tenant, text, &engine_session, None, &committed, context)
+            .map_err(|(error, place)| {
+                if place.is_none() {
+                    *dispatched = false;
+                }
+                if let Some(place) = place {
+                    *binding = Some(place);
+                }
+                let (status, code) = match error {
+                    EngineError::Busy => (429, "busy"),
+                    EngineError::Timeout => (504, "query_timeout"),
+                    _ => (503, "engine_conversation_unavailable"),
+                };
+                Failure::plain(status, code)
+            })?;
+        *binding = Some((worker, generation));
+        first.push(engine.candidate(&reply, started.elapsed().as_secs_f64() * 1000.0));
+        let group: Vec<_> = first.iter().filter(|c| c.group == 1).collect();
+        let decision =
+            front::decide(&group).map_err(|_| Failure::plain(502, "arbitration_error"))?;
+        // Capture is the adapter's finalized delivered transition, including
+        // semantic refusals; speculative group zero never consumed Python state.
+        Self::install_capture(candidate, &reply)?;
+        Ok(json!({"outcome":"completed","reply":front::reply(&decision,&group,&first,Some(1))}))
+    }
+}
+
+#[cfg(test)]
+#[path = "conversation_host_tests.rs"]
+mod conversation_host_tests;

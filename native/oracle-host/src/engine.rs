@@ -77,6 +77,18 @@ impl EnginePool {
     pub fn open(settings: &EngineConfig, boot: &str) -> Result<Self, ConfigError> {
         config::admit("engine.python", &settings.python)?;
         config::admit("engine.answerer", &settings.answerer)?;
+        if let Some(adapter) = &settings.conversation_adapter {
+            config::admit("engine.conversation_adapter", adapter)?;
+            let helper = std::fs::canonicalize(&adapter.path)
+                .map_err(|e| err(format!("engine.conversation_adapter: {e}")))?;
+            let answerer = std::fs::canonicalize(&settings.answerer.path)
+                .map_err(|e| err(format!("engine.answerer: {e}")))?;
+            if helper.file_name().and_then(|n| n.to_str()) != Some("conversation_adapter.py")
+                || helper.parent() != answerer.parent()
+            {
+                return Err(err("engine.conversation_adapter must be conversation_adapter.py beside the admitted answerer"));
+            }
+        }
         config::absolute("engine.checkout", &settings.checkout)?;
         config::absolute("engine.state", &settings.state)?;
         if settings.workers == 0 || settings.workers > 16 {
@@ -112,7 +124,8 @@ impl EnginePool {
         }
         std::fs::create_dir_all(&settings.state).map_err(|e| err(format!("engine.state: {e}")))?;
         let admission = json!({"python_sha256": settings.python.sha256,
-            "answerer_sha256": settings.answerer.sha256, "checkout_revision": settings.revision, "checkout": checkout_identity,
+            "answerer_sha256": settings.answerer.sha256,
+            "conversation_adapter_sha256": settings.conversation_adapter.as_ref().map(|a| &a.sha256), "checkout_revision": settings.revision, "checkout": checkout_identity,
             "release": release_receipt(&settings.checkout),
             "workers": settings.workers, "specialist": settings.specialist.as_ref().map(|p| p.file_name()
                 .map(|n| n.to_string_lossy().into_owned())), "compose": settings.compose, "tip": settings.tip,
@@ -342,6 +355,79 @@ impl EnginePool {
         prefer: Option<(usize, u64)>,
         context: &ExecutionContext,
     ) -> Turn {
+        self.ask_inner(tenant, question, session, prefer, None, None, context)
+    }
+
+    /// Restore the committed canonical envelope before evaluating covered owners.
+    /// This does not make unsupported Engine tools or documents recoverable.
+    pub fn ask_conversation_with_context(
+        &self,
+        tenant: &str,
+        question: &str,
+        session: &str,
+        prefer: Option<(usize, u64)>,
+        committed: &Value,
+        context: &ExecutionContext,
+    ) -> Turn {
+        self.ask_inner(
+            tenant,
+            question,
+            session,
+            prefer,
+            Some(committed),
+            None,
+            context,
+        )
+    }
+
+    /// Reconcile a typed native delivery without evaluating an Engine question.
+    pub fn project_conversation_with_context(
+        &self,
+        tenant: &str,
+        session: &str,
+        prefer: Option<(usize, u64)>,
+        committed: &Value,
+        delivered: &Value,
+        context: &ExecutionContext,
+    ) -> Turn {
+        self.ask_inner(
+            tenant,
+            "",
+            session,
+            prefer,
+            Some(committed),
+            Some(delivered),
+            context,
+        )
+    }
+
+    /// Retire only the generation whose speculative state the caller owns.
+    pub fn retire_binding(&self, tenant: &str, place: (usize, u64)) -> Result<(), EngineError> {
+        let Some(mutex) = self.slots.get(place.0) else {
+            return Err(EngineError::Lost("conversation_reset_required"));
+        };
+        let mut slot = match mutex.try_lock() {
+            Ok(slot) => slot,
+            Err(TryLockError::Poisoned(p)) => p.into_inner(),
+            Err(TryLockError::WouldBlock) => return Err(EngineError::Busy),
+        };
+        if slot.tenant.as_deref() != Some(tenant) || slot.generation != place.1 {
+            return Err(EngineError::Lost("conversation_reset_required"));
+        }
+        Self::retire(&mut slot);
+        Ok(())
+    }
+
+    fn ask_inner(
+        &self,
+        tenant: &str,
+        question: &str,
+        session: &str,
+        prefer: Option<(usize, u64)>,
+        committed: Option<&Value>,
+        delivered: Option<&Value>,
+        context: &ExecutionContext,
+    ) -> Turn {
         context
             .spend(1)
             .map_err(|error| (EngineError::Budget(error), None))?;
@@ -407,7 +493,14 @@ impl EnginePool {
         }
         let place = (slot.index, slot.generation);
         let id = self.sequence.fetch_add(1, Ordering::Relaxed);
-        let request = json!({"id": id, "q": question, "session": session});
+        let mut request = json!({"id": id, "q": question, "session": session});
+        if let Some(state) = committed {
+            request["conversation"] = json!({"protocol": "oracle-conversation-v1", "state": state});
+            if let Some(reply) = delivered {
+                request["conversation"]["op"] = json!("project");
+                request["conversation"]["delivered"] = reply.clone();
+            }
+        }
         let worker = slot.worker.as_mut().expect("started");
         let mut line = crate::wire::encode(&request);
         line.push(b'\n');
@@ -489,7 +582,7 @@ impl EnginePool {
                 Err(_) => busy += 1,
             }
         }
-        json!({"workers": self.slots.len(), "busy": busy, "ready_idle": ready, "ready_idle_scope": "constructor_handshake_not_liveness_probe", "runtime_readiness": readiness, "starts": starts, "retired": deaths, "lazy_start": true, "tenant_isolation": "whole_process_generation", "state_export": false, "conversation_survives_eviction": false})
+        json!({"workers": self.slots.len(), "busy": busy, "ready_idle": ready, "ready_idle_scope": "constructor_handshake_not_liveness_probe", "runtime_readiness": readiness, "starts": starts, "retired": deaths, "lazy_start": true, "tenant_isolation": "whole_process_generation", "state_export": false, "conversation_survives_eviction": false, "supported_conversation_protocol": "oracle-conversation-v1", "supported_conversation_scope": "explicit_source_pinned_adapter_routes_only", "legacy_engine_state_export": false})
     }
 
     pub fn close(&self) {

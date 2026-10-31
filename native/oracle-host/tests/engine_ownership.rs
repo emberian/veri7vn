@@ -43,6 +43,7 @@ for line in sys.stdin:
     let settings = EngineConfig {
         python: artifact(python),
         answerer: artifact(worker),
+        conversation_adapter: None,
         checkout,
         revision: REV.into(),
         materialization: None,

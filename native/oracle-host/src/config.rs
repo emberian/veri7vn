@@ -15,6 +15,13 @@ const MAX_CONFIG_BYTES: u64 = 8 * 1024 * 1024;
 #[serde(deny_unknown_fields)]
 pub struct Config {
     pub schema: String,
+    /// Opt-in core-authoritative read-only conversation migration.
+    #[serde(default)]
+    pub conversation_profile: Option<String>,
+    /// Explicit source ID contract for cross-provider entity transfer. Included
+    /// in deployment identity; Q-prefixed labels alone never establish this.
+    #[serde(default)]
+    pub conversation_entity_namespace: Option<String>,
     #[serde(default = "default_port")]
     pub port: u16,
     #[serde(default)]
@@ -159,6 +166,10 @@ pub struct EngineConfig {
     pub python: Artifact,
     /// Production JSON-lines Engine worker, admitted independently of its checkout.
     pub answerer: Artifact,
+    /// Source-bound helper imported beside the admitted worker. Required for
+    /// the covered conversation profile, independently hashed at admission.
+    #[serde(default)]
+    pub conversation_adapter: Option<Artifact>,
     /// A pinned provisioner receipt admits the materialized tree without Git.
     #[serde(default)]
     pub materialization: Option<Artifact>,
@@ -340,7 +351,12 @@ pub fn deployment_identity(config: &Config, host_sha256: &str) -> Result<String,
             }
         }
         engine.remove("checkout");
-        for field in ["python", "answerer", "materialization"] {
+        for field in [
+            "python",
+            "answerer",
+            "materialization",
+            "conversation_adapter",
+        ] {
             if let Some(artifact) = engine.get_mut(field).and_then(Value::as_object_mut) {
                 artifact.remove("path");
             }
