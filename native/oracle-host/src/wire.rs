@@ -6,7 +6,9 @@
 //! overflow a binary float. This parser applies the same refusals directly.
 //! Numbers keep their exact source literal (serde_json `arbitrary_precision`).
 
+use serde::Serialize;
 use serde_json::{Map, Number, Value};
+use std::io::{self, Write};
 use std::str::FromStr;
 
 const MAX_DEPTH: usize = 512;
@@ -291,6 +293,97 @@ pub fn encode(value: &Value) -> Vec<u8> {
     serde_json::to_vec(value).expect("serde_json::Value always encodes")
 }
 
+/// A fully encoded response. HTTP writes these bytes directly, after the whole
+/// bounded serialization succeeds. This is transport ownership, not a proof or
+/// a checked-provider token; external bytes cannot construct one publicly.
+#[derive(Debug)]
+pub struct EncodedReply {
+    status: u16,
+    bytes: Vec<u8>,
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum EncodeError {
+    TooLarge,
+    Serialization,
+}
+
+struct BoundedWriter {
+    bytes: Vec<u8>,
+    maximum: usize,
+    oversized: bool,
+}
+
+impl Write for BoundedWriter {
+    fn write(&mut self, bytes: &[u8]) -> io::Result<usize> {
+        if bytes.len() > self.maximum.saturating_sub(self.bytes.len()) {
+            self.oversized = true;
+            return Err(io::Error::other("reply byte limit"));
+        }
+        let needed = self.bytes.len() + bytes.len();
+        if needed > self.bytes.capacity() {
+            // Keep amortized growth while never requesting capacity above the
+            // reply ceiling. Reserving exactly every serde token is quadratic.
+            let target = needed
+                .max(self.bytes.capacity().max(64).saturating_mul(2))
+                .min(self.maximum);
+            self.bytes
+                .try_reserve_exact(target - self.bytes.len())
+                .map_err(io::Error::other)?;
+        }
+        self.bytes.extend_from_slice(bytes);
+        Ok(bytes.len())
+    }
+    fn flush(&mut self) -> io::Result<()> {
+        Ok(())
+    }
+}
+
+impl EncodedReply {
+    pub(crate) fn encode<T: Serialize + ?Sized>(
+        status: u16,
+        value: &T,
+        maximum: usize,
+    ) -> Result<Self, EncodeError> {
+        let mut writer = BoundedWriter {
+            bytes: Vec::new(),
+            maximum,
+            oversized: false,
+        };
+        serde_json::to_writer(&mut writer, value).map_err(|_| {
+            if writer.oversized {
+                EncodeError::TooLarge
+            } else {
+                EncodeError::Serialization
+            }
+        })?;
+        Ok(Self {
+            status,
+            bytes: writer.bytes,
+        })
+    }
+
+    // Journal admission already checked the byte bound and strict JSON. Keeping
+    // its original buffer preserves the authoritative retained encoding.
+    pub(crate) fn retained(status: u16, bytes: Vec<u8>) -> Self {
+        Self { status, bytes }
+    }
+    pub fn status(&self) -> u16 {
+        self.status
+    }
+    pub fn body(&self) -> &[u8] {
+        &self.bytes
+    }
+
+    /// Legacy direct-library adapter; the HTTP path never materializes this Value.
+    pub fn into_value(self) -> (u16, Value) {
+        (
+            self.status,
+            parse(&self.bytes).expect("internally serialized JSON reply"),
+        )
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -323,5 +416,46 @@ mod tests {
         assert!(is_integer(&value["big"]));
         assert!(!is_integer(&value["f"]));
         assert_eq!(value["s"], "\u{1F600}\n");
+    }
+}
+
+#[cfg(test)]
+mod encoded_tests {
+    use super::*;
+
+    #[test]
+    fn bounded_encoding_preserves_exact_bytes_and_rejects_one_byte_over() {
+        let value = parse(r#"{"decimal":51.248178375505404,"large":123456789012345678901234567890,"text":"☃\n\""}"#.as_bytes()).unwrap();
+        let bytes = encode(&value);
+        let reply = EncodedReply::encode(200, &value, bytes.len()).unwrap();
+        assert_eq!(reply.body(), bytes);
+        assert_eq!(reply.into_value(), (200, value.clone()));
+        assert_eq!(
+            EncodedReply::encode(200, &value, bytes.len() - 1).unwrap_err(),
+            EncodeError::TooLarge
+        );
+    }
+
+    #[test]
+    fn tiny_writes_use_bounded_geometric_growth_and_never_append_over_limit() {
+        let mut writer = BoundedWriter {
+            bytes: Vec::new(),
+            maximum: 65536,
+            oversized: false,
+        };
+        let mut growths = 0;
+        for _ in 0..65536 {
+            let before = writer.bytes.capacity();
+            writer.write_all(b"x").unwrap();
+            if writer.bytes.capacity() != before {
+                growths += 1;
+            }
+            assert!(writer.bytes.capacity() <= writer.maximum);
+        }
+        assert!(growths <= 16, "{growths} reallocations for tiny writes");
+        assert_eq!(writer.bytes.len(), 65536);
+        assert!(writer.write_all(b"x").is_err());
+        assert_eq!(writer.bytes.len(), 65536);
+        assert!(writer.oversized);
     }
 }

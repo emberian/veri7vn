@@ -64,8 +64,9 @@ fn reason(status: u16) -> &'static str {
     }
 }
 
-fn respond(stream: &mut TcpStream, status: u16, body: &Value) {
-    let payload = wire::encode(body);
+fn respond(stream: &mut TcpStream, reply: &wire::EncodedReply) {
+    let status = reply.status();
+    let payload = reply.body();
     let head = format!(
         "HTTP/1.0 {status} {}\r\nServer: oracle-host\r\nContent-Type: application/json; charset=utf-8\r\nContent-Length: {}\r\nCache-Control: no-store\r\n\r\n",
         reason(status),
@@ -73,7 +74,7 @@ fn respond(stream: &mut TcpStream, status: u16, body: &Value) {
     );
     let _ = stream
         .write_all(head.as_bytes())
-        .and_then(|_| stream.write_all(&payload));
+        .and_then(|_| stream.write_all(payload));
     let _ = stream.flush();
 }
 
@@ -255,12 +256,15 @@ fn handle(mut stream: TcpStream, service: &Arc<Service>, port: u16) {
         return;
     };
     let reply = match request.method.as_str() {
-        "GET" => get(&request, service, port),
+        "GET" => {
+            let (status, body) = get(&request, service, port);
+            service.encode_response(status, &body)
+        }
         "POST" => post(&mut stream, &request, service, port, deadline),
-        _ => (405, failure("unsupported_method_or_route", json!({}))),
+        _ => service.encode_response(405, &failure("unsupported_method_or_route", json!({}))),
     };
     let _ = stream.set_write_timeout(Some(Duration::from_millis(service.limits.ingress_ms)));
-    respond(&mut stream, reply.0, &reply.1);
+    respond(&mut stream, &reply);
     let _ = stream.shutdown(Shutdown::Both);
 }
 
@@ -295,16 +299,30 @@ fn post(
     service: &Arc<Service>,
     port: u16,
     deadline: Instant,
-) -> (u16, Value) {
+) -> wire::EncodedReply {
+    match read_post(stream, request, service, port, deadline) {
+        Ok((tenant, body)) if request.path == "/query" => service.query_encoded(&tenant, &body),
+        Ok((tenant, body)) => service.invoke_encoded(&tenant, &body),
+        Err((status, body)) => service.encode_response(status, &body),
+    }
+}
+
+fn read_post(
+    stream: &mut TcpStream,
+    request: &Request,
+    service: &Arc<Service>,
+    port: u16,
+    deadline: Instant,
+) -> Result<(String, Vec<u8>), (u16, Value)> {
     if let Err(reply) = private_request(request, port) {
-        return reply;
+        return Err(reply);
     }
     let tenant = match tenant(request) {
         Ok(t) => t,
-        Err(reply) => return reply,
+        Err(reply) => return Err(reply),
     };
     if request.path != "/query" && request.path != "/invoke" {
-        return (404, failure("not_found", json!({})));
+        return Err((404, failure("not_found", json!({}))));
     }
     let lengths = request.all("Content-Length");
     if request.first("Transfer-Encoding").is_some()
@@ -312,7 +330,7 @@ fn post(
         || lengths[0].is_empty()
         || !lengths[0].bytes().all(|b| b.is_ascii_digit())
     {
-        return (400, failure("invalid_length", json!({})));
+        return Err((400, failure("invalid_length", json!({}))));
     }
     let media = request
         .first("Content-Type")
@@ -320,7 +338,7 @@ fn post(
         .map(|v| v.trim().to_ascii_lowercase())
         .unwrap_or_else(|| "text/plain".into());
     if media != "application/json" {
-        return (415, failure("json_required", json!({})));
+        return Err((415, failure("json_required", json!({}))));
     }
     let maximum = service.limits.request_bytes;
     let length: usize = if lengths[0].len() < 20 {
@@ -329,23 +347,19 @@ fn post(
         usize::MAX
     };
     if length > maximum {
-        return (413, failure("request_too_large", json!({})));
+        return Err((413, failure("request_too_large", json!({}))));
     }
     let mut body = request.leftover.clone();
     body.truncate(length);
     let mut chunk = vec![0u8; 65536];
     while body.len() < length {
         match read_some(stream, &mut chunk, deadline) {
-            Ok(0) => return (400, failure("incomplete_body", json!({}))),
+            Ok(0) => return Err((400, failure("incomplete_body", json!({})))),
             Ok(n) => body.extend_from_slice(&chunk[..n.min(length - body.len())]),
-            Err(_) => return (408, failure("body_timeout", json!({}))),
+            Err(_) => return Err((408, failure("body_timeout", json!({})))),
         }
     }
-    if request.path == "/query" {
-        service.query(&tenant, &body)
-    } else {
-        service.invoke(&tenant, &body)
-    }
+    Ok((tenant, body))
 }
 
 /// Accept connections until `stop` is set, then wait for handlers to finish.
@@ -584,3 +598,7 @@ mod tests {
         assert!(discovery("/operations/.bad").is_none());
     }
 }
+
+#[cfg(test)]
+#[path = "http_encoded_tests.rs"]
+mod encoded_reply_tests;

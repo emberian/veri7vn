@@ -16,6 +16,9 @@ use serde::Serialize;
 use serde_json::{json, Value};
 use std::collections::BTreeSet;
 
+mod typed;
+pub use typed::CheckedPureReply;
+
 const SNAPSHOT: &str = include_str!("../descriptors/pure.json");
 const MAX_REASONING_REPLY: usize = 262144;
 
@@ -185,6 +188,19 @@ impl Pure {
         tenant: &str,
         context: &ExecutionContext,
     ) -> Result<Value, Failure> {
+        serde_json::to_value(self.invoke_checked(name, id, arguments, tenant, context)?)
+            .map_err(|_| Failure::plain(502, "native_reply_invalid"))
+    }
+
+    #[cfg(test)]
+    fn invoke_legacy(
+        &self,
+        name: &str,
+        id: &str,
+        arguments: &Value,
+        tenant: &str,
+        context: &ExecutionContext,
+    ) -> Result<Value, Failure> {
         let profile = self
             .profile(name)
             .ok_or_else(|| Failure::plain(404, "unknown_operation"))?;
@@ -231,6 +247,7 @@ impl Pure {
     /// Decode admitted arguments directly into each provider's domain types.
     /// The sole Value result is the public reply representation used by the
     /// independent host admission checks, never input to another provider.
+    #[cfg(test)]
     fn call(
         &self,
         name: &str,
@@ -243,6 +260,7 @@ impl Pure {
     }
 
     #[allow(unused_variables)]
+    #[cfg(test)]
     fn call_typed(
         &self,
         name: &str,
@@ -488,6 +506,7 @@ impl Pure {
         }
     }
 
+    #[cfg(test)]
     fn reasoning(
         &self,
         profile: &Profile,
@@ -656,6 +675,8 @@ fn envelope_size(operation: &str, arguments: &Value) -> usize {
     })
 }
 fn decode<T: serde::de::DeserializeOwned>(arguments: &Value) -> Result<T, String> {
+    #[cfg(test)]
+    typed::record_decode::<T>();
     T::deserialize(arguments).map_err(|error| {
         // Error-only compatibility: old wire refusals include parser line and
         // column. This decodes rejected data solely to format its diagnostic;
@@ -666,6 +687,7 @@ fn decode<T: serde::de::DeserializeOwned>(arguments: &Value) -> Result<T, String
     })
 }
 
+#[cfg(test)]
 fn encode_result<T: Serialize>(result: T) -> Result<Value, String> {
     serde_json::to_value(result).map_err(|e| e.to_string().chars().take(512).collect())
 }
@@ -681,6 +703,7 @@ fn int(value: &Value) -> Option<i128> {
     as_i128(value)
 }
 
+#[cfg(test)]
 fn is_finite_number(value: &Value) -> bool {
     value.is_number() // the strict decoder admits only finite numbers
 }
@@ -692,6 +715,7 @@ struct Structured<'a> {
     catalog: &'a Value,
 }
 
+#[cfg(test)]
 impl Structured<'_> {
     fn withheld(&self, reason: &str, result: Option<Value>) -> Value {
         let mut reply = json!({"status": "withheld", "operation_id": self.id, "reason": reason,
@@ -1518,10 +1542,12 @@ impl Structured<'_> {
     }
 }
 
+#[cfg(test)]
 fn hex64(value: &Value) -> bool {
     value.as_str().is_some_and(config::is_hash)
 }
 
+#[cfg(test)]
 fn logic_valid(id: &str, arguments: &Value, result: &Value) -> bool {
     let (Some(models), Some(answers)) = (result["models"].as_array(), result["answers"].as_array())
     else {
@@ -1613,18 +1639,17 @@ fn reasoning_arguments(
     let schema = &declaration["input_schema"];
     let args = arguments.as_object().ok_or(())?;
     let properties = schema["properties"].as_object().ok_or(())?;
-    let required: Vec<&str> = schema["required"]
-        .as_array()
-        .map_or(vec![], |r| r.iter().filter_map(Value::as_str).collect());
-    if !required.iter().all(|k| args.contains_key(*k))
-        || !args.keys().all(|k| properties.contains_key(k))
+    if !schema["required"].as_array().is_none_or(|required| {
+        required
+            .iter()
+            .filter_map(Value::as_str)
+            .all(|k| args.contains_key(k))
+    }) || !args.keys().all(|k| properties.contains_key(k))
     {
         return Err(());
     }
     let limits = &catalog["limits"];
     let limit = |k: &str| limits[k].as_u64().unwrap_or(0) as i128;
-    let label = regex::Regex::new(r"^[A-Z][a-z]?(?:-[1-9][0-9]{0,2})?$").expect("constant");
-    let name_re = regex::Regex::new(r"^[A-Za-z_][A-Za-z0-9_]*$").expect("constant");
     if [
         "reasoning.exact_linear_feasibility",
         "reasoning.optimize_linear",
@@ -1653,6 +1678,10 @@ fn reasoning_arguments(
         return Ok(());
     }
     if id == "chemistry.balance_reaction" {
+        static LABEL: std::sync::OnceLock<regex::Regex> = std::sync::OnceLock::new();
+        let label = LABEL.get_or_init(|| {
+            regex::Regex::new(r"^[A-Z][a-z]?(?:-[1-9][0-9]{0,2})?$").expect("constant")
+        });
         let chemistry = catalog_row(catalog, id)
             .map(|r| &r["chemistry_limits"])
             .ok_or(())?;
@@ -1738,6 +1767,9 @@ fn reasoning_arguments(
             }
         }
         if id != "algebra.optimize_polynomial" {
+            static NAME: std::sync::OnceLock<regex::Regex> = std::sync::OnceLock::new();
+            let name_re = NAME
+                .get_or_init(|| regex::Regex::new(r"^[A-Za-z_][A-Za-z0-9_]*$").expect("constant"));
             let annotations = args["variables"].as_array().ok_or(())?;
             if annotations.len() as i128 > limit("expression_nodes") {
                 return Err(());
@@ -1814,11 +1846,13 @@ fn reasoning_arguments(
     Ok(())
 }
 
+#[cfg(test)]
 fn text_int(value: &Value) -> Option<i128> {
     value.as_str()?.parse().ok()
 }
 
 /// Walk edge IDs from `start`; (end vertex, total weight).
+#[cfg(test)]
 fn walk(arguments: &Value, path: &Value, start: i128) -> Option<(i128, i128)> {
     let vertices = int(&arguments["vertices"])?;
     let edges = arguments["edges"].as_array()?;
@@ -1840,6 +1874,7 @@ fn walk(arguments: &Value, path: &Value, start: i128) -> Option<(i128, i128)> {
 }
 
 /// `_check_path_reply`: transport coverage and edge walks; Rust checked optimality.
+#[cfg(test)]
 fn check_path(arguments: &Value, result: &Value) -> Option<()> {
     let vertices = int(&arguments["vertices"])? as usize;
     let (source, target) = (int(&arguments["source"])?, int(&arguments["target"])?);
@@ -1877,6 +1912,7 @@ fn check_path(arguments: &Value, result: &Value) -> Option<()> {
 }
 
 /// Validate a DNA page against the exact supplied records and batch identity.
+#[cfg(test)]
 fn check_collection(
     arguments: &Value,
     result: &Value,
@@ -2008,6 +2044,7 @@ fn check_collection(
 }
 
 /// Rebuild literal codons and omission intervals from original source slices.
+#[cfg(test)]
 fn check_translation(
     arguments: &Value,
     result: &Value,
@@ -2245,6 +2282,7 @@ fn check_translation(
 }
 
 /// `_check_rational_reply`: transport consistency only.
+#[cfg(test)]
 fn check_rational(arguments: &Value, result: &Value) -> Option<()> {
     if let Some(requested) = arguments.get("output_dimension").filter(|v| !v.is_null()) {
         if &result["output_dimension"] != requested {
@@ -2268,6 +2306,7 @@ fn check_rational(arguments: &Value, result: &Value) -> Option<()> {
 }
 
 /// `_check_chemistry_reply`: transport shape and coverage, no recomputation.
+#[cfg(test)]
 fn check_chemistry(arguments: &Value, result: &Value) -> Option<()> {
     let species = arguments["species"].as_array()?;
     let size = species.len() as i128;

@@ -15,6 +15,49 @@ pub enum Command {
         expected_revision: u64,
         queries: Vec<String>,
     },
+    Checkpoint {
+        expected_revision: u64,
+        #[serde(default)]
+        expected_snapshot_identity: Option<String>,
+    },
+}
+
+pub fn checkpoint_checked(
+    workspace: &Workspace,
+    expected_revision: u64,
+    expected_snapshot_identity: Option<&str>,
+) -> Result<Checkpoint, Error> {
+    let checkpoint = workspace.checkpoint();
+    if checkpoint.revision != expected_revision {
+        return Err(Error::Invalid("stale evidence checkpoint revision"));
+    }
+    if expected_snapshot_identity.is_some_and(|expected| expected != checkpoint.snapshot_identity) {
+        return Err(Error::Invalid("stale evidence checkpoint identity"));
+    }
+    Ok(checkpoint)
+}
+
+pub fn checkpoint(
+    tenant: &str,
+    state: Option<StoredWorkspace>,
+    workspace: String,
+    expected_revision: u64,
+    expected_snapshot_identity: Option<&str>,
+    max_records: usize,
+    control: &dyn oracle_execution::WorkControl,
+) -> Result<Checkpoint, Error> {
+    crate::revisions::restore_checkpoint(control, 0)?;
+    let scope = ScopeKey {
+        tenant: tenant.into(),
+        workspace,
+    };
+    let workspace = match state {
+        Some(state) => Workspace::import_with_control(state, &scope, max_records, control)?,
+        None => Workspace::new(scope)?,
+    };
+    let checkpoint = checkpoint_checked(&workspace, expected_revision, expected_snapshot_identity)?;
+    crate::revisions::restore_checkpoint(control, 0)?;
+    Ok(checkpoint)
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]

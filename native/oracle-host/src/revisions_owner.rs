@@ -32,11 +32,53 @@ fn error(error: oracle_logic::Error) -> core::Error {
         oracle_logic::Error::Invalid("stale evidence solve revision") => {
             core::Error::Conflict("evidence solve revision changed")
         }
+        oracle_logic::Error::Invalid("stale evidence checkpoint revision") => {
+            core::Error::Conflict("evidence checkpoint revision changed")
+        }
+        oracle_logic::Error::Invalid("stale evidence checkpoint identity") => {
+            core::Error::Conflict("evidence checkpoint identity changed")
+        }
         oracle_logic::Error::Invalid("revision token reused with different content") => {
             core::Error::Conflict("evidence token reused with different content")
         }
         other => core::Error::Invalid(other.to_string()),
     }
+}
+
+#[derive(Debug, Serialize)]
+pub struct CheckpointReply {
+    pub schema: &'static str,
+    pub runtime_identity: String,
+    pub session_version: i64,
+    pub checkpoint: oracle_logic::revisions::Checkpoint,
+}
+
+pub fn checkpoint(
+    binding: &SessionBinding,
+    state: Option<StoredWorkspace>,
+    session_version: i64,
+    expected_revision: u64,
+    expected_snapshot_identity: Option<String>,
+    budget: &core::Budget,
+) -> core::Result<CheckpointReply> {
+    budget.check()?;
+    let checkpoint = domain::checkpoint(
+        &binding.tenant,
+        state,
+        binding.session.clone(),
+        expected_revision,
+        expected_snapshot_identity.as_deref(),
+        MAX_RECORDS,
+        budget.execution_context(),
+    )
+    .map_err(error)?;
+    budget.check()?;
+    Ok(CheckpointReply {
+        schema: "oracle-evidence-checkpoint-v1",
+        runtime_identity: binding.image.clone(),
+        session_version,
+        checkpoint,
+    })
 }
 impl NativeSessionOwner for EvidenceOwner {
     const OWNER: &'static str = oracle_logic::revisions::OWNER;

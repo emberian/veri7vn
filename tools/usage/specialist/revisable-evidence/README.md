@@ -79,6 +79,75 @@ store and the operator-admitted logic solver configured. Unknown/stale revisions
 and conflicting retry-token content are refused. Solving after a committed write
 can fail while its evidence and acknowledgement remain durable.
 
+## Stop and resume an evidence plan
+
+`logic.workspace.checkpoint` is a pure, version-checked receipt for the current
+stored owner. It reports authenticated scope, admitted runtime identity, session
+version, evidence revision, snapshot identity, active record IDs and active
+coverage IDs. Request both the expected session version and evidence revision;
+an optional expected snapshot identity supplies an additional equality check.
+A stale request refuses instead of silently selecting newer evidence. At a fresh
+session version zero, an absent evidence owner can yield an empty bootstrap
+receipt without creating a row. That receipt does not say evidence was previously
+persisted, or that any unknown Python conversation owner is empty.
+
+The checkpoint is not historical snapshot storage, a compressed history, or
+permission to import client state. Every server read still validates the stored
+owner. Native `Workspace::import_with_control` checks inherited work, cancellation
+and deadline between replayed events. Its returned typed `Workspace` can produce
+several projections without another import. The generic core owner validation
+still performs a separate replay before the host checkpoint projection; this
+batch does not remove that duplication or introduce a retained solver cache.
+
+Use an explicit local cursor to stop after two additional revisions:
+
+```sh
+python3 tools/usage/revisable_evidence.py tools/usage/specialist/revisable-evidence/incident-history.json --persisted-history --cursor var/incident-resume.json --stop-after 2 --tenant incident-demo --url http://HOST:PORT
+```
+
+After restarting the same admitted host, run the same command without
+`--stop-after`. The consumer resumes that supplied plan and first re-solves the
+last committed evidence revision, so a prior solver failure cannot hide a
+successful mutation. The cursor binds the tenant, conversation, admitted runtime
+and supplied plan. Changing any of those refuses resume.
+
+Before sending a mutation, the consumer atomically replaces and fsyncs its local
+record with the complete pending request, including request ID, command and old
+expected version. It retains the record under a local exclusive lock. On resume
+it retries that exact pending mutation **before** asking for a checkpoint, and
+retires pending only after checking the corresponding acknowledgement. A lost
+reply after commit therefore recovers from the server's exact journal entry.
+The local file is a retry cursor, never another authoritative evidence ledger.
+Its combined receipts and pending request must fit 1 MiB of UTF-8 JSON; the same
+limit applies before replacing the file and when reopening it. An oversized
+pending record refuses before sending. If an acknowledgement-derived replacement
+cannot be saved, the earlier durable pending record remains available for retry.
+It can contain supplied observations; choose its explicit path accordingly.
+
+If another native turn advances the session, the old cursor refuses even when
+the evidence owner itself did not change. It never silently rebases. If a pending
+mutation committed before that concurrent advance, exact replay recovers its
+acknowledgement first and the following checkpoint still reports the stale
+position. A definitive rejection also leaves pending intact for diagnosis; the
+client does not guess that a transport failure means the mutation was absent.
+
+The central validator can exercise actual response loss and restart in two
+stages, stopping and starting only its own host between them:
+
+```sh
+python3 tools/usage/specialist/revisable-evidence/recovery_probe.py --stage lose --url http://HOST:PORT --tenant recovery-demo --cursor var/recovery-demo.json
+# Restart the same admitted host and state store, then:
+python3 tools/usage/specialist/revisable-evidence/recovery_probe.py --stage resume --url http://HOST:PORT --tenant recovery-demo --cursor var/recovery-demo.json
+```
+
+The loss stage deliberately discards a received acknowledgement after the server
+completed it; it never restarts a process itself. Use a fresh conversation/state
+for this supplied fixture. Focused tests cover interrupted restore, stale scope
+and identity, lost replies, invalid acknowledgements, changed pending requests,
+concurrent advance, failed solving and independent support/coverage withdrawal.
+No execution, performance improvement or new specialist-panel score is claimed
+by these authored cases.
+
 The first hosted owner admits at most 128 revisions and 128 historical record
 IDs, additionally bounded by the existing 256 KiB owner payload cap. This keeps
 checked restore work bounded. At capacity it refuses further mutations; it does

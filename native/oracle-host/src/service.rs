@@ -5,19 +5,36 @@ use crate::admission::{Admission, Permit};
 use crate::config::{self, Config, ConfigError, HostLimits};
 use crate::engine::{EngineError, EnginePool};
 use crate::front::{self, Candidate, Decision};
-use crate::journal::{Journal, Lookup};
+use crate::journal::{EncodedLookup, Journal};
 use crate::kernels::Kernels;
 use crate::native::NativeRuntime;
 use crate::operations::{valid_operation_id, Registry, Route};
-use crate::pure::Pure;
+use crate::pure::{CheckedPureReply, Pure};
 use crate::wire;
 use crate::workers::InvocationWorkers;
 use crate::{failure, Failure};
 use oracle_execution::{Cancellation, ExecutionContext};
+use serde::Serialize;
 use serde_json::{json, Value};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{mpsc, Arc};
 use std::time::{Duration, Instant};
+
+#[derive(Serialize)]
+#[serde(untagged)]
+enum InvocationReply {
+    Runtime(Value),
+    Pure(CheckedPureReply),
+}
+
+#[derive(Serialize)]
+struct CompletedInvocation {
+    outcome: &'static str,
+    operation_id: String,
+    reply: InvocationReply,
+    native_execution: [Value; 1],
+    durable_replay: bool,
+}
 
 pub struct Service {
     pub limits: HostLimits,
@@ -89,6 +106,9 @@ pub fn envelope(raw: &[u8], path: &str, request_bytes: usize) -> Result<Value, F
 
 impl Service {
     pub fn open(config: &Config) -> Result<Arc<Self>, ConfigError> {
+        if config.limits.reply_bytes < 1024 {
+            return Err(config::err("config: reply_bytes must be at least 1024"));
+        }
         let host_sha256 =
             crate::host_binary_sha256().map_err(|e| config::err(format!("host binary: {e}")))?;
         let boot = format!(
@@ -202,7 +222,7 @@ impl Service {
 
     fn stateful_operations(&self) -> Vec<&'static str> {
         self.native.as_ref().map_or(vec![], |n| {
-            n.operations
+            n.operations()
                 .iter()
                 .copied()
                 .filter(|op| n.is_stateful(op))
@@ -283,36 +303,50 @@ impl Service {
         }
     }
 
+    /// Value compatibility for direct library callers. HTTP retains the encoded buffer.
     pub fn invoke(self: &Arc<Self>, tenant: &str, raw: &[u8]) -> (u16, Value) {
-        let request = match envelope(raw, "/invoke", self.limits.request_bytes) {
-            Ok(r) => r,
-            Err(f) => return (f.status, f.body),
-        };
+        self.invoke_encoded(tenant, raw).into_value()
+    }
+
+    pub fn invoke_encoded(self: &Arc<Self>, tenant: &str, raw: &[u8]) -> wire::EncodedReply {
+        match self.invoke_body(tenant, raw) {
+            Ok(body) => {
+                let stateful = body.durable_replay;
+                match wire::EncodedReply::encode(200, &body, self.limits.reply_bytes) {
+                    Ok(encoded) => encoded,
+                    Err(_) => self.encode_response(
+                        502,
+                        &failure(
+                            "reply_too_large",
+                            json!({
+                                "execution_completed": true, "state_may_have_changed": stateful,
+                                "retryable": stateful, "exact_retry_required": stateful
+                            }),
+                        ),
+                    ),
+                }
+            }
+            Err(f) => self.encode_response(f.status, &f.body),
+        }
+    }
+
+    fn invoke_body(
+        self: &Arc<Self>,
+        tenant: &str,
+        raw: &[u8],
+    ) -> Result<CompletedInvocation, Failure> {
+        let request = envelope(raw, "/invoke", self.limits.request_bytes)?;
         if self.stopping.load(Ordering::Acquire) {
-            return (503, failure("service_stopping", json!({})));
+            return Err(Failure::plain(503, "service_stopping"));
         }
         let id = request["operation_id"].as_str().unwrap_or("").to_owned();
-        let route = match self.registry.check_arguments(&id, &request["arguments"]) {
-            Ok(route) => route,
-            Err(f) => return (f.status, f.body),
-        };
+        let route = self.registry.check_arguments(&id, &request["arguments"])?;
         let stateful = matches!(route, Route::Runtime)
             && self.native.as_ref().is_some_and(|n| n.is_stateful(&id));
-        let Some(permit) = self.acquire(tenant) else {
-            return (
-                429,
-                failure(
-                    "pool_busy",
-                    json!({"retryable": true, "state_may_have_changed": false,
-                                                     "exact_retry_required": false}),
-                ),
-            );
-        };
+        let permit = self.acquire(tenant).ok_or_else(|| Failure::new(429, "pool_busy",
+            json!({"retryable": true, "state_may_have_changed": false, "exact_retry_required": false})))?;
         let (sender, receiver) = mpsc::channel();
-        let context = match self.context(self.limits.invoke_ms) {
-            Ok(context) => context,
-            Err(f) => return (f.status, f.body),
-        };
+        let context = self.context(self.limits.invoke_ms)?;
         let started = Instant::now();
         {
             let native = self.native.clone();
@@ -324,132 +358,140 @@ impl Service {
                 let _permit = permit;
                 let arguments = &request["arguments"];
                 let result = match route {
-                    Route::Runtime => native.as_ref().expect("runtime route").invoke(
-                        &id,
-                        arguments,
-                        &tenant,
-                        request["request_id"].as_str().unwrap_or(""),
-                        request["conversation_id"].as_str().unwrap_or(""),
-                        context,
-                        pure.as_ref().and_then(|p| p.solver_path()),
-                        pure.as_ref().and_then(|p| p.solver_sha256()),
-                    ),
+                    Route::Runtime => native
+                        .as_ref()
+                        .expect("runtime route")
+                        .invoke(
+                            &id,
+                            arguments,
+                            &tenant,
+                            request["request_id"].as_str().unwrap_or(""),
+                            request["conversation_id"].as_str().unwrap_or(""),
+                            context,
+                            pure.as_ref().and_then(|p| p.solver_path()),
+                            pure.as_ref().and_then(|p| p.solver_sha256()),
+                        )
+                        .map(InvocationReply::Runtime),
                     Route::Pure(profile) => pure
                         .as_ref()
                         .expect("pure route")
-                        .invoke(profile, &id, arguments, &tenant, &context),
+                        .invoke_checked(profile, &id, arguments, &tenant, &context)
+                        .map(InvocationReply::Pure),
                 };
                 let _ = sender.send(result);
             }) {
-                return (
+                return Err(Failure::new(
                     429,
-                    failure(
-                        "pool_busy",
-                        json!({"retryable": true,
+                    "pool_busy",
+                    json!({"retryable": true,
                     "state_may_have_changed": false, "exact_retry_required": false}),
-                    ),
-                );
+                ));
             }
         }
-        let result = match receiver
+        let reply = match receiver
             .recv_timeout(context.deadline().saturating_duration_since(Instant::now()))
         {
-            Ok(result) => result,
+            Ok(result) => result?,
             Err(mpsc::RecvTimeoutError::Disconnected) => {
-                return (
+                return Err(Failure::new(
                     502,
-                    failure(
-                        "runtime_error",
-                        json!({"retryable": stateful,
-                    "state_may_have_changed": stateful, "exact_retry_required": stateful}),
-                    ),
-                );
+                    "runtime_error",
+                    json!({"retryable": stateful, "state_may_have_changed": stateful, "exact_retry_required": stateful}),
+                ))
             }
             Err(mpsc::RecvTimeoutError::Timeout) => {
-                // The slot stays held by the worker thread until it returns.
+                // Work owns its permit even after this receiver and context return.
                 context.cancellation().cancel();
-                return (
+                return Err(Failure::new(
                     503,
-                    failure(
-                        "deadline_exceeded",
-                        json!({"retryable": stateful,
+                    "deadline_exceeded",
+                    json!({"retryable": stateful,
                     "state_may_have_changed": stateful, "exact_retry_required": stateful}),
-                    ),
-                );
+                ));
             }
         };
-        let reply = match result {
-            Ok(reply) => reply,
-            Err(f) => return (f.status, f.body),
-        };
-        let body = json!({"outcome": "completed", "operation_id": id, "reply": reply,
-            "native_execution": [{"admission": {"host_sha256": self.host_sha256, "route": match route {
+        Ok(CompletedInvocation {
+            outcome: "completed",
+            operation_id: id,
+            reply,
+            durable_replay: stateful,
+            native_execution: [
+                json!({"admission": {"host_sha256": self.host_sha256, "route": match route {
                 Route::Runtime => "runtime".to_owned(), Route::Pure(p) => p.to_owned() }},
-                "containment": {"process": "in_host", "elapsed_ms": started.elapsed().as_millis() as u64}}],
-            "durable_replay": stateful});
-        if wire::encode(&body).len() > self.limits.reply_bytes {
-            return (
-                502,
-                failure(
-                    "reply_too_large",
-                    json!({"execution_completed": true,
-                "state_may_have_changed": stateful, "retryable": stateful, "exact_retry_required": stateful}),
-                ),
-            );
-        }
-        (200, body)
+                "containment": {"process": "in_host", "elapsed_ms": started.elapsed().as_millis() as u64}}),
+            ],
+        })
+    }
+
+    /// All Value-based routes share the same bounded transport encoder. The
+    /// configured 1024-byte minimum leaves room for this fixed-size refusal.
+    pub(crate) fn encode_response(&self, status: u16, body: &Value) -> wire::EncodedReply {
+        wire::EncodedReply::encode(status, body, self.limits.reply_bytes).unwrap_or_else(|_| {
+            let mut replacement = failure("reply_too_large", json!({
+                "execution_completed": body["outcome"] == "completed" || body["execution_completed"] == true
+            }));
+            for field in ["state_may_have_changed", "exact_retry_required", "retryable"] {
+                if let Some(value) = body.get(field) { replacement[field] = value.clone(); }
+            }
+            if body.get("http_status").is_some() { replacement["http_status"] = json!(502); }
+            wire::EncodedReply::encode(502, &replacement, self.limits.reply_bytes)
+                .expect("reply_bytes admits the fixed-size refusal")
+        })
     }
 
     pub fn query(&self, tenant: &str, raw: &[u8]) -> (u16, Value) {
+        self.query_encoded(tenant, raw).into_value()
+    }
+
+    pub fn query_encoded(&self, tenant: &str, raw: &[u8]) -> wire::EncodedReply {
         let request = match envelope(raw, "/query", self.limits.request_bytes) {
             Ok(r) => r,
-            Err(f) => return (f.status, f.body),
+            Err(f) => return self.encode_response(f.status, &f.body),
         };
         let request_id = request["request_id"].as_str().unwrap_or("");
         match self
             .journal
-            .begin(tenant, request_id, raw, self.limits.reply_bytes)
+            .begin_encoded(tenant, request_id, raw, self.limits.reply_bytes)
         {
-            Ok(Lookup::Replay(status, body)) => return (status, body),
-            Ok(Lookup::Fresh) => {}
-            Err(f) => return (f.status, f.body),
+            Ok(EncodedLookup::Replay(reply)) => return reply,
+            Ok(EncodedLookup::Fresh) => {}
+            Err(f) => return self.encode_response(f.status, &f.body),
         }
         let conversation = request["conversation_id"].as_str().unwrap_or("");
         let context = match self.context(self.limits.query_ms) {
             Ok(context) => context,
             Err(f) => {
                 if let Err(e) = self.journal.forget(tenant, request_id, conversation) {
-                    return (e.status, e.body);
+                    return self.encode_response(e.status, &e.body);
                 }
-                return (f.status, f.body);
+                return self.encode_response(f.status, &f.body);
             }
         };
         let _lease = match self.journal.lease(tenant, conversation) {
             Ok(lease) => lease,
             Err(f) => {
                 if let Err(e) = self.journal.forget(tenant, request_id, conversation) {
-                    return (e.status, e.body);
+                    return self.encode_response(e.status, &e.body);
                 }
-                return (f.status, f.body);
+                return self.encode_response(f.status, &f.body);
             }
         };
         let Some(_permit) = self.acquire(tenant) else {
             if let Err(e) = self.journal.forget(tenant, request_id, conversation) {
-                return (e.status, e.body);
+                return self.encode_response(e.status, &e.body);
             }
-            return (429, failure("busy", json!({"retryable": true})));
+            return self.encode_response(429, &failure("busy", json!({"retryable": true})));
         };
         if self.stopping.load(Ordering::Acquire) {
             if let Err(e) = self.journal.forget(tenant, request_id, conversation) {
-                return (e.status, e.body);
+                return self.encode_response(e.status, &e.body);
             }
-            return (
+            return self.encode_response(
                 503,
-                failure("backend_unavailable", json!({"retryable": false})),
+                &failure("backend_unavailable", json!({"retryable": false})),
             );
         }
-        // A panic after dispatch must not make the request eligible for another
-        // opaque execution. This boundary is separate from native core commits.
+        // Retain possible opaque effects even if execution unwinds.
         let turn = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             self.turn(tenant, &request, &context)
         }))
@@ -461,37 +503,64 @@ impl Service {
             ))
         });
         match turn {
-            Ok(result) => {
-                let result = if wire::encode(&result).len() > self.limits.reply_bytes {
-                    failure(
-                        "reply_too_large",
-                        json!({"execution_completed": true, "state_may_have_changed": true}),
-                    )
-                } else {
-                    result
-                };
-                if let Err(f) = self
-                    .journal
-                    .finish(tenant, request_id, conversation, &result)
-                {
-                    return (f.status, f.body);
-                }
-                (crate::journal::status_of(&result), result)
-            }
+            Ok(result) => self.finish_query(tenant, request_id, conversation, result),
             Err(mut f) => {
                 if f.body["state_may_have_changed"] == true {
                     f.body["http_status"] = json!(f.status);
-                    // Opaque effects cannot be rolled back. Retain their uncertainty.
-                    // A failed journal is latched; its pending record survives restart.
-                    let _ = self
-                        .journal
-                        .finish(tenant, request_id, conversation, &f.body);
-                } else if let Err(e) = self.journal.forget(tenant, request_id, conversation) {
-                    return (e.status, e.body);
+                    let encoded = self.encode_response(f.status, &f.body);
+                    // The uncertainty body cannot clear the conversation poison.
+                    // A failed journal latches and retains the pending record.
+                    let _ = self.journal.finish_bytes(
+                        tenant,
+                        request_id,
+                        conversation,
+                        encoded.body(),
+                        false,
+                    );
+                    encoded
+                } else {
+                    if let Err(e) = self.journal.forget(tenant, request_id, conversation) {
+                        return self.encode_response(e.status, &e.body);
+                    }
+                    self.encode_response(f.status, &f.body)
                 }
-                (f.status, f.body)
             }
         }
+    }
+
+    fn finish_query(
+        &self,
+        tenant: &str,
+        request_id: &str,
+        conversation: &str,
+        result: Value,
+    ) -> wire::EncodedReply {
+        // Compute this predicate from the same Value we encode. A replacement
+        // refusal must NEVER inherit a completed=true flag from its oversized turn.
+        let (encoded, completed) = match wire::EncodedReply::encode(
+            crate::journal::status_of(&result),
+            &result,
+            self.limits.reply_bytes,
+        ) {
+            Ok(encoded) => (encoded, result["outcome"] == "completed"),
+            Err(_) => (
+                self.encode_response(
+                    502,
+                    &failure(
+                        "reply_too_large",
+                        json!({"execution_completed": true, "state_may_have_changed": true}),
+                    ),
+                ),
+                false,
+            ),
+        };
+        if let Err(f) =
+            self.journal
+                .finish_bytes(tenant, request_id, conversation, encoded.body(), completed)
+        {
+            return self.encode_response(f.status, &f.body);
+        }
+        encoded
     }
 
     /// One front-door turn. Failures explicitly carry opaque-effect uncertainty.
@@ -707,3 +776,7 @@ pub enum Discovery {
         availability: Option<String>,
     },
 }
+
+#[cfg(test)]
+#[path = "encoded_reply_tests.rs"]
+mod encoded_reply_tests;

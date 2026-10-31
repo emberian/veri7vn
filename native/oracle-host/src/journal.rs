@@ -31,6 +31,11 @@ impl Drop for ConversationLease<'_> {
         lock(&self.journal.busy).remove(&self.key);
     }
 }
+pub(crate) enum EncodedLookup {
+    Fresh,
+    Replay(wire::EncodedReply),
+}
+
 pub enum Lookup {
     Fresh,
     Replay(u16, Value),
@@ -203,6 +208,22 @@ impl Journal {
         body: &[u8],
         reply_bytes: usize,
     ) -> Result<Lookup, Failure> {
+        match self.begin_encoded(tenant, id, body, reply_bytes)? {
+            EncodedLookup::Fresh => Ok(Lookup::Fresh),
+            EncodedLookup::Replay(reply) => {
+                let (status, value) = reply.into_value();
+                Ok(Lookup::Replay(status, value))
+            }
+        }
+    }
+
+    pub(crate) fn begin_encoded(
+        &self,
+        tenant: &str,
+        id: &str,
+        body: &[u8],
+        reply_bytes: usize,
+    ) -> Result<EncodedLookup, Failure> {
         let db = lock(&self.db);
         let row: Option<(Vec<u8>, Option<Vec<u8>>)> = db
             .query_row(
@@ -231,7 +252,10 @@ impl Journal {
                 ));
             }
             let value = wire::parse(&result).map_err(|_| self.error(true))?;
-            return Ok(Lookup::Replay(status_of(&value), value));
+            return Ok(EncodedLookup::Replay(wire::EncodedReply::retained(
+                status_of(&value),
+                result,
+            )));
         }
         if self.failed.load(Ordering::Acquire) {
             return Err(storage(false));
@@ -247,7 +271,7 @@ impl Journal {
             params![tenant, id, body],
         )
         .map_err(|_| self.error(false))?;
-        Ok(Lookup::Fresh)
+        Ok(EncodedLookup::Fresh)
     }
     pub fn dispatch(&self, tenant: &str, id: &str, conversation: &str) -> Result<(), Failure> {
         let mut db = lock(&self.db);
@@ -296,14 +320,34 @@ impl Journal {
         conversation: &str,
         result: &Value,
     ) -> Result<(), Failure> {
+        self.finish_bytes(
+            tenant,
+            id,
+            conversation,
+            &wire::encode(result),
+            result["outcome"] == "completed",
+        )
+    }
+
+    /// The bytes and completed predicate must describe the SAME final response.
+    /// In particular a size/error replacement must recompute its predicate, so
+    /// retaining that refusal cannot clear an uncertain conversation's poison.
+    pub(crate) fn finish_bytes(
+        &self,
+        tenant: &str,
+        id: &str,
+        conversation: &str,
+        bytes: &[u8],
+        completed: bool,
+    ) -> Result<(), Failure> {
         let mut db = lock(&self.db);
         let tx = db.transaction().map_err(|_| self.error(true))?;
         tx.execute(
             "UPDATE requests SET result=?3,phase='completed' WHERE tenant=?1 AND id=?2",
-            params![tenant, id, wire::encode(result)],
+            params![tenant, id, bytes],
         )
         .map_err(|_| self.error(true))?;
-        if result["outcome"] == "completed" {
+        if completed {
             tx.execute(
                 "UPDATE conversations SET poisoned=0 WHERE tenant=?1 AND id=?2",
                 params![tenant, conversation],

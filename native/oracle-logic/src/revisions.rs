@@ -75,6 +75,16 @@ pub struct Commit {
     pub revision: u64,
     pub snapshot_identity: String,
 }
+/// Receipt for the requested current state, not stored historical snapshots,
+/// compaction, or authority to import client-supplied derived state.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+pub struct Checkpoint {
+    pub scope: ScopeKey,
+    pub revision: u64,
+    pub snapshot_identity: String,
+    pub active_record_ids: Vec<String>,
+    pub coverage_ids: Vec<String>,
+}
 #[derive(Clone, Debug, Serialize)]
 pub struct Snapshot {
     scope: ScopeKey,
@@ -89,6 +99,21 @@ fn hash<T: Serialize>(x: &T) -> String {
         .collect()
 }
 impl Snapshot {
+    pub fn checkpoint(&self) -> Checkpoint {
+        Checkpoint {
+            scope: self.scope.clone(),
+            revision: self.revision,
+            snapshot_identity: self.identity(),
+            active_record_ids: self.active.iter().cloned().collect(),
+            coverage_ids: self
+                .active()
+                .filter_map(|record| match record {
+                    Insert::Coverage(coverage) => Some(coverage.id.clone()),
+                    _ => None,
+                })
+                .collect(),
+        }
+    }
     pub fn revision(&self) -> u64 {
         self.revision
     }
@@ -284,6 +309,38 @@ impl Workspace {
         }
         Self::restore(stored.scope, stored.history, max_records)
     }
+    /// Checked replay with inherited work/deadline/cancellation. The resulting
+    /// Workspace is the checked typed handle; callers may project and prepare
+    /// multiple queries from it without serializing/importing it again.
+    pub fn import_with_control(
+        stored: StoredWorkspace,
+        authenticated_scope: &ScopeKey,
+        max_records: usize,
+        control: &dyn oracle_execution::WorkControl,
+    ) -> Result<Self, Error> {
+        if stored.version != VERSION || &stored.scope != authenticated_scope {
+            return Err(Error::Invalid(
+                "workspace owner version or authenticated scope",
+            ));
+        }
+        if stored.history.len() > max_records {
+            return Err(Error::Limit("workspace history"));
+        }
+        let mut workspace = Self::new(stored.scope)?;
+        for revision in stored.history {
+            restore_checkpoint(
+                control,
+                1 + revision.insert.len() as u64 + revision.withdraw.len() as u64,
+            )?;
+            workspace.apply(revision, max_records)?;
+            restore_checkpoint(control, 0)?;
+        }
+        restore_checkpoint(control, 0)?;
+        Ok(workspace)
+    }
+    pub fn checkpoint(&self) -> Checkpoint {
+        self.current.checkpoint()
+    }
     pub fn new(scope: ScopeKey) -> Result<Self, Error> {
         if scope.tenant.is_empty() || scope.workspace.is_empty() {
             return Err(Error::Invalid("workspace scope"));
@@ -407,4 +464,16 @@ impl Workspace {
         self.retries.insert(r.token.clone(), (r, result.clone()));
         Ok(result)
     }
+}
+
+pub(crate) fn restore_checkpoint(
+    control: &dyn oracle_execution::WorkControl,
+    work: u64,
+) -> Result<(), Error> {
+    control.checkpoint(work).map_err(|error| match error {
+        oracle_execution::ExecutionError::Cancelled => Error::Cancelled,
+        oracle_execution::ExecutionError::Deadline => Error::Limit("shared deadline"),
+        oracle_execution::ExecutionError::FuelExhausted => Error::Limit("shared work"),
+        _ => Error::Limit("shared execution budget"),
+    })
 }

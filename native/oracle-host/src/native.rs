@@ -25,6 +25,8 @@ pub const OPERATIONS: &[(&str, &str, bool)] = &[
     ("logic.workspace", "command", true),
     #[cfg(feature = "logic")]
     ("logic.workspace.solve", "command", false),
+    #[cfg(feature = "logic")]
+    ("logic.workspace.checkpoint", "command", false),
     ("graph.execute", "plan_json", true),
     ("kqa.query", "program_json", false),
     ("kqa.execute", "program_json", true),
@@ -37,7 +39,7 @@ pub struct NativeRuntime {
     pub image_sha256: String,
     pub resource_identity: String,
     pub release_admitted: bool,
-    pub operations: Vec<&'static str>,
+    operations: Vec<&'static str>,
     pub request_bytes: usize,
     pub reader_route: bool,
 }
@@ -167,6 +169,11 @@ impl NativeRuntime {
         })
     }
 
+    /// Immutable operations admitted at startup; callers cannot widen a release.
+    pub fn operations(&self) -> &[&'static str] {
+        &self.operations
+    }
+
     pub fn identity(&self) -> &str {
         self.runtime.identity()
     }
@@ -183,6 +190,7 @@ impl NativeRuntime {
                 let mut example = match field {
                     "batch" => json!({"batch":{"items":[{"dialect":"graph","input":{"nodes":[{"op":"find","name":"Alice"}],"output":0,"projection":{"kind":"count"}},"demand":"full"}]}}),
                     "coverage" => json!({"coverage":{"subjects":["Q1"],"predicate":"friend","direction":"forward","traversal_limit":100}}),
+                    "command" if id == "logic.workspace.checkpoint" => json!({"command":{"command":"checkpoint","expected_revision":1}}),
                     "command" if id == "logic.workspace.solve" => json!({"command":{"command":"solve","expected_revision":0,"queries":["accepted"]}}),
                     "command" if id == "logic.workspace" => json!({"command":{"command":"revise","revision":{"expected_revision":0,"token":"revision1","insert":[],"withdraw":[]}}}),
                     "command" => json!({"command":{"op":"inspect"}}),
@@ -190,7 +198,7 @@ impl NativeRuntime {
                     "plan_json" => json!({"plan_json": "{\"nodes\":[{\"op\":\"find\",\"name\":\"Alice\"}],\"output\":0,\"projection\":{\"kind\":\"unique_name\"}}"}),
                     _ => json!({"program_json": "[{\"function\":\"Find\",\"dependencies\":[],\"inputs\":[\"Alice\"]},{\"function\":\"What\",\"dependencies\":[0],\"inputs\":[]}]"}),
                 };
-                if stateful || id == "logic.workspace.solve" {
+                if stateful || matches!(id, "logic.workspace.solve" | "logic.workspace.checkpoint") {
                     properties.insert("expected_version".into(),
                         json!({"type": "integer", "minimum": 0, "maximum": (1u64 << 63) - 2}));
                     example["expected_version"] = json!(0);
@@ -204,6 +212,7 @@ impl NativeRuntime {
                         "graph.coverage" => "Traverse a declared snapshot relation domain to EOF; return count, absence and uniqueness only when traversal is complete.",
                         "context.execute" => "Atomically observe, scale, clear or inspect the session delivered dimensionless scalar; retain exact replies for retry.",
                         "logic.workspace" => "Atomically revise identified supplied evidence in this tenant conversation and retain its exact acknowledgement for retry.",
+                        "logic.workspace.checkpoint" => "Read a version-checked receipt of this conversation evidence for caller recovery; no ledger import or history compaction.",
                         "logic.workspace.solve" => "Freshly solve a version-checked immutable snapshot of this conversation evidence with the operator admitted solver.",
                         _ if stateful => "Commit a bounded native data/language turn and retain its exact reply for retry.",
                         _ => "Read the operator fixed native data image without changing session state." },
@@ -272,18 +281,19 @@ impl NativeRuntime {
             .map_err(|_| uncertain("runtime_budget", 503))?;
         let raw = match id {
             #[cfg(feature = "logic")]
-            "logic.workspace" | "logic.workspace.solve" => self.evidence(
-                id,
-                tenant,
-                &session,
-                &request,
-                expected,
-                &arguments[field],
-                &budget,
-                budget.execution_context(),
-                solver,
-                solver_sha256,
-            ),
+            "logic.workspace" | "logic.workspace.solve" | "logic.workspace.checkpoint" => self
+                .evidence(
+                    id,
+                    tenant,
+                    &session,
+                    &request,
+                    expected,
+                    &arguments[field],
+                    &budget,
+                    budget.execution_context(),
+                    solver,
+                    solver_sha256,
+                ),
             "graph.batch" => self.batch(tenant, &arguments[field], &budget),
             "graph.coverage" => self.coverage(tenant, &arguments[field], &budget),
             "context.execute" => serde_json::from_value::<core::context_delta::ContextCommand>(
@@ -335,6 +345,17 @@ impl NativeRuntime {
                     return Err(uncertain("native_adapter_invalid_reply", 502));
                 }
                 reply["version"] = value["version"].clone();
+            } else if id == "logic.workspace.checkpoint" {
+                let value = wire::parse(raw.as_bytes())
+                    .map_err(|_| uncertain("native_adapter_invalid_reply", 502))?;
+                if value["schema"] != "oracle-evidence-checkpoint-v1"
+                    || value["runtime_identity"].as_str() != Some(self.identity())
+                    || value["session_version"].as_i64() != Some(expected)
+                {
+                    return Err(uncertain("native_adapter_invalid_reply", 502));
+                }
+                reply["version"] = json!(expected);
+                reply["core_metadata"] = json!({"snapshot_identity":value["checkpoint"]["snapshot_identity"], "evidence_revision":value["checkpoint"]["revision"], "session_version":expected});
             } else {
                 let value = wire::parse(raw.as_bytes())
                     .map_err(|_| uncertain("native_adapter_invalid_reply", 502))?;
@@ -723,6 +744,36 @@ impl NativeRuntime {
                 let command = crate::revisions_owner::MutationCommand { revision };
                 self.runtime.execute_native_owner_typed_with_budget::<crate::revisions_owner::EvidenceOwner>(
                     tenant, session, request, expected, command, budget)
+            }
+            (
+                "logic.workspace.checkpoint",
+                oracle_logic::revisions_owner::Command::Checkpoint {
+                    expected_revision,
+                    expected_snapshot_identity,
+                },
+            ) => {
+                let _checkpoint_memory = budget.reserve_memory(
+                    self.runtime
+                        .image
+                        .limits
+                        .state_bytes
+                        .saturating_mul(8)
+                        .saturating_add(self.runtime.image.limits.result_bytes),
+                )?;
+                let snapshot = self
+                    .runtime
+                    .read_native_owner_with_budget::<crate::revisions_owner::EvidenceOwner>(
+                        tenant, session, expected, budget,
+                    )?;
+                let checkpoint = crate::revisions_owner::checkpoint(
+                    snapshot.binding(),
+                    snapshot.state().cloned(),
+                    snapshot.revision(),
+                    expected_revision,
+                    expected_snapshot_identity,
+                    budget,
+                )?;
+                bounded_encode(&checkpoint, self.runtime.image.limits.result_bytes)
             }
             (
                 "logic.workspace.solve",

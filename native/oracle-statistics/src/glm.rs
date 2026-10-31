@@ -38,7 +38,7 @@ pub enum Method { MaximumLikelihood }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Uncertainty { None, ModelBasedWald }
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct GlmModel {
     pub description: String,
@@ -50,7 +50,7 @@ pub struct GlmModel {
     pub grouping: String,
     pub assumptions: Vec<String>,
 }
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct GlmPredictionInput {
     pub features: Vec<f64>,
@@ -63,7 +63,7 @@ pub struct GlmPredictionInput {
 }
 fn iterations_default() -> usize { 80 }
 fn backtracks_default() -> usize { 24 }
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct SolverOptions {
     #[serde(default = "iterations_default")]
@@ -74,7 +74,7 @@ pub struct SolverOptions {
 impl Default for SolverOptions {
     fn default() -> Self { Self { max_iterations: iterations_default(), max_backtracks: backtracks_default() } }
 }
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct GlmInput {
     pub family: Family,
