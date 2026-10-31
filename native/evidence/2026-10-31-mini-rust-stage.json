@@ -4,11 +4,11 @@
   "profile": "operator-appliance-v1",
   "python_sha256": "e50d468e8b0adfb05733f5b87b3cff34829c4a8c1aea50c865aa8bdfe4bb150f",
   "regular_member_bytes": 1308997522,
-  "signed": false,
+  "signed": true,
   "stage_sha256": "7dbd22d3cd98480bc9c2567d796b6b9f5302eaccb0f8cb1b752306a1a443c370",
   "schema": "oracle-mini-rust-stage-evidence-v1",
   "date": "2026-10-31",
-  "status": "assembled_verified_unsigned",
+  "status": "signed_and_independently_verified",
   "stage": "var/mini-rust-u8-20261031/assembly/u8-rust",
   "source_stage": "var/mini-rust-u8-20261031/assembly/u8-base",
   "host_distribution_manifest_sha256": "69809342edaebe52ae6d1cb9ec9d39febab285a8361caefd7ddf9bbe7c5ed690",
@@ -20,7 +20,9 @@
     "base_stage": "passed",
     "adapted_stage": "passed",
     "adapter_fixtures": 3,
-    "packer_focused_tests": 5
+    "packer_focused_tests": 5,
+    "independent_inspector_fixtures": 2,
+    "signed_exact_inventory": "passed"
   },
   "providers": [
     "native reader",
@@ -35,9 +37,46 @@
     "inventory_sha256": "32bb3cf1a6337ee2c7b6ec902bb5bfdff11ba1fd5f1fa3b730dc269431b27d0a"
   },
   "remaining": [
-    "Sign and independently inspect exact SPK, then receiving agent/browser/restart journey.",
+    "Mini admission of this exact raw SHA-256, then fresh agent/browser/restart journey.",
     "Select and exercise remaining compiled pure profiles.",
     "Release-build process-tree memory/fairness measurements and streaming manufacturing."
   ],
-  "scope": "Local assembly and inventory verification; not signed, deployed, receiving-qualified or a specialist panel score."
+  "scope": "Signed Linux candidate and independent exact-inventory verification. Not deployed or Mini receiving-qualified; no new specialist panel score.",
+  "package": "var/mini-rust-u8-20261031/assembly/oracle-rust-u8.spk",
+  "post_pack": {
+    "app_id": "ephaf4h4cx8f9s36hmukm4yzkznyhqjhvj8efp3at9cru2zn10mh",
+    "app_version": 8,
+    "exact_inventory_verified": true,
+    "inspector_sha256": "7bdae377a91e8420df8b397dfba79af467d789271a2fcf5889d1d2d3d648bb4d",
+    "inventory_sha256": "3b04f6fcc1a4529bd7c8b0939769670571b303883d955658e2652401f9427db9",
+    "profile": "operator-appliance-v1",
+    "public_key_hex": "6d60a712045f50e4e06684f52993df97e9e85a30dc50d7546aca577d0bf40827",
+    "raw_bytes": 165367076,
+    "raw_sha256": "c96fdc3faaf51de9fd4e05079d45063172253b3a10920cdba8241491c8d2072e",
+    "schema": "oracle-post-pack-verification-v1",
+    "scope": "Signed snapshot matches pinned stage; Mini must import this exact raw_sha256. No Mini admission or deployment.",
+    "shared_data_inventory_sha256": "32bb3cf1a6337ee2c7b6ec902bb5bfdff11ba1fd5f1fa3b730dc269431b27d0a",
+    "signature_verified": true,
+    "stage_sha256": "7dbd22d3cd98480bc9c2567d796b6b9f5302eaccb0f8cb1b752306a1a443c370"
+  },
+  "packer": {
+    "sha256": "36855d02718c4b2d30feecbd673a6da31e0de921794d0a9ef5a25ea4c50bd6d9",
+    "decoded_bytes": 1310506232,
+    "members": 26823,
+    "elapsed_seconds": 388.44,
+    "maximum_resident_bytes": 4189929472,
+    "scope": "One macOS manufacturing run, debug packer; not serving performance."
+  },
+  "inspector_source": {
+    "mini_revision": "7978ddfdd3242cfefe7bd41abe4ca03c922ee09d",
+    "files": {
+      "native/spk-package-stream/Cargo.toml": "2f2ec3dcafe17e349765c54381019861326993690eb7c1959ef183b1d9becfe9",
+      "native/spk-package-stream/README.md": "a4325384888d67e99511b4adbd60f9ea11c35f232e6c179a5eafc9af980db6e0",
+      "native/spk-package-stream/build.rs": "c2afbf54c0d750dd586e9cfc4172eeab8cdfe8e8895f7e74a1aa867453e5e4dd",
+      "native/spk-package-stream/examples/inspect.rs": "6e6da8dd479b97f9185e14bdb85e54fb01efdc44a0a6816b98950c15ea8cdfec",
+      "native/spk-package-stream/examples/qualification_fixture.rs": "d323f0584c022921fc563847cef844bcd7b4634ce39569ce8a320e03c6e28cdf",
+      "native/spk-package-stream/schema/archive.capnp": "8d88279a1c80d1c698355ad7bdd6c2984d51898b6e520f2a66826ea7e8d112e1",
+      "native/spk-package-stream/src/lib.rs": "97820b09748baf3078309101c51aa34836f310943d9b6a5b1e0b9f228697a2da"
+    }
+  }
 }

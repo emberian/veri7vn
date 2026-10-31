@@ -18,9 +18,10 @@ workflow consumes the hosted logic operations. The
 actual validation and limitations; no new fleet score follows from these checks.
 
 The combined actual native/kernel/U8 host passed the scoped route, tenant and
-restart checks. A fresh Linux Mini stage was assembled and verified; the staging
-adapter and explicit operator-profile packer are on Mini main. Signing, receiving
-and the fresh agent/browser/restart journey remain. The stage currently enables
+restart checks. The fresh Linux Mini candidate is signed under the existing
+application identity and independently inventory-verified; its staging adapter
+and explicit operator-profile packer are on Mini main. Admission of the exact
+signed package and the fresh agent/browser/restart journey remain. The stage currently enables
 native reading, acoustics, logic and U8; other compiled pure profiles need to be
 selected and exercised in the deployment configuration. Full Engine state export and context transfer across providers
 are still required for cheap tenant switching with durable conversation state.
@@ -158,8 +159,9 @@ cancellation. Then Linux mixed-load tests measure whole-process-tree PSS, tail
 latency and fairness. Astra reviews the combined state machine before deployment.
 
 The current Mini packer constructs the archive in memory. The assembled debug
-payload has about 1.31 GB of regular members; its explicit operator profile
-changes admission ceilings, not manufacturing memory cost. Streaming manufacture
+payload has about 1.31 GB of regular members and compresses to 165 MB. One
+macOS signing run took 388 seconds with 4.19 GB peak RSS. Its explicit operator
+profile changes admission ceilings, not manufacturing memory cost. Streaming manufacture
 and release-build serving measurements remain performance work.
 
 ### 2. Integrate upstream interfaces and choose a release deliberately

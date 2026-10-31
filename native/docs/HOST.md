@@ -248,8 +248,9 @@ restart; a new turn against lost Engine context required reset. These are bounde
 integration probes, not new specialist-panel scores or serving benchmarks.
 
 The [Mini staging receipt](../evidence/2026-10-31-mini-rust-stage.json) records a
-fresh verified Linux stage. Its adapter and operator-profile packer are integrated
-on Mini main. The stage is not yet signed or receiving-qualified.
+signed Linux candidate under the existing application identity, independently
+verified against its full staged inventory. Its adapter and operator-profile
+packer are integrated on Mini main. Mini receiving qualification remains open.
 
 See `native/evidence/2026-10-29-host.json` and
 `project/lanes/I2-HOST-2026-10-29.md` for every count, command and
