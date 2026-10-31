@@ -44,9 +44,14 @@ empty-result chart retention defect was repaired without weakening its assertion
 The initial failure, repair and a logic-mode harness correction remain recorded.
 
 Code is committed in three reviewable slices: `70f4ca5` (graph/control),
-`14ceb7d` (packed reader), and `64430c7` (typed host/recovery). The prepared single
-performance comparison follows correctness; results are not implied by these
-tests. Pre-change artifacts remain pinned by
+`14ceb7d` (packed reader), and `64430c7` (typed host/recovery). The single
+[performance comparison](../../native/evidence/2026-10-31-native-cycle-performance.json)
+is complete: encoded-service LP/GLM/small-graph medians changed from 96/180/61
+to 49/85/27 microseconds; the 1,000-vertex chain changed from 2.35 to 1.96 ms.
+Matching semantic replies and response lengths were preserved. Reader latency
+remains about 55–56 ms on the retained question, and the tiny reader's conservative
+memory reservation increased. See [the boundary and limits](../../native/docs/PERFORMANCE.md#typed-service-packed-reader-and-graph-layout).
+All owned build, host and measurement processes are stopped. Pre-change artifacts remain pinned by
 `native/evidence/2026-10-31-native-expansion-validation.json`.
 
 Review repaired a mutable admitted-operation list, reader source-memory custody
@@ -155,3 +160,32 @@ Do not turn each measurement or lane completion into a new public status post.
 Full Python conversation-owner migration, long-history retention/compaction and
 a useful learned-binding study remain unfinished beyond this window. They must
 stay visible in the tracker rather than disappear during the next compaction.
+
+## Next reader work, grounded in the completed cycle
+
+Removing flat fragment programs did not establish a latency gain. Source reading
+after measurement identifies surviving work, without claiming which path dominates:
+`ProgramWorkspace::compile` serializes original occurrences for byte admission,
+then serializes literal specifications and builds occurrence keys before a root
+cache lookup. The query compiler clones/rebases nodes, serializes stage keys and
+builds CTE strings even for shared stages. `LanguageWorkspace::retain` scans three
+scratch tables to recover row/byte counts after insertion.
+
+1. Carry stable checked-stage handles into the existing language workspace, so
+   reuse avoids Node-to-JSON keys and per-candidate SQL construction. Materialize
+   each unique stage once, account successful insertions, and reuse nonempty
+   metadata for viability. Preserve all ordered empty/dead-stage obligations;
+   handles cannot cross image, lease or Previous-selection boundaries.
+2. Store immutable recipe admission summaries and validated literal handles in
+   the existing interner. Exact byte admission must include rebased dependency
+   widths (especially 9→10 and 99→100), duplicate occurrences and dead steps.
+   Cached failures and equivalent syntax assembled from different splices must
+   keep their current meaning. Avoid adding a second competing syntax arena.
+3. Where distinct predicates share an input stage and attribute column, evaluate
+   them together using retained typed constants. Keep every candidate's witnesses,
+   including empty results; units, date precision and qualifiers constrain reuse.
+   This is conditional on a real consumer with repeated comparable predicates.
+
+The first two are the next architectural slices; the third needs workload support.
+Date/unit slot repairs and explicit closed-empty Count rules remain separate
+semantic work. None of these follow-ups is implemented or timed by this receipt.

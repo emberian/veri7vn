@@ -1,0 +1,69 @@
+{
+  "schema": "sol-next-cycle-preparation-v1",
+  "execution": "Completed once after central correctness and explicit hbox handoff; no failures, retries or sweeps. Runner released.",
+  "scope": "One same-CPU release pre/post after central correctness and explicit execution handoff; no sequence, CPU or profile sweeps.",
+  "pre": {
+    "source": "/tank/lanes/o7-expansion-validation-20261031/source",
+    "archive": "/tank/lanes/o7-expansion-validation-20261031/validated-source.tar",
+    "archive_sha256": "1b23eb0de91cc3ac4adf69474968e6794f94b2dca46542269c149a1b67efb822",
+    "manifest_sha256": "5b9fb20ca89dabfb0bb2ca3029adb257ae2297d49c8d9432fc5a87d9884091dd",
+    "host": "/tank/lanes/o7-expansion-validation-20261031/artifacts-release/oracle-host",
+    "host_sha256": "b60218021fd65285500ec224d63031428b0e285593beaa22503cf2d170f08db6",
+    "boundary": "Service::invoke Value then caller wire::encode; matches its actual pre-encoded HTTP path.",
+    "operation_coverage": "LP and GLM both admitted; includes prior memory/work-identity overlay. f0dfad7 is not a valid GLM control."
+  },
+  "post": {
+    "source": "/tank/lanes/o7-native-cycle-20261031/source",
+    "manifest_sha256": "1b49da5359223da03f2fa79d38e1d6dcaa2c590088ad13442f47b0e7bdf3b5a1",
+    "reason": "Final validated675file source including empty-batch ownership repair; read-only warm path dependency verified.",
+    "build_features": [
+      "encoded",
+      "packed_probe"
+    ],
+    "boundary": "Service::invoke_encoded owned encoded bytes; no Value compatibility decode.",
+    "archive_sha256": "5bf5c85a6280b47e63e118e1eeaf1eb313c0a7f7c00df4883dd4e7a794810c14",
+    "host_sha256": "161dd07d271d00e83dad503dc6e79c62e542c7a4b9decf6c83c4828d8f0476d0"
+  },
+  "cohort": {
+    "service_cases": [
+      "lp_interval",
+      "glm_binomial",
+      "graph_small",
+      "graph_retained_chain",
+      "graph_multigraph"
+    ],
+    "warmups_per_service_case": 5,
+    "calls_per_service_case": 50,
+    "reader_cases": [
+      "tiny_composed",
+      "retained_composed"
+    ],
+    "warmups_per_reader_case": 5,
+    "calls_per_reader_case": 10,
+    "reader_timeout_ms": 1000,
+    "tiny_fixture": "Build once with PRE via fixture subcommand; reuse exact admitted bytes/hash for POST.",
+    "independent_multigraph_truth": "128 blocks, 512 vertices, 1152 edges; total -512, components 128, edge IDs [9k,9k+2,9k+4]. Graph owner confirmed original-ID tie contract.",
+    "tiny_image_sha256": "c6e243bc8e75f1628517eaecea0ee30dcb1042572fb2e2784e6dd5dc05cd734d"
+  },
+  "structural": {
+    "typed_filter": "pure::typed::tests::typed_lp_glm_probe_has_single_decode_and_no_result_tree",
+    "typed_test_args": [
+      "--nocapture"
+    ],
+    "typed_marker": "SOL_TYPED_PROBE_JSON",
+    "typed_expected_live_probe": {
+      "input_decodes": 1,
+      "provider_envelope_counts": 1,
+      "payload_to_value": 0,
+      "result_redecodes": 0,
+      "checked_reply_serializations": 1
+    },
+    "typed_scope": "cfg(test) thread-local catalog_example_0 records, baseline_probe:null; distinct from timed fixture unless hashes match. Counts concern payload bridging, not zero scalar Value use, zero allocation or one overall traversal.",
+    "reader_filter": "packed_program::tests",
+    "reader_expected_tests": 5,
+    "reader_source_assertions": "49x49 case:4901 unique lowerings vs14406 occurrence operations; fragment materialization0. Runtime harness snapshots origin/cache/unique_operations counters via one untimed actual read.",
+    "counter_meaning_change": "compiled_plans was legacy full Program compile aggregate; new field counts successful checked roots. Do not form a numeric before/after ratio."
+  },
+  "decision": "Compare ratios only for matching request/image hashes, matching semantic replies, accepted calls and no reader errors. Keep negative results; no historical baseline receipt changes.",
+  "receipt": "native/evidence/2026-10-31-native-cycle-performance.json"
+}

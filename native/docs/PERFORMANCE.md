@@ -167,3 +167,48 @@ The next target is time close to the underlying computation, with measured costs
 for validation, dispatch, allocation and encoding. A timeout is containment, not
 a performance objective. Reader interpretation/compilation counts and symmetric
 prepared-consumer benchmarks are concrete next targets.
+
+## Typed service, packed reader and graph layout
+
+The [next-cycle receipt](../evidence/2026-10-31-native-cycle-performance.json)
+compares the validated expansion with the new typed host, packed reader and
+contiguous forest checker. One release pair ran on CPU 0 of hbox, with five
+warmups and 50 measured calls per service case. These are separately linked
+library harnesses: PRE includes `Service::invoke` plus final encoding, and POST
+uses `invoke_encoded`. Both end at the encoded response. TCP, request parsing,
+fixture construction, independent checks and response destruction are excluded.
+
+| Encoded service, microseconds | PRE median / p95 | POST median / p95 |
+|---|---:|---:|
+| Rational LP | 96.16 / 105.51 | 49.41 / 55.67 |
+| Binomial GLM | 179.94 / 193.46 | 85.34 / 92.28 |
+| Small graph | 61.14 / 65.76 | 26.86 / 35.25 |
+| 1,000-vertex chain | 2,348.17 / 2,479.64 | 1,960.51 / 2,075.88 |
+| 512-vertex multigraph | 2,144.50 / 2,295.09 | 2,015.59 / 2,054.43 |
+
+All 500 measured service calls answered successfully. Matching requests produced
+matching semantic replies, and final response lengths stayed equal. Independent
+LP, GLM and graph assertions passed. This is one ordered comparison on a shared
+CPU, not a confidence interval, kernel-only attribution or HTTP throughput result.
+Earlier measurements above retain their original boundaries and observations.
+
+Reader latency is unresolved. Ten measured reads per version gave tiny-composition
+medians of 1.713 to 1.727 ms, and retained-composition medians of 56.15 to 55.27 ms.
+Both preserved exact answer/evidence results and had no errors. The new retained
+reader performs 1,292 fragment checks over 1,297 unique checked operations and
+651 syntax specifications, with ten root-cache hits, two final diagnostic
+materializations and zero fragment materializations. Old full-program compilation
+counts and new checked-root counts are different units.
+
+Conservative peak reservations increased from 62,595 to 306,757 bytes for the tiny
+reader and decreased from 16,167,853 to 6,109,824 for the retained reader. Accounting
+changed with the representation; these are not allocator or RSS ratios. Actual
+process samples and their limitations are retained separately in the receipt.
+
+Typed structural checks establish one input decode, no intermediate result-payload
+tree and no result re-decoding for their LP/GLM fixtures. Scalar Value checks,
+finite/schema traversals, property bookkeeping and final serialization remain.
+This does not establish allocation-free admission. The
+[harness guide](../../tools/bench/sol/NEXT_CYCLE.md) records commands, hashes,
+independent truths and the exact timed boundary. All owned processes stopped
+after this pair; no timing sweep selected these results.

@@ -1,12 +1,20 @@
 # Native upstream checkpoint — 31 October 2026
 
-The native expansion is committed and pushed as `feca38a`. This is a runnable
+The original native expansion is committed and pushed as `feca38a`. This is a runnable
 review cut, not a claim that upstream has adopted the Rust runtime. Central
 validation passed 171 Rust and 142 Python checks, 99 new hosted workflow cases,
 durable evidence replay, and 256 bounded requests across 64 tenants in one host.
 See [the expansion tracker](NATIVE-SOL-EXPANSION-2026-10-31.md) for scope and
 [the receipt](../../native/evidence/2026-10-31-native-expansion-validation.json)
 for actual execution results.
+
+The [following native cycle](NATIVE-NEXT-CYCLES-2026-10-31.md) is also committed
+and pushed in `70f4ca5`, `14ceb7d` and `64430c7`, with validation in `0875b14`.
+It adds the typed encoded service path, packed reader composition, contiguous
+graph checking and resumable evidence clients. Its separate receipts record
+169 Rust tests and actual HTTP/restart checks, then one fixed-CPU comparison.
+Small service medians improved; reader latency did not show a resolved gain.
+These results do not replace the earlier expansion's evidence or its limits.
 
 ## What upstream has received
 
@@ -40,8 +48,8 @@ upstream trackers; this checkpoint does not claim a fresh census of every thread
 
 | Work | Concrete problem | Next useful result |
 | --- | --- | --- |
-| Reader representation and semantics | A measured composed question compiled 1,292 intermediate plans for ten final readings; selected release queries took 83–119 ms. Numeric literals can still occupy Date slots, and empty-child count semantics withhold valid zero results. | Packed typed plans with shared execution/evidence, plus explicit slot and completeness rules. Preserve ambiguity and independently check answers. |
-| Native call overhead | Large-graph median remains slower than the earlier foundation. Removing redundant work ancestry helped one median but worsened p95. | Separate kernel, validation, admission, allocation and encoding costs on the same CPU; remove demonstrated repeated work. A timeout is not the speed target. |
+| Reader representation and semantics | Packed composition removes fragment flattening, but the retained question still needs 1,292 fragment checks and about 55–56 ms. Numeric literals can still occupy Date slots, and empty-child count semantics withhold valid zero results. | Stable checked-stage handles through execution, exact cached recipe admission, and separate slot/completeness repairs. Preserve every interpretation and witness. |
+| Native call overhead | Typed encoding lowered scoped LP/GLM/small-graph medians to 49/85/27 microseconds; the retained chain reached 1.96 ms. Contract traversals and substantial graph work remain. | Remove further demonstrated repeated work without weakening independent checks. The latest library boundary excludes TCP; it does not supersede earlier HTTP observations. |
 | Prepared consumers | Thermal reuse pays off in the scoped internal benchmark; sequence timings reverse with execution order. | Symmetric warmup, output lifetime and accounting before changing sequence code or claiming a gain. |
 | State ownership | Native scalar context and revisable evidence are durable, but several Python conversation owners remain outside native recovery. | Migrate each real owner with explicit import/export and delivered-answer commit semantics; test cross-provider handoff and restart. |
 | Evidence scale | Host policy caps history at 128 records/revisions and restore checks the complete history. | Configurable owner limits and measured checkpoint/retention design preserving IDs, withdrawals and exact retry. Incremental solving must agree with the fresh reference. |
