@@ -293,3 +293,30 @@ fn admitted_operation_is_explicit_versioned_and_requires_learned_tables() {
         Err(Error::Format(_))
     ));
 }
+
+#[test]
+fn guarded_selection_survives_language_reply_and_durable_state_encoding() {
+    use oracle_runtime_core::Budget;
+    let fixture = Fixture::new(tables(vec![entity()]));
+    let state = fixture._directory.path().join("guarded-state.sqlite");
+    let runtime = Runtime::open(fixture.image.clone(), &state).unwrap();
+    let budget = Budget::new(&Limits::default(), Cancellation::default()).unwrap();
+    let reply = runtime
+        .execute_language_with_budget("t", "s", "language", 0, "who is Alice", &budget)
+        .unwrap();
+    assert_eq!(
+        serde_json::from_str::<Value>(&reply).unwrap()["language"]["answer"],
+        "Alice"
+    );
+    assert_eq!(budget.memory().snapshot().live, 0);
+    assert!(budget.memory().snapshot().peak > 0);
+    drop(runtime);
+    let runtime = Runtime::open(fixture.image.clone(), &state).unwrap();
+    let previous_reply = runtime
+        .execute_with_budget("t", "s", "previous", 1, &previous(), &budget)
+        .unwrap();
+    let previous_reply: Value = serde_json::from_str(&previous_reply).unwrap();
+    assert_eq!(previous_reply["result"]["entities"], json!(["A"]));
+    assert_eq!(budget.memory().snapshot().live, 0);
+    assert_eq!(fixture.image.active_workers(), 0);
+}

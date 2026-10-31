@@ -44,6 +44,7 @@ fn completed_query_replays_through_tenant_and_global_saturation() {
 fn default_policy_and_serialized_limits_are_deployment_bound() {
     let defaults = HostLimits::default();
     assert_eq!(defaults.tenant_capacity, None);
+    assert_eq!(defaults.request_memory_bytes, 32 * 1024 * 1024);
     let base = json!({"schema":"oracle-host-v1","journal":"/state/journal"});
     let identity = |value| {
         config::deployment_identity(
@@ -57,6 +58,7 @@ fn default_policy_and_serialized_limits_are_deployment_bound() {
         ("tenant_capacity", json!(1)),
         ("query_ms", json!(1234)),
         ("execution_fuel", json!(1234)),
+        ("request_memory_bytes", json!(1234)),
     ] {
         let mut changed = base.clone();
         changed["limits"] = json!({});
@@ -84,4 +86,23 @@ fn invalid_tenant_limits_are_rejected_before_provider_admission() {
             .to_string()
             .contains("invalid limits"));
     }
+}
+
+#[test]
+fn zero_request_memory_budget_is_rejected() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("host.json");
+    std::fs::write(
+        &path,
+        serde_json::to_vec(&json!({
+            "schema": "oracle-host-v1", "journal": dir.path().join("journal.sqlite3"),
+            "limits": {"request_memory_bytes": 0}
+        }))
+        .unwrap(),
+    )
+    .unwrap();
+    assert!(config::read(&path)
+        .unwrap_err()
+        .to_string()
+        .contains("invalid limits"));
 }

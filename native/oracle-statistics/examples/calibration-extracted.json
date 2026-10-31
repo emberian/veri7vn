@@ -1,0 +1,1 @@
+{"x":[1,2,3],"response":[2,5,5],"x_name":"position","x_unit":"m","response_unit":"N","assumptions":["Supplied pairs only; unweighted y-on-x line with intercept"],"direction":"forward_mean","uncertainty":"point_only","values":[4]}

@@ -501,3 +501,49 @@ fn exact_retry_deadline_kill_reap_restart_and_busy() {
     assert_eq!(status, 200, "{fresh}");
     host.stop();
 }
+
+/// Real standalone discovery and invocation for the four supplied-data consumers.
+#[cfg(all(
+    feature = "reasoning",
+    feature = "science",
+    feature = "bio",
+    feature = "statistics"
+))]
+#[test]
+fn sol_consumers_discover_and_invoke_through_http() {
+    let Some(fx) = fixture(2, &[]) else {
+        return;
+    };
+    let mut config: Value = serde_json::from_slice(&std::fs::read(&fx.config).unwrap()).unwrap();
+    config["pure"] = json!({"profiles": ["reasoning", "science", "bio", "statistics"]});
+    std::fs::write(&fx.config, serde_json::to_vec(&config).unwrap()).unwrap();
+    let host = Host::start(&fx.config);
+    for id in [
+        "reasoning.exact_linear_feasibility",
+        "science.thermal_scenarios",
+        "bio.search_collection",
+        "statistics.calibration",
+    ] {
+        let (status, descriptor) = host.get(&format!("/operations/{id}"));
+        assert_eq!(status, 200, "{id}: {descriptor}");
+        assert_eq!(descriptor["availability"], "live_direct");
+        let arguments = descriptor["examples"][0]["arguments"].clone();
+        let invoke = |args: Value| {
+            host.post("/invoke", &json!({
+            "request_id": "same", "conversation_id": "corr", "operation_id": id, "arguments": args,
+        }))
+        };
+        let (status, result) = invoke(arguments.clone());
+        assert_eq!(status, 200, "{id}: {result}");
+        assert_eq!(result["reply"]["status"], "answered", "{id}: {result}");
+        assert_eq!(result["reply"]["authority"], "computation_only");
+        assert_eq!(result["durable_replay"], false);
+        let mut extra = arguments.clone();
+        extra["profile"] = json!("logic");
+        assert_eq!(invoke(extra).0, 400, "{id} caller dispatch override");
+        assert_eq!(host.request("POST", "/invoke", Some(&json!({
+            "request_id": "same", "conversation_id": "corr", "operation_id": id, "arguments": arguments,
+        })), &[]).0, 400, "{id} missing tenant");
+    }
+    host.stop();
+}

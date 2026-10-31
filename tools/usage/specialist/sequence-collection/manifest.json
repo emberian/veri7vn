@@ -1,0 +1,9 @@
+{
+  "id": "sequence-collection-exact",
+  "name": "Exact fragments in a supplied DNA collection",
+  "sources": [{"name": "Caller-supplied ordered DNA records and fragments; no external sequence database", "licence": "caller supplied", "url": ""}],
+  "organ": {"module": "organ_collection", "class": "Organ", "init": {}},
+  "accept": {"kinds": ["sequence_collection_hits"], "declines_in_domain": ["sequence_collection_input"], "context_regex": "^Find exact fragments:"},
+  "panel": {"path": "panel.json", "scorer_module": "scorer", "scorer_fn": "ok"},
+  "budgets": {"latency_p50_ms": 1000}
+}

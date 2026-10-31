@@ -124,7 +124,7 @@ pub struct Plan {
     pub projection: Projection,
 }
 
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct Selection {
     pub ids: BTreeSet<String>,
@@ -158,7 +158,7 @@ pub struct AttributeFact {
     pub qualifiers_json: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct QueryResult {
     pub image: String,
     pub coverage: String,
@@ -167,6 +167,100 @@ pub struct QueryResult {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub attributes: Vec<AttributeFact>,
     pub value: Value,
+}
+
+/// Retained Rust payload accounting. Container allowances intentionally exceed
+/// element headers; allocator metadata, SQLite pages and foreign buffers are not
+/// measured. Saturation is rejected by the aggregate ledger, never wrapped.
+pub(crate) fn json_retained_bytes(value: &Value) -> usize {
+    match value {
+        Value::String(s) => s.capacity(),
+        Value::Array(values) => values.iter().fold(
+            values
+                .capacity()
+                .saturating_mul(std::mem::size_of::<Value>()),
+            |n, v| n.saturating_add(json_retained_bytes(v)),
+        ),
+        Value::Object(values) => values.iter().fold(0usize, |n, (k, v)| {
+            n.saturating_add(96)
+                .saturating_add(k.capacity())
+                .saturating_add(std::mem::size_of::<Value>())
+                .saturating_add(json_retained_bytes(v))
+        }),
+        // arbitrary_precision numbers may own a decimal string internally.
+        Value::Number(n) => n.to_string().len(),
+        _ => 0,
+    }
+}
+fn fact_retained_bytes(f: &Fact) -> usize {
+    [
+        &f.subject,
+        &f.predicate,
+        &f.direction,
+        &f.object,
+        &f.qualifiers_json,
+    ]
+    .iter()
+    .fold(0usize, |n, s| n.saturating_add(s.capacity()))
+}
+fn attribute_retained_bytes(f: &AttributeFact) -> usize {
+    [&f.subject, &f.key, &f.value_json, &f.qualifiers_json]
+        .iter()
+        .fold(0usize, |n, s| n.saturating_add(s.capacity()))
+}
+pub(crate) fn query_retained_bytes(q: &QueryResult) -> usize {
+    q.entities
+        .iter()
+        .fold(
+            q.image
+                .capacity()
+                .saturating_add(q.coverage.capacity())
+                .saturating_add(
+                    q.entities
+                        .capacity()
+                        .saturating_mul(std::mem::size_of::<String>()),
+                )
+                .saturating_add(
+                    q.facts
+                        .capacity()
+                        .saturating_mul(std::mem::size_of::<Fact>()),
+                )
+                .saturating_add(
+                    q.attributes
+                        .capacity()
+                        .saturating_mul(std::mem::size_of::<AttributeFact>()),
+                )
+                .saturating_add(json_retained_bytes(&q.value)),
+            |n, s| n.saturating_add(s.capacity()),
+        )
+        .saturating_add(
+            q.facts
+                .iter()
+                .map(fact_retained_bytes)
+                .fold(0usize, usize::saturating_add),
+        )
+        .saturating_add(
+            q.attributes
+                .iter()
+                .map(attribute_retained_bytes)
+                .fold(0usize, usize::saturating_add),
+        )
+}
+pub(crate) fn selection_retained_bytes(s: &Selection) -> usize {
+    s.ids
+        .iter()
+        .fold(0usize, |n, id| {
+            n.saturating_add(64 + std::mem::size_of::<String>())
+                .saturating_add(id.capacity())
+        })
+        .saturating_add(s.facts.iter().fold(0usize, |n, f| {
+            n.saturating_add(64 + std::mem::size_of::<Fact>())
+                .saturating_add(fact_retained_bytes(f))
+        }))
+        .saturating_add(s.attributes.iter().fold(0usize, |n, f| {
+            n.saturating_add(64 + std::mem::size_of::<AttributeFact>())
+                .saturating_add(attribute_retained_bytes(f))
+        }))
 }
 
 struct BoundedWriter {
@@ -574,6 +668,8 @@ pub(crate) struct LanguageWorkspace {
     retained_rows: usize,
     retained_bytes: usize,
     columns: BTreeMap<(usize, String), AttributeColumn>,
+    // Rust stage-key ownership only: SQLite scratch storage is foreign.
+    memory: Vec<crate::budget::MemoryReservation>,
 }
 /// A shared typed source column is indexed independently of any one predicate.
 /// Statement positions and qualifiers remain attached to every matching value.
@@ -582,6 +678,7 @@ struct AttributeColumn {
     rows: Vec<(AttributeFact, TypedValue)>,
     strings: BTreeMap<String, Vec<usize>>,
     nonstrings: Vec<usize>,
+    memory: Vec<crate::budget::MemoryReservation>,
 }
 impl LanguageWorkspace {
     pub(crate) fn new(db: &Connection) -> Result<Self> {
@@ -603,6 +700,9 @@ impl LanguageWorkspace {
             let mut query=db.prepare_cached("SELECT a.subject,a.key,a.position,a.value,a.qualifiers FROM attributes a CROSS JOIN temp.oracle_sets selected ON selected.id=a.subject AND selected.node=?1 WHERE a.key=?2")?;
             let mut rows = query.query(params![input as i64, key])?;
             let mut bytes = key.len().saturating_add(64);
+            column
+                .memory
+                .push(meter.budget.reserve_memory(key.len().saturating_add(256))?);
             while let Some(row) = rows.next()? {
                 let attribute = attribute_row(row)?;
                 meter.charge(attribute_bytes(&attribute))?;
@@ -632,6 +732,13 @@ impl LanguageWorkspace {
                 {
                     return Err(Error::Limit("language shared attribute column"));
                 }
+                // Attribute bytes include statement identities and qualifiers.
+                // Typed literal/index copies are bounded by a second value copy
+                // plus container headers; each row owns exactly one reservation.
+                let row_bytes = attribute_retained_bytes(&attribute)
+                    .saturating_add(attribute.value_json.len().saturating_mul(2))
+                    .saturating_add(256);
+                column.memory.push(meter.budget.reserve_memory(row_bytes)?);
                 column.rows.push((attribute, typed));
             }
             self.retained_bytes = self.retained_bytes.saturating_add(bytes);
@@ -714,6 +821,11 @@ impl LanguageWorkspace {
             return Err(Error::Limit("language shared bytes"));
         }
         meter.budget.spend(key.len() as u64 + 1)?;
+        self.memory.push(
+            meter
+                .budget
+                .reserve_memory(key.capacity().saturating_add(128))?,
+        );
         self.stages.insert(key, (slot, nonempty));
         Ok(())
     }

@@ -6,7 +6,7 @@ import unittest
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools"))
 sys.path.insert(0, str(ROOT / "tools/appliance"))
-from oracle_components.native_bio import NativeBioOperations
+from oracle_components.native_bio import NativeBioOperations, search_identities
 from operations import validate, OperationError
 
 CATALOG = {"schema": "oracle-bio-experimental-v1", "operations": [{"id": "bio.align_pairwise"}],
@@ -64,6 +64,57 @@ class BioAdapter(unittest.TestCase):
                         {**CATALOG, "limits": {**CATALOG["limits"], "dp_cells": True}}):
             with self.assertRaises(ValueError):
                 NativeBioOperations(catalog, lambda _: {}, "a")
+
+
+
+class CollectionAdapter(unittest.TestCase):
+    def setUp(self):
+        import copy
+        self.catalog = copy.deepcopy(CATALOG)
+        self.catalog["operations"].append({"id": "bio.search_collection"})
+        self.catalog["sequence_collection"] = {"schema": "oracle-sequence-collection-v1"}
+        self.arguments = {"collection": {"schema": "oracle-sequence-collection-v1", "records": [{"label": "sample", "sequence": "TTTCGTAA"}]},
+                          "patterns": [{"label": "fragment", "sequence": "ACG"}], "page_size": 1}
+
+    def result(self):
+        collection, request = search_identities(self.arguments)
+        return {"schema": "oracle-sequence-search-v1", "collection_sha256": collection, "request_sha256": request,
+                "coverage_start": None, "complete": True, "next_cursor": None,
+                "hits": [{"record_index": 0, "record_label": "sample", "pattern_index": 0, "pattern_label": "fragment",
+                          "strand": "reverse", "start": 3, "end": 6, "matched_sequence": "CGT"}]}
+
+    def test_search_schema_and_positive_original_coordinate_replay(self):
+        adapter = NativeBioOperations(self.catalog, lambda _: self.result(), "bio-test")
+        descriptor = next(d for d in adapter.catalog() if d["id"] == "bio.search_collection")
+        validate(self.arguments, descriptor["input_schema"])
+        self.assertEqual(adapter.invoke("bio.search_collection", self.arguments)["status"], "answered")
+        for bad in ("N", "AC U", ""):
+            import copy
+            args = copy.deepcopy(self.arguments); args["patterns"][0]["sequence"] = bad
+            with self.assertRaises(OperationError):
+                validate(args, descriptor["input_schema"])
+
+    def test_final_newline_is_rejected_by_explicit_fullmatch_before_native_call(self):
+        import copy
+        arguments = copy.deepcopy(self.arguments)
+        arguments["patterns"][0]["sequence"] = "ACGT\n"
+        adapter = NativeBioOperations(self.catalog, lambda _: self.fail("must not call native"), "bio-test")
+        self.assertEqual(adapter.invoke("bio.search_collection", arguments)["reason"], "invalid_arguments")
+
+    def test_wrong_source_identity_coordinates_orientation_and_completion_withhold(self):
+        changes = [lambda r: r.update(collection_sha256="0"*64),
+                   lambda r: r.update(request_sha256="0"*64),
+                   lambda r: r["hits"][0].update(start=2),
+                   lambda r: r["hits"][0].update(strand="forward"),
+                   lambda r: r["hits"][0].update(record_index=True),
+                   lambda r: r["hits"][0].update(pattern_label="wrong source"),
+                   lambda r: r["hits"][0].update(matched_sequence="ACG"),
+                   lambda r: r.update(complete=False, next_cursor=None),
+                   lambda r: r.update(next_cursor={"request_sha256":"0"*64})]
+        for change in changes:
+            result=self.result(); change(result)
+            adapter=NativeBioOperations(self.catalog, lambda _: result, "bio-test")
+            self.assertEqual(adapter.invoke("bio.search_collection",self.arguments)["status"], "withheld")
 
 
 if __name__ == "__main__":

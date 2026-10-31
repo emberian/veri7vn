@@ -73,5 +73,54 @@ class StatisticsAdapter(unittest.TestCase):
                 NativeStatisticsOperations(catalog, lambda _: {}, "a")
 
 
+class CalibrationAdapter(unittest.TestCase):
+    def adapter(self, result):
+        catalog = {**CATALOG, "operations": ["statistics.linear_regression", "statistics.calibration"]}
+        return NativeStatisticsOperations(catalog, lambda _: result, "calibration-test")
+
+    def result(self):
+        fit = reply()
+        fit.update(coefficient_candidate=[1., 2.], predictions=[{"fitted_mean": 1.}])
+        fit["diagnostics"].update(parameters=2, numerical_rank=2, residual_degrees_of_freedom=1, condition_number_2=2.)
+        fit["inference"]["coefficients"] = [{"estimate": 1.}, {"estimate": 2.}]
+        return {"schema": CATALOG["schema"], "operation": "statistics.calibration", "direction": "forward_mean",
+            "uncertainty": "point_only", "input_unit": "m", "output_unit": "N", "interpretation": "conditional supplied association",
+            "assurance": "untrusted numerical calculation", "fit": fit,
+            "estimates": [{"supplied_value": 0., "value": 1., "unit": "N", "pointwise_interval": None,
+                           "unavailable_reasons": [], "outside_training_range": False}]}
+
+    def test_registration_and_partial_uncertainty_are_retained(self):
+        result = self.result()
+        adapter = self.adapter(result)
+        self.assertIn("statistics.calibration", [d["id"] for d in adapter.catalog()])
+        result["uncertainty"] = "pointwise_interval"
+        result["estimates"][0]["unavailable_reasons"] = ["unavailable noise model"]
+        answer = adapter.interpret("statistics.calibration", result)
+        self.assertEqual(answer["status"], "answered")
+        self.assertEqual(answer["result"], result)
+
+    def test_inverse_interval_is_withheld_and_cannot_smuggle_a_point(self):
+        result = self.result()
+        result.update(direction="inverse_point", uncertainty="pointwise_interval")
+        result["estimates"][0].update(value=None, unavailable_reasons=["inverse uncertainty unsupported"])
+        adapter = self.adapter(result)
+        answer = adapter.interpret("statistics.calibration", result)
+        self.assertEqual(answer["status"], "withheld")
+        self.assertEqual(answer["reason"], "calibration_unavailable")
+        self.assertEqual(answer["result"], result)
+        result["estimates"][0]["value"] = 1.
+        self.assertEqual(adapter.interpret("statistics.calibration", result)["reason"], "native_reply_invalid")
+
+    def test_malformed_or_unadmitted_calibration_values_are_rejected(self):
+        for mutation in (lambda r: r["estimates"][0].update(value=float('nan')),
+                         lambda r: r["estimates"][0].update(unit="kg"),
+                         lambda r: r["estimates"][0].update(pointwise_interval=[2., 1.]),
+                         lambda r: r["fit"]["diagnostics"].update(condition_number_2=1e9),
+                         lambda r: r["estimates"][0].update(value=None)):
+            result = self.result()
+            mutation(result)
+            self.assertEqual(self.adapter(result).interpret("statistics.calibration", result)["reason"], "native_reply_invalid")
+
+
 if __name__ == "__main__":
     unittest.main()

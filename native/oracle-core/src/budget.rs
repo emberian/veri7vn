@@ -1,5 +1,5 @@
 use crate::{Error, Result};
-pub use oracle_execution::Cancellation;
+pub use oracle_execution::{Cancellation, MemoryBudget, MemoryReservation, MemorySnapshot};
 pub(crate) use oracle_execution::{CancellationRegistration, CancellationWake};
 use oracle_execution::{ExecutionContext, ExecutionError};
 use serde::{Deserialize, Serialize};
@@ -17,6 +17,8 @@ pub struct Limits {
     pub plan_nodes: usize,
     pub materialized_rows: usize,
     pub materialized_bytes: usize,
+    /// Explicit retained Rust request bytes; excludes SQLite, mmap and foreign buffers.
+    pub request_memory_bytes: usize,
     pub fuel: u64,
     pub timeout_ms: u64,
     pub sqlite_cache_kib: u32,
@@ -37,6 +39,7 @@ impl Default for Limits {
             plan_nodes: 128,
             materialized_rows: 100_000,
             materialized_bytes: 16 * 1024 * 1024,
+            request_memory_bytes: 32 * 1024 * 1024,
             fuel: 10_000_000,
             timeout_ms: 5000,
             sqlite_cache_kib: 2048,
@@ -57,6 +60,7 @@ impl Limits {
             || self.plan_nodes == 0
             || self.materialized_rows == 0
             || self.materialized_bytes == 0
+            || self.request_memory_bytes == 0
             || self.fuel == 0
             || self.timeout_ms == 0
             || self.sqlite_cache_kib == 0
@@ -84,7 +88,7 @@ impl Budget {
             Duration::from_millis(limits.timeout_ms),
             cancellation,
         )
-        .map(Self)
+        .map(|context| Self(context.restricted_memory(limits.request_memory_bytes)))
         .map_err(execution_error)
     }
     /// Adopt the existing operation's deadline and fuel, without resetting either.
@@ -95,8 +99,20 @@ impl Budget {
     pub fn restricted_to(&self, limits: &Limits) -> Result<Self> {
         self.0
             .restricted(limits.fuel, Duration::from_millis(limits.timeout_ms))
-            .map(Self)
+            .map(|context| Self(context.restricted_memory(limits.request_memory_bytes)))
             .map_err(execution_error)
+    }
+    pub fn memory(&self) -> &MemoryBudget {
+        self.0.memory()
+    }
+    pub fn reserve_memory(&self, bytes: usize) -> Result<MemoryReservation> {
+        self.check()?;
+        self.memory().reserve(bytes).map_err(|error| match error {
+            oracle_execution::MemoryError::Limit => Error::Limit("retained request memory"),
+            oracle_execution::MemoryError::Overflow => {
+                Error::Limit("retained memory accounting overflow")
+            }
+        })
     }
     pub fn execution_context(&self) -> &ExecutionContext {
         &self.0
@@ -164,5 +180,57 @@ mod budget_facade_tests {
         let core = Budget::new(&limits, Cancellation::default()).unwrap();
         core.execution_context().spend(1).unwrap();
         assert!(matches!(core.spend(1), Err(Error::Limit("fuel"))));
+    }
+}
+
+#[cfg(test)]
+mod retained_memory_tests {
+    use super::*;
+    #[test]
+    fn facade_children_share_memory_and_cancellation_does_not_refund_live_data() {
+        let limits = Limits {
+            request_memory_bytes: 10,
+            ..Limits::default()
+        };
+        let cancellation = Cancellation::default();
+        let parent = Budget::new(&limits, cancellation.clone()).unwrap();
+        let child = parent
+            .restricted_to(&Limits {
+                request_memory_bytes: 3,
+                ..limits.clone()
+            })
+            .unwrap();
+        let retained = Arc::new(child.reserve_memory(3).unwrap());
+        let copy = retained.clone();
+        let other = parent.reserve_memory(7).unwrap();
+        assert!(matches!(
+            parent.reserve_memory(1),
+            Err(Error::Limit("retained request memory"))
+        ));
+        cancellation.cancel();
+        assert!(matches!(parent.reserve_memory(0), Err(Error::Cancelled)));
+        drop(retained);
+        assert_eq!(parent.memory().snapshot().live, 10);
+        drop(copy);
+        assert_eq!(parent.memory().snapshot().live, 7);
+        drop(other);
+        assert_eq!(parent.memory().snapshot().live, 0);
+        assert_eq!(parent.memory().snapshot().peak, 10);
+    }
+    #[test]
+    fn adopted_context_retains_aggregate_ceiling() {
+        let context = ExecutionContext::new(10, Duration::from_secs(60), Cancellation::default())
+            .unwrap()
+            .restricted_memory(5);
+        let core = Budget::from_execution_context(context.clone());
+        let guard = core.reserve_memory(5).unwrap();
+        assert!(matches!(
+            context.memory().reserve(1),
+            Err(oracle_execution::MemoryError::Limit)
+        ));
+        drop(guard);
+        assert_eq!(context.memory().snapshot().live, 0);
+        core.spend(10).unwrap();
+        assert_eq!(context.spend(1), Err(ExecutionError::FuelExhausted));
     }
 }

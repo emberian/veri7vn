@@ -11,6 +11,7 @@ use crate::native::NativeRuntime;
 use crate::operations::{valid_operation_id, Registry, Route};
 use crate::pure::Pure;
 use crate::wire;
+use crate::workers::InvocationWorkers;
 use crate::{failure, Failure};
 use oracle_execution::{Cancellation, ExecutionContext};
 use serde_json::{json, Value};
@@ -20,13 +21,14 @@ use std::time::{Duration, Instant};
 
 pub struct Service {
     pub limits: HostLimits,
-    pub native: Option<NativeRuntime>,
-    pub pure: Option<Pure>,
+    pub native: Option<Arc<NativeRuntime>>,
+    pub pure: Option<Arc<Pure>>,
     pub kernels: Option<Kernels>,
     pub engine: Option<EnginePool>,
     pub registry: Registry,
     journal: Journal,
     admission: Arc<Admission>,
+    invocations: InvocationWorkers,
     pub stopping: AtomicBool,
     pub host_sha256: String,
     boot: String,
@@ -120,7 +122,7 @@ impl Service {
                     "image_sha256": runtime.image_sha256, "resource_identity": runtime.resource_identity,
                     "host_sha256": host_sha256, "reader_route": runtime.reader_route},
                     "containment": {"process": "in_host", "cancellation": "cooperative_budget"}}));
-                Some(runtime)
+                Some(Arc::new(runtime))
             }
             None => None,
         };
@@ -135,7 +137,7 @@ impl Service {
                 providers.push(json!({"provider_id": "pure", "admission": {"profiles": pure.profiles,
                     "host_sha256": host_sha256, "solver_sha256": pure.solver_sha256()},
                     "containment": {"process": "in_host", "cancellation": "cooperative_flag_and_native_limits"}}));
-                Some(pure)
+                Some(Arc::new(pure))
             }
             None => None,
         };
@@ -161,6 +163,8 @@ impl Service {
             limits.capacity,
             limits.tenant_capacity.unwrap_or(limits.capacity),
         );
+        let invocations = InvocationWorkers::new(limits.capacity)
+            .map_err(|e| config::err(format!("invocation workers: {e}")))?;
         Ok(Arc::new(Self {
             limits,
             native,
@@ -170,6 +174,7 @@ impl Service {
             registry,
             journal,
             admission,
+            invocations,
             stopping: AtomicBool::new(false),
             host_sha256,
             boot,
@@ -187,6 +192,7 @@ impl Service {
             Duration::from_millis(timeout_ms),
             Cancellation::default(),
         )
+        .map(|context| context.restricted_memory(self.limits.request_memory_bytes))
         .map_err(|_| Failure::plain(503, "invalid_execution_deadline"))
     }
 
@@ -244,7 +250,11 @@ impl Service {
             "limits": {"request_bytes": self.limits.request_bytes, "reply_bytes": self.limits.reply_bytes,
                        "capacity": self.limits.capacity, "tenant_capacity": self.limits.tenant_capacity.unwrap_or(self.limits.capacity),
                        "invoke_ms": self.limits.invoke_ms, "query_ms": self.limits.query_ms,
-                       "execution_fuel": self.limits.execution_fuel},
+                       "execution_fuel": self.limits.execution_fuel,
+                       "request_memory_bytes": self.limits.request_memory_bytes,
+                       "memory_scope": "explicitly tracked retained request data; excludes untracked foreign allocations"},
+            "invocation_workers": {"threads": self.limits.capacity, "waiting_queue": 0,
+                "policy": "immediate refusal when no idle worker; no fairness guarantee"},
             "providers": self.providers})
     }
 
@@ -301,38 +311,34 @@ impl Service {
         };
         let started = Instant::now();
         {
-            let service = self.clone();
+            let native = self.native.clone();
+            let pure = self.pure.clone();
             let tenant = tenant.to_owned();
             let context = context.clone();
             let id = id.clone();
-            if std::thread::Builder::new()
-                .name("oracle-invoke".into())
-                .spawn(move || {
-                    let _permit = permit;
-                    let arguments = &request["arguments"];
-                    let result = match route {
-                        Route::Runtime => service.native.as_ref().expect("runtime route").invoke(
-                            &id,
-                            arguments,
-                            &tenant,
-                            request["request_id"].as_str().unwrap_or(""),
-                            request["conversation_id"].as_str().unwrap_or(""),
-                            context,
-                        ),
-                        Route::Pure(profile) => service
-                            .pure
-                            .as_ref()
-                            .expect("pure route")
-                            .invoke(profile, &id, arguments, &tenant, &context),
-                    };
-                    let _ = sender.send(result);
-                })
-                .is_err()
-            {
+            if !self.invocations.try_submit(move || {
+                let _permit = permit;
+                let arguments = &request["arguments"];
+                let result = match route {
+                    Route::Runtime => native.as_ref().expect("runtime route").invoke(
+                        &id,
+                        arguments,
+                        &tenant,
+                        request["request_id"].as_str().unwrap_or(""),
+                        request["conversation_id"].as_str().unwrap_or(""),
+                        context,
+                    ),
+                    Route::Pure(profile) => pure
+                        .as_ref()
+                        .expect("pure route")
+                        .invoke(profile, &id, arguments, &tenant, &context),
+                };
+                let _ = sender.send(result);
+            }) {
                 return (
-                    503,
+                    429,
                     failure(
-                        "worker_unavailable",
+                        "pool_busy",
                         json!({"retryable": true,
                     "state_may_have_changed": false, "exact_retry_required": false}),
                     ),
@@ -647,6 +653,7 @@ impl Service {
 
     pub fn close(&self) {
         self.stopping.store(true, Ordering::Release);
+        self.invocations.shutdown();
         if let Some(engine) = &self.engine {
             engine.close();
         }

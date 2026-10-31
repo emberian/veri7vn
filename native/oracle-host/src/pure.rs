@@ -205,7 +205,7 @@ impl Pure {
         Ok(match name {
             "science" => structured.science(&result),
             "incremental" => structured.incremental(&result),
-            "bio" => structured.bio(&result),
+            "bio" => structured.bio(arguments, &result, context),
             "statistics" => structured.statistics(&result),
             "logic" => structured.logic(
                 arguments,
@@ -259,6 +259,9 @@ impl Pure {
                         }
                         "algebra.simplify_rational" => Request::Rational(decode(arguments)?),
                         "chemistry.balance_reaction" => Request::Reaction(decode(arguments)?),
+                        "reasoning.exact_linear_feasibility" => {
+                            Request::ExactLinear(decode(arguments)?)
+                        }
                         _ => return Err("invalid input: unknown reasoning operation".into()),
                     })
                 })()
@@ -281,6 +284,17 @@ impl Pure {
                 let limits = oracle_science::Limits::default();
                 if bytes > limits.request_bytes.min(oracle_science::MAX_REQUEST_BYTES) {
                     return Err("resource limit: request bytes".into());
+                }
+                if id == "science.thermal_scenarios" {
+                    return encode_result(
+                        oracle_science::thermal_scenarios::thermal_scenarios_with_context(
+                            &decode(arguments)
+                                .map_err(|e| format!("invalid input: request arguments: {e}"))?,
+                            &limits,
+                            context,
+                        )
+                        .map_err(|e| detail(&e))?,
+                    );
                 }
                 let request = match id {
                     "science.thermal_network" => ScientificRequest::Thermal(
@@ -348,6 +362,12 @@ impl Pure {
                 if bytes > limits.request_bytes.min(oracle_bio::MAX_REQUEST_BYTES) {
                     return Err("resource limit: request bytes".into());
                 }
+                if id == "bio.search_collection" {
+                    return encode_result(
+                        oracle_bio::collection::search_collection(&decode(arguments)?, context)
+                            .map_err(|e| detail(&e))?,
+                    );
+                }
                 if id != "bio.align_pairwise" {
                     return Err("invalid input: unknown bio operation".into());
                 }
@@ -373,13 +393,17 @@ impl Pure {
                 {
                     return Err("resource limit: request bytes".into());
                 }
-                if id != "statistics.linear_regression" {
-                    return Err("invalid input: unknown statistical operation".into());
+                match id {
+                    "statistics.linear_regression" => encode_result(
+                        oracle_statistics::regress(&decode(arguments)?, &limits, context)
+                            .map_err(|e| detail(&e))?,
+                    ),
+                    "statistics.calibration" => encode_result(
+                        oracle_statistics::calibrate(&decode(arguments)?, &limits, context)
+                            .map_err(|e| detail(&e))?,
+                    ),
+                    _ => Err("invalid input: unknown statistical operation".into()),
                 }
-                let input = decode(arguments)?;
-                encode_result(
-                    oracle_statistics::regress(&input, &limits, context).map_err(|e| detail(&e))?,
-                )
             }
             #[cfg(feature = "logic")]
             "logic" => {
@@ -477,6 +501,33 @@ impl Pure {
             match id {
                 "graph.shortest_path" => check_path(arguments, &result)?,
                 "chemistry.balance_reaction" => check_chemistry(arguments, &result)?,
+                "reasoning.exact_linear_feasibility" => {
+                    let status = result["status"].as_str()?;
+                    let certificate = &result["certificate"];
+                    if (status == "unknown") != certificate.is_null()
+                        || (!certificate.is_null() && certificate["kind"] != status)
+                    {
+                        return None;
+                    }
+                    #[cfg(feature = "reasoning")]
+                    if !certificate.is_null() {
+                        let problem =
+                            decode::<oracle_reasoning::exact_lp::Problem>(arguments).ok()?;
+                        let certificate =
+                            decode::<oracle_reasoning::exact_lp::Certificate>(certificate).ok()?;
+                        if oracle_reasoning::exact_lp::check_certificate_controlled(
+                            &problem,
+                            &certificate,
+                            &Default::default(),
+                            context,
+                        )
+                        .ok()?
+                            != status
+                        {
+                            return None;
+                        }
+                    }
+                }
                 "algebra.simplify_rational" => check_rational(arguments, &result)?,
                 _ => {}
             }
@@ -489,6 +540,10 @@ impl Pure {
         };
         let mut reply = json!({"status": "answered", "operation_id": id, "result": result,
                                "runtime_identity": identity, "authority": "computation_only"});
+        if id == "reasoning.exact_linear_feasibility" && reply["result"]["status"] == "unknown" {
+            reply["status"] = json!("withheld");
+            reply["reason"] = json!("exact_feasibility_inconclusive");
+        }
         if id == "chemistry.balance_reaction" {
             reply["scope"] = json!("Exact conservation of caller-supplied species inventories and charge only; no reaction feasibility, chemical identity, kinetics or thermodynamics claim.");
             if reply["result"]["status"] == "multiple_search_inconclusive" {
@@ -606,6 +661,9 @@ impl Structured<'_> {
     }
 
     fn science(&self, result: &Value) -> Value {
+        if self.id == "science.thermal_scenarios" {
+            return self.thermal_scenarios(result);
+        }
         let outcome = result.get("outcome").and_then(Value::as_str).unwrap_or("");
         let thermal = self.id == "science.thermal_network";
         let has = |keys: &[&str]| keys.iter().all(|k| result.get(*k).is_some());
@@ -683,6 +741,67 @@ impl Structured<'_> {
         self.answered(result.clone(), classification)
     }
 
+    fn thermal_scenarios(&self, result: &Value) -> Value {
+        let Some(scenarios) = result["scenarios"].as_array() else {
+            return self.invalid();
+        };
+        let Some(sensitivities) = result["sensitivities"].as_array() else {
+            return self.invalid();
+        };
+        let Some(nodes) = result["node_order"].as_array() else {
+            return self.invalid();
+        };
+        if result.get("schema") != self.catalog.get("schema")
+            || result["operation"] != self.id
+            || scenarios.is_empty()
+            || scenarios.len() > 64
+            || sensitivities.len() > 128
+            || nodes.is_empty()
+            || !result["network_identity"]
+                .as_str()
+                .is_some_and(|s| s.starts_with("sha256:"))
+            || !matches!(result["factorization_count"].as_u64(), Some(0 | 1))
+            || ["scenario_rhs_solves", "sensitivity_rhs_solves", "warnings"]
+                .iter()
+                .any(|k| result.get(*k).is_none())
+        {
+            return self.invalid();
+        }
+        let nested = Structured {
+            id: "science.thermal_network",
+            identity: self.identity,
+            catalog: self.catalog,
+        };
+        let mut accepted = true;
+        for scenario in scenarios {
+            if !scenario.is_object()
+                || !scenario["id"].is_string()
+                || !scenario["result"].is_object()
+            {
+                return self.invalid();
+            }
+            let checked = nested.science(&scenario["result"]);
+            if checked["reason"] == "native_reply_invalid" {
+                return self.invalid();
+            }
+            accepted &= checked["status"] == "answered"
+                && scenario["result"]["outcome"] == "solved_within_tolerance";
+        }
+        for derivative in sensitivities {
+            if !derivative.is_object()
+                || !derivative["temperature_derivative"]
+                    .as_array()
+                    .is_some_and(|d| d.len() == nodes.len() && d.iter().all(is_finite_number))
+            {
+                return self.invalid();
+            }
+        }
+        if !accepted {
+            return self.withheld("scenario_not_accepted", Some(result.clone()));
+        }
+        self.answered(result.clone(), "numerical_scenarios")
+    }
+
     fn incremental(&self, result: &Value) -> Value {
         if result["status"] == "refused" && result["error"].is_object() {
             return self.withheld("native_request_refused", Some(result.clone()));
@@ -707,7 +826,14 @@ impl Structured<'_> {
         self.answered(body.clone(), "finite_supplied_graph_computation")
     }
 
-    fn bio(&self, result: &Value) -> Value {
+    fn bio(&self, arguments: &Value, result: &Value, context: &ExecutionContext) -> Value {
+        if self.id == "bio.search_collection" {
+            return match check_collection(arguments, result, context) {
+                Ok(Some(())) => self.answered(result.clone(), "exact_supplied_dna_page"),
+                Ok(None) => self.invalid(),
+                Err(_) => self.withheld("native_reply_check_budget_exhausted", None),
+            };
+        }
         let candidate = &result["candidate"];
         let checks = &result["checks"];
         let score = candidate.get("score").filter(|v| is_integer(v));
@@ -758,6 +884,9 @@ impl Structured<'_> {
     }
 
     fn statistics(&self, result: &Value) -> Value {
+        if self.id == "statistics.calibration" {
+            return self.calibration(result);
+        }
         let beta = result["coefficient_candidate"].as_array();
         let diagnostics = &result["diagnostics"];
         let outcome = result["outcome"].as_str().unwrap_or("");
@@ -826,6 +955,87 @@ impl Structured<'_> {
             }
         };
         self.answered(result.clone(), classification)
+    }
+
+    fn calibration(&self, result: &Value) -> Value {
+        let direction = result["direction"].as_str().unwrap_or("");
+        let uncertainty = result["uncertainty"].as_str().unwrap_or("");
+        let fit = &result["fit"];
+        let Some(estimates) = result["estimates"].as_array() else {
+            return self.invalid();
+        };
+        let maximum = self
+            .catalog
+            .pointer("/limits/predictions")
+            .and_then(Value::as_u64)
+            .unwrap_or(0);
+        if result.get("schema") != self.catalog.get("schema")
+            || result["operation"] != self.id
+            || !["forward_mean", "forward_observation", "inverse_point"].contains(&direction)
+            || !["point_only", "pointwise_interval"].contains(&uncertainty)
+            || estimates.is_empty()
+            || estimates.len() as u64 > maximum
+            || ["input_unit", "output_unit", "interpretation", "assurance"]
+                .iter()
+                .any(|k| !result[*k].as_str().is_some_and(|s| !s.is_empty()))
+        {
+            return self.invalid();
+        }
+        let nested = Structured {
+            id: "statistics.linear_regression",
+            identity: self.identity,
+            catalog: self.catalog,
+        };
+        if nested.statistics(fit)["status"] != "answered"
+            || fit["coefficient_candidate"].as_array().map(Vec::len) != Some(2)
+        {
+            return self.invalid();
+        }
+        let admitted = int(&fit["diagnostics"]["numerical_rank"]) == Some(2)
+            && fit["diagnostics"]["condition_number_2"]
+                .as_f64()
+                .is_some_and(|c| c.is_finite() && (1.0..=1e8).contains(&c));
+        for estimate in estimates {
+            let value = &estimate["value"];
+            let interval = &estimate["pointwise_interval"];
+            let Some(reasons) = estimate["unavailable_reasons"].as_array() else {
+                return self.invalid();
+            };
+            if !estimate.is_object()
+                || !is_finite_number(&estimate["supplied_value"])
+                || (!value.is_null() && !is_finite_number(value))
+                || estimate["unit"] != result["output_unit"]
+                || !estimate["outside_training_range"].is_boolean()
+                || reasons
+                    .iter()
+                    .any(|r| !r.as_str().is_some_and(|s| !s.is_empty()))
+                || (value.is_null() && reasons.is_empty())
+                || (!value.is_null() && !admitted)
+                || (!interval.is_null() && fit["inference"].is_null())
+                || (!interval.is_null()
+                    && !interval.as_array().is_some_and(|a| {
+                        a.len() == 2
+                            && a.iter().all(is_finite_number)
+                            && a[0].as_f64() <= a[1].as_f64()
+                            && !value.is_null()
+                    }))
+                || (uncertainty == "point_only" && !interval.is_null())
+                || (uncertainty == "pointwise_interval" && interval.is_null() && reasons.is_empty())
+                || (direction == "inverse_point" && !interval.is_null())
+                || (direction == "inverse_point"
+                    && uncertainty == "pointwise_interval"
+                    && !value.is_null())
+            {
+                return self.invalid();
+            }
+        }
+        if estimates.iter().all(|e| e["value"].is_null()) {
+            return self.withheld("calibration_unavailable", Some(result.clone()));
+        }
+        self.answered(
+            result.clone(),
+            "numerical_calibration_conditional_on_supplied_model",
+        )
     }
 
     fn logic(&self, arguments: &Value, result: Value, solver: &str) -> Value {
@@ -956,6 +1166,28 @@ fn reasoning_arguments(
     let limit = |k: &str| limits[k].as_u64().unwrap_or(0) as i128;
     let label = regex::Regex::new(r"^[A-Z][a-z]?(?:-[1-9][0-9]{0,2})?$").expect("constant");
     let name_re = regex::Regex::new(r"^[A-Za-z_][A-Za-z0-9_]*$").expect("constant");
+    if id == "reasoning.exact_linear_feasibility" {
+        if !strict_valid(arguments, schema) {
+            return Err(());
+        }
+        let variables = args["variables"].as_array().ok_or(())?;
+        let rows = args["rows"].as_array().ok_or(())?;
+        let names: BTreeSet<_> = variables.iter().filter_map(Value::as_str).collect();
+        let ids: BTreeSet<_> = rows.iter().filter_map(|r| r["id"].as_str()).collect();
+        if names.len() != variables.len()
+            || ids.len() != rows.len()
+            || rows
+                .iter()
+                .any(|r| r["coefficients"].as_array().map(Vec::len) != Some(variables.len()))
+            || args
+                .get("objective")
+                .filter(|v| !v.is_null())
+                .is_some_and(|v| v.as_array().map(Vec::len) != Some(variables.len()))
+        {
+            return Err(());
+        }
+        return Ok(());
+    }
     if id == "chemistry.balance_reaction" {
         let chemistry = catalog_row(catalog, id)
             .map(|r| &r["chemistry_limits"])
@@ -1180,6 +1412,137 @@ fn check_path(arguments: &Value, result: &Value) -> Option<()> {
     }
 }
 
+/// Validate a DNA page against the exact supplied records and batch identity.
+fn check_collection(
+    arguments: &Value,
+    result: &Value,
+    control: &dyn oracle_execution::WorkControl,
+) -> Result<Option<()>, oracle_execution::ExecutionError> {
+    let mut budget_error = None;
+    let checked = (|| -> Option<()> {
+        macro_rules! charge {
+            ($amount:expr) => {
+                if let Err(error) = control.checkpoint($amount as u64) {
+                    budget_error = Some(error);
+                    return None;
+                }
+            };
+        }
+        charge!(1);
+        fn field(bytes: &mut Vec<u8>, value: &str) {
+            bytes.extend_from_slice(&(value.len() as u64).to_le_bytes());
+            bytes.extend_from_slice(value.as_bytes());
+        }
+        fn records(bytes: &mut Vec<u8>, rows: &[Value]) -> Option<()> {
+            bytes.extend_from_slice(&(rows.len() as u64).to_le_bytes());
+            for row in rows {
+                field(bytes, row["label"].as_str()?);
+                field(bytes, row["sequence"].as_str()?);
+            }
+            Some(())
+        }
+        let source = arguments["collection"]["records"].as_array()?;
+        let patterns = arguments["patterns"].as_array()?;
+        // Hash each original record once. Charge before copying/hash work; hits
+        // below inspect only their bounded source slice, never the whole record.
+        for row in source.iter().chain(patterns.iter()) {
+            charge!(row["label"]
+                .as_str()?
+                .len()
+                .saturating_add(row["sequence"].as_str()?.len())
+                .saturating_add(16));
+        }
+        let mut bytes = Vec::new();
+        field(&mut bytes, arguments["collection"]["schema"].as_str()?);
+        records(&mut bytes, source)?;
+        let collection = config::sha256_bytes(&bytes);
+        bytes.clear();
+        field(&mut bytes, "oracle-sequence-search-v1");
+        field(&mut bytes, &collection);
+        records(&mut bytes, patterns)?;
+        let request = config::sha256_bytes(&bytes);
+        let hits = result["hits"].as_array()?;
+        let complete = result["complete"].as_bool()?;
+        let cursor = &result["next_cursor"];
+        if result["schema"] != "oracle-sequence-search-v1"
+            || result["collection_sha256"] != collection
+            || result["request_sha256"] != request
+            || result["coverage_start"] != arguments["cursor"]
+            || hits.len() > 1024
+            || hits.len() as u64 > arguments["page_size"].as_u64()?
+            || (complete && !cursor.is_null())
+            || (!complete && (!cursor.is_object() || hits.is_empty()))
+        {
+            return None;
+        }
+        let mut previous = None;
+        for hit in hits {
+            let ri = usize::try_from(hit["record_index"].as_u64()?).ok()?;
+            let pi = usize::try_from(hit["pattern_index"].as_u64()?).ok()?;
+            let record = source.get(ri)?;
+            let pattern = patterns.get(pi)?;
+            let raw_pattern = pattern["sequence"].as_str()?;
+            charge!(raw_pattern.len().saturating_mul(4).saturating_add(1));
+            let forward = raw_pattern.to_ascii_uppercase();
+            let reverse: String = forward
+                .bytes()
+                .rev()
+                .map(|b| match b {
+                    b'A' => 'T',
+                    b'C' => 'G',
+                    b'G' => 'C',
+                    _ => 'A',
+                })
+                .collect();
+            let strand = hit["strand"].as_str()?;
+            let order_strand = match strand {
+                "forward" => 0,
+                "reverse" => 1,
+                "both" => 2,
+                _ => return None,
+            };
+            let expected = if strand == "reverse" {
+                &reverse
+            } else {
+                &forward
+            };
+            let start = usize::try_from(hit["start"].as_u64()?).ok()?;
+            let end = usize::try_from(hit["end"].as_u64()?).ok()?;
+            let sequence = record["sequence"].as_str()?;
+            let order = (ri, start, pi, order_strand);
+            if (strand == "both") != (forward == reverse)
+                || hit["record_label"] != record["label"]
+                || hit["pattern_label"] != pattern["label"]
+                || start >= end
+                || end.checked_sub(start)? != expected.len()
+                || !sequence
+                    .get(start..end)?
+                    .eq_ignore_ascii_case(expected.as_str())
+                || hit["matched_sequence"] != expected.as_str()
+                || previous.is_some_and(|p| p >= order)
+            {
+                return None;
+            }
+            previous = Some(order);
+        }
+        if !cursor.is_null() {
+            if cursor["request_sha256"] != request
+                || cursor == &arguments["cursor"]
+                || ["record", "start", "offset"]
+                    .iter()
+                    .any(|k| cursor[*k].as_u64().is_none())
+            {
+                return None;
+            }
+        }
+        Some(())
+    })();
+    match budget_error {
+        Some(error) => Err(error),
+        None => Ok(checked),
+    }
+}
+
 /// `_check_rational_reply`: transport consistency only.
 fn check_rational(arguments: &Value, result: &Value) -> Option<()> {
     if let Some(requested) = arguments.get("output_dimension").filter(|v| !v.is_null()) {
@@ -1225,7 +1588,8 @@ fn check_chemistry(arguments: &Value, result: &Value) -> Option<()> {
     }
     let positive = ["unique_positive", "multiple_with_positive_candidate"].contains(&status);
     if (status == "no_nonzero_balance" && nullity != 0)
-        || (["unique_positive", "no_strictly_positive_balance"].contains(&status) && nullity != 1)
+        || (status == "unique_positive" && nullity != 1)
+        || (status == "no_strictly_positive_balance" && nullity < 1)
         || (status.starts_with("multiple_") && nullity < 2)
     {
         return None;
@@ -1340,6 +1704,129 @@ mod typed_parity {
             without_timings(value);
         }
         assert_eq!(actual, expected, "{name}/{id}: {args}");
+    }
+
+    #[test]
+    fn dna_page_replay_charges_source_once_and_each_short_hit() {
+        use std::sync::atomic::{AtomicU64, Ordering};
+        struct Count(AtomicU64);
+        impl oracle_execution::WorkControl for Count {
+            fn checkpoint(&self, work: u64) -> Result<(), oracle_execution::ExecutionError> {
+                self.0.fetch_add(work, Ordering::Relaxed);
+                Ok(())
+            }
+        }
+        let arguments = json!({
+            "collection": {"schema": "oracle-sequence-collection-v1", "records": [{"label": "r", "sequence": "a".repeat(131072)}]},
+            "patterns": [{"label": "p", "sequence": "A"}], "page_size": 1024,
+        });
+        let result = provider()
+            .call(
+                "bio",
+                "bio.search_collection",
+                &arguments,
+                &context(u64::MAX),
+            )
+            .unwrap();
+        assert_eq!(result["hits"].as_array().unwrap().len(), 1024);
+        let count = Count(AtomicU64::new(0));
+        assert_eq!(
+            check_collection(&arguments, &result, &count).unwrap(),
+            Some(())
+        );
+        // Hashing sees the original record once; checking 1024 one-base hits
+        // must not charge/traverse a full 131072-base record for every hit.
+        let source_bytes = arguments["collection"]["records"][0]["sequence"]
+            .as_str()
+            .unwrap()
+            .len() as u64;
+        let hit_count = result["hits"].as_array().unwrap().len() as u64;
+        let pattern_bytes = arguments["patterns"][0]["sequence"].as_str().unwrap().len() as u64;
+        let charged = count.0.load(Ordering::Relaxed);
+        // Require charged work for input identity and every hit, while leaving
+        // room for changes to constant-factor framing/checking costs. This
+        // rejects both uncharged replay and record-length work per short hit.
+        assert!(charged >= source_bytes + hit_count * pattern_bytes);
+        assert!(charged <= 2 * source_bytes + 32 * hit_count * (pattern_bytes + 1));
+        assert!(check_collection(&arguments, &result, &context(1)).is_err());
+        let catalog = oracle_bio::catalog();
+        let structured = Structured {
+            id: "bio.search_collection",
+            identity: "fixture",
+            catalog: &catalog,
+        };
+        let withheld = structured.bio(&arguments, &result, &context(1));
+        assert_eq!(withheld["status"], "withheld");
+        assert_eq!(withheld["reason"], "native_reply_check_budget_exhausted");
+    }
+
+    #[test]
+    fn sol_consumer_discovery_typed_wire_and_semantic_replies() {
+        let names = ["reasoning", "science", "bio", "statistics"].map(str::to_owned);
+        // This intentionally requires a freshly generated snapshot: a source
+        // catalog change cannot silently leave discovery on the previous API.
+        let pure = Pure::open(&names, &"a".repeat(64), None).unwrap();
+        for (profile, id) in [
+            ("reasoning", "reasoning.exact_linear_feasibility"),
+            ("science", "science.thermal_scenarios"),
+            ("bio", "bio.search_collection"),
+            ("statistics", "statistics.calibration"),
+        ] {
+            let declaration = pure
+                .declarations()
+                .into_iter()
+                .find(|(_, d)| d["id"] == id)
+                .unwrap()
+                .1;
+            let arguments = declaration["examples"][0]["arguments"].clone();
+            assert!(
+                crate::schema::validate(&arguments, &declaration["input_schema"], "arguments")
+                    .is_ok(),
+                "{id} example schema"
+            );
+            parity(profile, id, &arguments);
+            let reply = pure
+                .invoke(profile, id, &arguments, "tenant", &context(u64::MAX))
+                .unwrap();
+            assert_eq!(reply["status"], "answered", "{id}: {reply}");
+            assert_eq!(reply["authority"], "computation_only");
+            let mut unknown = arguments.clone();
+            unknown["unknown_field"] = json!(0);
+            assert!(
+                crate::schema::validate(&unknown, &declaration["input_schema"], "arguments")
+                    .is_err(),
+                "{id} unknown field"
+            );
+            assert!(
+                pure.call(profile, id, &unknown, &context(u64::MAX))
+                    .is_err(),
+                "{id} typed unknown field"
+            );
+            let cancelled = context(u64::MAX);
+            cancelled.cancellation().cancel();
+            assert!(
+                pure.call(profile, id, &arguments, &cancelled).is_err(),
+                "{id} cancellation"
+            );
+            if id == "statistics.calibration" {
+                let mut inverse = arguments.clone();
+                inverse["direction"] = json!("inverse_point");
+                let reply = pure
+                    .invoke(profile, id, &inverse, "tenant", &context(u64::MAX))
+                    .unwrap();
+                assert_eq!(reply["status"], "withheld");
+                assert_eq!(reply["reason"], "calibration_unavailable");
+            }
+            if id == "bio.search_collection" {
+                let mut result = pure
+                    .call(profile, id, &arguments, &context(u64::MAX))
+                    .unwrap();
+                result["collection_sha256"] = json!("0".repeat(64));
+                assert!(check_collection(&arguments, &result, &context(u64::MAX))
+                    .unwrap()
+                    .is_none());
+            }
+        }
     }
 
     #[test]

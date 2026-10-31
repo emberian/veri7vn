@@ -13,7 +13,10 @@ use rusqlite::Connection;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::{BTreeSet, HashMap};
-use std::sync::Arc;
+use std::hash::Hasher;
+use std::io::Write;
+use std::ops::Deref;
+use std::sync::{Arc, OnceLock};
 
 pub const COVERAGE: &str = "whole_and_exact_fragment_outer_v1+exact_segment_and_single_nested_v1";
 
@@ -76,14 +79,103 @@ pub enum ReaderReason {
     AnswerForm,
     AnswerDisagreement,
 }
+/// Immutable request-owned data. Serialization expands the original public
+/// value; references share one payload and one aggregate-memory reservation.
+/// Deserialization is a wire boundary and does not inherit a request budget.
+pub struct ReaderShared<T>(Arc<Retained<T>>);
+struct Retained<T> {
+    value: T,
+    _memory: Option<crate::budget::MemoryReservation>,
+}
+impl<T> ReaderShared<T> {
+    fn new(value: T, bytes: usize, budget: &Budget) -> Result<Self> {
+        let bytes = bytes
+            .checked_add(std::mem::size_of::<Retained<T>>() + 2 * std::mem::size_of::<usize>())
+            .ok_or(Error::Limit("retained memory accounting overflow"))?;
+        let memory = budget.reserve_memory(bytes)?;
+        Ok(Self(Arc::new(Retained {
+            value,
+            _memory: Some(memory),
+        })))
+    }
+    /// Transfer an owned payload with its reservation. The usual reader return
+    /// has one owner; a future shared caller reserves before making a real copy.
+    pub(crate) fn into_owned(
+        self,
+        bytes: usize,
+        budget: &Budget,
+    ) -> Result<(T, crate::budget::MemoryReservation)>
+    where
+        T: Clone,
+    {
+        match Arc::try_unwrap(self.0) {
+            Ok(Retained { value, _memory }) => {
+                let memory = match _memory {
+                    Some(memory) => memory,
+                    None => {
+                        budget.reserve_memory(bytes.saturating_add(std::mem::size_of::<T>()))?
+                    }
+                };
+                Ok((value, memory))
+            }
+            Err(shared) => {
+                let memory =
+                    budget.reserve_memory(bytes.saturating_add(std::mem::size_of::<T>()))?;
+                let value = shared.value.clone();
+                Ok((value, memory))
+            }
+        }
+    }
+    /// Compare ownership, independently of payload equality.
+    pub fn ptr_eq(&self, other: &Self) -> bool {
+        Arc::ptr_eq(&self.0, &other.0)
+    }
+}
+impl<T> Clone for ReaderShared<T> {
+    fn clone(&self) -> Self {
+        Self(Arc::clone(&self.0))
+    }
+}
+impl<T> Deref for ReaderShared<T> {
+    type Target = T;
+    fn deref(&self) -> &T {
+        &self.0.value
+    }
+}
+impl<T: std::fmt::Debug> std::fmt::Debug for ReaderShared<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.deref().fmt(f)
+    }
+}
+impl<T: Serialize> Serialize for ReaderShared<T> {
+    fn serialize<S: serde::Serializer>(
+        &self,
+        serializer: S,
+    ) -> std::result::Result<S::Ok, S::Error> {
+        self.deref().serialize(serializer)
+    }
+}
+impl<'de, T: Deserialize<'de>> Deserialize<'de> for ReaderShared<T> {
+    fn deserialize<D: serde::Deserializer<'de>>(
+        deserializer: D,
+    ) -> std::result::Result<Self, D::Error> {
+        Ok(Self(Arc::new(Retained {
+            value: T::deserialize(deserializer)?,
+            _memory: None,
+        })))
+    }
+}
+
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ReaderReading {
     pub template: String,
     pub level: u8,
     pub support: u64,
-    pub program: grammar::Program,
+    pub program: ReaderShared<grammar::Program>,
     pub answer: String,
-    pub result: QueryResult,
+    pub result: ReaderShared<QueryResult>,
+    #[serde(skip)]
+    _memory: Option<crate::budget::MemoryReservation>,
 }
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ReaderResult {
@@ -129,7 +221,7 @@ pub(crate) fn evaluate_whole(
     limits: &Limits,
     reader_limits: &ReaderLimits,
     budget: &Budget,
-) -> Result<(ReaderResult, Option<Selection>)> {
+) -> Result<(ReaderResult, Option<ReaderShared<Selection>>)> {
     let outcome = evaluate_inner(
         db,
         identity,
@@ -153,7 +245,7 @@ fn evaluate_inner(
     limits: &Limits,
     reader_limits: &ReaderLimits,
     budget: &Budget,
-) -> Result<(ReaderResult, Option<Selection>)> {
+) -> Result<(ReaderResult, Option<ReaderShared<Selection>>)> {
     reader_limits.validate()?;
     budget.check()?;
     if raw_question.len() > limits.request_bytes {
@@ -181,12 +273,15 @@ fn evaluate_inner(
     let mut result = ReaderResult::empty(identity, ReaderReason::NoTemplate);
     let mut shared = LanguageWorkspace::new(db)?;
     let mut compilation = CompilationWorkspace::default();
+    let mut evidence = EvidenceWorkspace::default();
+
     let mut lexical_workspace = lexicon::LexicalWorkspace::new(db, raw_question);
     let mut total_bytes = 0usize;
-    let mut selection = None::<Selection>;
+    let mut selection = None::<ReaderShared<Selection>>;
     let mut same_selection = true;
     let mut checked_form_kinds = BTreeSet::new();
     let mut forms_ok = true;
+    let mut execution_cache_hits = 0usize;
     let mut distinct = BTreeSet::new();
     // R7.read's whole path uses R6.candidates with R7's selected normalizer.
     // Its fragment found() function has different plural/function-word rules.
@@ -213,7 +308,7 @@ fn evaluate_inner(
             })
             .collect();
         // Already normalized exactly once by the lexical entry point.
-        let mut matched = grammar::match_whole(
+        let matched = grammar::match_whole(
             db,
             &candidates.normalized,
             &spans,
@@ -222,6 +317,13 @@ fn evaluate_inner(
             match_limits,
             budget,
         )?;
+        // Whole output already coexists with chart execution. Its reservation
+        // must be installed before composition starts, not after both return.
+        let matched_bytes = crate::query::encoded_size(&matched, usize::MAX)?
+            .checked_mul(16)
+            .and_then(|n| n.checked_add(matched.capacity().saturating_mul(64)))
+            .ok_or(Error::Limit("retained memory accounting overflow"))?;
+        let _matched_memory = budget.reserve_memory(matched_bytes)?;
         let normalized = candidates.normalized;
         let mut composition_spans = Vec::new();
         for outer in [false, true] {
@@ -248,7 +350,7 @@ fn evaluate_inner(
                 .collect();
             composition_spans.push(spans);
         }
-        matched.extend(crate::composition::match_composed(
+        let composed = crate::composition::match_composed(
             db,
             &normalized,
             &composition_spans[0],
@@ -258,7 +360,7 @@ fn evaluate_inner(
             match_limits,
             budget,
             |fragment| {
-                let Some(compiled) = compilation.compile(fragment, limits)? else {
+                let Some(compiled) = compilation.compile(fragment, limits, budget)? else {
                     // A malformed/unsupported fragment must not disappear and
                     // leave another reading falsely certain.
                     return Err(Error::Invalid("unsupported composition fragment".into()));
@@ -284,14 +386,17 @@ fn evaluate_inner(
                     Some(crate::query::Delivered::Exists(true))
                 ))
             },
-        )?);
-        for candidate in matched {
+        )?;
+        // Keep the transferred composition guard alive across iteration and
+        // every early return. No copied batch and no uncharged handoff interval.
+        let (composed, _composed_memory) = composed.into_parts();
+        for candidate in matched.into_iter().chain(composed) {
             budget.spend(1)?;
             result.matched_programs += 1;
             if result.matched_programs > reader_limits.matched_programs {
                 return Err(Error::Limit("reader matched programs"));
             }
-            let compiled = compilation.compile(&candidate.program, limits)?;
+            let compiled = compilation.compile(&candidate.program, limits, budget)?;
             let Some(compiled) = compiled else {
                 result.unsupported_programs += 1;
                 continue;
@@ -299,17 +404,30 @@ fn evaluate_inner(
             // The language mode examines every entity-producing intermediate,
             // including dead branches; terminal Count alone permits empties.
             // The common evaluator owns DAG execution, typed values and budgets.
-            let evaluation = evaluate_language_shared(
-                db,
-                identity,
-                &compiled.plan,
-                previous,
-                limits,
-                budget,
-                &mut shared,
-            );
-            budget.check()?;
-            let Some((query, selected)) = evaluation? else {
+            let execution = if let Some(cached) = compiled.execution.get() {
+                execution_cache_hits += 1;
+                budget.spend(1)?;
+                cached.clone()
+            } else {
+                let evaluation = evaluate_language_shared(
+                    db,
+                    identity,
+                    &compiled.plan,
+                    previous,
+                    limits,
+                    budget,
+                    &mut shared,
+                );
+                budget.check()?;
+                let execution = evaluation?
+                    .map(|(query, selected)| evidence.intern(query, selected, budget))
+                    .transpose()?;
+                // No errors/cancellation are cached. None is the complete
+                // all-stage guard refusal for this exact syntax and request.
+                let _ = compiled.execution.set(execution.clone());
+                execution
+            };
+            let Some(SharedExecution { query, selected }) = execution else {
                 continue;
             };
             match execution_answer(&query, compiled.terminal)? {
@@ -336,15 +454,22 @@ fn evaluate_inner(
                             budget,
                         )?;
                     }
+                    let memory = budget.reserve_memory(
+                        std::mem::size_of::<ReaderReading>()
+                            + candidate.template.capacity()
+                            + answer.capacity()
+                            + 64,
+                    )?;
                     let reading = ReaderReading {
                         template: candidate.template,
                         level: candidate.level,
                         support: candidate.support,
-                        program: candidate.program,
+                        program: compiled.syntax.clone(),
                         answer,
                         result: query,
+                        _memory: Some(memory),
                     };
-                    let bytes = encode(&reading, bytes_limit)?.len();
+                    let bytes = crate::query::encoded_size(&reading, bytes_limit)?;
                     budget.spend(bytes as u64)?;
                     total_bytes = total_bytes
                         .checked_add(bytes)
@@ -393,7 +518,17 @@ fn evaluate_inner(
         None
     };
     // Includes result metadata and distinct-answer duplication in the bound.
-    encode(&result, limits.result_bytes.min(bytes_limit))?;
+    let wire_bytes = crate::query::encoded_size(&result, limits.result_bytes.min(bytes_limit))?;
+    probe::record(probe::Record {
+        matched: result.matched_programs,
+        compiled_plans: compilation.compilations,
+        execution_cache_hits,
+        projection_hydrations: evidence.hydrations,
+        unique_outcomes: evidence.unique,
+        wire_bytes,
+        retained_live: budget.memory().snapshot().live,
+        retained_peak: budget.memory().snapshot().peak,
+    });
     Ok((result, selected))
 }
 
@@ -404,12 +539,16 @@ fn evaluate_inner(
 struct CompiledCandidate {
     terminal: Operation,
     plan: crate::Plan,
+    syntax: ReaderShared<grammar::Program>,
+    execution: OnceLock<Option<SharedExecution>>,
+    _memory: crate::budget::MemoryReservation,
 }
 
 #[derive(Default)]
 struct CompilationWorkspace {
     plans: HashMap<Program, Arc<CompiledCandidate>>,
     retained_bytes: usize,
+    compilations: usize,
 }
 
 impl CompilationWorkspace {
@@ -417,6 +556,7 @@ impl CompilationWorkspace {
         &mut self,
         syntax: &grammar::Program,
         limits: &Limits,
+        budget: &Budget,
     ) -> Result<Option<Arc<CompiledCandidate>>> {
         if syntax.len() > limits.plan_nodes {
             return Err(Error::Limit("reader program steps"));
@@ -434,17 +574,46 @@ impl CompilationWorkspace {
             Err(Error::Invalid(_) | Error::Json(_)) => return Ok(None),
             Err(error) => return Err(error),
         };
+        // A conservative syntax/plan envelope, including hash-map ownership.
+        // This is retained Rust data, not an estimate of SQLite or process RSS.
+        let charge = crate::query::encoded_size(&program, limits.request_bytes)?
+            .checked_add(crate::query::encoded_size(&plan, usize::MAX)?)
+            .and_then(|n| n.checked_mul(16))
+            .and_then(|n| n.checked_add(512))
+            .ok_or(Error::Limit("retained memory accounting overflow"))?;
+        let memory = budget.reserve_memory(charge)?;
+        let syntax_bytes = syntax.iter().fold(
+            syntax
+                .capacity()
+                .saturating_mul(std::mem::size_of::<grammar::Step>()),
+            |n, step| {
+                n.saturating_add(step.function.capacity())
+                    .saturating_add(
+                        step.dependencies
+                            .capacity()
+                            .saturating_mul(std::mem::size_of::<usize>()),
+                    )
+                    .saturating_add(
+                        step.inputs
+                            .capacity()
+                            .saturating_mul(std::mem::size_of::<Value>()),
+                    )
+                    .saturating_add(
+                        step.inputs
+                            .iter()
+                            .map(crate::query::json_retained_bytes)
+                            .fold(0usize, usize::saturating_add),
+                    )
+            },
+        );
+        self.compilations += 1;
         let compiled = Arc::new(CompiledCandidate {
             terminal: program.0.last().expect("validated program").function,
             plan,
+            syntax: ReaderShared::new(syntax.clone(), syntax_bytes, budget)?,
+            execution: OnceLock::new(),
+            _memory: memory,
         });
-        // Cache residency is optional. A conservative charge bounds retained
-        // syntax/plan storage without turning a cache miss into a refusal. The
-        // ordinary compilation and evaluation bounds still apply on every miss.
-        let charge = crate::query::encoded_size(&program, limits.request_bytes)?
-            .saturating_add(crate::query::encoded_size(&compiled.plan, usize::MAX)?)
-            .saturating_mul(16)
-            .saturating_add(512);
         if charge
             <= limits
                 .materialized_bytes
@@ -454,6 +623,62 @@ impl CompilationWorkspace {
             self.plans.insert(program, Arc::clone(&compiled));
         }
         Ok(Some(compiled))
+    }
+}
+
+#[derive(Clone)]
+struct SharedExecution {
+    query: ReaderShared<QueryResult>,
+    selected: ReaderShared<Selection>,
+}
+/// Hashes only choose a bucket. Complete reply AND selection equality establish
+/// sharing, including qualifiers/attribute positions; equal answer text does not.
+#[derive(Default)]
+struct EvidenceWorkspace {
+    outcomes: HashMap<u64, Vec<SharedExecution>>,
+    hydrations: usize,
+    unique: usize,
+}
+impl EvidenceWorkspace {
+    fn intern(
+        &mut self,
+        query: QueryResult,
+        selected: Selection,
+        budget: &Budget,
+    ) -> Result<SharedExecution> {
+        self.hydrations += 1;
+        struct HashWriter(std::collections::hash_map::DefaultHasher);
+        impl Write for HashWriter {
+            fn write(&mut self, bytes: &[u8]) -> std::io::Result<usize> {
+                self.0.write(bytes);
+                Ok(bytes.len())
+            }
+            fn flush(&mut self) -> std::io::Result<()> {
+                Ok(())
+            }
+        }
+        let mut writer = HashWriter(std::collections::hash_map::DefaultHasher::new());
+        serde_json::to_writer(&mut writer, &query)?;
+        // QueryResult currently contains the full Selection too; retaining this
+        // explicit comparison protects the invariant if projection evolves.
+        let key = writer.0.finish();
+        let bucket = self.outcomes.entry(key).or_default();
+        for outcome in bucket.iter() {
+            budget.spend(1)?;
+            if *outcome.query == query && *outcome.selected == selected {
+                return Ok(outcome.clone());
+            }
+        }
+        let query_bytes = crate::query::query_retained_bytes(&query);
+        let selected_bytes = crate::query::selection_retained_bytes(&selected);
+        let outcome = SharedExecution {
+            // Bucket/container allowance is charged once with its unique node.
+            query: ReaderShared::new(query, query_bytes.saturating_add(128), budget)?,
+            selected: ReaderShared::new(selected, selected_bytes, budget)?,
+        };
+        bucket.push(outcome.clone());
+        self.unique += 1;
+        Ok(outcome)
     }
 }
 
@@ -568,6 +793,53 @@ impl Image {
     }
 }
 
+/// Optional measurement hooks. Records completed reads only; a refusal is a
+/// completed read, while resource/cancellation errors produce no record. Bytes
+/// describe explicit reservation units, never process RSS or foreign buffers.
+#[doc(hidden)]
+pub mod probe {
+    use std::sync::{
+        atomic::{AtomicBool, Ordering},
+        Mutex,
+    };
+    #[derive(Clone, Debug)]
+    pub struct Record {
+        pub matched: usize,
+        pub compiled_plans: usize,
+        pub execution_cache_hits: usize,
+        pub projection_hydrations: usize,
+        pub unique_outcomes: usize,
+        pub wire_bytes: usize,
+        pub retained_live: usize,
+        pub retained_peak: usize,
+    }
+    static ENABLED: AtomicBool = AtomicBool::new(false);
+    static RECORDS: Mutex<Vec<Record>> = Mutex::new(Vec::new());
+    pub fn enable() {
+        ENABLED.store(true, Ordering::Relaxed);
+    }
+    pub(super) fn record(record: Record) {
+        if ENABLED.load(Ordering::Relaxed) {
+            let mut records = RECORDS.lock().expect("reader probe lock");
+            if !ENABLED.load(Ordering::Relaxed) {
+                return;
+            }
+            if records.len() == 1024 {
+                records.remove(0);
+            }
+            records.push(record);
+        }
+    }
+    /// Stop recording and release retained measurement records.
+    pub fn disable() {
+        ENABLED.store(false, Ordering::Relaxed);
+        RECORDS.lock().expect("reader probe lock").clear();
+    }
+    pub fn take() -> Vec<Record> {
+        std::mem::take(&mut *RECORDS.lock().expect("reader probe lock"))
+    }
+}
+
 #[cfg(test)]
 mod compilation_tests {
     use super::*;
@@ -587,12 +859,13 @@ mod compilation_tests {
     fn compilation_shares_only_exact_complete_syntax_within_request() {
         let limits = Limits::default();
         let mut workspace = CompilationWorkspace::default();
+        let budget = Budget::new(&limits, Cancellation::default()).unwrap();
         let first = workspace
-            .compile(&syntax("Unused", "2000"), &limits)
+            .compile(&syntax("Unused", "2000"), &limits, &budget)
             .unwrap()
             .unwrap();
         let repeated = workspace
-            .compile(&syntax("Unused", "2000"), &limits)
+            .compile(&syntax("Unused", "2000"), &limits, &budget)
             .unwrap()
             .unwrap();
         assert!(Arc::ptr_eq(&first, &repeated));
@@ -600,11 +873,14 @@ mod compilation_tests {
             syntax("Other dead branch", "2000"),
             syntax("Unused", "2001"),
         ] {
-            let other = workspace.compile(&alternative, &limits).unwrap().unwrap();
+            let other = workspace
+                .compile(&alternative, &limits, &budget)
+                .unwrap()
+                .unwrap();
             assert!(!Arc::ptr_eq(&first, &other));
         }
         let new_request = CompilationWorkspace::default()
-            .compile(&syntax("Unused", "2000"), &limits)
+            .compile(&syntax("Unused", "2000"), &limits, &budget)
             .unwrap()
             .unwrap();
         assert!(!Arc::ptr_eq(&first, &new_request));
@@ -614,9 +890,176 @@ mod compilation_tests {
     fn unsupported_dead_branch_still_vetoes_compilation() {
         let mut syntax = syntax("Unused", "2000");
         syntax[0].function = "NotAnOperation".into();
+        let limits = Limits::default();
+        let budget = Budget::new(&limits, Cancellation::default()).unwrap();
         assert!(CompilationWorkspace::default()
-            .compile(&syntax, &Limits::default())
+            .compile(&syntax, &limits, &budget)
             .unwrap()
             .is_none());
+    }
+    fn outcome(qualifier: &str) -> (QueryResult, Selection) {
+        let attribute = crate::AttributeFact {
+            subject: "same-id".into(),
+            key: "name".into(),
+            position: 1,
+            value_json: "\"Same answer\"".into(),
+            qualifiers_json: qualifier.into(),
+        };
+        let selected = Selection {
+            ids: BTreeSet::from(["same-id".into()]),
+            facts: BTreeSet::new(),
+            attributes: BTreeSet::from([attribute.clone()]),
+        };
+        (
+            QueryResult {
+                image: "image-one".into(),
+                coverage: "complete_relative_to_image".into(),
+                entities: vec!["same-id".into()],
+                facts: vec![],
+                attributes: vec![attribute],
+                value: json!({"status":"unique","display":"Same answer"}),
+            },
+            selected,
+        )
+    }
+
+    #[test]
+    fn shared_evidence_retains_full_source_identity_and_releases_last_owner() {
+        let limits = Limits::default();
+        let budget = Budget::new(&limits, Cancellation::default()).unwrap();
+        let mut workspace = EvidenceWorkspace::default();
+        let (query, selected) = outcome("{\"year\":2000}");
+        let first = workspace.intern(query, selected, &budget).unwrap();
+        let live = budget.memory().snapshot().live;
+        let (query, selected) = outcome("{\"year\":2000}");
+        let same = workspace.intern(query, selected, &budget).unwrap();
+        assert!(first.query.ptr_eq(&same.query));
+        assert!(first.selected.ptr_eq(&same.selected));
+        assert_eq!(budget.memory().snapshot().live, live);
+        let (query, selected) = outcome("{\"year\":2001}");
+        let different = workspace.intern(query, selected, &budget).unwrap();
+        assert!(!first.query.ptr_eq(&different.query));
+        assert_eq!(first.query.value, different.query.value);
+        assert_ne!(first.query.attributes, different.query.attributes);
+        assert_eq!(workspace.unique, 2);
+        let wire = serde_json::to_value(&first.query).unwrap();
+        assert_eq!(wire["attributes"][0]["qualifiers_json"], "{\"year\":2000}");
+        assert!(wire.get("_memory").is_none());
+        let decoded: ReaderShared<QueryResult> = serde_json::from_value(wire).unwrap();
+        assert_eq!(*first.query, *decoded);
+        drop(workspace);
+        drop(different);
+        drop(same);
+        assert_eq!(budget.memory().snapshot().live, live);
+        let last = first.query.clone();
+        drop(first);
+        assert!(budget.memory().snapshot().live > 0);
+        drop(last);
+        assert_eq!(budget.memory().snapshot().live, 0);
+    }
+
+    #[test]
+    fn shared_evidence_never_merges_different_referents_or_selection_only_evidence() {
+        let limits = Limits::default();
+        let budget = Budget::new(&limits, Cancellation::default()).unwrap();
+        let mut workspace = EvidenceWorkspace::default();
+        let (query, selected) = outcome("{}");
+        let first = workspace.intern(query, selected, &budget).unwrap();
+        let (query, mut selected) = outcome("{}");
+        selected.ids.insert("other-id".into());
+        // Even an otherwise identical diagnostic reply cannot mask a distinct
+        // Previous selection if future projection rules attach extra evidence.
+        let different = workspace.intern(query, selected, &budget).unwrap();
+        assert!(!first.query.ptr_eq(&different.query));
+        let (mut query, mut selected) = outcome("{}");
+        query.entities = vec!["other-id".into()];
+        selected.ids = BTreeSet::from(["other-id".into()]);
+        let referent = workspace.intern(query, selected, &budget).unwrap();
+        assert!(!first.query.ptr_eq(&referent.query));
+        assert_eq!(first.query.value, referent.query.value);
+    }
+
+    #[test]
+    fn aggregate_exhaustion_refuses_without_leaking_partial_shared_nodes() {
+        let limits = Limits {
+            request_memory_bytes: 1,
+            ..Limits::default()
+        };
+        let budget = Budget::new(&limits, Cancellation::default()).unwrap();
+        let mut workspace = EvidenceWorkspace::default();
+        let (query, selected) = outcome("{}");
+        assert!(matches!(
+            workspace.intern(query, selected, &budget),
+            Err(Error::Limit("retained request memory"))
+        ));
+        assert_eq!(budget.memory().snapshot().live, 0);
+        assert_eq!(workspace.unique, 0);
+    }
+    #[test]
+    fn thousands_of_equal_outcomes_share_but_distinct_evidence_exhausts_boundedly() {
+        let limits = Limits::default();
+        let budget = Budget::new(&limits, Cancellation::default()).unwrap();
+        let mut workspace = EvidenceWorkspace::default();
+        let (query, selected) = outcome("{}");
+        let first = workspace.intern(query, selected, &budget).unwrap();
+        let live = budget.memory().snapshot().live;
+        for _ in 0..2401 {
+            let (query, selected) = outcome("{}");
+            let next = workspace.intern(query, selected, &budget).unwrap();
+            assert!(first.query.ptr_eq(&next.query));
+            assert_eq!(budget.memory().snapshot().live, live);
+        }
+        assert_eq!(workspace.unique, 1);
+        drop(workspace);
+        drop(first);
+        assert_eq!(budget.memory().snapshot().live, 0);
+
+        let limits = Limits {
+            request_memory_bytes: 4096,
+            ..Limits::default()
+        };
+        let budget = Budget::new(&limits, Cancellation::default()).unwrap();
+        let mut workspace = EvidenceWorkspace::default();
+        let mut refused = false;
+        for year in 0..2401 {
+            let (query, selected) = outcome(&format!("{{\"year\":{year}}}"));
+            match workspace.intern(query, selected, &budget) {
+                Ok(_) => {}
+                Err(Error::Limit("retained request memory")) => {
+                    refused = true;
+                    break;
+                }
+                Err(error) => panic!("unexpected error: {error:?}"),
+            }
+        }
+        assert!(
+            refused,
+            "different evidence must remain distinct and bounded"
+        );
+        assert!(budget.memory().snapshot().live <= 4096);
+        drop(workspace);
+        assert_eq!(budget.memory().snapshot().live, 0);
+    }
+    #[test]
+    fn returned_selection_transfers_reservation_or_reserves_before_copying() {
+        let budget = Budget::new(&Limits::default(), Cancellation::default()).unwrap();
+        let (_, selected) = outcome("{}");
+        let bytes = crate::query::selection_retained_bytes(&selected);
+        let shared = ReaderShared::new(selected, bytes, &budget).unwrap();
+        let original = budget.memory().snapshot().live;
+        let alias = shared.clone();
+        let (copy, copy_memory) = alias.into_owned(bytes, &budget).unwrap();
+        assert!(budget.memory().snapshot().live > original);
+        assert_eq!(copy.ids, shared.ids);
+        drop(copy);
+        drop(copy_memory);
+        assert_eq!(budget.memory().snapshot().live, original);
+        let (owned, memory) = shared.into_owned(bytes, &budget).unwrap();
+        assert_eq!(budget.memory().snapshot().live, original);
+        assert!(owned.ids.contains("same-id"));
+        drop(owned);
+        assert_eq!(budget.memory().snapshot().live, original);
+        drop(memory);
+        assert_eq!(budget.memory().snapshot().live, 0);
     }
 }

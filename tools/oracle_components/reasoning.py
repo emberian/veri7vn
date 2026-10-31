@@ -23,6 +23,7 @@ ALGEBRA = "algebra.optimize_polynomial"
 DIMENSIONAL = "algebra.optimize_dimensional_polynomial"
 CHEMISTRY = "chemistry.balance_reaction"
 RATIONAL = "algebra.simplify_rational"
+EXACT = "reasoning.exact_linear_feasibility"
 RATIONAL_LIMIT_NAMES = ("rational_bits", "rational_work", "formula_depth", "proof_steps",
                         "formula_reply_bytes")
 RATIONAL_PATTERN = r"^-?(0|[1-9][0-9]*)(/[1-9][0-9]*)?$"
@@ -97,6 +98,26 @@ def _chemistry_result(limits):
         "free_coefficient_bound": _integer(0, 2**32 - 1) if limits is None else {"const": limits["free_coefficient_bound"]},
         "assurance": _string(1024),
     })
+
+
+def _exact_input():
+    rational = _string(8195, pattern=RATIONAL_PATTERN)
+    vector = {"type": "array", "maxItems": 32, "items": rational}
+    return _object({"variables": {"type": "array", "minItems": 1, "maxItems": 32, "items": _string(128)},
+                    "rows": {"type": "array", "maxItems": 256, "items": _object({
+                        "id": _string(128), "coefficients": vector, "bound": rational})},
+                    "objective": {"anyOf": [vector, {"type": "null"}]}}, required=["variables", "rows"])
+
+
+def _exact_result():
+    vector = {"type": "array", "maxItems": 256, "items": _string(8195, pattern=RATIONAL_PATTERN)}
+    certs = []
+    for kind, fields in (("feasible", ("point",)), ("infeasible", ("multipliers",)),
+                         ("optimal", ("point", "multipliers")), ("unbounded", ("point", "direction"))):
+        certs.append(_object(dict({"kind": {"const": kind}}, **{key: vector for key in fields})))
+    return _object({"status": _string(32, enum=["feasible", "infeasible", "optimal", "unbounded", "unknown"]),
+                    "certificate": {"anyOf": certs + [{"type": "null"}]},
+                    "reason": {"anyOf": [_string(512), {"type": "null"}]}, "assurance": _string(1024)})
 
 
 def _rational_text(rational_limits):
@@ -195,7 +216,7 @@ def _inputs(limits, max_exponent=None, chemistry_limits=None, rational_limits=No
     directed_edges = copy.deepcopy(edges)
     directed_edges["description"] = "Complete supplied directed multigraph only. Stable edge IDs are list positions; loops and parallel edges are allowed."
     positive_vertices = dict(vertices, minimum=1)
-    return {GRAPH: _object({"vertices": vertices, "edges": edges}),
+    return {EXACT: _exact_input(), GRAPH: _object({"vertices": vertices, "edges": edges}),
             SHORTEST: _object({"vertices": positive_vertices, "edges": directed_edges,
                                "source": endpoint, "target": endpoint}),
             ALGEBRA: _object({"expression": expression}),
@@ -235,6 +256,7 @@ def _results(limits, max_exponent=None, chemistry_limits=None, rational_limits=N
                         "dimension_check": _string(1024), "unit_convention": _string(1024),
                         "selection_fallback": {"anyOf": [_string(MAX_REPLY_BYTES), {"type": "null"}]}})
     results[DIMENSIONAL] = _object(dimensional)
+    results[EXACT] = _exact_result()
     results[CHEMISTRY] = _chemistry_result(chemistry_limits)
     results[RATIONAL] = _rational_result(limits, max_exponent, rational_limits)
     decimal = _string(40, pattern=r"^(0|-[1-9][0-9]*|[1-9][0-9]*)$")
@@ -259,7 +281,7 @@ def _results(limits, max_exponent=None, chemistry_limits=None, rational_limits=N
     return results
 
 
-OPERATION_IDS = (GRAPH, ALGEBRA, DIMENSIONAL, CHEMISTRY, SHORTEST, RATIONAL)
+OPERATION_IDS = (GRAPH, ALGEBRA, DIMENSIONAL, CHEMISTRY, SHORTEST, RATIONAL, EXACT)
 LIMITATIONS = [
     "Experimental computation only. No specialist panel numbers, release admission, Isabelle proof or Mini capability authority.",
     "The host must enable this provider explicitly and supply its runtime identity. Identity is a host assertion, not an independent attestation.",
@@ -428,6 +450,9 @@ class ReasoningOperations:
     def catalog(self):
         rows = []
         for op_id, name, description, example, limitation in (
+            (EXACT, "Exact supplied linear feasibility", "Find and independently replay rational feasibility or Farkas certificates over supplied rows a*x<=b and unrestricted variables.",
+             {"variables": ["x"], "rows": [{"id": "lower", "coefficients": ["-1"], "bound": "-1"}]},
+             "Exact Rust replay, no Isabelle claim. Variables are unrestricted; add explicit nonnegativity rows. Objective is minimization metadata; this proposer searches feasibility only. Resource exhaustion means unknown. Caller owns row units and model completeness."),
             (GRAPH, "Minimum spanning forest of a supplied graph",
              "Select a minimum-weight spanning forest of a supplied undirected multigraph. The native provider checks acyclicity, component coverage and cycle optimality independently of its candidate generator.",
              {"vertices": 3, "edges": [[0, 1, 4], [1, 2, -2], [0, 2, 9]]},
@@ -449,7 +474,7 @@ class ReasoningOperations:
                  {"name": "H2", "side": "reactant", "composition": {"H": 2}, "charge": 0},
                  {"name": "O2", "side": "reactant", "composition": {"O": 2}, "charge": 0},
                  {"name": "H2O", "side": "product", "composition": {"H": 2, "O": 1}, "charge": 0}]},
-             "Conservation does not establish that a species exists or a reaction occurs. Multidimensional positive-coefficient search is bounded: inconclusive search is withheld, not impossibility. A found primitive candidate need not minimize coefficients. Basis/rank are exact Rust computations, not independently certified rank proofs. Integer counts and charges must be serialized exactly; coefficients and basis entries are decimal/rational strings."),
+             "Conservation does not establish that a species exists or a reaction occurs. Multidimensional positivity uses bounded exact rational feasibility on the original inventory rows; unknown is withheld and infeasibility requires checked nonnegative row multipliers. A found primitive candidate need not minimize coefficients. Basis/rank are exact Rust computations, not independently certified rank proofs. Integer counts and charges must be serialized exactly; coefficients and basis entries are decimal/rational strings."),
             (SHORTEST, "Shortest walk in a supplied directed graph",
              "Return an exact finite minimum, unreachable, or unbounded-below result with a checked graph-local certificate.",
              {"vertices": 3, "edges": [[0, 1, 4], [1, 2, -2], [0, 2, 9]], "source": 0, "target": 2},
@@ -468,7 +493,8 @@ class ReasoningOperations:
                     "availability": "live_direct" if self._call is not None and op_id in self._available_ids else "unavailable",
                     "input_schema": copy.deepcopy(self._inputs[op_id]),
                     "output_schema": self._output_schema(op_id),
-                    "units": ({"input": "caller-defined consistent edge weight units", "output": "same weight units"}
+                    "units": ({"input": "caller-defined consistent units per row; all a*x<=b", "output": "same variable units or dimensionless row multipliers"}
+                              if op_id == EXACT else {"input": "caller-defined consistent edge weight units", "output": "same weight units"}
                               if op_id in (GRAPH, SHORTEST) else {"input": "coherent linear SI quantities", "output": "declared SI exponents; tree cost is an abstract count"}
                               if op_id in (DIMENSIONAL, RATIONAL) else {"input": "exact atom/isotope counts and signed elementary-charge counts", "output": "dimensionless stoichiometric coefficients; exact inventory totals"}
                               if op_id == CHEMISTRY else {"input": "dimensionless", "output": "dimensionless; tree cost is an abstract count"}),
@@ -508,6 +534,9 @@ class ReasoningOperations:
                                 answer_kind={"const": "search_inconclusive"},
                                 reason={"const": "positive_balance_search_inconclusive"})
             branches.append(_object(inconclusive))
+        if op_id == EXACT:
+            branches.append(_object(dict(answered, status={"const": "withheld"},
+                reason={"const": "exact_feasibility_inconclusive"})))
         return {"anyOf": branches}
 
     def invoke(self, operation_id, arguments):
@@ -537,6 +566,11 @@ class ReasoningOperations:
             result = _json(raw, maximum)
             if not _valid(result, self._results[operation_id]):
                 raise ValueError("native result schema differs")
+            if operation_id == EXACT:
+                cert = result["certificate"]
+                if ((result["status"] == "unknown") != (cert is None)
+                        or cert is not None and cert["kind"] != result["status"]):
+                    raise ValueError("linear certificate status differs")
             if operation_id == SHORTEST:
                 self._check_path_reply(arguments, result)
             if operation_id == CHEMISTRY:
@@ -547,6 +581,8 @@ class ReasoningOperations:
             return self._withheld(operation_id, "native_reply_invalid")
         reply = {"status": "answered", "operation_id": operation_id, "result": result,
                  "runtime_identity": self._identity, "authority": "computation_only"}
+        if operation_id == EXACT and result["status"] == "unknown":
+            reply.update(status="withheld", reason="exact_feasibility_inconclusive")
         if operation_id == CHEMISTRY:
             reply["scope"] = CHEMISTRY_SCOPE
             if result["status"] == "multiple_search_inconclusive":
@@ -618,7 +654,8 @@ class ReasoningOperations:
             raise ValueError("native basis dimensions differ from supplied species")
         positive = status in ("unique_positive", "multiple_with_positive_candidate")
         if ((status == "no_nonzero_balance" and nullity != 0)
-                or (status in ("unique_positive", "no_strictly_positive_balance") and nullity != 1)
+                or (status == "unique_positive" and nullity != 1)
+                or (status == "no_strictly_positive_balance" and nullity < 1)
                 or (status.startswith("multiple_") and nullity < 2)):
             raise ValueError("native status differs from nullspace dimensions")
         if positive:
@@ -643,6 +680,15 @@ class ReasoningOperations:
         if (not isinstance(arguments, dict) or not set(schema["required"]) <= set(arguments)
                 or not set(arguments) <= set(schema["properties"])):
             raise ValueError("unexpected or missing argument fields")
+        if op_id == EXACT:
+            if not _valid(arguments, schema):
+                raise ValueError("invalid exact linear request")
+            n = len(arguments["variables"])
+            if (len(set(arguments["variables"])) != n or len({r["id"] for r in arguments["rows"]}) != len(arguments["rows"])
+                    or any(len(r["coefficients"]) != n for r in arguments["rows"])
+                    or (arguments.get("objective") is not None and len(arguments["objective"]) != n)):
+                raise ValueError("linear vector dimensions or IDs differ")
+            return
         if op_id == CHEMISTRY:
             species = arguments["species"]
             if not isinstance(species, list) or not 2 <= len(species) <= self._chemistry_limits["species"]:

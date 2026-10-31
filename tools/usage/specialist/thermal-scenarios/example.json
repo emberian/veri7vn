@@ -1,0 +1,19 @@
+{
+  "network": {
+    "description": "Supplied board hotspot and ideal cooling boundary",
+    "assumptions": ["Steady lumped passive conduction with constant positive conductances; no radiation, airflow or heat storage"],
+    "reference_temperature_k": 300,
+    "nodes": [{"id":"chip","applied_heat_w":8},{"id":"case","applied_heat_w":0},{"id":"sink","applied_heat_w":0,"fixed_temperature_k":300}],
+    "links": [{"from":"chip","to":"case","conductance_w_per_k":2},{"from":"case","to":"sink","conductance_w_per_k":4}]
+  },
+  "scenarios": [
+    {"id":"normal","applied_heat_w":[8,0,0],"fixed_temperature_k":[null,null,300]},
+    {"id":"warm-heavy","applied_heat_w":[16,0,0],"fixed_temperature_k":[null,null,310]},
+    {"id":"case-source","applied_heat_w":[8,4,0],"fixed_temperature_k":[null,null,300]}
+  ],
+  "sensitivities": [
+    {"scenario_id":"normal","parameter":{"kind":"load","node_id":"chip"}},
+    {"scenario_id":"normal","parameter":{"kind":"conductance","link_index":0}},
+    {"scenario_id":"normal","parameter":{"kind":"conductance","link_index":1}}
+  ]
+}

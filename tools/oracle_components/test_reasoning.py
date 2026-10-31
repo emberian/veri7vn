@@ -93,6 +93,10 @@ def known_module(declaration=None, reply=None):
     return module
 
 
+def operation(rows, operation_id):
+    return next(row for row in rows if row["id"] == operation_id)
+
+
 class ReasoningContract(unittest.TestCase):
     def bind(self, module=None, **options):
         binding = dict(native_module=known_module() if module is None else module,
@@ -122,19 +126,19 @@ class ReasoningContract(unittest.TestCase):
             options = dict(enabled=True, native_module=module, runtime_identity="runtime")
             options.update(change)
             provider = ADAPTER.create_reasoning_operations("unused", "unused", **options)
-            self.assertEqual(provider.catalog()[0]["unavailable_reason"], reason)
+            self.assertEqual(operation(provider.catalog(), ADAPTER.GRAPH)["unavailable_reason"], reason)
             module.reasoning_catalog.assert_not_called()
             module.reasoning_call.assert_not_called()
         provider = self.bind(ModuleType("oracle_native"))
-        self.assertEqual(provider.catalog()[0]["unavailable_reason"], "native_reasoning_feature_absent")
+        self.assertEqual(operation(provider.catalog(), ADAPTER.GRAPH)["unavailable_reason"], "native_reasoning_feature_absent")
         provider = self.bind(ModuleType("arbitrary_caller_module"))
-        self.assertEqual(provider.catalog()[0]["unavailable_reason"], "native_backend_unavailable")
+        self.assertEqual(operation(provider.catalog(), ADAPTER.GRAPH)["unavailable_reason"], "native_backend_unavailable")
 
     def test_binding_never_imports_a_module(self):
         module = known_module()
         with patch("importlib.import_module", side_effect=AssertionError("must use host binding")):
             provider = self.bind(module)
-            self.assertEqual(provider.catalog()[0]["availability"], "live_direct")
+            self.assertEqual(operation(provider.catalog(), ADAPTER.GRAPH)["availability"], "live_direct")
 
     def test_schema_ceilings_follow_bound_catalog_and_copies_do_not_mutate(self):
         provider = self.bind()
@@ -147,8 +151,8 @@ class ReasoningContract(unittest.TestCase):
         self.assertIn("20 tokens", catalog[ADAPTER.ALGEBRA]["input_schema"]["properties"]["expression"]["description"])
         graph["native_limits"]["vertices"] = 999
         graph["input_schema"]["properties"]["vertices"]["maximum"] = 999
-        self.assertEqual(provider.catalog()[0]["native_limits"]["vertices"], 7)
-        self.assertEqual(provider.catalog()[0]["input_schema"]["properties"]["vertices"]["maximum"], 7)
+        self.assertEqual(operation(provider.catalog(), ADAPTER.GRAPH)["native_limits"]["vertices"], 7)
+        self.assertEqual(operation(provider.catalog(), ADAPTER.GRAPH)["input_schema"]["properties"]["vertices"]["maximum"], 7)
 
     def test_malformed_catalog_is_unavailable(self):
         for mutation in ("schema", "missing_limits", "bool_limit", "duplicate_operation"):
@@ -160,9 +164,9 @@ class ReasoningContract(unittest.TestCase):
             elif mutation == "bool_limit":
                 declaration["limits"]["edges"] = True
             else:
-                declaration["operations"].append(declaration["operations"][0])
+                declaration["operations"].append(operation(declaration["operations"], ADAPTER.GRAPH))
             module = known_module(declaration)
-            self.assertEqual(self.bind(module).catalog()[0]["unavailable_reason"], "native_reasoning_catalog_unsupported")
+            self.assertEqual(operation(self.bind(module).catalog(), ADAPTER.GRAPH)["unavailable_reason"], "native_reasoning_catalog_unsupported")
             module.reasoning_call.assert_not_called()
 
     def test_unknown_native_operation_is_ignored_and_missing_known_is_unavailable(self):
@@ -186,8 +190,8 @@ class ReasoningContract(unittest.TestCase):
         self.assertEqual(result["result"]["total_weight"], "9223372036854775807")
         self.assertEqual(result["authority"], "computation_only")
         self.assertEqual(result["runtime_identity"], "test-host-runtime")
-        HOST.validate(arguments, provider.catalog()[0]["input_schema"])
-        HOST.validate(result, provider.catalog()[0]["output_schema"])
+        HOST.validate(arguments, operation(provider.catalog(), ADAPTER.GRAPH)["input_schema"])
+        HOST.validate(result, operation(provider.catalog(), ADAPTER.GRAPH)["output_schema"])
 
     def test_invalid_structured_arguments_do_not_enter_native(self):
         module = known_module()
@@ -237,7 +241,7 @@ class ReasoningContract(unittest.TestCase):
 
     def test_unsupported_dimensional_catalog_leaves_other_operations_available(self):
         declaration = native_catalog()
-        del declaration["operations"][2]["max_exponent"]
+        del operation(declaration["operations"], ADAPTER.DIMENSIONAL)["max_exponent"]
         provider = self.bind(known_module(declaration))
         catalog = {row["id"]: row for row in provider.catalog()}
         self.assertEqual(catalog[ADAPTER.GRAPH]["availability"], "live_direct")
@@ -289,7 +293,7 @@ class ReasoningContract(unittest.TestCase):
         self.assertEqual(result["status"], "withheld")
         self.assertEqual(result["reason"], "native_request_refused")
         self.assertEqual(len(result["detail"]), 512)
-        HOST.validate(result, provider.catalog()[1]["output_schema"])
+        HOST.validate(result, operation(provider.catalog(), ADAPTER.ALGEBRA)["output_schema"])
         module.reasoning_call.side_effect = RuntimeError("not an input error")
         self.assertEqual(provider.invoke(ADAPTER.ALGEBRA, {"expression": "x"})["reason"], "native_execution_failed")
 
@@ -333,7 +337,7 @@ class ReasoningContract(unittest.TestCase):
             self.assertEqual(reply["answer_kind"], "mathematical_negative")
             self.assertEqual(reply["result"], fixture)
             self.assertEqual(reply["scope"], ADAPTER.CHEMISTRY_SCOPE)
-            HOST.validate(reply, provider.catalog()[3]["output_schema"])
+            HOST.validate(reply, operation(provider.catalog(), ADAPTER.CHEMISTRY)["output_schema"])
 
     def test_chemistry_inconclusive_search_withholds_and_keeps_basis_diagnostics(self):
         fixture = chemistry_reply()
@@ -346,7 +350,7 @@ class ReasoningContract(unittest.TestCase):
         self.assertEqual(reply["reason"], "positive_balance_search_inconclusive")
         self.assertEqual(reply["answer_kind"], "search_inconclusive")
         self.assertEqual(reply["result"], fixture)
-        HOST.validate(reply, provider.catalog()[3]["output_schema"])
+        HOST.validate(reply, operation(provider.catalog(), ADAPTER.CHEMISTRY)["output_schema"])
 
     def test_chemistry_multiple_candidate_is_an_answer_without_optimality_claim(self):
         fixture = chemistry_reply()
@@ -362,13 +366,13 @@ class ReasoningContract(unittest.TestCase):
         for field, value in (("species", True), ("species", 1), ("conserved_rows", 0),
                              ("free_coefficient_bound", 2**32), ("search_candidates", -1)):
             declaration = native_catalog()
-            declaration["operations"][3]["chemistry_limits"][field] = value
+            operation(declaration["operations"], ADAPTER.CHEMISTRY)["chemistry_limits"][field] = value
             catalog = {row["id"]: row for row in self.bind(known_module(declaration)).catalog()}
             self.assertEqual(catalog[ADAPTER.CHEMISTRY]["unavailable_reason"], "native_operation_schema_unsupported")
             self.assertEqual(catalog[ADAPTER.GRAPH]["availability"], "live_direct")
         declaration = native_catalog()
-        del declaration["operations"][3]["chemistry_limits"]
-        self.assertEqual(self.bind(known_module(declaration)).catalog()[3]["availability"], "unavailable")
+        del operation(declaration["operations"], ADAPTER.CHEMISTRY)["chemistry_limits"]
+        self.assertEqual(operation(self.bind(known_module(declaration)).catalog(), ADAPTER.CHEMISTRY)["availability"], "unavailable")
 
     def test_chemistry_invalid_structured_arguments_never_enter_native(self):
         module = known_module(reply=chemistry_reply())
@@ -466,19 +470,42 @@ class ReasoningContract(unittest.TestCase):
     def test_shortest_path_metadata_and_native_reply_byte_ceiling(self):
         for key, value in (("vertices", 8), ("work", True), ("reply_bytes", 0), ("milliseconds", 6)):
             declaration = native_catalog()
-            declaration["operations"][4]["path_limits"][key] = value
+            operation(declaration["operations"], ADAPTER.SHORTEST)["path_limits"][key] = value
             provider = self.bind(known_module(declaration))
             rows = {row["id"]: row for row in provider.catalog()}
             self.assertEqual(rows[ADAPTER.SHORTEST]["unavailable_reason"], "native_operation_schema_unsupported")
             self.assertEqual(rows[ADAPTER.GRAPH]["availability"], "live_direct")
         declaration = native_catalog()
         declaration["limits"]["graph_reply_bytes"] = 40
-        declaration["operations"][4]["path_limits"]["reply_bytes"] = 40
+        operation(declaration["operations"], ADAPTER.SHORTEST)["path_limits"]["reply_bytes"] = 40
         fixture = {"outcome": "finite", "distance": "0", "path": [], "labels": ["0"]}
         reply = self.bind(known_module(declaration, fixture)).invoke(ADAPTER.SHORTEST,
             {"vertices": 1, "source": 0, "target": 0, "edges": []})
         self.assertEqual(reply["reason"], "native_reply_invalid")
 
+
+
+class ExactLinearContract(unittest.TestCase):
+    bind = ReasoningContract.bind
+    def test_exact_transport_and_unknown_withholding(self):
+        arguments = {"variables": ["x"], "rows": [{"id": "low", "coefficients": ["-1"], "bound": "-1"}]}
+        for status, certificate in (("feasible", {"kind": "feasible", "point": ["1"]}), ("unknown", None)):
+            reply = {"status": status, "certificate": certificate, "reason": "limit" if status == "unknown" else None,
+                     "assurance": "fake transport fixture; no mathematical evidence"}
+            provider = self.bind(known_module(reply=reply))
+            result = provider.invoke(ADAPTER.EXACT, arguments)
+            self.assertEqual(result["status"], "withheld" if status == "unknown" else "answered")
+            self.assertEqual(result["result"], reply)
+            if status == "unknown":
+                self.assertEqual(result["reason"], "exact_feasibility_inconclusive")
+        provider = self.bind(known_module(reply={"status": "infeasible", "certificate": {"kind": "feasible", "point": ["1"]},
+                                         "reason": None, "assurance": "fake fixture"}))
+        self.assertEqual(provider.invoke(ADAPTER.EXACT, arguments)["reason"], "native_reply_invalid")
+
+    def test_exact_rejects_mismatched_dimensions(self):
+        provider = self.bind()
+        with self.assertRaises(ValueError):
+            provider.invoke(ADAPTER.EXACT, {"variables": ["x"], "rows": [{"id": "r", "coefficients": [], "bound": "0"}]})
 
 if __name__ == "__main__":
     unittest.main()

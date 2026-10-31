@@ -3,7 +3,7 @@
  "host_placeholder": "@HOST_SHA256@",
  "profiles": {
   "bio": {
-   "catalog_sha256": "dfc44fff0d480f4818a759fc964a9949bf42fd0c4f6a921a02f1889f790fcf56",
+   "catalog_sha256": "f831089992adaea255bc698051dfb6a79c48a2150a84e1f23681c0c9e8f465b6",
    "declarations": [
     {
      "availability": "live_direct",
@@ -28,7 +28,7 @@
      "implementation": {
       "backend": "oracle_native",
       "catalog_hash_encoding": "canonicalized parsed JSON; not original native bytes",
-      "native_catalog_sha256": "dfc44fff0d480f4818a759fc964a9949bf42fd0c4f6a921a02f1889f790fcf56",
+      "native_catalog_sha256": "f831089992adaea255bc698051dfb6a79c48a2150a84e1f23681c0c9e8f465b6",
       "runtime_identity": "@HOST_SHA256@:bio"
      },
      "input_schema": {
@@ -170,6 +170,249 @@
          },
          "operation_id": {
           "const": "bio.align_pairwise"
+         },
+         "reason": {
+          "maxLength": 80,
+          "minLength": 1,
+          "type": "string"
+         },
+         "result": {
+          "description": "Retained diagnostic candidate or native refusal; not an accepted solution.",
+          "type": "object"
+         },
+         "status": {
+          "const": "withheld"
+         }
+        },
+        "required": [
+         "status",
+         "operation_id",
+         "reason",
+         "authority"
+        ],
+        "type": "object"
+       }
+      ]
+     },
+     "sources": []
+    },
+    {
+     "availability": "live_direct",
+     "description": "Find exact supplied fragments in either DNA strand with original coordinates and bounded pages.",
+     "examples": [
+      {
+       "arguments": {
+        "collection": {
+         "records": [
+          {
+           "label": "sample",
+           "sequence": "AAACGT"
+          }
+         ],
+         "schema": "oracle-sequence-collection-v1"
+        },
+        "page_size": 100,
+        "patterns": [
+         {
+          "label": "fragment",
+          "sequence": "ACG"
+         }
+        ]
+       },
+       "source": "usage example; not a panel result"
+      }
+     ],
+     "id": "bio.search_collection",
+     "implementation": {
+      "backend": "oracle_native",
+      "catalog_hash_encoding": "canonicalized parsed JSON; not original native bytes",
+      "native_catalog_sha256": "f831089992adaea255bc698051dfb6a79c48a2150a84e1f23681c0c9e8f465b6",
+      "runtime_identity": "@HOST_SHA256@:bio"
+     },
+     "input_schema": {
+      "additionalProperties": false,
+      "properties": {
+       "collection": {
+        "additionalProperties": false,
+        "properties": {
+         "records": {
+          "items": {
+           "additionalProperties": false,
+           "properties": {
+            "label": {
+             "maxLength": 256,
+             "minLength": 0,
+             "type": "string"
+            },
+            "sequence": {
+             "maxLength": 131072,
+             "minLength": 0,
+             "pattern": "^[ACGTacgt]*$",
+             "type": "string"
+            }
+           },
+           "required": [
+            "label",
+            "sequence"
+           ],
+           "type": "object"
+          },
+          "maxItems": 256,
+          "minItems": 0,
+          "type": "array"
+         },
+         "schema": {
+          "const": "oracle-sequence-collection-v1"
+         }
+        },
+        "required": [
+         "schema",
+         "records"
+        ],
+        "type": "object"
+       },
+       "cursor": {
+        "additionalProperties": false,
+        "properties": {
+         "offset": {
+          "maximum": 256,
+          "minimum": 0,
+          "type": "integer"
+         },
+         "record": {
+          "maximum": 255,
+          "minimum": 0,
+          "type": "integer"
+         },
+         "request_sha256": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+         },
+         "start": {
+          "maximum": 131071,
+          "minimum": 0,
+          "type": "integer"
+         }
+        },
+        "required": [
+         "request_sha256",
+         "record",
+         "start",
+         "offset"
+        ],
+        "type": "object"
+       },
+       "page_size": {
+        "maximum": 1024,
+        "minimum": 1,
+        "type": "integer"
+       },
+       "patterns": {
+        "items": {
+         "additionalProperties": false,
+         "properties": {
+          "label": {
+           "maxLength": 256,
+           "minLength": 0,
+           "type": "string"
+          },
+          "sequence": {
+           "maxLength": 4096,
+           "minLength": 1,
+           "pattern": "^[ACGTacgt]+$",
+           "type": "string"
+          }
+         },
+         "required": [
+          "label",
+          "sequence"
+         ],
+         "type": "object"
+        },
+        "maxItems": 128,
+        "minItems": 1,
+        "type": "array"
+       }
+      },
+      "required": [
+       "collection",
+       "patterns",
+       "page_size"
+      ],
+      "type": "object"
+     },
+     "limitations": [
+      "Experimental untrusted computation; no Isabelle theorem, specialist panel score or Mini qualification.",
+      "No retained conversation, subscription or replay journal.",
+      "ACGT only, case insensitive; ambiguity and empty patterns rejected. Empty records allowed; no FASTA parsing or circular wrap.",
+      "Overlaps count. Duplicate labels and duplicate patterns retain distinct input indices. Reverse complement palindromes count once with strand both.",
+      "Order is record index, original start, pattern index, strand. Cursor binds original ordered input bytes and patterns; page_size may change.",
+      "Complete means this cursor's remaining suffix was exhausted. Full absence requires starting without cursor and consuming all pages. Resource refusal establishes no absence.",
+      "One immutable normalized collection and shared pattern trie per batch; no retained global registry. Typed callers may reuse SequenceCollection across batches.",
+      "131072 collection bases, 256 records, 128 patterns, 4096 total pattern bases, 1024 hits per page, 16777216 charged trie transitions; JSON byte cap also applies.",
+      "Exact traversal is handwritten untrusted computation. No alignment score, homology or biological interpretation follows."
+     ],
+     "name": "bio search_collection",
+     "native_limits": {
+      "dp_cells": 1048576,
+      "request_bytes": 262144,
+      "sequence_bases": 4096,
+      "working_bytes_estimate": 16777216
+     },
+     "output_schema": {
+      "anyOf": [
+       {
+        "additionalProperties": false,
+        "properties": {
+         "authority": {
+          "const": "computation_only"
+         },
+         "classification": {
+          "maxLength": 80,
+          "minLength": 1,
+          "type": "string"
+         },
+         "operation_id": {
+          "const": "bio.search_collection"
+         },
+         "result": {
+          "description": "Complete native result with numerical diagnostics or finite graph evidence.",
+          "type": "object"
+         },
+         "runtime_identity": {
+          "maxLength": 256,
+          "minLength": 1,
+          "type": "string"
+         },
+         "status": {
+          "const": "answered"
+         }
+        },
+        "required": [
+         "status",
+         "operation_id",
+         "result",
+         "classification",
+         "authority",
+         "runtime_identity"
+        ],
+        "type": "object"
+       },
+       {
+        "additionalProperties": false,
+        "properties": {
+         "authority": {
+          "const": "computation_only"
+         },
+         "detail": {
+          "maxLength": 512,
+          "minLength": 0,
+          "type": "string"
+         },
+         "operation_id": {
+          "const": "bio.search_collection"
          },
          "reason": {
           "maxLength": 80,
@@ -1452,8 +1695,557 @@
    ]
   },
   "reasoning": {
-   "catalog_sha256": "8d9c9d1f58d338f26216a3442533d41e87086ba122ed4bf0b3b51b03cdd6da7b",
+   "catalog_sha256": "b7d0c2357793413d1435c255f541e3f327c887e1cd678c85a6a5464141f515c8",
    "declarations": [
+    {
+     "adapter_limits": {
+      "native_reply_bytes": 262144
+     },
+     "availability": "live_direct",
+     "description": "Find and independently replay rational feasibility or Farkas certificates over supplied rows a*x<=b and unrestricted variables.",
+     "examples": [
+      {
+       "arguments": {
+        "rows": [
+         {
+          "bound": "-1",
+          "coefficients": [
+           "-1"
+          ],
+          "id": "lower"
+         }
+        ],
+        "variables": [
+         "x"
+        ]
+       },
+       "source": "usage example; not a panel result"
+      }
+     ],
+     "id": "reasoning.exact_linear_feasibility",
+     "implementation": {
+      "backend": "oracle_native",
+      "entrypoint": "reasoning_call",
+      "feature": "reasoning",
+      "native_catalog_schema": "oracle-reasoning-experimental-v1",
+      "native_catalog_sha256": "8c2dd12290315de19902a0d27020016ecf11ffd81eb4afaa25d34c73de834db3",
+      "runtime_identity": "@HOST_SHA256@:reasoning"
+     },
+     "input_schema": {
+      "additionalProperties": false,
+      "properties": {
+       "objective": {
+        "anyOf": [
+         {
+          "items": {
+           "maxLength": 8195,
+           "minLength": 1,
+           "pattern": "^-?(0|[1-9][0-9]*)(/[1-9][0-9]*)?$",
+           "type": "string"
+          },
+          "maxItems": 32,
+          "type": "array"
+         },
+         {
+          "type": "null"
+         }
+        ]
+       },
+       "rows": {
+        "items": {
+         "additionalProperties": false,
+         "properties": {
+          "bound": {
+           "maxLength": 8195,
+           "minLength": 1,
+           "pattern": "^-?(0|[1-9][0-9]*)(/[1-9][0-9]*)?$",
+           "type": "string"
+          },
+          "coefficients": {
+           "items": {
+            "maxLength": 8195,
+            "minLength": 1,
+            "pattern": "^-?(0|[1-9][0-9]*)(/[1-9][0-9]*)?$",
+            "type": "string"
+           },
+           "maxItems": 32,
+           "type": "array"
+          },
+          "id": {
+           "maxLength": 128,
+           "minLength": 1,
+           "type": "string"
+          }
+         },
+         "required": [
+          "id",
+          "coefficients",
+          "bound"
+         ],
+         "type": "object"
+        },
+        "maxItems": 256,
+        "type": "array"
+       },
+       "variables": {
+        "items": {
+         "maxLength": 128,
+         "minLength": 1,
+         "type": "string"
+        },
+        "maxItems": 32,
+        "minItems": 1,
+        "type": "array"
+       }
+      },
+      "required": [
+       "variables",
+       "rows"
+      ],
+      "type": "object"
+     },
+     "limitations": [
+      "Experimental computation only. No specialist panel numbers, release admission, Isabelle proof or Mini capability authority.",
+      "The host must enable this provider explicitly and supply its runtime identity. Identity is a host assertion, not an independent attestation.",
+      "Native search limits are cooperative; no hard deadline, memory containment, cancellation or tenant isolation is supplied here.",
+      "Existing host transport limits still apply to the whole request and reply; schema ceilings do not override them.",
+      "Exact Rust replay, no Isabelle claim. Variables are unrestricted; add explicit nonnegativity rows. Objective is minimization metadata; this proposer searches feasibility only. Resource exhaustion means unknown. Caller owns row units and model completeness."
+     ],
+     "name": "Exact supplied linear feasibility",
+     "native_limits": {
+      "coefficient_bits": 4096,
+      "edges": 100000,
+      "egraph_nodes": 10000,
+      "expression_depth": 32,
+      "expression_nodes": 128,
+      "graph_reply_bytes": 262144,
+      "graph_work": 5000000,
+      "iterations": 12,
+      "polynomial_terms": 512,
+      "polynomial_work": 1000000,
+      "request_bytes": 4194304,
+      "search_ms": 50,
+      "vertices": 10000
+     },
+     "output_schema": {
+      "anyOf": [
+       {
+        "additionalProperties": false,
+        "properties": {
+         "authority": {
+          "const": "computation_only"
+         },
+         "operation_id": {
+          "const": "reasoning.exact_linear_feasibility"
+         },
+         "result": {
+          "additionalProperties": false,
+          "properties": {
+           "assurance": {
+            "maxLength": 1024,
+            "minLength": 1,
+            "type": "string"
+           },
+           "certificate": {
+            "anyOf": [
+             {
+              "additionalProperties": false,
+              "properties": {
+               "kind": {
+                "const": "feasible"
+               },
+               "point": {
+                "items": {
+                 "maxLength": 8195,
+                 "minLength": 1,
+                 "pattern": "^-?(0|[1-9][0-9]*)(/[1-9][0-9]*)?$",
+                 "type": "string"
+                },
+                "maxItems": 256,
+                "type": "array"
+               }
+              },
+              "required": [
+               "kind",
+               "point"
+              ],
+              "type": "object"
+             },
+             {
+              "additionalProperties": false,
+              "properties": {
+               "kind": {
+                "const": "infeasible"
+               },
+               "multipliers": {
+                "items": {
+                 "maxLength": 8195,
+                 "minLength": 1,
+                 "pattern": "^-?(0|[1-9][0-9]*)(/[1-9][0-9]*)?$",
+                 "type": "string"
+                },
+                "maxItems": 256,
+                "type": "array"
+               }
+              },
+              "required": [
+               "kind",
+               "multipliers"
+              ],
+              "type": "object"
+             },
+             {
+              "additionalProperties": false,
+              "properties": {
+               "kind": {
+                "const": "optimal"
+               },
+               "multipliers": {
+                "items": {
+                 "maxLength": 8195,
+                 "minLength": 1,
+                 "pattern": "^-?(0|[1-9][0-9]*)(/[1-9][0-9]*)?$",
+                 "type": "string"
+                },
+                "maxItems": 256,
+                "type": "array"
+               },
+               "point": {
+                "items": {
+                 "maxLength": 8195,
+                 "minLength": 1,
+                 "pattern": "^-?(0|[1-9][0-9]*)(/[1-9][0-9]*)?$",
+                 "type": "string"
+                },
+                "maxItems": 256,
+                "type": "array"
+               }
+              },
+              "required": [
+               "kind",
+               "point",
+               "multipliers"
+              ],
+              "type": "object"
+             },
+             {
+              "additionalProperties": false,
+              "properties": {
+               "direction": {
+                "items": {
+                 "maxLength": 8195,
+                 "minLength": 1,
+                 "pattern": "^-?(0|[1-9][0-9]*)(/[1-9][0-9]*)?$",
+                 "type": "string"
+                },
+                "maxItems": 256,
+                "type": "array"
+               },
+               "kind": {
+                "const": "unbounded"
+               },
+               "point": {
+                "items": {
+                 "maxLength": 8195,
+                 "minLength": 1,
+                 "pattern": "^-?(0|[1-9][0-9]*)(/[1-9][0-9]*)?$",
+                 "type": "string"
+                },
+                "maxItems": 256,
+                "type": "array"
+               }
+              },
+              "required": [
+               "kind",
+               "point",
+               "direction"
+              ],
+              "type": "object"
+             },
+             {
+              "type": "null"
+             }
+            ]
+           },
+           "reason": {
+            "anyOf": [
+             {
+              "maxLength": 512,
+              "minLength": 1,
+              "type": "string"
+             },
+             {
+              "type": "null"
+             }
+            ]
+           },
+           "status": {
+            "enum": [
+             "feasible",
+             "infeasible",
+             "optimal",
+             "unbounded",
+             "unknown"
+            ],
+            "maxLength": 32,
+            "minLength": 1,
+            "type": "string"
+           }
+          },
+          "required": [
+           "status",
+           "certificate",
+           "reason",
+           "assurance"
+          ],
+          "type": "object"
+         },
+         "runtime_identity": {
+          "maxLength": 256,
+          "minLength": 1,
+          "type": "string"
+         },
+         "status": {
+          "const": "answered"
+         }
+        },
+        "required": [
+         "status",
+         "operation_id",
+         "result",
+         "runtime_identity",
+         "authority"
+        ],
+        "type": "object"
+       },
+       {
+        "additionalProperties": false,
+        "properties": {
+         "detail": {
+          "maxLength": 512,
+          "minLength": 1,
+          "type": "string"
+         },
+         "operation_id": {
+          "const": "reasoning.exact_linear_feasibility"
+         },
+         "reason": {
+          "maxLength": 80,
+          "minLength": 1,
+          "type": "string"
+         },
+         "status": {
+          "const": "withheld"
+         }
+        },
+        "required": [
+         "status",
+         "operation_id",
+         "reason"
+        ],
+        "type": "object"
+       },
+       {
+        "additionalProperties": false,
+        "properties": {
+         "authority": {
+          "const": "computation_only"
+         },
+         "operation_id": {
+          "const": "reasoning.exact_linear_feasibility"
+         },
+         "reason": {
+          "const": "exact_feasibility_inconclusive"
+         },
+         "result": {
+          "additionalProperties": false,
+          "properties": {
+           "assurance": {
+            "maxLength": 1024,
+            "minLength": 1,
+            "type": "string"
+           },
+           "certificate": {
+            "anyOf": [
+             {
+              "additionalProperties": false,
+              "properties": {
+               "kind": {
+                "const": "feasible"
+               },
+               "point": {
+                "items": {
+                 "maxLength": 8195,
+                 "minLength": 1,
+                 "pattern": "^-?(0|[1-9][0-9]*)(/[1-9][0-9]*)?$",
+                 "type": "string"
+                },
+                "maxItems": 256,
+                "type": "array"
+               }
+              },
+              "required": [
+               "kind",
+               "point"
+              ],
+              "type": "object"
+             },
+             {
+              "additionalProperties": false,
+              "properties": {
+               "kind": {
+                "const": "infeasible"
+               },
+               "multipliers": {
+                "items": {
+                 "maxLength": 8195,
+                 "minLength": 1,
+                 "pattern": "^-?(0|[1-9][0-9]*)(/[1-9][0-9]*)?$",
+                 "type": "string"
+                },
+                "maxItems": 256,
+                "type": "array"
+               }
+              },
+              "required": [
+               "kind",
+               "multipliers"
+              ],
+              "type": "object"
+             },
+             {
+              "additionalProperties": false,
+              "properties": {
+               "kind": {
+                "const": "optimal"
+               },
+               "multipliers": {
+                "items": {
+                 "maxLength": 8195,
+                 "minLength": 1,
+                 "pattern": "^-?(0|[1-9][0-9]*)(/[1-9][0-9]*)?$",
+                 "type": "string"
+                },
+                "maxItems": 256,
+                "type": "array"
+               },
+               "point": {
+                "items": {
+                 "maxLength": 8195,
+                 "minLength": 1,
+                 "pattern": "^-?(0|[1-9][0-9]*)(/[1-9][0-9]*)?$",
+                 "type": "string"
+                },
+                "maxItems": 256,
+                "type": "array"
+               }
+              },
+              "required": [
+               "kind",
+               "point",
+               "multipliers"
+              ],
+              "type": "object"
+             },
+             {
+              "additionalProperties": false,
+              "properties": {
+               "direction": {
+                "items": {
+                 "maxLength": 8195,
+                 "minLength": 1,
+                 "pattern": "^-?(0|[1-9][0-9]*)(/[1-9][0-9]*)?$",
+                 "type": "string"
+                },
+                "maxItems": 256,
+                "type": "array"
+               },
+               "kind": {
+                "const": "unbounded"
+               },
+               "point": {
+                "items": {
+                 "maxLength": 8195,
+                 "minLength": 1,
+                 "pattern": "^-?(0|[1-9][0-9]*)(/[1-9][0-9]*)?$",
+                 "type": "string"
+                },
+                "maxItems": 256,
+                "type": "array"
+               }
+              },
+              "required": [
+               "kind",
+               "point",
+               "direction"
+              ],
+              "type": "object"
+             },
+             {
+              "type": "null"
+             }
+            ]
+           },
+           "reason": {
+            "anyOf": [
+             {
+              "maxLength": 512,
+              "minLength": 1,
+              "type": "string"
+             },
+             {
+              "type": "null"
+             }
+            ]
+           },
+           "status": {
+            "enum": [
+             "feasible",
+             "infeasible",
+             "optimal",
+             "unbounded",
+             "unknown"
+            ],
+            "maxLength": 32,
+            "minLength": 1,
+            "type": "string"
+           }
+          },
+          "required": [
+           "status",
+           "certificate",
+           "reason",
+           "assurance"
+          ],
+          "type": "object"
+         },
+         "runtime_identity": {
+          "maxLength": 256,
+          "minLength": 1,
+          "type": "string"
+         },
+         "status": {
+          "const": "withheld"
+         }
+        },
+        "required": [
+         "status",
+         "operation_id",
+         "result",
+         "runtime_identity",
+         "authority",
+         "reason"
+        ],
+        "type": "object"
+       }
+      ]
+     },
+     "sources": [],
+     "units": {
+      "input": "caller-defined consistent units per row; all a*x<=b",
+      "output": "same variable units or dimensionless row multipliers"
+     }
+    },
     {
      "adapter_limits": {
       "native_reply_bytes": 262144
@@ -1491,7 +2283,7 @@
       "entrypoint": "reasoning_call",
       "feature": "reasoning",
       "native_catalog_schema": "oracle-reasoning-experimental-v1",
-      "native_catalog_sha256": "ab1c1c055b4b7a73e163bacec8fcfb3fe2dcc9021885656ca8747da19b7e7905",
+      "native_catalog_sha256": "8c2dd12290315de19902a0d27020016ecf11ffd81eb4afaa25d34c73de834db3",
       "runtime_identity": "@HOST_SHA256@:reasoning"
      },
      "input_schema": {
@@ -1713,7 +2505,7 @@
       "entrypoint": "reasoning_call",
       "feature": "reasoning",
       "native_catalog_schema": "oracle-reasoning-experimental-v1",
-      "native_catalog_sha256": "ab1c1c055b4b7a73e163bacec8fcfb3fe2dcc9021885656ca8747da19b7e7905",
+      "native_catalog_sha256": "8c2dd12290315de19902a0d27020016ecf11ffd81eb4afaa25d34c73de834db3",
       "runtime_identity": "@HOST_SHA256@:reasoning"
      },
      "input_schema": {
@@ -1960,7 +2752,7 @@
       "entrypoint": "reasoning_call",
       "feature": "reasoning",
       "native_catalog_schema": "oracle-reasoning-experimental-v1",
-      "native_catalog_sha256": "ab1c1c055b4b7a73e163bacec8fcfb3fe2dcc9021885656ca8747da19b7e7905",
+      "native_catalog_sha256": "8c2dd12290315de19902a0d27020016ecf11ffd81eb4afaa25d34c73de834db3",
       "runtime_identity": "@HOST_SHA256@:reasoning"
      },
      "input_schema": {
@@ -2309,7 +3101,7 @@
       "entrypoint": "reasoning_call",
       "feature": "reasoning",
       "native_catalog_schema": "oracle-reasoning-experimental-v1",
-      "native_catalog_sha256": "ab1c1c055b4b7a73e163bacec8fcfb3fe2dcc9021885656ca8747da19b7e7905",
+      "native_catalog_sha256": "8c2dd12290315de19902a0d27020016ecf11ffd81eb4afaa25d34c73de834db3",
       "runtime_identity": "@HOST_SHA256@:reasoning"
      },
      "input_schema": {
@@ -2375,7 +3167,7 @@
       "The host must enable this provider explicitly and supply its runtime identity. Identity is a host assertion, not an independent attestation.",
       "Native search limits are cooperative; no hard deadline, memory containment, cancellation or tenant isolation is supplied here.",
       "Existing host transport limits still apply to the whole request and reply; schema ceilings do not override them.",
-      "Conservation does not establish that a species exists or a reaction occurs. Multidimensional positive-coefficient search is bounded: inconclusive search is withheld, not impossibility. A found primitive candidate need not minimize coefficients. Basis/rank are exact Rust computations, not independently certified rank proofs. Integer counts and charges must be serialized exactly; coefficients and basis entries are decimal/rational strings."
+      "Conservation does not establish that a species exists or a reaction occurs. Multidimensional positivity uses bounded exact rational feasibility on the original inventory rows; unknown is withheld and infeasibility requires checked nonnegative row multipliers. A found primitive candidate need not minimize coefficients. Basis/rank are exact Rust computations, not independently certified rank proofs. Integer counts and charges must be serialized exactly; coefficients and basis entries are decimal/rational strings."
      ],
      "name": "Balance supplied species with exact inventory and charge conservation",
      "native_limits": {
@@ -2817,7 +3609,7 @@
       "entrypoint": "reasoning_call",
       "feature": "reasoning",
       "native_catalog_schema": "oracle-reasoning-experimental-v1",
-      "native_catalog_sha256": "ab1c1c055b4b7a73e163bacec8fcfb3fe2dcc9021885656ca8747da19b7e7905",
+      "native_catalog_sha256": "8c2dd12290315de19902a0d27020016ecf11ffd81eb4afaa25d34c73de834db3",
       "runtime_identity": "@HOST_SHA256@:reasoning"
      },
      "input_schema": {
@@ -3172,7 +3964,7 @@
       "entrypoint": "reasoning_call",
       "feature": "reasoning",
       "native_catalog_schema": "oracle-reasoning-experimental-v1",
-      "native_catalog_sha256": "ab1c1c055b4b7a73e163bacec8fcfb3fe2dcc9021885656ca8747da19b7e7905",
+      "native_catalog_sha256": "8c2dd12290315de19902a0d27020016ecf11ffd81eb4afaa25d34c73de834db3",
       "runtime_identity": "@HOST_SHA256@:reasoning"
      },
      "input_schema": {
@@ -3636,7 +4428,7 @@
    ]
   },
   "science": {
-   "catalog_sha256": "fffe6d693e05fc1c72dd34787a6a69de6bf7274660b1fcb2e3b1071de864e5cb",
+   "catalog_sha256": "bec0140c63efbd25e897cfaf3514124229de799b9d7ec07b2d4626cad66bb3bb",
    "declarations": [
     {
      "availability": "live_direct",
@@ -3681,7 +4473,7 @@
      "implementation": {
       "backend": "oracle_native",
       "catalog_hash_encoding": "canonicalized parsed JSON; not original native bytes",
-      "native_catalog_sha256": "fffe6d693e05fc1c72dd34787a6a69de6bf7274660b1fcb2e3b1071de864e5cb",
+      "native_catalog_sha256": "bec0140c63efbd25e897cfaf3514124229de799b9d7ec07b2d4626cad66bb3bb",
       "runtime_identity": "@HOST_SHA256@:science"
      },
      "input_schema": {
@@ -3922,7 +4714,7 @@
      "implementation": {
       "backend": "oracle_native",
       "catalog_hash_encoding": "canonicalized parsed JSON; not original native bytes",
-      "native_catalog_sha256": "fffe6d693e05fc1c72dd34787a6a69de6bf7274660b1fcb2e3b1071de864e5cb",
+      "native_catalog_sha256": "bec0140c63efbd25e897cfaf3514124229de799b9d7ec07b2d4626cad66bb3bb",
       "runtime_identity": "@HOST_SHA256@:science"
      },
      "input_schema": {
@@ -4157,7 +4949,7 @@
      "implementation": {
       "backend": "oracle_native",
       "catalog_hash_encoding": "canonicalized parsed JSON; not original native bytes",
-      "native_catalog_sha256": "fffe6d693e05fc1c72dd34787a6a69de6bf7274660b1fcb2e3b1071de864e5cb",
+      "native_catalog_sha256": "bec0140c63efbd25e897cfaf3514124229de799b9d7ec07b2d4626cad66bb3bb",
       "runtime_identity": "@HOST_SHA256@:science"
      },
      "input_schema": {
@@ -4364,11 +5156,403 @@
       ]
      },
      "sources": []
+    },
+    {
+     "availability": "live_direct",
+     "description": "Compare supplied passive-network heat loads and reservoir temperatures using one reused factorization, with local analytic sensitivities.",
+     "examples": [
+      {
+       "arguments": {
+        "network": {
+         "assumptions": [
+          "steady linear conduction"
+         ],
+         "description": "Heated node joined to a fixed reservoir",
+         "links": [
+          {
+           "conductance_w_per_k": 10,
+           "from": "room",
+           "to": "reservoir"
+          }
+         ],
+         "nodes": [
+          {
+           "applied_heat_w": 100,
+           "id": "room"
+          },
+          {
+           "applied_heat_w": 0,
+           "fixed_temperature_k": 300,
+           "id": "reservoir"
+          }
+         ],
+         "reference_temperature_k": 300
+        },
+        "scenarios": [
+         {
+          "applied_heat_w": [
+           100,
+           0
+          ],
+          "fixed_temperature_k": [
+           null,
+           300
+          ],
+          "id": "normal"
+         },
+         {
+          "applied_heat_w": [
+           200,
+           0
+          ],
+          "fixed_temperature_k": [
+           null,
+           310
+          ],
+          "id": "warm"
+         }
+        ],
+        "sensitivities": [
+         {
+          "parameter": {
+           "kind": "conductance",
+           "link_index": 0
+          },
+          "scenario_id": "normal"
+         }
+        ]
+       },
+       "source": "usage example; not a panel result"
+      }
+     ],
+     "id": "science.thermal_scenarios",
+     "implementation": {
+      "backend": "oracle_native",
+      "catalog_hash_encoding": "canonicalized parsed JSON; not original native bytes",
+      "native_catalog_sha256": "bec0140c63efbd25e897cfaf3514124229de799b9d7ec07b2d4626cad66bb3bb",
+      "runtime_identity": "@HOST_SHA256@:science"
+     },
+     "input_schema": {
+      "additionalProperties": false,
+      "properties": {
+       "network": {
+        "additionalProperties": false,
+        "properties": {
+         "assumptions": {
+          "items": {
+           "maxLength": 1024,
+           "minLength": 1,
+           "type": "string"
+          },
+          "maxItems": 32,
+          "minItems": 1,
+          "type": "array"
+         },
+         "description": {
+          "maxLength": 1024,
+          "minLength": 1,
+          "type": "string"
+         },
+         "links": {
+          "items": {
+           "additionalProperties": false,
+           "properties": {
+            "conductance_w_per_k": {
+             "minimum": 0,
+             "type": "number"
+            },
+            "from": {
+             "maxLength": 128,
+             "minLength": 1,
+             "type": "string"
+            },
+            "to": {
+             "maxLength": 128,
+             "minLength": 1,
+             "type": "string"
+            }
+           },
+           "required": [
+            "from",
+            "to",
+            "conductance_w_per_k"
+           ],
+           "type": "object"
+          },
+          "maxItems": 1024,
+          "minItems": 0,
+          "type": "array"
+         },
+         "nodes": {
+          "items": {
+           "additionalProperties": false,
+           "properties": {
+            "applied_heat_w": {
+             "type": "number"
+            },
+            "fixed_temperature_k": {
+             "minimum": 0,
+             "type": [
+              "number",
+              "null"
+             ]
+            },
+            "id": {
+             "maxLength": 128,
+             "minLength": 1,
+             "type": "string"
+            }
+           },
+           "required": [
+            "id",
+            "applied_heat_w"
+           ],
+           "type": "object"
+          },
+          "maxItems": 128,
+          "minItems": 1,
+          "type": "array"
+         },
+         "power_tolerance_w": {
+          "minimum": 0,
+          "type": "number"
+         },
+         "reference_temperature_k": {
+          "minimum": 0,
+          "type": "number"
+         },
+         "tolerances": {
+          "additionalProperties": false,
+          "properties": {
+           "consistency_relative": {
+            "maximum": 0.01,
+            "minimum": 2.220446049250313e-16,
+            "type": "number"
+           },
+           "rank_relative": {
+            "maximum": 0.01,
+            "minimum": 2.220446049250313e-16,
+            "type": "number"
+           }
+          },
+          "required": [],
+          "type": "object"
+         }
+        },
+        "required": [
+         "description",
+         "assumptions",
+         "reference_temperature_k",
+         "nodes",
+         "links"
+        ],
+        "type": "object"
+       },
+       "scenarios": {
+        "items": {
+         "additionalProperties": false,
+         "properties": {
+          "applied_heat_w": {
+           "items": {
+            "type": "number"
+           },
+           "maxItems": 128,
+           "minItems": 1,
+           "type": "array"
+          },
+          "fixed_temperature_k": {
+           "items": {
+            "minimum": 0,
+            "type": [
+             "number",
+             "null"
+            ]
+           },
+           "maxItems": 128,
+           "minItems": 1,
+           "type": "array"
+          },
+          "id": {
+           "maxLength": 128,
+           "minLength": 1,
+           "type": "string"
+          }
+         },
+         "required": [
+          "id",
+          "applied_heat_w",
+          "fixed_temperature_k"
+         ],
+         "type": "object"
+        },
+        "maxItems": 64,
+        "minItems": 1,
+        "type": "array"
+       },
+       "sensitivities": {
+        "items": {
+         "additionalProperties": false,
+         "properties": {
+          "parameter": {
+           "anyOf": [
+            {
+             "additionalProperties": false,
+             "properties": {
+              "kind": {
+               "const": "load"
+              },
+              "node_id": {
+               "maxLength": 128,
+               "minLength": 1,
+               "type": "string"
+              }
+             },
+             "required": [
+              "kind",
+              "node_id"
+             ],
+             "type": "object"
+            },
+            {
+             "additionalProperties": false,
+             "properties": {
+              "kind": {
+               "const": "conductance"
+              },
+              "link_index": {
+               "maximum": 1023,
+               "minimum": 0,
+               "type": "integer"
+              }
+             },
+             "required": [
+              "kind",
+              "link_index"
+             ],
+             "type": "object"
+            }
+           ]
+          },
+          "scenario_id": {
+           "maxLength": 128,
+           "minLength": 1,
+           "type": "string"
+          }
+         },
+         "required": [
+          "scenario_id",
+          "parameter"
+         ],
+         "type": "object"
+        },
+        "maxItems": 128,
+        "minItems": 0,
+        "type": "array"
+       }
+      },
+      "required": [
+       "network",
+       "scenarios"
+      ],
+      "type": "object"
+     },
+     "limitations": [
+      "Experimental untrusted computation; no Isabelle theorem, specialist panel score or Mini qualification.",
+      "No retained conversation, subscription or replay journal.",
+      "Every connected component must have a prescribed temperature. Complete node-order vectors keep the boundary mask fixed.",
+      "Sampled scenarios are not uncertainty bounds. Local derivatives hold every other parameter and boundary temperature fixed; no transient, advection, nonlinear model or inverse-design claim."
+     ],
+     "name": "science thermal_scenarios",
+     "native_limits": {
+      "columns": 128,
+      "request_bytes": 1048576,
+      "rows": 512,
+      "svd_scratch_bytes": 33554432,
+      "threads": 1,
+      "work_estimate": 8388608
+     },
+     "output_schema": {
+      "anyOf": [
+       {
+        "additionalProperties": false,
+        "properties": {
+         "authority": {
+          "const": "computation_only"
+         },
+         "classification": {
+          "maxLength": 80,
+          "minLength": 1,
+          "type": "string"
+         },
+         "operation_id": {
+          "const": "science.thermal_scenarios"
+         },
+         "result": {
+          "description": "Complete native result with numerical diagnostics or finite graph evidence.",
+          "type": "object"
+         },
+         "runtime_identity": {
+          "maxLength": 256,
+          "minLength": 1,
+          "type": "string"
+         },
+         "status": {
+          "const": "answered"
+         }
+        },
+        "required": [
+         "status",
+         "operation_id",
+         "result",
+         "classification",
+         "authority",
+         "runtime_identity"
+        ],
+        "type": "object"
+       },
+       {
+        "additionalProperties": false,
+        "properties": {
+         "authority": {
+          "const": "computation_only"
+         },
+         "detail": {
+          "maxLength": 512,
+          "minLength": 0,
+          "type": "string"
+         },
+         "operation_id": {
+          "const": "science.thermal_scenarios"
+         },
+         "reason": {
+          "maxLength": 80,
+          "minLength": 1,
+          "type": "string"
+         },
+         "result": {
+          "description": "Retained diagnostic candidate or native refusal; not an accepted solution.",
+          "type": "object"
+         },
+         "status": {
+          "const": "withheld"
+         }
+        },
+        "required": [
+         "status",
+         "operation_id",
+         "reason",
+         "authority"
+        ],
+        "type": "object"
+       }
+      ]
+     },
+     "sources": []
     }
    ]
   },
   "statistics": {
-   "catalog_sha256": "20be8013f237ca48047a80dc8315ed3aa688a59e918aae6acce35c891cea71ab",
+   "catalog_sha256": "5905f75aa2b41d9ad3cdb6652e5bbe064168b8b567e345cbcb16d8852964fe78",
    "declarations": [
     {
      "availability": "live_direct",
@@ -4419,7 +5603,7 @@
      "implementation": {
       "backend": "oracle_native",
       "catalog_hash_encoding": "canonicalized parsed JSON; not original native bytes",
-      "native_catalog_sha256": "20be8013f237ca48047a80dc8315ed3aa688a59e918aae6acce35c891cea71ab",
+      "native_catalog_sha256": "5905f75aa2b41d9ad3cdb6652e5bbe064168b8b567e345cbcb16d8852964fe78",
       "runtime_identity": "@HOST_SHA256@:statistics"
      },
      "input_schema": {
@@ -4649,6 +5833,266 @@
          },
          "operation_id": {
           "const": "statistics.linear_regression"
+         },
+         "reason": {
+          "maxLength": 80,
+          "minLength": 1,
+          "type": "string"
+         },
+         "result": {
+          "description": "Retained diagnostic candidate or native refusal; not an accepted solution.",
+          "type": "object"
+         },
+         "status": {
+          "const": "withheld"
+         }
+        },
+        "required": [
+         "status",
+         "operation_id",
+         "reason",
+         "authority"
+        ],
+        "type": "object"
+       }
+      ]
+     },
+     "sources": []
+    },
+    {
+     "availability": "live_direct",
+     "description": "Calibrate supplied paired data with a y-on-x line; request forward mean, new observation or algebraic inverse point with explicit units and uncertainty.",
+     "examples": [
+      {
+       "arguments": {
+        "assumptions": [
+         "Prespecified linear mean, fixed design, independent Gaussian errors of equal variance"
+        ],
+        "covariance": "classical_normal_errors",
+        "direction": "forward_mean",
+        "response": [
+         0,
+         -1,
+         4
+        ],
+        "response_unit": "N",
+        "uncertainty": "pointwise_interval",
+        "values": [
+         0
+        ],
+        "x": [
+         -1,
+         0,
+         1
+        ],
+        "x_name": "position",
+        "x_unit": "m"
+       },
+       "source": "usage example; not a panel result"
+      }
+     ],
+     "id": "statistics.calibration",
+     "implementation": {
+      "backend": "oracle_native",
+      "catalog_hash_encoding": "canonicalized parsed JSON; not original native bytes",
+      "native_catalog_sha256": "5905f75aa2b41d9ad3cdb6652e5bbe064168b8b567e345cbcb16d8852964fe78",
+      "runtime_identity": "@HOST_SHA256@:statistics"
+     },
+     "input_schema": {
+      "additionalProperties": false,
+      "properties": {
+       "assumptions": {
+        "items": {
+         "maxLength": 1024,
+         "minLength": 1,
+         "type": "string"
+        },
+        "maxItems": 16,
+        "minItems": 1,
+        "type": "array"
+       },
+       "confidence_level": {
+        "maximum": 0.999,
+        "minimum": 0.5,
+        "type": "number"
+       },
+       "covariance": {
+        "enum": [
+         "classical_normal_errors",
+         "hc3_asymptotic"
+        ],
+        "type": "string"
+       },
+       "direction": {
+        "enum": [
+         "forward_mean",
+         "forward_observation",
+         "inverse_point"
+        ],
+        "type": "string"
+       },
+       "observation_relative_precision": {
+        "anyOf": [
+         {
+          "minimum": 5e-324,
+          "type": "number"
+         },
+         {
+          "type": "null"
+         }
+        ]
+       },
+       "rank_relative": {
+        "maximum": 0.01,
+        "minimum": 2.220446049250313e-16,
+        "type": "number"
+       },
+       "relative_precisions": {
+        "anyOf": [
+         {
+          "items": {
+           "minimum": 5e-324,
+           "type": "number"
+          },
+          "maxItems": 512,
+          "minItems": 1,
+          "type": "array"
+         },
+         {
+          "type": "null"
+         }
+        ]
+       },
+       "response": {
+        "items": {
+         "type": "number"
+        },
+        "maxItems": 512,
+        "minItems": 1,
+        "type": "array"
+       },
+       "response_unit": {
+        "maxLength": 1024,
+        "minLength": 1,
+        "type": "string"
+       },
+       "uncertainty": {
+        "enum": [
+         "point_only",
+         "pointwise_interval"
+        ],
+        "type": "string"
+       },
+       "values": {
+        "items": {
+         "type": "number"
+        },
+        "maxItems": 128,
+        "minItems": 1,
+        "type": "array"
+       },
+       "x": {
+        "items": {
+         "type": "number"
+        },
+        "maxItems": 512,
+        "minItems": 1,
+        "type": "array"
+       },
+       "x_name": {
+        "maxLength": 1024,
+        "minLength": 1,
+        "type": "string"
+       },
+       "x_unit": {
+        "maxLength": 1024,
+        "minLength": 1,
+        "type": "string"
+       }
+      },
+      "required": [
+       "x",
+       "response",
+       "x_name",
+       "x_unit",
+       "response_unit",
+       "assumptions",
+       "covariance",
+       "direction",
+       "uncertainty",
+       "values"
+      ],
+      "type": "object"
+     },
+     "limitations": [
+      "Experimental untrusted computation; no Isabelle theorem, specialist panel score or Mini qualification.",
+      "No retained conversation, subscription or replay journal.",
+      "Uses the same bounded SVD and conditional inference as statistics.linear_regression; no theorem or unit conversion.",
+      "Inverse points invert the fitted y-on-x line. They are not reverse regression. Inverse intervals are refused; no errors-in-variables or measurement-error model is supplied.",
+      "Degenerate or ill-conditioned designs withhold calibration values. Null intervals carry reasons. Extrapolation is flagged, not validated. Forward observation requires an explicit precision; HC3 supplies no individual-observation noise model."
+     ],
+     "name": "statistics calibration",
+     "native_limits": {
+      "observations": 512,
+      "parameters_including_intercept": 64,
+      "predictions": 128,
+      "request_bytes": 1048576,
+      "svd_scratch_bytes": 33554432,
+      "threads": 1,
+      "work_estimate_n_p_p": 2097152
+     },
+     "output_schema": {
+      "anyOf": [
+       {
+        "additionalProperties": false,
+        "properties": {
+         "authority": {
+          "const": "computation_only"
+         },
+         "classification": {
+          "maxLength": 80,
+          "minLength": 1,
+          "type": "string"
+         },
+         "operation_id": {
+          "const": "statistics.calibration"
+         },
+         "result": {
+          "description": "Complete native result with numerical diagnostics or finite graph evidence.",
+          "type": "object"
+         },
+         "runtime_identity": {
+          "maxLength": 256,
+          "minLength": 1,
+          "type": "string"
+         },
+         "status": {
+          "const": "answered"
+         }
+        },
+        "required": [
+         "status",
+         "operation_id",
+         "result",
+         "classification",
+         "authority",
+         "runtime_identity"
+        ],
+        "type": "object"
+       },
+       {
+        "additionalProperties": false,
+        "properties": {
+         "authority": {
+          "const": "computation_only"
+         },
+         "detail": {
+          "maxLength": 512,
+          "minLength": 0,
+          "type": "string"
+         },
+         "operation_id": {
+          "const": "statistics.calibration"
          },
          "reason": {
           "maxLength": 80,

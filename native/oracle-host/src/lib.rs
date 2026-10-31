@@ -20,6 +20,7 @@ pub mod pure;
 pub mod schema;
 pub mod service;
 pub mod wire;
+mod workers;
 
 use serde_json::{json, Map, Value};
 

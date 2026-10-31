@@ -11,11 +11,13 @@
 use crate::service::{tenant_key, Discovery, Service};
 use crate::wire;
 use crate::{failure, operations::valid_operation_id};
+use nix::poll::{poll, PollFd, PollFlags};
 use serde_json::{json, Value};
 use std::io::{ErrorKind, Read, Write};
 use std::net::{Shutdown, TcpListener, TcpStream};
-use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
-use std::sync::Arc;
+use std::os::fd::AsFd;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, Condvar, Mutex};
 use std::time::{Duration, Instant};
 
 pub const TENANT_HEADER: &str = "x-mini-oracle-tenant";
@@ -347,6 +349,66 @@ fn post(
 }
 
 /// Accept connections until `stop` is set, then wait for handlers to finish.
+// Readiness wakes immediately on an arriving connection. This timeout only
+// bounds observation of the signal waiter's stop flag while the listener is idle.
+const STOP_OBSERVATION_MS: u16 = 100;
+
+fn listener_ready(listener: &TcpListener, timeout_ms: u16) -> std::io::Result<bool> {
+    let mut descriptors = [PollFd::new(listener.as_fd(), PollFlags::POLLIN)];
+    poll(&mut descriptors, timeout_ms).map_err(std::io::Error::from)?;
+    let events = descriptors[0].revents().unwrap_or_else(PollFlags::empty);
+    if events.intersects(PollFlags::POLLERR | PollFlags::POLLHUP | PollFlags::POLLNVAL) {
+        return Err(std::io::Error::other("listener readiness failed"));
+    }
+    Ok(events.contains(PollFlags::POLLIN))
+}
+
+struct Connections {
+    capacity: usize,
+    active: Mutex<usize>,
+    drained: Condvar,
+}
+
+// The closure owns the guard before spawn, so both a failed spawn and a handler
+// unwind release the connection count. It never owns the Service or its joins.
+struct ConnectionGuard(Arc<Connections>);
+
+impl Connections {
+    fn new(capacity: usize) -> Arc<Self> {
+        Arc::new(Self {
+            capacity,
+            active: Mutex::new(0),
+            drained: Condvar::new(),
+        })
+    }
+
+    fn acquire(self: &Arc<Self>) -> Option<ConnectionGuard> {
+        let mut active = self.active.lock().unwrap_or_else(|p| p.into_inner());
+        if *active >= self.capacity {
+            return None;
+        }
+        *active += 1;
+        Some(ConnectionGuard(self.clone()))
+    }
+
+    fn drain(&self) {
+        let mut active = self.active.lock().unwrap_or_else(|p| p.into_inner());
+        while *active > 0 {
+            active = self.drained.wait(active).unwrap_or_else(|p| p.into_inner());
+        }
+    }
+}
+
+impl Drop for ConnectionGuard {
+    fn drop(&mut self) {
+        let mut active = self.0.active.lock().unwrap_or_else(|p| p.into_inner());
+        *active -= 1;
+        if *active == 0 {
+            self.0.drained.notify_all();
+        }
+    }
+}
+
 pub fn serve(
     listener: TcpListener,
     service: Arc<Service>,
@@ -354,41 +416,149 @@ pub fn serve(
 ) -> std::io::Result<()> {
     let port = listener.local_addr()?.port();
     listener.set_nonblocking(true)?;
-    let open = Arc::new(AtomicUsize::new(0));
-    while !stop.load(Ordering::Acquire) {
+    let open = Connections::new(service.limits.connections);
+    let result = loop {
+        if stop.load(Ordering::Acquire) {
+            break Ok(());
+        }
+        match listener_ready(&listener, STOP_OBSERVATION_MS) {
+            Ok(false) => continue,
+            Ok(true) => {}
+            Err(e) if e.kind() == ErrorKind::Interrupted => continue,
+            Err(e) => break Err(e),
+        }
+        // A signal may arrive during readiness waiting. Stop before accepting.
+        if stop.load(Ordering::Acquire) {
+            break Ok(());
+        }
         match listener.accept() {
             Ok((stream, _)) => {
-                let _ = stream.set_nonblocking(false);
-                if open.fetch_add(1, Ordering::AcqRel) >= service.limits.connections {
-                    open.fetch_sub(1, Ordering::AcqRel);
-                    drop(stream); // hard cap on open connections; no unbounded threads
-                    continue;
+                if let Err(e) = stream.set_nonblocking(false) {
+                    break Err(e);
                 }
+                let Some(connection) = open.acquire() else {
+                    drop(stream); // hard cap; no accepted connection queue
+                    continue;
+                };
                 let service = service.clone();
-                let open = open.clone();
-                std::thread::spawn(move || {
-                    handle(stream, &service, port);
-                    open.fetch_sub(1, Ordering::AcqRel);
-                });
+                // Spawn failure drops this closure, stream and guard together.
+                // Refuse that connection and keep serving within the same cap.
+                let _ = std::thread::Builder::new()
+                    .name("oracle-http".into())
+                    .spawn(move || {
+                        let _connection = connection;
+                        handle(stream, &service, port);
+                    });
             }
-            Err(e) if e.kind() == ErrorKind::WouldBlock => {
-                std::thread::sleep(Duration::from_millis(20))
-            }
-            Err(_) => std::thread::sleep(Duration::from_millis(20)),
+            Err(e)
+                if matches!(
+                    e.kind(),
+                    ErrorKind::WouldBlock | ErrorKind::Interrupted | ErrorKind::ConnectionAborted
+                ) => {}
+            Err(e) => break Err(e),
         }
-    }
+    };
     service.stopping.store(true, Ordering::Release);
     drop(listener);
-    // In-flight turns keep their own deadlines; let them answer and journal.
-    while open.load(Ordering::Acquire) > 0 {
-        std::thread::sleep(Duration::from_millis(20));
-    }
-    Ok(())
+    // In-flight turns retain deadlines and journal ownership. A guard signals
+    // their completion even on unwind; no sleep loop delays shutdown drain.
+    open.drain();
+    result
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn listener_readiness_wakes_before_idle_timeout() {
+        let listener = TcpListener::bind(("127.0.0.1", 0)).unwrap();
+        listener.set_nonblocking(true).unwrap();
+        let address = listener.local_addr().unwrap();
+        let (entered, waiting) = std::sync::mpsc::channel();
+        let (reply, ready) = std::sync::mpsc::channel();
+        let waiter = std::thread::spawn(move || {
+            entered.send(()).unwrap();
+            reply.send(listener_ready(&listener, 5000)).unwrap();
+        });
+        waiting.recv_timeout(Duration::from_secs(2)).unwrap();
+        let _connection = TcpStream::connect(address).unwrap();
+        // Readiness, rather than the five-second timeout, must finish the wait.
+        assert!(ready.recv_timeout(Duration::from_secs(2)).unwrap().unwrap());
+        waiter.join().unwrap();
+    }
+
+    #[test]
+    fn connection_guards_bound_work_and_release_on_unwind_or_unstarted_closure() {
+        let connections = Connections::new(1);
+        let guard = connections.acquire().unwrap();
+        assert!(connections.acquire().is_none());
+        // A failed Builder::spawn drops its owned closure without running it.
+        let unstarted = move || {
+            let _guard = guard;
+        };
+        drop(unstarted);
+        let guard = connections.acquire().unwrap();
+        let handler = std::thread::spawn(move || {
+            let _guard = guard;
+            panic!("handler panic");
+        });
+        assert!(handler.join().is_err());
+        assert_eq!(*connections.active.lock().unwrap(), 0);
+        assert!(connections.acquire().is_some());
+    }
+
+    #[test]
+    fn connection_drain_waits_for_live_handler_guard() {
+        let connections = Connections::new(1);
+        let guard = connections.acquire().unwrap();
+        let draining = connections.clone();
+        let (entered, waiting) = std::sync::mpsc::channel();
+        let (reply, done) = std::sync::mpsc::channel();
+        let supervisor = std::thread::spawn(move || {
+            entered.send(()).unwrap();
+            draining.drain();
+            reply.send(()).unwrap();
+        });
+        waiting.recv_timeout(Duration::from_secs(2)).unwrap();
+        assert!(matches!(
+            done.try_recv(),
+            Err(std::sync::mpsc::TryRecvError::Empty)
+        ));
+        drop(guard);
+        done.recv_timeout(Duration::from_secs(2)).unwrap();
+        supervisor.join().unwrap();
+        connections.drain();
+    }
+
+    #[test]
+    fn idle_http_server_observes_shutdown_without_a_connection() {
+        let directory = tempfile::tempdir().unwrap();
+        let config = serde_json::from_value(json!({
+            "schema": "oracle-host-v1", "journal": directory.path().join("journal.sqlite3")
+        }))
+        .unwrap();
+        let service = Service::open(&config).unwrap();
+        let listener = TcpListener::bind(("127.0.0.1", 0)).unwrap();
+        let stop = Arc::new(AtomicBool::new(false));
+        let serving = service.clone();
+        let stopping = stop.clone();
+        let (entered, waiting) = std::sync::mpsc::channel();
+        let (reply, stopped) = std::sync::mpsc::channel();
+        let server = std::thread::spawn(move || {
+            entered.send(()).unwrap();
+            reply.send(serve(listener, serving, stopping)).unwrap();
+        });
+        waiting.recv_timeout(Duration::from_secs(2)).unwrap();
+        stop.store(true, Ordering::Release);
+        stopped
+            .recv_timeout(Duration::from_secs(2))
+            .unwrap()
+            .unwrap();
+        server.join().unwrap();
+        assert!(service.stopping.load(Ordering::Acquire));
+        service.close();
+    }
 
     #[test]
     fn discovery_parameters_follow_the_reference_rules() {

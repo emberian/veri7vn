@@ -347,3 +347,57 @@ fn shared_execution_reader_preserves_image_fuel_cap() {
     parent.check().unwrap();
     assert_eq!(fixture.image.active_workers(), 0);
 }
+
+#[test]
+fn shared_reader_memory_cap_refuses_and_releases_worker_and_parent_reservations() {
+    use oracle_runtime_core::Budget;
+    let fixture = Fixture::with_limits(
+        tables(vec![entity()]),
+        Limits {
+            request_memory_bytes: 1,
+            workers: 1,
+            ..Limits::default()
+        },
+    );
+    let parent = Budget::new(&Limits::default(), Cancellation::default()).unwrap();
+    assert!(matches!(
+        fixture
+            .image
+            .read_whole_with_budget("t", "who is Alice", &parent),
+        Err(Error::Limit("retained request memory"))
+    ));
+    assert_eq!(parent.memory().snapshot().live, 0);
+    assert_eq!(fixture.image.active_workers(), 0);
+    parent.check().unwrap();
+}
+
+#[test]
+fn repeated_complete_programs_keep_every_derivation_and_expand_original_wire_shape() {
+    use oracle_runtime_core::Budget;
+    let mut export = tables(vec![entity()]);
+    let mut second = export.templates[0].clone();
+    second.level = 1;
+    second.support = 17;
+    export.templates.push(second);
+    let fixture = Fixture::new(export);
+    let budget = Budget::new(&Limits::default(), Cancellation::default()).unwrap();
+    let wire = fixture
+        .image
+        .read_whole_with_budget("t", "who is Alice", &budget)
+        .unwrap();
+    let reply: Value = serde_json::from_str(&wire).unwrap();
+    assert_eq!(reply["status"], "answered");
+    let readings = reply["readings"].as_array().unwrap();
+    assert_eq!(readings.len(), 2);
+    assert_eq!(readings[0]["level"], 0);
+    assert_eq!(readings[1]["level"], 1);
+    assert_eq!(readings[0]["support"], 3);
+    assert_eq!(readings[1]["support"], 17);
+    assert_eq!(readings[0]["program"], readings[1]["program"]);
+    assert_eq!(readings[0]["result"], readings[1]["result"]);
+    assert!(readings[0]["program"].is_array());
+    assert_eq!(readings[0]["result"]["entities"], json!(["A"]));
+    assert_eq!(readings[0].as_object().unwrap().len(), 6);
+    assert_eq!(budget.memory().snapshot().live, 0);
+    assert!(budget.memory().snapshot().peak > 0);
+}

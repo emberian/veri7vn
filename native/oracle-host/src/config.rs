@@ -60,6 +60,9 @@ pub struct HostLimits {
     pub query_ms: u64,
     /// Work units shared by all native/provider branches of one request.
     pub execution_fuel: u64,
+    /// Explicitly tracked retained request data; not process RSS or untracked
+    /// foreign allocations. Components may impose a tighter shared ceiling.
+    pub request_memory_bytes: usize,
     /// Retained `/query` request records before the journal refuses (507).
     pub retained_requests: u64,
     /// Remembered (tenant, conversation) Engine bindings before refusing (507).
@@ -78,6 +81,7 @@ impl Default for HostLimits {
             invoke_ms: 30_000,
             query_ms: 120_000,
             execution_fuel: 10_000_000,
+            request_memory_bytes: 32 * 1024 * 1024,
             retained_requests: 100_000,
             conversations: 100_000,
         }
@@ -501,6 +505,7 @@ pub fn read(path: &Path) -> Result<Config, ConfigError> {
         || limits.invoke_ms == 0
         || limits.query_ms == 0
         || limits.execution_fuel == 0
+        || limits.request_memory_bytes == 0
         || limits
             .tenant_capacity
             .is_some_and(|n| n == 0 || n > limits.capacity)

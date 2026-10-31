@@ -4,6 +4,7 @@
 
 pub mod algebra;
 pub mod dimensions;
+pub mod exact_lp;
 pub mod formula;
 pub mod formula_search;
 pub mod graph;
@@ -93,6 +94,8 @@ impl Default for Limits {
 #[derive(Deserialize)]
 #[serde(tag = "operation", content = "arguments", deny_unknown_fields)]
 pub enum Request {
+    #[serde(rename = "reasoning.exact_linear_feasibility")]
+    ExactLinear(exact_lp::Problem),
     #[serde(rename = "graph.minimum_spanning_forest")]
     Forest(graph::GraphInput),
     #[serde(rename = "graph.shortest_path")]
@@ -110,6 +113,7 @@ pub enum Request {
 #[derive(Serialize)]
 #[serde(untagged)]
 pub enum Response {
+    ExactLinear(exact_lp::Output),
     Forest(graph::Forest),
     ShortestPath(shortest_path::Certificate),
     Polynomial(algebra::Optimization),
@@ -136,6 +140,11 @@ fn execute_inner(
         context.map_or(&legacy as &dyn oracle_execution::WorkControl, |c| c);
     checkpoint(control, 1)?;
     let reply = match request {
+        Request::ExactLinear(input) => Response::ExactLinear(exact_lp::solve_controlled(
+            input,
+            &exact_lp::Limits::default(),
+            control,
+        )?),
         Request::ShortestPath(input) => Response::ShortestPath(
             shortest_path::shortest_path_bounded(input, &shortest_path_limits(limits), control)?,
         ),
@@ -206,6 +215,7 @@ pub fn catalog() -> serde_json::Value {
         "hosting": "pure library/CLI; no Mini registration or hard containment",
         "limits": Limits::default(),
         "operations": [
+            {"id": "reasoning.exact_linear_feasibility", "domain": "exact rational feasibility over caller-supplied rows a*x<=b with unrestricted variables; unknown is not infeasible; an optional minimization objective does not turn a feasible witness into an optimality claim", "exact_limits": exact_lp::Limits::default(), "assurance": "separate exact rational certificate replay; not Isabelle-verified", "arguments": {"variables": "unique nonempty variable labels", "rows": "list of {id, coefficients: exact rational strings, bound: exact rational string}", "objective": "optional minimization coefficients as exact rational strings"}},
             {"id": "graph.shortest_path", "domain": "exact directed minimum walk weight in the complete supplied multigraph only; finite, unreachable or unbounded below; missing world edges are not established", "path_limits": shortest_path_limits(&Limits::default()), "assurance": "independent Rust path/feasible-label, closed-set or anchored-negative-cycle check; not Isabelle-verified", "arguments": {"vertices": "positive integer; vertex IDs are 0..vertices-1", "edges": "list of [source, target, exact i64 weight]; stable edge ID is list position", "source": "vertex ID", "target": "vertex ID"}},
             {"id": "chemistry.balance_reaction", "domain": "exact element/isotope and charge conservation for supplied species; not reaction feasibility", "chemistry_limits": stoichiometry::ChemistryLimits::default(), "arguments": {"species": "list of {name, side: reactant|product, composition: {element_or_isotope: positive_u64}, charge: i64}; empty composition with charge -1 represents an explicit electron"}},
             {"id": "graph.minimum_spanning_forest", "domain": "supplied undirected multigraph, exact i64 edge weights", "arguments": {"vertices": "nonnegative integer; vertex IDs are 0..vertices-1", "edges": "list of [source, target, weight]; edge ID is list position"}},

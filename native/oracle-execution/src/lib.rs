@@ -1,7 +1,11 @@
 //! Dependency-free cooperative execution primitives shared by native providers.
-//! Domain-specific memory, output, coefficient-growth and semantic caps remain
-//! the responsibility of the caller; fuel only accounts explicitly charged work.
+//! Explicit retained native bytes have a shared reservation ledger. Allocator,
+//! foreign buffers, output and semantic caps remain the caller’s responsibility;
+//! fuel only accounts explicitly charged work.
 #![forbid(unsafe_code)]
+
+mod memory;
+pub use memory::{MemoryBudget, MemoryError, MemoryReservation, MemorySnapshot};
 
 use std::collections::BTreeMap;
 use std::sync::{
@@ -126,6 +130,7 @@ impl Cancellation {
 pub struct ExecutionContext(Arc<ExecutionInner>);
 struct ExecutionInner {
     parent: Option<ExecutionContext>,
+    memory: MemoryBudget,
     cancellation: Cancellation,
     deadline: Instant,
     remaining: AtomicU64,
@@ -145,6 +150,7 @@ impl ExecutionContext {
     pub fn with_deadline(fuel: u64, deadline: Instant, cancellation: Cancellation) -> Self {
         Self(Arc::new(ExecutionInner {
             parent: None,
+            memory: MemoryBudget::new(usize::MAX),
             cancellation,
             deadline,
             remaining: AtomicU64::new(fuel),
@@ -160,11 +166,28 @@ impl ExecutionContext {
             .ok_or(ExecutionError::DeadlineOverflow)?;
         Ok(Self(Arc::new(ExecutionInner {
             parent: Some(self.clone()),
+            memory: self.0.memory.clone(),
             cancellation: self.0.cancellation.clone(),
             deadline: self.deadline().min(local_deadline),
             remaining: AtomicU64::new(fuel),
             exhausted: AtomicBool::new(false),
         })))
+    }
+    /// Shared explicit retained-byte ledger. Legacy constructors start without a
+    /// finite memory ceiling; request admission installs one via restriction.
+    pub fn memory(&self) -> &MemoryBudget {
+        &self.0.memory
+    }
+    /// Add a local retained-byte ceiling without changing fuel/deadline identity.
+    pub fn restricted_memory(&self, limit: usize) -> Self {
+        Self(Arc::new(ExecutionInner {
+            parent: Some(self.clone()),
+            memory: self.0.memory.restricted(limit),
+            cancellation: self.0.cancellation.clone(),
+            deadline: self.deadline(),
+            remaining: AtomicU64::new(u64::MAX),
+            exhausted: AtomicBool::new(false),
+        }))
     }
     pub fn deadline(&self) -> Instant {
         self.0.deadline

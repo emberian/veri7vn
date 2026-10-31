@@ -132,7 +132,51 @@ class NativeScienceOperations(NativeStructuredOperations):
             self.add("science.thermal_network", schema, "Compute steady temperatures and power balances in a supplied passive thermal conductance network.", example,
                      ["Ideal fixed-temperature reservoirs supply boundary heat. Floating components cannot determine absolute temperatures. No transient, radiation or inferred building model."])
 
+            if "science.thermal_scenarios" in catalog["operations"]:
+                scenario_limits = catalog.get("thermal_scenarios", {})
+                if (scenario_limits.get("scenarios"), scenario_limits.get("sensitivities")) != (64, 128):
+                    raise ValueError("unsupported thermal scenario limits")
+                scenario = obj({"id": string(128), "applied_heat_w": array(NUMBER, thermal["nodes"], 1),
+                    "fixed_temperature_k": array({"type": ["number", "null"], "minimum": 0}, thermal["nodes"], 1)})
+                parameter = {"anyOf": [obj({"kind": {"const": "load"}, "node_id": string(128)}),
+                    obj({"kind": {"const": "conductance"}, "link_index": {"type": "integer", "minimum": 0, "maximum": thermal["links"] - 1}})]}
+                batch = obj({"network": schema, "scenarios": array(scenario, 64, 1),
+                    "sensitivities": array(obj({"scenario_id": string(128), "parameter": parameter}), 128)}, ["network", "scenarios"])
+                batch_example = {"network": example, "scenarios": [
+                    {"id": "normal", "applied_heat_w": [100, 0], "fixed_temperature_k": [None, 300]},
+                    {"id": "warm", "applied_heat_w": [200, 0], "fixed_temperature_k": [None, 310]}],
+                    "sensitivities": [{"scenario_id": "normal", "parameter": {"kind": "conductance", "link_index": 0}}]}
+                self.add("science.thermal_scenarios", batch, "Compare supplied passive-network heat loads and reservoir temperatures using one reused factorization, with local analytic sensitivities.", batch_example,
+                    ["Every connected component must have a prescribed temperature. Complete node-order vectors keep the boundary mask fixed.",
+                     "Sampled scenarios are not uncertainty bounds. Local derivatives hold every other parameter and boundary temperature fixed; no transient, advection, nonlinear model or inverse-design claim."])
+
     def interpret(self, operation, result):
+        if operation == "science.thermal_scenarios":
+            required = {"schema", "operation", "network_identity", "factorization_count", "scenario_rhs_solves",
+                        "sensitivity_rhs_solves", "node_order", "scenarios", "sensitivities", "warnings"}
+            if (not required <= result.keys() or result.get("schema") != self.native_catalog["schema"]
+                or result.get("operation") != operation or not isinstance(result.get("scenarios"), list)
+                or not 1 <= len(result["scenarios"]) <= 64 or not isinstance(result.get("sensitivities"), list)
+                or len(result["sensitivities"]) > 128 or not isinstance(result.get("node_order"), list)
+                or not result["node_order"] or not isinstance(result.get("network_identity"), str)
+                or not result["network_identity"].startswith("sha256:") or result.get("factorization_count") not in (0, 1)):
+                return self.withheld(operation, "native_reply_invalid")
+            accepted = True
+            for scenario in result["scenarios"]:
+                if not isinstance(scenario, dict) or not isinstance(scenario.get("id"), str) or not isinstance(scenario.get("result"), dict):
+                    return self.withheld(operation, "native_reply_invalid")
+                interpreted = self.interpret("science.thermal_network", scenario["result"])
+                if interpreted.get("reason") == "native_reply_invalid":
+                    return self.withheld(operation, "native_reply_invalid")
+                accepted = accepted and interpreted.get("status") == "answered" and scenario["result"].get("outcome") == "solved_within_tolerance"
+            for derivative in result["sensitivities"]:
+                if (not isinstance(derivative, dict) or not isinstance(derivative.get("temperature_derivative"), list)
+                    or len(derivative["temperature_derivative"]) != len(result["node_order"])
+                    or any(type(x) not in (int, float) or not math.isfinite(x) for x in derivative["temperature_derivative"])):
+                    return self.withheld(operation, "native_reply_invalid")
+            if not accepted:
+                return self.withheld(operation, "scenario_not_accepted", result)
+            return self.answered(operation, result, "numerical_scenarios")
         outcome = result.get("outcome")
         if operation == "science.thermal_network":
             required = {"operation", "nodes", "links", "components", "conservation", "linear_diagnostics", "warnings"}

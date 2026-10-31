@@ -99,33 +99,45 @@ pub(crate) struct Ledger {
     owners: [usize; OWNERS.len()],
     pub peak: usize,
     pub peak_owners: [usize; OWNERS.len()],
+    memory: crate::budget::MemoryReservation,
 }
 impl Ledger {
-    pub fn new(limit: usize) -> Self {
-        Self {
+    pub fn new(limit: usize, budget: &Budget) -> Result<Self> {
+        Ok(Self {
             bytes: 0,
             limit,
             owners: [0; OWNERS.len()],
             peak: 0,
             peak_owners: [0; OWNERS.len()],
-        }
+            memory: budget.reserve_memory(0)?,
+        })
     }
     pub fn charge(&mut self, budget: &Budget, bytes: usize, owner: Owner) -> Result<()> {
         budget.spend(bytes as u64 + 1)?;
-        self.bytes = self
+        let next = self
             .bytes
             .checked_add(bytes)
             .ok_or(Error::Limit("composition bytes"))?;
+        if next > self.limit {
+            return Err(Error::Limit("composition bytes"));
+        }
+        self.memory
+            .resize(next)
+            .map_err(|_| Error::Limit("retained request memory"))?;
+        self.bytes = next;
         let slot = &mut self.owners[owner as usize];
         *slot = slot.saturating_add(bytes);
         if self.bytes > self.peak {
             self.peak = self.bytes;
             self.peak_owners = self.owners;
         }
-        if self.bytes > self.limit {
-            return Err(Error::Limit("composition bytes"));
-        }
         Ok(())
+    }
+    pub fn into_output_memory(mut self) -> crate::budget::MemoryReservation {
+        self.memory
+            .resize(self.owners[Owner::Output as usize])
+            .expect("shrinking composition output reservation");
+        self.memory
     }
     pub fn release(&mut self, bytes: usize, owner: Owner) {
         // Only owned temporary allocations leave the materialization envelope.
@@ -134,6 +146,9 @@ impl Ledger {
             .bytes
             .checked_sub(bytes)
             .expect("balanced composition ownership");
+        self.memory
+            .resize(self.bytes)
+            .expect("shrinking composition reservation");
         let slot = &mut self.owners[owner as usize];
         *slot = slot.checked_sub(bytes).expect("balanced composition owner");
     }

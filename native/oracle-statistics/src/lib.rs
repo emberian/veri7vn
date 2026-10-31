@@ -3,6 +3,9 @@
 //! that the caller's statistical assumptions hold. No threads are created.
 #![forbid(unsafe_code)]
 
+pub mod calibration;
+pub use calibration::{calibrate, CalibrationInput, CalibrationResult};
+
 use faer::diag::Diag;
 use faer::dyn_stack::{MemBuffer, MemStack};
 use faer::linalg::svd::{svd, svd_scratch, ComputeSvdVectors};
@@ -820,6 +823,10 @@ pub fn call(request: &str, limits: &Limits, cancel: &dyn WorkControl) -> Result<
         return Err(Error::Limit("request bytes"));
     }
     let request: Request = serde_json::from_str(request)?;
+    if request.operation == "statistics.calibration" {
+        let input = serde_json::from_str(request.arguments.get())?;
+        return Ok(serde_json::to_string(&calibrate(&input, limits, cancel)?)?);
+    }
     if request.operation != "statistics.linear_regression" {
         return Err(Error::Invalid("unknown statistical operation".into()));
     }
@@ -831,7 +838,8 @@ pub fn catalog() -> serde_json::Value {
     serde_json::json!({
         "schema": SCHEMA,
         "assurance": "experimental floating-point; conditional statistical inference, no formal verification or causal claim",
-        "operations": ["statistics.linear_regression"],
+        "operations": ["statistics.linear_regression", "statistics.calibration"],
+        "calibration": "one supplied predictor with intercept; forward_mean, forward_observation or inverse_point (algebraic inversion of y-on-x, never reverse regression); point_only or pointwise_interval; units are caller labels, not conversions; inverse uncertainty is refused",
         "arguments": "features, response, intercept, covariance (classical_normal_errors|hc3_asymptotic), model{description,predictor_names,predictor_units,response_unit,assumptions}; optional relative_precisions,confidence_level,rank_relative,predictions[{features,observation_relative_precision?}]",
         "inference": "full numerical column rank, positive residual df/scale, condition <=1e8, stationarity policy; HC3 additionally requires all leverage <1-1e-10; absent inference has explicit reasons",
         "precision_semantics": "fixed positive loss weights; classical errors require true inverse-variance ratios. HC3 transforms WLS rows and uses sandwich covariance with asymptotic normal tails. Global weight scaling leaves all intervals invariant.",

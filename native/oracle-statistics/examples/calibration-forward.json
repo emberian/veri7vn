@@ -1,0 +1,1 @@
+{"x":[-1,0,1],"response":[0,-1,4],"x_name":"position","x_unit":"m","response_unit":"N","assumptions":["Fixed positions; prespecified correct linear conditional mean; independent Gaussian errors with common unknown variance"],"covariance":"classical_normal_errors","direction":"forward_observation","uncertainty":"pointwise_interval","values":[0],"observation_relative_precision":1}

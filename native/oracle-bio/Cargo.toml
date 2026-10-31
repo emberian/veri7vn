@@ -5,6 +5,7 @@ edition.workspace = true
 license.workspace = true
 
 [dependencies]
+sha2.workspace = true
 oracle-execution = { path = "../oracle-execution" }
 bio = { version = "=4.0.1", default-features = false }
 serde.workspace = true

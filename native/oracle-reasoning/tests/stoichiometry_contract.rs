@@ -202,3 +202,31 @@ fn public_json_dispatch_preserves_counts_and_rejects_duplicate_inventories() {
     assert_ne!(request, duplicated);
     assert!(oracle_reasoning::call(&duplicated, &oracle_reasoning::Limits::default()).is_err());
 }
+#[test]
+fn positive_balance_beyond_old_free_coefficient_bound() {
+    let i = input(json!([
+        {"name":"H","side":"reactant","composition":{"H":1},"charge":0},
+        {"name":"H-product","side":"product","composition":{"H":1},"charge":0},
+        {"name":"H100","side":"reactant","composition":{"H":100},"charge":0}
+    ]));
+    let l = ChemistryLimits::default();
+    let out = balance_reaction(&i, &l).unwrap();
+    assert_eq!(out.status, S::MultipleWithPositiveCandidate);
+    assert_eq!(
+        out.coefficients.as_ref().unwrap(),
+        &vec!["1".to_string(), "101".into(), "1".into()]
+    );
+    assert!(check_balance(&i, out.coefficients.as_ref().unwrap(), &l).is_ok());
+}
+#[test]
+fn multidimensional_impossibility_from_original_rows() {
+    let i = input(json!([
+        {"name":"hydrogen","side":"reactant","composition":{"H":1},"charge":0},
+        {"name":"hydrogen2","side":"product","composition":{"H":2},"charge":0},
+        {"name":"hydrogen3","side":"product","composition":{"H":3},"charge":0},
+        {"name":"oxygen","side":"product","composition":{"O":1},"charge":0}
+    ]));
+    let out = balance_reaction(&i, &ChemistryLimits::default()).unwrap();
+    assert_eq!(out.nullity, 2);
+    assert_eq!(out.status, S::NoStrictlyPositiveBalance);
+}

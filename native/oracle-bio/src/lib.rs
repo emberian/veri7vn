@@ -3,6 +3,8 @@
 //! genome lookup, biological interpretation, diagnostic or design system.
 #![forbid(unsafe_code)]
 
+pub mod collection;
+
 use bio::alignment::{pairwise::Aligner, AlignmentOperation};
 use oracle_execution::{ExecutionError, WorkControl};
 use serde::{Deserialize, Serialize};
@@ -21,7 +23,7 @@ pub enum Error {
     Limit(&'static str),
     #[error("alignment failed independent check: {0}")]
     Check(&'static str),
-    #[error("cancelled (Rust-Bio alignment itself is not interruptible)")]
+    #[error("cancelled")]
     Cancelled,
     #[error(transparent)]
     Json(#[from] serde_json::Error),
@@ -490,16 +492,22 @@ pub fn align_pairwise(
 pub enum Request {
     #[serde(rename = "bio.align_pairwise")]
     Align(AlignmentInput),
+    #[serde(rename = "bio.search_collection")]
+    SearchCollection(collection::SearchInput),
 }
 pub fn call(request: &str, limits: &Limits, cancel: &dyn WorkControl) -> Result<String> {
     checkpoint(cancel)?;
     if request.len() > limits.request_bytes.min(MAX_REQUEST_BYTES) {
         return Err(Error::Limit("request bytes"));
     }
-    let Request::Align(input) = serde_json::from_str(request)?;
-    Ok(serde_json::to_string(&align_pairwise(
-        &input, limits, cancel,
-    )?)?)
+    match serde_json::from_str(request)? {
+        Request::Align(input) => Ok(serde_json::to_string(&align_pairwise(
+            &input, limits, cancel,
+        )?)?),
+        Request::SearchCollection(input) => Ok(serde_json::to_string(
+            &collection::search_collection(&input, cancel)?,
+        )?),
+    }
 }
 pub fn catalog() -> serde_json::Value {
     serde_json::json!({
@@ -508,12 +516,18 @@ pub fn catalog() -> serde_json::Value {
             "query": "nonempty DNA string", "reference": "nonempty DNA string",
             "mode": "global|local|query_global", "scoring": "{match_score,mismatch_score,gap_open,gap_extend}; all explicit",
             "ambiguity": "optional reject (default) or always_mismatch"
-        }}],
+        }}, {"id":"bio.search_collection", "arguments": {"collection":"{schema:oracle-sequence-collection-v1,records:[{label,sequence}]}","patterns":"[{label,sequence}]", "page_size":"1..1024", "cursor":"optional {request_sha256,record,start,offset}"}}],
         "limits": Limits::default(),
+        "sequence_collection": {"schema": collection::COLLECTION_SCHEMA, "result_schema": collection::SEARCH_SCHEMA,
+            "bases":collection::MAX_BASES,"records":collection::MAX_RECORDS,"patterns":collection::MAX_PATTERNS,
+            "pattern_bases":collection::MAX_PATTERN_BASES,"page_hits":collection::MAX_PAGE,"work":collection::MAX_WORK,
+            "ambiguity":"reject", "palindrome":"one hit with strand both", "ordering":"record index,start,pattern index,strand",
+            "memory":"bounded trie <= 2*4096+1 nodes; <=1024 hits; <=131072 normalized collection bases; excludes allocator metadata and caller-owned inputs",
+            "paging":"cursor binds original ordered content and patterns; complete exhausts suffix only; concatenate pages from no cursor for full coverage"},
         "assurance": "independently replayed integer score and independent affine optimal-score DP; not formally verified",
         "gap_convention": "gap_open + (length-1)*gap_extend",
         "coordinates": "zero-based half-open in supplied orientation",
-        "strand": "supplied forward orientation only",
-        "hosting": "pure serial provider; cooperative cancellation outside Rust-Bio; host process containment required for hard deadlines"
+        "strand": "alignment: supplied forward orientation only; exact collection search: both strands",
+        "hosting": "pure serial provider; exact trie traversal cooperatively charged; alignment cancellation outside Rust-Bio; host process containment required for hard deadlines"
     })
 }

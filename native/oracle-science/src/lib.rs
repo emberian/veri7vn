@@ -4,6 +4,7 @@
 #![forbid(unsafe_code)]
 
 pub mod thermal;
+pub mod thermal_scenarios;
 
 use faer::diag::Diag;
 use faer::dyn_stack::{MemBuffer, MemStack};
@@ -526,12 +527,14 @@ pub enum ScientificRequest {
         operation: Operation,
     },
     Thermal(thermal::ThermalInput),
+    ThermalScenarios(thermal_scenarios::ThermalScenariosInput),
 }
 #[derive(Serialize)]
 #[serde(untagged)]
 pub enum ScientificResponse {
     Linear(LinearResult),
     Thermal(thermal::ThermalResult),
+    ThermalScenarios(thermal_scenarios::ThermalScenariosResult),
 }
 pub fn execute(
     request: &ScientificRequest,
@@ -542,6 +545,10 @@ pub fn execute(
     match request {
         ScientificRequest::Linear { input, operation } => {
             linear(input, *operation, limits, control).map(ScientificResponse::Linear)
+        }
+        ScientificRequest::ThermalScenarios(input) => {
+            thermal_scenarios::thermal_scenarios(input, limits, control)
+                .map(ScientificResponse::ThermalScenarios)
         }
         ScientificRequest::Thermal(input) => {
             thermal::thermal_network(input, limits, control).map(ScientificResponse::Thermal)
@@ -557,6 +564,10 @@ pub fn call(request: &str, limits: &Limits, cancel: &dyn WorkControl) -> Result<
     let request: Request =
         serde_json::from_str(request).map_err(|e| Error::Invalid(format!("request JSON: {e}")))?;
     let input = match request.operation.as_str() {
+        "science.thermal_scenarios" => ScientificRequest::ThermalScenarios(
+            serde_json::from_str(request.arguments.get())
+                .map_err(|e| Error::Invalid(format!("request arguments: {e}")))?,
+        ),
         "science.thermal_network" => ScientificRequest::Thermal(
             serde_json::from_str(request.arguments.get())
                 .map_err(|e| Error::Invalid(format!("request arguments: {e}")))?,
@@ -579,11 +590,12 @@ pub fn catalog() -> serde_json::Value {
     serde_json::json!({
         "schema": SCHEMA,
         "assurance": "experimental floating-point; no Isabelle theorem or physical-model validation",
-        "operations": ["science.solve_linear", "science.least_squares", "science.thermal_network"],
+        "operations": ["science.solve_linear", "science.least_squares", "science.thermal_network", "science.thermal_scenarios"],
         "arguments": {"matrix": "row-major finite f64 coefficients", "rhs": "one finite value per row", "model": "description, variable_units, row_units, normalization, assumptions", "tolerances": "optional rank_relative and consistency_relative"},
         "limits": {"request_bytes": MAX_REQUEST_BYTES, "rows": MAX_ROWS, "columns": MAX_COLUMNS, "work_estimate": MAX_WORK, "svd_scratch_bytes": MAX_SCRATCH_BYTES, "threads": 1},
         "cancellation": "cooperative before/after SVD; decomposition is not interruptible",
         "thermal_network": {"arguments": "description, assumptions, reference_temperature_k, nodes[{id, applied_heat_w, fixed_temperature_k?}], links[{from,to,conductance_w_per_k}], power_tolerance_w?, tolerances?", "nodes": thermal::MAX_NODES, "links": thermal::MAX_LINKS, "model": "steady passive linear conductance network; fixed nodes exchange heat with ideal reservoirs; no transient, radiation, inferred geometry or automatic HVAC model"},
+        "thermal_scenarios": {"scenarios": thermal_scenarios::MAX_SCENARIOS, "sensitivities": thermal_scenarios::MAX_SENSITIVITIES, "arguments": "network: ThermalInput; scenarios[{id,applied_heat_w,fixed_temperature_k}] complete node-order vectors with unchanged boundary mask; sensitivities[{scenario_id,parameter:{kind:load,node_id}|{kind:conductance,link_index}}]?", "reuse": "one immutable grounded network dense SVD, reused for every scenario/analytic derivative", "scope": "sampled passive steady linear conduction; all components grounded; no uncertainty bounds, advection or nonlinear model"},
         "hosting": "pure library and one-request CLI; no Mini registration or hard containment"
     })
 }

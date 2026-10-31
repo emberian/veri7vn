@@ -135,7 +135,8 @@ pub struct ThermalResult {
     pub nodes: Vec<NodeEvidence>,
     pub links: Vec<LinkEvidence>,
     pub conservation: ConservationEvidence,
-    /// Absent if every temperature was prescribed. Candidate generation only;
+    /// Absent if every temperature was prescribed or a prepared solver was used.
+    /// Fresh SVD diagnostics describe candidate generation only;
     /// domain acceptance uses original-node power balances and topology.
     pub linear_diagnostics: Option<LinearResult>,
     pub warnings: Vec<String>,
@@ -160,6 +161,24 @@ pub fn thermal_network(
     input: &ThermalInput,
     limits: &Limits,
     cancel: &dyn WorkControl,
+) -> Result<ThermalResult> {
+    thermal_with_solver(input, limits, cancel, &mut |model| {
+        let result = linear(model, Operation::LeastSquares, limits, cancel)?;
+        Ok((
+            result.candidate.clone(),
+            result.diagnostics.numerical_rank,
+            Some(result),
+        ))
+    })
+}
+
+// Shared admission and ORIGINAL-node acceptance for fresh and reused solves.
+// The solver cannot bypass topology, units, finite values or power checks.
+pub(crate) fn thermal_with_solver(
+    input: &ThermalInput,
+    limits: &Limits,
+    cancel: &dyn WorkControl,
+    solve: &mut dyn FnMut(&LinearInput) -> Result<(Vec<f64>, usize, Option<LinearResult>)>,
 ) -> Result<ThermalResult> {
     checkpoint(cancel)?;
     let count = input.nodes.len();
@@ -298,6 +317,7 @@ pub fn thermal_network(
     }
     let expected_rank = unknown.len() - floating_count;
     let mut linear_result = None;
+    let mut numerical_rank = 0;
     let mut offsets = vec![0.0; count];
     for (i, node) in input.nodes.iter().enumerate() {
         if let Some(t) = node.fixed_temperature_k {
@@ -336,25 +356,22 @@ pub fn thermal_network(
             normalization: "unweighted original free-node power balances in watts; no gauge equation or hidden reference boundary".into(),
             assumptions: input.assumptions.clone(),
         };
-        let result = linear(
-            &LinearInput {
-                matrix: a,
-                rhs: b,
-                model,
-                tolerances: input.tolerances.clone(),
-            },
-            Operation::LeastSquares,
-            limits,
-            cancel,
-        )?;
-        for (row, i) in unknown.iter().copied().enumerate() {
-            offsets[i] = result.candidate[row];
+        let (candidate, rank, diagnostics) = solve(&LinearInput {
+            matrix: a,
+            rhs: b,
+            model,
+            tolerances: input.tolerances.clone(),
+        })?;
+        if candidate.len() != size || candidate.iter().any(|x| !x.is_finite()) {
+            return Err(Error::Numerical("invalid prepared thermal candidate"));
         }
-        linear_result = Some(result);
+        for (row, i) in unknown.iter().copied().enumerate() {
+            offsets[i] = candidate[row];
+        }
+        numerical_rank = rank;
+        linear_result = diagnostics;
     }
-    let rank_resolved = linear_result
-        .as_ref()
-        .is_none_or(|r| r.diagnostics.numerical_rank == expected_rank);
+    let rank_resolved = numerical_rank == expected_rank;
     let absolute: Vec<Option<f64>> = input
         .nodes
         .iter()

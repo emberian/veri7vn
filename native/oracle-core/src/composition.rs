@@ -24,6 +24,26 @@ struct Edge {
     fragment: Option<usize>,
 }
 
+/// Complete composition output and its aggregate retained-data reservation.
+/// Borrowing cannot detach a program from the guard; the internal reader may
+/// transfer both together when it takes ownership of the batch.
+#[derive(Debug)]
+pub struct ComposedMatches {
+    programs: Vec<MatchedProgram>,
+    memory: crate::budget::MemoryReservation,
+}
+impl std::ops::Deref for ComposedMatches {
+    type Target = [MatchedProgram];
+    fn deref(&self) -> &Self::Target {
+        &self.programs
+    }
+}
+impl ComposedMatches {
+    pub(crate) fn into_parts(self) -> (Vec<MatchedProgram>, crate::budget::MemoryReservation) {
+        (self.programs, self.memory)
+    }
+}
+
 /// Find complete learned outer questions using bounded X-region holes first.
 /// Parse only demanded regions, then validate consumed fragments once per program.
 /// Prefix probes prune impossible lexical choices; unused fragments never run.
@@ -43,7 +63,7 @@ pub fn match_composed<F>(
     limits: MatchLimits,
     budget: &Budget,
     mut viable: F,
-) -> Result<Vec<MatchedProgram>>
+) -> Result<ComposedMatches>
 where
     F: FnMut(&Program) -> Result<bool>,
 {
@@ -64,7 +84,7 @@ where
         offset += word.len() + 1;
     }
     offsets.push(normalized.len().saturating_add(1));
-    let mut ledger = Ledger::new(limits.materialized_bytes);
+    let mut ledger = Ledger::new(limits.materialized_bytes, budget)?;
     let result = compose(
         db,
         normalized,
@@ -80,7 +100,11 @@ where
         &mut viable,
     );
     probe::record(&ledger, &result);
-    result
+    let programs = result?;
+    // compose's chart/arena have dropped. Transfer the already-live output
+    // reservation while releasing only those now-dead owners.
+    let memory = ledger.into_output_memory();
+    Ok(ComposedMatches { programs, memory })
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -310,7 +334,11 @@ where
                 if output.len() >= limits.matches {
                     return Err(Error::Limit("composition matches"));
                 }
-                regions.charge(serde_json::to_vec(&candidate)?.len(), Owner::Output)?;
+                let retained = crate::query::encoded_size(&candidate, usize::MAX)?
+                    .checked_mul(16)
+                    .and_then(|n| n.checked_add(256))
+                    .ok_or(Error::Limit("retained memory accounting overflow"))?;
+                regions.charge(retained, Owner::Output)?;
                 output.push(candidate);
             }
             let mut position = cursor.len();
@@ -578,12 +606,24 @@ pub mod probe {
             Ok(found) => format!("ok {} programs", found.len()),
             Err(error) => format!("error {error:?}"),
         };
-        RECORDS.lock().expect("probe lock").push(Record {
+        let mut records = RECORDS.lock().expect("probe lock");
+        if !ENABLED.load(Ordering::Relaxed) {
+            return;
+        }
+        if records.len() == 1024 {
+            records.remove(0);
+        }
+        records.push(Record {
             peak: ledger.peak,
             peak_owners,
             final_bytes: ledger.bytes,
             outcome,
         });
+    }
+    /// Stop recording and release bounded retained measurement records.
+    pub fn disable() {
+        ENABLED.store(false, Ordering::Relaxed);
+        RECORDS.lock().expect("probe lock").clear();
     }
     /// Take and clear every record since the last call.
     pub fn take() -> Vec<Record> {

@@ -18,7 +18,7 @@ tempfile = "3"
 num-bigint = "0.4"
 num-rational = "0.4"
 num-traits = "0.2"
-nix = { version = "0.30", features = ["fs", "signal", "process"] }
+nix = { version = "0.30", features = ["fs", "signal", "process", "poll"] }
 
 [profile.release]
 lto = "thin"

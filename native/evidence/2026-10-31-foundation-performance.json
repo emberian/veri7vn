@@ -1,0 +1,2365 @@
+{
+  "schema": "native-foundation-performance-receipt-v1",
+  "date": "2026-10-31",
+  "scope": "Pinned pre-foundation01b0fbd versus foundationf0dfad7; no Sol integrated code in these results.",
+  "panel_numbers": null,
+  "theorem_statements": [],
+  "provenance": {
+    "revisions": {
+      "pre": "01b0fbd3088e23f99c7a026921ce99e22e87fec5",
+      "foundation": "f0dfad77669dfb3f97f6680cd452b406bcfae271"
+    },
+    "archives": {
+      "foundation.tar": "2e14b4985b17a29611ec124b11ce5e8e63ba367273ef0e039f815ff173528930",
+      "pre-support.tar": "17e2e01b3a7b3c714fe382a62deaa68611e8d1d3af048ae41299544c1f6b6974",
+      "foundation-support.tar": "ad6c2d06d50c57e6b0a7da8a445921eced6583ffd13ea3f2514e1364b47ae12a",
+      "pre.tar": "c93bf3c8719db46adeafbd722d3b93a3a6c38260023f5040d6a69567017a7cdb"
+    },
+    "source_scope": [
+      "native/",
+      "src/extract/discrete-certificate/main.sml"
+    ],
+    "build_profile": "release,thin LTO,codegen-units1,all six oracle-host provider features",
+    "build_jobs": 2,
+    "target": "/tank/lanes/o7-native-20261028/target",
+    "panel_numbers": null,
+    "theorem_statements": []
+  },
+  "environment": {
+    "rustc": "rustc 1.100.0-nightly (0dfb098f3 2026-08-31)",
+    "cargo": "cargo 1.100.0-nightly (e8cb624d5 2026-08-22)",
+    "cpu_affinity": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23
+    ],
+    "lscpu": "Architecture:                         x86_64\nCPU op-mode(s):                       32-bit, 64-bit\nAddress sizes:                        46 bits physical, 48 bits virtual\nByte Order:                           Little Endian\nCPU(s):                               24\nOn-line CPU(s) list:                  0-23\nVendor ID:                            GenuineIntel\nModel name:                           12th Gen Intel(R) Core(TM) i9-12900\nCPU family:                           6\nModel:                                151\nThread(s) per core:                   2\nCore(s) per socket:                   16\nSocket(s):                            1\nStepping:                             2\nCPU(s) scaling MHz:                   53%\nCPU max MHz:                          5100.0000\nCPU min MHz:                          800.0000\nBogoMIPS:                             4838.40\nFlags:                                fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc art arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc cpuid aperfmperf tsc_known_freq pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch cpuid_fault ssbd ibrs ibpb stibp ibrs_enhanced tpr_shadow flexpriority ept vpid ept_ad fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid rdseed adx smap clflushopt clwb intel_pt sha_ni xsaveopt xsavec xgetbv1 xsaves split_lock_detect user_shstk avx_vnni dtherm ida arat pln pts hwp hwp_notify hwp_act_window hwp_epp hwp_pkg_req hfi vnmi umip pku ospke waitpkg gfni vaes vpclmulqdq rdpid movdiri movdir64b fsrm md_clear serialize pconfig arch_lbr ibt flush_l1d arch_capabilities\nVirtualization:                       VT-x\nL1d cache:                            640 KiB (16 instances)\nL1i cache:                            768 KiB (16 instances)\nL2 cache:                             14 MiB (10 instances)\nL3 cache:                             30 MiB (1 instance)\nNUMA node(s):                         1\nNUMA node0 CPU(s):                    0-23\nVulnerability Gather data sampling:   Not affected\nVulnerability Itlb multihit:          Not affected\nVulnerability L1tf:                   Not affected\nVulnerability Mds:                    Not affected\nVulnerability Meltdown:               Not affected\nVulnerability Mmio stale data:        Not affected\nVulnerability Reg file data sampling: Mitigation; Clear Register File\nVulnerability Retbleed:               Not affected\nVulnerability Spec rstack overflow:   Not affected\nVulnerability Spec store bypass:      Mitigation; Speculative Store Bypass disabled via prctl\nVulnerability Spectre v1:             Mitigation; usercopy/swapgs barriers and __user pointer sanitization\nVulnerability Spectre v2:             Mitigation; Enhanced / Automatic IBRS; IBPB conditional; RSB filling; PBRSB-eIBRS SW sequence; BHI BHI_DIS_S\nVulnerability Srbds:                  Not affected\nVulnerability Tsx async abort:        Not affected\n",
+    "solver_version": "clingo version 5.8.2\nAddress model: 64-bit\n\nlibclingo version 5.8.2\nConfiguration: without Python, without Lua\n\nlibclasp version 3.4.1 (libpotassco version 1.2.0)\nConfiguration: WITH_THREADS=1\nCopyright (C) Benjamin Kaufmann\n\nLicense: The MIT License <https://opensource.org/licenses/MIT>\n",
+    "meminfo": "MemTotal:       129319636 kB\nMemFree:        24984384 kB\nMemAvailable:   55434160 kB\nBuffers:         1190336 kB\nCached:         27304840 kB\nSwapCached:        43412 kB\nActive:         38100368 kB\nInactive:        2780820 kB\nActive(anon):   16863088 kB\nInactive(anon):  1733528 kB\nActive(file):   21237280 kB\nInactive(file):  1047292 kB\nUnevictable:       12644 kB\nMlocked:            2116 kB\nSwapTotal:       8388604 kB\nSwapFree:            160 kB\nZswap:                 0 kB\nZswapped:              0 kB\nDirty:              7116 kB\nWriteback:             0 kB\nAnonPages:      12307712 kB\nMapped:         10370560 kB\nShmem:           6208464 kB\nKReclaimable:    9399512 kB\nSlab:           55746928 kB\nSReclaimable:    9399512 kB\nSUnreclaim:     46347416 kB\nKernelStack:       40704 kB\nPageTables:       477980 kB\nSecPageTables:     68960 kB\nNFS_Unstable:          0 kB\nBounce:                0 kB\nWritebackTmp:          0 kB\nCommitLimit:    73048420 kB\nCommitted_AS:   255053668 kB\nVmallocTotal:   34359738367 kB\nVmallocUsed:     2482332 kB\nVmallocChunk:          0 kB\nPercpu:           191136 kB\nHardwareCorrupted:     0 kB\nAnonHugePages:    419840 kB\nShmemHugePages:     8192 kB\nShmemPmdMapped:        0 kB\nFileHugePages:         0 kB\nFilePmdMapped:         0 kB\nUnaccepted:            0 kB\nHugePages_Total:       0\nHugePages_Free:        0\nHugePages_Rsvd:        0\nHugePages_Surp:        0\nHugepagesize:       2048 kB\nHugetlb:               0 kB\nDirectMap4k:    125927096 kB\nDirectMap2M:     4921344 kB\nDirectMap1G:     3145728 kB\n",
+    "uname": {
+      "system": "Linux",
+      "node": "hbox",
+      "release": "6.11.0-29-generic",
+      "version": "#29-Ubuntu SMP PREEMPT_DYNAMIC Fri Jun 13 20:29:41 UTC 2025",
+      "machine": "x86_64",
+      "processor": "x86_64"
+    }
+  },
+  "http_runs": {
+    "http-AB-final": {
+      "schema": "native-foundation-performance-v1",
+      "machine": {
+        "system": "Linux",
+        "node": "hbox",
+        "release": "6.11.0-29-generic",
+        "version": "#29-Ubuntu SMP PREEMPT_DYNAMIC Fri Jun 13 20:29:41 UTC 2025",
+        "machine": "x86_64",
+        "processor": "x86_64"
+      },
+      "cpu": "\t: 12th Gen Intel(R) Core(TM) i9-12900",
+      "cpu_logical_count": 24,
+      "thread_environment": {
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "RAYON_NUM_THREADS": "1"
+      },
+      "fixtures_sha256": "311a7ba0c2b47268048808e647a4afa945618cb9d21fd61cdac170c07603e564",
+      "repeats": 80,
+      "versions": {
+        "pre": {
+          "binary_sha256": "ad919dd25f74b0213672a848da6bfbfae8cde9dd23af0ed2a7640e9ed752963e",
+          "startup_ms": [
+            1026.928910985589,
+            978.7058960646391,
+            1001.0336823761463
+          ],
+          "workloads": {
+            "science-small": {
+              "requests": 80,
+              "elapsed_s": 1.6154748909175396,
+              "throughput_per_s": 49.52104204761888,
+              "p50_ms": 20.11741977185011,
+              "p95_ms": 20.556652918457985,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 49.52104204761888
+            },
+            "science-large": {
+              "requests": 80,
+              "elapsed_s": 1.6112495604902506,
+              "throughput_per_s": 49.650905708026144,
+              "p50_ms": 19.950215704739094,
+              "p95_ms": 20.871594548225403,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 49.650905708026144
+            },
+            "statistics-small": {
+              "requests": 80,
+              "elapsed_s": 1.6118209213018417,
+              "throughput_per_s": 49.63330537699268,
+              "p50_ms": 20.088075660169125,
+              "p95_ms": 20.416589453816414,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 49.63330537699268
+            },
+            "statistics-large": {
+              "requests": 80,
+              "elapsed_s": 1.611555514857173,
+              "throughput_per_s": 49.64147946655759,
+              "p50_ms": 19.87618673592806,
+              "p95_ms": 21.741271018981934,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 49.64147946655759
+            },
+            "bio-small": {
+              "requests": 80,
+              "elapsed_s": 1.6093786899000406,
+              "throughput_per_s": 49.70862389446007,
+              "p50_ms": 20.1197387650609,
+              "p95_ms": 20.509904250502586,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 49.70862389446007
+            },
+            "bio-large": {
+              "requests": 80,
+              "elapsed_s": 1.611476268619299,
+              "throughput_per_s": 49.6439206446046,
+              "p50_ms": 20.040071569383144,
+              "p95_ms": 21.662477403879166,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 49.6439206446046
+            },
+            "reasoning-small": {
+              "requests": 80,
+              "elapsed_s": 1.610556747764349,
+              "throughput_per_s": 49.67226402363645,
+              "p50_ms": 20.096709951758385,
+              "p95_ms": 20.3776303678751,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 49.67226402363645
+            },
+            "reasoning-large": {
+              "requests": 80,
+              "elapsed_s": 1.6108963005244732,
+              "throughput_per_s": 49.66179385597553,
+              "p50_ms": 19.51879821717739,
+              "p95_ms": 21.791962906718254,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 49.66179385597553
+            },
+            "incremental-small": {
+              "requests": 80,
+              "elapsed_s": 1.6113277189433575,
+              "throughput_per_s": 49.64849735996642,
+              "p50_ms": 20.082962699234486,
+              "p95_ms": 20.679807290434837,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 49.64849735996642
+            },
+            "logic-small": {
+              "requests": 80,
+              "elapsed_s": 1.6479329820722342,
+              "throughput_per_s": 48.54566348893753,
+              "p50_ms": 20.206009037792683,
+              "p95_ms": 26.485471054911613,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 48.54566348893753
+            },
+            "science-refusal": {
+              "requests": 80,
+              "elapsed_s": 1.6118343360722065,
+              "throughput_per_s": 49.632892295214255,
+              "p50_ms": 20.091870799660683,
+              "p95_ms": 20.40025405585766,
+              "outcomes": {
+                "400:invalid_arguments": 80
+              },
+              "answered_throughput_per_s": 0.0
+            },
+            "reader-small": {
+              "requests": 80,
+              "elapsed_s": 7.658707212656736,
+              "throughput_per_s": 10.445627150727534,
+              "p50_ms": 86.05922851711512,
+              "p95_ms": 137.52673752605915,
+              "outcomes": {
+                "200:withheld": 80
+              },
+              "answered_throughput_per_s": 0.0
+            },
+            "reader-composed": {
+              "requests": 80,
+              "elapsed_s": 9.90728615783155,
+              "throughput_per_s": 8.074865177560385,
+              "p50_ms": 108.78358129411936,
+              "p95_ms": 181.14830739796162,
+              "outcomes": {
+                "200:withheld": 80
+              },
+              "answered_throughput_per_s": 0.0
+            },
+            "reader-retained-control": {
+              "requests": 80,
+              "elapsed_s": 4.055812520906329,
+              "throughput_per_s": 19.72477760932669,
+              "p50_ms": 45.35886272788048,
+              "p95_ms": 77.1556869149208,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 19.72477760932669
+            }
+          },
+          "startup_process_trees": [
+            {
+              "exit": 0,
+              "sampled_tree_peak_rss_kib": 9404,
+              "sampled_tree_peak_pss_kib": null,
+              "sampled_tree_peak_private_kib": null,
+              "samples": 29,
+              "max_processes": 1,
+              "interval_ms": 10
+            },
+            {
+              "exit": 0,
+              "sampled_tree_peak_rss_kib": 8912,
+              "sampled_tree_peak_pss_kib": null,
+              "sampled_tree_peak_private_kib": null,
+              "samples": 19,
+              "max_processes": 1,
+              "interval_ms": 10
+            },
+            {
+              "exit": 0,
+              "sampled_tree_peak_rss_kib": 9288,
+              "sampled_tree_peak_pss_kib": null,
+              "sampled_tree_peak_private_kib": null,
+              "samples": 22,
+              "max_processes": 1,
+              "interval_ms": 10
+            }
+          ],
+          "concurrency": {
+            "clients=1,tenants=1": {
+              "requests": 80,
+              "elapsed_s": 1.620623517781496,
+              "throughput_per_s": 49.36371657096128,
+              "p50_ms": 20.050431601703167,
+              "p95_ms": 21.796954795718193,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 49.36371657096128
+            },
+            "clients=1,tenants=4": {
+              "requests": 80,
+              "elapsed_s": 1.614565510302782,
+              "throughput_per_s": 49.548934056567006,
+              "p50_ms": 20.039536990225315,
+              "p95_ms": 21.508080884814262,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 49.548934056567006
+            },
+            "clients=4,tenants=1": {
+              "requests": 80,
+              "elapsed_s": 0.40306320041418076,
+              "throughput_per_s": 198.48003965083737,
+              "p50_ms": 20.18311619758606,
+              "p95_ms": 21.71213924884796,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 198.48003965083737
+            },
+            "clients=4,tenants=4": {
+              "requests": 80,
+              "elapsed_s": 0.404601925984025,
+              "throughput_per_s": 197.7252080682351,
+              "p50_ms": 20.150216296315193,
+              "p95_ms": 21.58850058913231,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 197.7252080682351
+            },
+            "clients=8,tenants=1": {
+              "requests": 80,
+              "elapsed_s": 0.20264864340424538,
+              "throughput_per_s": 394.77194940020036,
+              "p50_ms": 19.180177710950375,
+              "p95_ms": 23.29765073955059,
+              "outcomes": {
+                "200:answered": 40,
+                "429:pool_busy": 40
+              },
+              "answered_throughput_per_s": 197.38597470010018
+            },
+            "clients=8,tenants=4": {
+              "requests": 80,
+              "elapsed_s": 0.20307661406695843,
+              "throughput_per_s": 393.93999337423656,
+              "p50_ms": 19.65733803808689,
+              "p95_ms": 23.292871192097664,
+              "outcomes": {
+                "200:answered": 40,
+                "429:pool_busy": 40
+              },
+              "answered_throughput_per_s": 196.96999668711828
+            }
+          },
+          "process_tree": {
+            "exit": 0,
+            "sampled_tree_peak_rss_kib": 46284,
+            "sampled_tree_peak_pss_kib": null,
+            "sampled_tree_peak_private_kib": null,
+            "samples": 861,
+            "max_processes": 1,
+            "interval_ms": 10
+          },
+          "cancellation": {
+            "http_ms": 21.864309906959534,
+            "response": [
+              503,
+              {
+                "error": "deadline_exceeded",
+                "exact_retry_required": false,
+                "outcome": "error",
+                "retryable": false,
+                "state_may_have_changed": false
+              }
+            ],
+            "drain_observations": [
+              {
+                "after_reply_ms": 18.558457493782043,
+                "busy": 0
+              }
+            ]
+          },
+          "cancel_process_tree": {
+            "exit": 0,
+            "sampled_tree_peak_rss_kib": 9784,
+            "sampled_tree_peak_pss_kib": null,
+            "sampled_tree_peak_private_kib": null,
+            "samples": 39,
+            "max_processes": 1,
+            "interval_ms": 10
+          },
+          "correctness": {
+            "science-small": {
+              "http_status": 200,
+              "status": "answered",
+              "semantic_status": null,
+              "normalized_sha256": "032a3b78ad42f741ffb688532d842442a48530ed058e9ce45e281c7a1e34d072"
+            },
+            "science-large": {
+              "http_status": 200,
+              "status": "answered",
+              "semantic_status": null,
+              "normalized_sha256": "ceeaf02294a480154bea05b52c1613fcd1a8691fa3f82d59e3eb1705ae356709"
+            },
+            "statistics-small": {
+              "http_status": 200,
+              "status": "answered",
+              "semantic_status": null,
+              "normalized_sha256": "61a14b98692d44964cea5bb8ba0528ce592c650e88adb3047fb5cb1c9a659fa4"
+            },
+            "statistics-large": {
+              "http_status": 200,
+              "status": "answered",
+              "semantic_status": null,
+              "normalized_sha256": "df4db825c67008ce9f73e20b66fb8fd1991456d214f3b0f9ec5c5f96d0e8d28c"
+            },
+            "bio-small": {
+              "http_status": 200,
+              "status": "answered",
+              "semantic_status": null,
+              "normalized_sha256": "354cd33e17791fc86b812a7d103041e8c666e17b6e52e3897887a126c46f9682"
+            },
+            "bio-large": {
+              "http_status": 200,
+              "status": "answered",
+              "semantic_status": null,
+              "normalized_sha256": "ba2afd98092ff1454a86cefa51d1959728f2d854ad13abc914f632744a3b11c6"
+            },
+            "reasoning-small": {
+              "http_status": 200,
+              "status": "answered",
+              "semantic_status": null,
+              "normalized_sha256": "2e721f266d0df65ceb66fc2e4d28bf062f9d5a9a043e70c73764f4dc36a527e3"
+            },
+            "reasoning-large": {
+              "http_status": 200,
+              "status": "answered",
+              "semantic_status": null,
+              "normalized_sha256": "6956ab55c8914ee893df7f37483815265a552328efbbc137140de977992a958b"
+            },
+            "incremental-small": {
+              "http_status": 200,
+              "status": "answered",
+              "semantic_status": null,
+              "normalized_sha256": "c7ae8d781d4984d49dcb9c84eb78d6d20daf3375ada63129e16307a17374e0e4"
+            },
+            "logic-small": {
+              "http_status": 200,
+              "status": "answered",
+              "semantic_status": null,
+              "normalized_sha256": "6614637fb32d8bc09bb2ec6ccfaadf24ce9f8d16e22597b4dfbd278b1f7dd242"
+            },
+            "science-refusal": {
+              "http_status": 400,
+              "status": null,
+              "semantic_status": null,
+              "normalized_sha256": "318e5d5e9f48ee6944b600a1ad0f006b347c299edadc93e4b6371f109faabf3d"
+            },
+            "reader-small": {
+              "http_status": 200,
+              "status": "withheld",
+              "semantic_status": "refused",
+              "normalized_sha256": "0eb919aa030fb134e609b34c2727a2215ca695b1311a94aec3dcfc25e4e7e340"
+            },
+            "reader-composed": {
+              "http_status": 200,
+              "status": "withheld",
+              "semantic_status": "refused",
+              "normalized_sha256": "0d2e045323cf66176dc48c358bd1c418a67ffe1275c08563c9711c7370b27185"
+            },
+            "reader-retained-control": {
+              "http_status": 200,
+              "status": "answered",
+              "semantic_status": "answered",
+              "normalized_sha256": "840412d7dba6121db612f192ad3e5e998c53e6d18fab47dc0d2fff9d21ccfd2f"
+            }
+          }
+        },
+        "foundation": {
+          "binary_sha256": "9a555f5b5d6db0823a6e9861275f8fc6dcd7bf6fbbea8462682cf2c16d26fe6a",
+          "startup_ms": [
+            1317.1493839472532,
+            1327.0475044846535,
+            1479.8177629709244
+          ],
+          "workloads": {
+            "science-small": {
+              "requests": 80,
+              "elapsed_s": 1.6097952648997307,
+              "throughput_per_s": 49.695760538209164,
+              "p50_ms": 20.068657584488392,
+              "p95_ms": 20.304759964346886,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 49.695760538209164
+            },
+            "science-large": {
+              "requests": 80,
+              "elapsed_s": 1.609316872432828,
+              "throughput_per_s": 49.71053331409048,
+              "p50_ms": 19.937092438340187,
+              "p95_ms": 20.4097218811512,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 49.71053331409048
+            },
+            "statistics-small": {
+              "requests": 80,
+              "elapsed_s": 1.608925987035036,
+              "throughput_per_s": 49.72261039019312,
+              "p50_ms": 20.0714860111475,
+              "p95_ms": 20.258275792002678,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 49.72261039019312
+            },
+            "statistics-large": {
+              "requests": 80,
+              "elapsed_s": 1.6080663911998272,
+              "throughput_per_s": 49.74918973358405,
+              "p50_ms": 19.963263534009457,
+              "p95_ms": 20.97797580063343,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 49.74918973358405
+            },
+            "bio-small": {
+              "requests": 80,
+              "elapsed_s": 1.6034042499959469,
+              "throughput_per_s": 49.893843053117905,
+              "p50_ms": 20.08969523012638,
+              "p95_ms": 20.245259627699852,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 49.893843053117905
+            },
+            "bio-large": {
+              "requests": 80,
+              "elapsed_s": 1.6090528015047312,
+              "throughput_per_s": 49.71869159619046,
+              "p50_ms": 20.06476279348135,
+              "p95_ms": 21.24553546309471,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 49.71869159619046
+            },
+            "reasoning-small": {
+              "requests": 80,
+              "elapsed_s": 1.6102149095386267,
+              "throughput_per_s": 49.68280912448036,
+              "p50_ms": 20.097417756915092,
+              "p95_ms": 20.389392971992493,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 49.68280912448036
+            },
+            "reasoning-large": {
+              "requests": 80,
+              "elapsed_s": 1.608820928260684,
+              "throughput_per_s": 49.72585736219194,
+              "p50_ms": 19.58489790558815,
+              "p95_ms": 21.528609097003937,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 49.72585736219194
+            },
+            "incremental-small": {
+              "requests": 80,
+              "elapsed_s": 1.6094259563833475,
+              "throughput_per_s": 49.70716402497543,
+              "p50_ms": 20.128410309553146,
+              "p95_ms": 20.613471046090126,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 49.70716402497543
+            },
+            "logic-small": {
+              "requests": 80,
+              "elapsed_s": 1.605211079120636,
+              "throughput_per_s": 49.837682433531086,
+              "p50_ms": 20.107409916818142,
+              "p95_ms": 24.177048355340958,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 49.837682433531086
+            },
+            "science-refusal": {
+              "requests": 80,
+              "elapsed_s": 1.6093787755817175,
+              "throughput_per_s": 49.70862124802387,
+              "p50_ms": 20.07589489221573,
+              "p95_ms": 20.236285403370857,
+              "outcomes": {
+                "400:invalid_arguments": 80
+              },
+              "answered_throughput_per_s": 0.0
+            },
+            "reader-small": {
+              "requests": 80,
+              "elapsed_s": 5.528366034850478,
+              "throughput_per_s": 14.470821847845265,
+              "p50_ms": 66.02925900369883,
+              "p95_ms": 89.60508555173874,
+              "outcomes": {
+                "200:withheld": 80
+              },
+              "answered_throughput_per_s": 0.0
+            },
+            "reader-composed": {
+              "requests": 80,
+              "elapsed_s": 6.91422357223928,
+              "throughput_per_s": 11.570351922260846,
+              "p50_ms": 82.09936879575253,
+              "p95_ms": 107.89546184241772,
+              "outcomes": {
+                "200:withheld": 80
+              },
+              "answered_throughput_per_s": 0.0
+            },
+            "reader-retained-control": {
+              "requests": 80,
+              "elapsed_s": 3.481743948534131,
+              "throughput_per_s": 22.976991181008948,
+              "p50_ms": 40.62497615814209,
+              "p95_ms": 66.62769429385662,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 22.976991181008948
+            }
+          },
+          "startup_process_trees": [
+            {
+              "exit": 0,
+              "sampled_tree_peak_rss_kib": 8972,
+              "sampled_tree_peak_pss_kib": null,
+              "sampled_tree_peak_private_kib": null,
+              "samples": 40,
+              "max_processes": 1,
+              "interval_ms": 10
+            },
+            {
+              "exit": 0,
+              "sampled_tree_peak_rss_kib": 9008,
+              "sampled_tree_peak_pss_kib": null,
+              "sampled_tree_peak_private_kib": null,
+              "samples": 39,
+              "max_processes": 1,
+              "interval_ms": 10
+            },
+            {
+              "exit": 0,
+              "sampled_tree_peak_rss_kib": 8992,
+              "sampled_tree_peak_pss_kib": null,
+              "sampled_tree_peak_private_kib": null,
+              "samples": 42,
+              "max_processes": 1,
+              "interval_ms": 10
+            }
+          ],
+          "concurrency": {
+            "clients=1,tenants=1": {
+              "requests": 80,
+              "elapsed_s": 1.5991153866052628,
+              "throughput_per_s": 50.02765946104162,
+              "p50_ms": 20.001077093183994,
+              "p95_ms": 21.444780752062798,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 50.02765946104162
+            },
+            "clients=1,tenants=4": {
+              "requests": 80,
+              "elapsed_s": 1.6097793597728014,
+              "throughput_per_s": 49.696251547970476,
+              "p50_ms": 20.025081001222134,
+              "p95_ms": 21.232977509498596,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 49.696251547970476
+            },
+            "clients=4,tenants=1": {
+              "requests": 80,
+              "elapsed_s": 0.40320921316742897,
+              "throughput_per_s": 198.40816476279457,
+              "p50_ms": 20.09111549705267,
+              "p95_ms": 21.553536877036095,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 198.40816476279457
+            },
+            "clients=4,tenants=4": {
+              "requests": 80,
+              "elapsed_s": 0.4031395148485899,
+              "throughput_per_s": 198.44246731815954,
+              "p50_ms": 20.094694569706917,
+              "p95_ms": 21.51433192193508,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 198.44246731815954
+            },
+            "clients=8,tenants=1": {
+              "requests": 80,
+              "elapsed_s": 0.20266261138021946,
+              "throughput_per_s": 394.7447408042639,
+              "p50_ms": 19.55718733370304,
+              "p95_ms": 22.856025025248528,
+              "outcomes": {
+                "200:answered": 40,
+                "429:pool_busy": 40
+              },
+              "answered_throughput_per_s": 197.37237040213196
+            },
+            "clients=8,tenants=4": {
+              "requests": 80,
+              "elapsed_s": 0.20105342008173466,
+              "throughput_per_s": 397.90419863276855,
+              "p50_ms": 20.099620334804058,
+              "p95_ms": 22.43632636964321,
+              "outcomes": {
+                "429:pool_busy": 40,
+                "200:answered": 40
+              },
+              "answered_throughput_per_s": 198.95209931638428
+            }
+          },
+          "process_tree": {
+            "exit": 0,
+            "sampled_tree_peak_rss_kib": 40076,
+            "sampled_tree_peak_pss_kib": null,
+            "sampled_tree_peak_private_kib": null,
+            "samples": 1026,
+            "max_processes": 1,
+            "interval_ms": 10
+          },
+          "cancellation": {
+            "http_ms": 21.698353812098503,
+            "response": [
+              503,
+              {
+                "error": "deadline_exceeded",
+                "exact_retry_required": false,
+                "outcome": "error",
+                "retryable": false,
+                "state_may_have_changed": false
+              }
+            ],
+            "drain_observations": [
+              {
+                "after_reply_ms": 18.755421042442322,
+                "busy": 0
+              }
+            ]
+          },
+          "cancel_process_tree": {
+            "exit": 0,
+            "sampled_tree_peak_rss_kib": 9684,
+            "sampled_tree_peak_pss_kib": null,
+            "sampled_tree_peak_private_kib": null,
+            "samples": 54,
+            "max_processes": 1,
+            "interval_ms": 10
+          },
+          "tenant_capacity_1": {
+            "1": {
+              "requests": 80,
+              "elapsed_s": 0.20626570843160152,
+              "throughput_per_s": 387.84924846840596,
+              "p50_ms": 20.16841620206833,
+              "p95_ms": 21.715914830565453,
+              "outcomes": {
+                "429:pool_busy": 70,
+                "200:answered": 10
+              },
+              "answered_throughput_per_s": 48.481156058550745
+            },
+            "4": {
+              "requests": 80,
+              "elapsed_s": 0.20175383612513542,
+              "throughput_per_s": 396.52281977122334,
+              "p50_ms": 19.81005072593689,
+              "p95_ms": 22.513628005981445,
+              "outcomes": {
+                "200:answered": 40,
+                "429:pool_busy": 40
+              },
+              "answered_throughput_per_s": 198.26140988561167
+            }
+          },
+          "tenant_process_tree": {
+            "exit": 0,
+            "sampled_tree_peak_rss_kib": 12844,
+            "sampled_tree_peak_pss_kib": null,
+            "sampled_tree_peak_private_kib": null,
+            "samples": 59,
+            "max_processes": 1,
+            "interval_ms": 10
+          },
+          "fuel_1_response": [
+            200,
+            {
+              "durable_replay": false,
+              "native_execution": [
+                {
+                  "admission": {
+                    "host_sha256": "9a555f5b5d6db0823a6e9861275f8fc6dcd7bf6fbbea8462682cf2c16d26fe6a",
+                    "route": "bio"
+                  },
+                  "containment": {
+                    "elapsed_ms": 0,
+                    "process": "in_host"
+                  }
+                }
+              ],
+              "operation_id": "bio.align_pairwise",
+              "outcome": "completed",
+              "reply": {
+                "authority": "computation_only",
+                "detail": "resource limit: shared work",
+                "operation_id": "bio.align_pairwise",
+                "reason": "native_request_refused",
+                "status": "withheld"
+              }
+            }
+          ],
+          "fuel_process_tree": {
+            "exit": 0,
+            "sampled_tree_peak_rss_kib": 9800,
+            "sampled_tree_peak_pss_kib": null,
+            "sampled_tree_peak_private_kib": null,
+            "samples": 50,
+            "max_processes": 1,
+            "interval_ms": 10
+          },
+          "correctness": {
+            "science-small": {
+              "http_status": 200,
+              "status": "answered",
+              "semantic_status": null,
+              "normalized_sha256": "032a3b78ad42f741ffb688532d842442a48530ed058e9ce45e281c7a1e34d072"
+            },
+            "science-large": {
+              "http_status": 200,
+              "status": "answered",
+              "semantic_status": null,
+              "normalized_sha256": "ceeaf02294a480154bea05b52c1613fcd1a8691fa3f82d59e3eb1705ae356709"
+            },
+            "statistics-small": {
+              "http_status": 200,
+              "status": "answered",
+              "semantic_status": null,
+              "normalized_sha256": "61a14b98692d44964cea5bb8ba0528ce592c650e88adb3047fb5cb1c9a659fa4"
+            },
+            "statistics-large": {
+              "http_status": 200,
+              "status": "answered",
+              "semantic_status": null,
+              "normalized_sha256": "df4db825c67008ce9f73e20b66fb8fd1991456d214f3b0f9ec5c5f96d0e8d28c"
+            },
+            "bio-small": {
+              "http_status": 200,
+              "status": "answered",
+              "semantic_status": null,
+              "normalized_sha256": "354cd33e17791fc86b812a7d103041e8c666e17b6e52e3897887a126c46f9682"
+            },
+            "bio-large": {
+              "http_status": 200,
+              "status": "answered",
+              "semantic_status": null,
+              "normalized_sha256": "ba2afd98092ff1454a86cefa51d1959728f2d854ad13abc914f632744a3b11c6"
+            },
+            "reasoning-small": {
+              "http_status": 200,
+              "status": "answered",
+              "semantic_status": null,
+              "normalized_sha256": "2e721f266d0df65ceb66fc2e4d28bf062f9d5a9a043e70c73764f4dc36a527e3"
+            },
+            "reasoning-large": {
+              "http_status": 200,
+              "status": "answered",
+              "semantic_status": null,
+              "normalized_sha256": "6956ab55c8914ee893df7f37483815265a552328efbbc137140de977992a958b"
+            },
+            "incremental-small": {
+              "http_status": 200,
+              "status": "answered",
+              "semantic_status": null,
+              "normalized_sha256": "c7ae8d781d4984d49dcb9c84eb78d6d20daf3375ada63129e16307a17374e0e4"
+            },
+            "logic-small": {
+              "http_status": 200,
+              "status": "answered",
+              "semantic_status": null,
+              "normalized_sha256": "6614637fb32d8bc09bb2ec6ccfaadf24ce9f8d16e22597b4dfbd278b1f7dd242"
+            },
+            "science-refusal": {
+              "http_status": 400,
+              "status": null,
+              "semantic_status": null,
+              "normalized_sha256": "318e5d5e9f48ee6944b600a1ad0f006b347c299edadc93e4b6371f109faabf3d"
+            },
+            "reader-small": {
+              "http_status": 200,
+              "status": "withheld",
+              "semantic_status": "refused",
+              "normalized_sha256": "0eb919aa030fb134e609b34c2727a2215ca695b1311a94aec3dcfc25e4e7e340"
+            },
+            "reader-composed": {
+              "http_status": 200,
+              "status": "withheld",
+              "semantic_status": "refused",
+              "normalized_sha256": "0d2e045323cf66176dc48c358bd1c418a67ffe1275c08563c9711c7370b27185"
+            },
+            "reader-retained-control": {
+              "http_status": 200,
+              "status": "answered",
+              "semantic_status": "answered",
+              "normalized_sha256": "840412d7dba6121db612f192ad3e5e998c53e6d18fab47dc0d2fff9d21ccfd2f"
+            }
+          }
+        }
+      },
+      "comparisons": {
+        "science-small": {
+          "reply_equal": true,
+          "p50_post_over_pre": 0.9975761211967178
+        },
+        "science-large": {
+          "reply_equal": true,
+          "p50_post_over_pre": 0.9993421992727733
+        },
+        "statistics-small": {
+          "reply_equal": true,
+          "p50_post_over_pre": 0.9991741543937671
+        },
+        "statistics-large": {
+          "reply_equal": true,
+          "p50_post_over_pre": 1.0043809609578682
+        },
+        "bio-small": {
+          "reply_equal": true,
+          "p50_post_over_pre": 0.9985067631699726
+        },
+        "bio-large": {
+          "reply_equal": true,
+          "p50_post_over_pre": 1.0012320926106835
+        },
+        "reasoning-small": {
+          "reply_equal": true,
+          "p50_post_over_pre": 1.0000352199518432
+        },
+        "reasoning-large": {
+          "reply_equal": true,
+          "p50_post_over_pre": 1.0033864630227383
+        },
+        "incremental-small": {
+          "reply_equal": true,
+          "p50_post_over_pre": 1.002262993314248
+        },
+        "logic-small": {
+          "reply_equal": true,
+          "p50_post_over_pre": 0.9951203069943142
+        },
+        "science-refusal": {
+          "reply_equal": true,
+          "p50_post_over_pre": 0.9992048571482341
+        },
+        "reader-small": {
+          "reply_equal": true,
+          "p50_post_over_pre": 0.7672536710059769
+        },
+        "reader-composed": {
+          "reply_equal": true,
+          "p50_post_over_pre": 0.7547036769618714
+        },
+        "reader-retained-control": {
+          "reply_equal": true,
+          "p50_post_over_pre": 0.8956348046436218
+        }
+      },
+      "load_before": "16.53 18.93 18.50 10/2562 151098",
+      "image_sha256": "8fcb1db9a08e234179f66ea9e032d2633b38cdcb902f4c95d1ba2c2d49c842f4",
+      "load_after": "14.41 17.62 18.08 5/2521 266166",
+      "raw": {
+        "path": "var/sol-wave-20261031/measurement/http-AB-final.json",
+        "sha256": "bb5a8db75b98f9092e9ed28c81c1c5635d2694869f493ef4713416675d059081"
+      }
+    },
+    "http-BA-final": {
+      "schema": "native-foundation-performance-v1",
+      "machine": {
+        "system": "Linux",
+        "node": "hbox",
+        "release": "6.11.0-29-generic",
+        "version": "#29-Ubuntu SMP PREEMPT_DYNAMIC Fri Jun 13 20:29:41 UTC 2025",
+        "machine": "x86_64",
+        "processor": "x86_64"
+      },
+      "cpu": "\t: 12th Gen Intel(R) Core(TM) i9-12900",
+      "cpu_logical_count": 24,
+      "thread_environment": {
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "RAYON_NUM_THREADS": "1"
+      },
+      "fixtures_sha256": "311a7ba0c2b47268048808e647a4afa945618cb9d21fd61cdac170c07603e564",
+      "repeats": 80,
+      "versions": {
+        "foundation": {
+          "binary_sha256": "9a555f5b5d6db0823a6e9861275f8fc6dcd7bf6fbbea8462682cf2c16d26fe6a",
+          "startup_ms": [
+            1832.2560861706734,
+            1501.7146412283182,
+            1577.1516859531403
+          ],
+          "workloads": {
+            "science-small": {
+              "requests": 80,
+              "elapsed_s": 1.6090777162462473,
+              "throughput_per_s": 49.71792175870087,
+              "p50_ms": 20.071995444595814,
+              "p95_ms": 20.22593282163143,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 49.71792175870087
+            },
+            "science-large": {
+              "requests": 80,
+              "elapsed_s": 1.6076134238392115,
+              "throughput_per_s": 49.76320725722016,
+              "p50_ms": 19.93676833808422,
+              "p95_ms": 20.221564918756485,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 49.76320725722016
+            },
+            "statistics-small": {
+              "requests": 80,
+              "elapsed_s": 1.6074100770056248,
+              "throughput_per_s": 49.76950259577106,
+              "p50_ms": 20.064400508999825,
+              "p95_ms": 20.154614001512527,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 49.76950259577106
+            },
+            "statistics-large": {
+              "requests": 80,
+              "elapsed_s": 1.6077492348849773,
+              "throughput_per_s": 49.75900362081243,
+              "p50_ms": 20.05668543279171,
+              "p95_ms": 20.839547738432884,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 49.75900362081243
+            },
+            "bio-small": {
+              "requests": 80,
+              "elapsed_s": 1.6041584350168705,
+              "throughput_per_s": 49.870385775927836,
+              "p50_ms": 20.06717026233673,
+              "p95_ms": 20.173704251646996,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 49.870385775927836
+            },
+            "bio-large": {
+              "requests": 80,
+              "elapsed_s": 1.6071283891797066,
+              "throughput_per_s": 49.77822589571251,
+              "p50_ms": 20.061842165887356,
+              "p95_ms": 21.074553951621056,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 49.77822589571251
+            },
+            "reasoning-small": {
+              "requests": 80,
+              "elapsed_s": 1.6078561153262854,
+              "throughput_per_s": 49.75569594656512,
+              "p50_ms": 20.074241794645786,
+              "p95_ms": 20.14274336397648,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 49.75569594656512
+            },
+            "reasoning-large": {
+              "requests": 80,
+              "elapsed_s": 1.6091215554624796,
+              "throughput_per_s": 49.71656723410625,
+              "p50_ms": 19.55334283411503,
+              "p95_ms": 21.357953548431396,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 49.71656723410625
+            },
+            "incremental-small": {
+              "requests": 80,
+              "elapsed_s": 1.6106193587183952,
+              "throughput_per_s": 49.6703330721529,
+              "p50_ms": 20.08570171892643,
+              "p95_ms": 20.417923107743263,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 49.6703330721529
+            },
+            "logic-small": {
+              "requests": 80,
+              "elapsed_s": 1.616905603557825,
+              "throughput_per_s": 49.47722354599347,
+              "p50_ms": 20.19397635012865,
+              "p95_ms": 24.371415376663208,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 49.47722354599347
+            },
+            "science-refusal": {
+              "requests": 80,
+              "elapsed_s": 1.6104738879948854,
+              "throughput_per_s": 49.67481968900701,
+              "p50_ms": 20.087401382625103,
+              "p95_ms": 20.37867158651352,
+              "outcomes": {
+                "400:invalid_arguments": 80
+              },
+              "answered_throughput_per_s": 0.0
+            },
+            "reader-small": {
+              "requests": 80,
+              "elapsed_s": 7.886276146396995,
+              "throughput_per_s": 10.144204757089266,
+              "p50_ms": 89.77311104536057,
+              "p95_ms": 134.97536815702915,
+              "outcomes": {
+                "200:withheld": 80
+              },
+              "answered_throughput_per_s": 0.0
+            },
+            "reader-composed": {
+              "requests": 80,
+              "elapsed_s": 10.631343841552734,
+              "throughput_per_s": 7.524918880651668,
+              "p50_ms": 128.7931138649583,
+              "p95_ms": 176.04404129087925,
+              "outcomes": {
+                "200:withheld": 80
+              },
+              "answered_throughput_per_s": 0.0
+            },
+            "reader-retained-control": {
+              "requests": 80,
+              "elapsed_s": 5.254213096573949,
+              "throughput_per_s": 15.225876554600466,
+              "p50_ms": 67.5394618883729,
+              "p95_ms": 86.3243080675602,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 15.225876554600466
+            }
+          },
+          "startup_process_trees": [
+            {
+              "exit": 0,
+              "sampled_tree_peak_rss_kib": 9248,
+              "sampled_tree_peak_pss_kib": 7557,
+              "sampled_tree_peak_private_kib": 7548,
+              "samples": 59,
+              "max_processes": 1,
+              "interval_ms": 10
+            },
+            {
+              "exit": 0,
+              "sampled_tree_peak_rss_kib": 9396,
+              "sampled_tree_peak_pss_kib": 7704,
+              "sampled_tree_peak_private_kib": 7696,
+              "samples": 51,
+              "max_processes": 1,
+              "interval_ms": 10
+            },
+            {
+              "exit": 0,
+              "sampled_tree_peak_rss_kib": 9360,
+              "sampled_tree_peak_pss_kib": 7704,
+              "sampled_tree_peak_private_kib": 7696,
+              "samples": 51,
+              "max_processes": 1,
+              "interval_ms": 10
+            }
+          ],
+          "concurrency": {
+            "clients=1,tenants=1": {
+              "requests": 80,
+              "elapsed_s": 1.6237637642771006,
+              "throughput_per_s": 49.26825056698811,
+              "p50_ms": 20.157179795205593,
+              "p95_ms": 23.115986958146095,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 49.26825056698811
+            },
+            "clients=1,tenants=4": {
+              "requests": 80,
+              "elapsed_s": 1.6385055910795927,
+              "throughput_per_s": 48.82497834339943,
+              "p50_ms": 20.330045372247696,
+              "p95_ms": 25.508074089884758,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 48.82497834339943
+            },
+            "clients=4,tenants=1": {
+              "requests": 80,
+              "elapsed_s": 0.4184574522078037,
+              "throughput_per_s": 191.1783374341065,
+              "p50_ms": 20.35332564264536,
+              "p95_ms": 28.038419783115387,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 191.1783374341065
+            },
+            "clients=4,tenants=4": {
+              "requests": 80,
+              "elapsed_s": 0.408982515335083,
+              "throughput_per_s": 195.60738417987207,
+              "p50_ms": 20.42202465236187,
+              "p95_ms": 23.660041391849518,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 195.60738417987207
+            },
+            "clients=8,tenants=1": {
+              "requests": 80,
+              "elapsed_s": 0.21602059341967106,
+              "throughput_per_s": 370.3350626603506,
+              "p50_ms": 20.01481782644987,
+              "p95_ms": 27.88378670811653,
+              "outcomes": {
+                "200:answered": 42,
+                "429:pool_busy": 38
+              },
+              "answered_throughput_per_s": 194.42590789668407
+            },
+            "clients=8,tenants=4": {
+              "requests": 80,
+              "elapsed_s": 0.22494484297931194,
+              "throughput_per_s": 355.6427386395231,
+              "p50_ms": 19.809484481811523,
+              "p95_ms": 28.08201313018799,
+              "outcomes": {
+                "200:answered": 45,
+                "429:pool_busy": 35
+              },
+              "answered_throughput_per_s": 200.04904048473173
+            }
+          },
+          "process_tree": {
+            "exit": 0,
+            "sampled_tree_peak_rss_kib": 39504,
+            "sampled_tree_peak_pss_kib": 39336,
+            "sampled_tree_peak_private_kib": 39304,
+            "samples": 954,
+            "max_processes": 1,
+            "interval_ms": 10
+          },
+          "cancellation": {
+            "http_ms": 22.60076254606247,
+            "response": [
+              503,
+              {
+                "error": "deadline_exceeded",
+                "exact_retry_required": false,
+                "outcome": "error",
+                "retryable": false,
+                "state_may_have_changed": false
+              }
+            ],
+            "drain_observations": [
+              {
+                "after_reply_ms": 18.33178661763668,
+                "busy": 0
+              }
+            ]
+          },
+          "cancel_process_tree": {
+            "exit": 0,
+            "sampled_tree_peak_rss_kib": 10088,
+            "sampled_tree_peak_pss_kib": 8296,
+            "sampled_tree_peak_private_kib": 8288,
+            "samples": 14,
+            "max_processes": 1,
+            "interval_ms": 10
+          },
+          "tenant_capacity_1": {
+            "1": {
+              "requests": 80,
+              "elapsed_s": 0.20915723219513893,
+              "throughput_per_s": 382.4873716313181,
+              "p50_ms": 20.163300447165966,
+              "p95_ms": 23.23579601943493,
+              "outcomes": {
+                "429:pool_busy": 70,
+                "200:answered": 10
+              },
+              "answered_throughput_per_s": 47.810921453914766
+            },
+            "4": {
+              "requests": 80,
+              "elapsed_s": 0.20568880811333656,
+              "throughput_per_s": 388.9370585293061,
+              "p50_ms": 19.774433225393295,
+              "p95_ms": 24.410707876086235,
+              "outcomes": {
+                "200:answered": 40,
+                "429:pool_busy": 40
+              },
+              "answered_throughput_per_s": 194.46852926465306
+            }
+          },
+          "tenant_process_tree": {
+            "exit": 0,
+            "sampled_tree_peak_rss_kib": 12844,
+            "sampled_tree_peak_pss_kib": 12844,
+            "sampled_tree_peak_private_kib": 12836,
+            "samples": 23,
+            "max_processes": 1,
+            "interval_ms": 10
+          },
+          "fuel_1_response": [
+            200,
+            {
+              "durable_replay": false,
+              "native_execution": [
+                {
+                  "admission": {
+                    "host_sha256": "9a555f5b5d6db0823a6e9861275f8fc6dcd7bf6fbbea8462682cf2c16d26fe6a",
+                    "route": "bio"
+                  },
+                  "containment": {
+                    "elapsed_ms": 0,
+                    "process": "in_host"
+                  }
+                }
+              ],
+              "operation_id": "bio.align_pairwise",
+              "outcome": "completed",
+              "reply": {
+                "authority": "computation_only",
+                "detail": "resource limit: shared work",
+                "operation_id": "bio.align_pairwise",
+                "reason": "native_request_refused",
+                "status": "withheld"
+              }
+            }
+          ],
+          "fuel_process_tree": {
+            "exit": 0,
+            "sampled_tree_peak_rss_kib": 9980,
+            "sampled_tree_peak_pss_kib": 8284,
+            "sampled_tree_peak_private_kib": 8276,
+            "samples": 13,
+            "max_processes": 1,
+            "interval_ms": 10
+          },
+          "correctness": {
+            "science-small": {
+              "http_status": 200,
+              "status": "answered",
+              "semantic_status": null,
+              "normalized_sha256": "032a3b78ad42f741ffb688532d842442a48530ed058e9ce45e281c7a1e34d072"
+            },
+            "science-large": {
+              "http_status": 200,
+              "status": "answered",
+              "semantic_status": null,
+              "normalized_sha256": "ceeaf02294a480154bea05b52c1613fcd1a8691fa3f82d59e3eb1705ae356709"
+            },
+            "statistics-small": {
+              "http_status": 200,
+              "status": "answered",
+              "semantic_status": null,
+              "normalized_sha256": "61a14b98692d44964cea5bb8ba0528ce592c650e88adb3047fb5cb1c9a659fa4"
+            },
+            "statistics-large": {
+              "http_status": 200,
+              "status": "answered",
+              "semantic_status": null,
+              "normalized_sha256": "df4db825c67008ce9f73e20b66fb8fd1991456d214f3b0f9ec5c5f96d0e8d28c"
+            },
+            "bio-small": {
+              "http_status": 200,
+              "status": "answered",
+              "semantic_status": null,
+              "normalized_sha256": "354cd33e17791fc86b812a7d103041e8c666e17b6e52e3897887a126c46f9682"
+            },
+            "bio-large": {
+              "http_status": 200,
+              "status": "answered",
+              "semantic_status": null,
+              "normalized_sha256": "ba2afd98092ff1454a86cefa51d1959728f2d854ad13abc914f632744a3b11c6"
+            },
+            "reasoning-small": {
+              "http_status": 200,
+              "status": "answered",
+              "semantic_status": null,
+              "normalized_sha256": "2e721f266d0df65ceb66fc2e4d28bf062f9d5a9a043e70c73764f4dc36a527e3"
+            },
+            "reasoning-large": {
+              "http_status": 200,
+              "status": "answered",
+              "semantic_status": null,
+              "normalized_sha256": "6956ab55c8914ee893df7f37483815265a552328efbbc137140de977992a958b"
+            },
+            "incremental-small": {
+              "http_status": 200,
+              "status": "answered",
+              "semantic_status": null,
+              "normalized_sha256": "c7ae8d781d4984d49dcb9c84eb78d6d20daf3375ada63129e16307a17374e0e4"
+            },
+            "logic-small": {
+              "http_status": 200,
+              "status": "answered",
+              "semantic_status": null,
+              "normalized_sha256": "6614637fb32d8bc09bb2ec6ccfaadf24ce9f8d16e22597b4dfbd278b1f7dd242"
+            },
+            "science-refusal": {
+              "http_status": 400,
+              "status": null,
+              "semantic_status": null,
+              "normalized_sha256": "318e5d5e9f48ee6944b600a1ad0f006b347c299edadc93e4b6371f109faabf3d"
+            },
+            "reader-small": {
+              "http_status": 200,
+              "status": "withheld",
+              "semantic_status": "refused",
+              "normalized_sha256": "0eb919aa030fb134e609b34c2727a2215ca695b1311a94aec3dcfc25e4e7e340"
+            },
+            "reader-composed": {
+              "http_status": 200,
+              "status": "withheld",
+              "semantic_status": "refused",
+              "normalized_sha256": "0d2e045323cf66176dc48c358bd1c418a67ffe1275c08563c9711c7370b27185"
+            },
+            "reader-retained-control": {
+              "http_status": 200,
+              "status": "answered",
+              "semantic_status": "answered",
+              "normalized_sha256": "840412d7dba6121db612f192ad3e5e998c53e6d18fab47dc0d2fff9d21ccfd2f"
+            }
+          }
+        },
+        "pre": {
+          "binary_sha256": "ad919dd25f74b0213672a848da6bfbfae8cde9dd23af0ed2a7640e9ed752963e",
+          "startup_ms": [
+            979.226615279913,
+            1094.993133097887,
+            1195.7925409078598
+          ],
+          "workloads": {
+            "science-small": {
+              "requests": 80,
+              "elapsed_s": 1.6174112539738417,
+              "throughput_per_s": 49.46175550803595,
+              "p50_ms": 20.120625384151936,
+              "p95_ms": 21.036949008703232,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 49.46175550803595
+            },
+            "science-large": {
+              "requests": 80,
+              "elapsed_s": 1.612637035548687,
+              "throughput_per_s": 49.608187234011176,
+              "p50_ms": 19.916361197829247,
+              "p95_ms": 20.778683945536613,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 49.608187234011176
+            },
+            "statistics-small": {
+              "requests": 80,
+              "elapsed_s": 1.6106098983436823,
+              "throughput_per_s": 49.67062482496248,
+              "p50_ms": 20.098702982068062,
+              "p95_ms": 20.357128232717514,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 49.67062482496248
+            },
+            "statistics-large": {
+              "requests": 80,
+              "elapsed_s": 1.6128729619085789,
+              "throughput_per_s": 49.60093069285055,
+              "p50_ms": 19.968229345977306,
+              "p95_ms": 21.646013483405113,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 49.60093069285055
+            },
+            "bio-small": {
+              "requests": 80,
+              "elapsed_s": 1.6119818519800901,
+              "throughput_per_s": 49.62835028305771,
+              "p50_ms": 20.172000862658024,
+              "p95_ms": 20.989608019590378,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 49.62835028305771
+            },
+            "bio-large": {
+              "requests": 80,
+              "elapsed_s": 1.6211617905646563,
+              "throughput_per_s": 49.347326383837185,
+              "p50_ms": 20.080002956092358,
+              "p95_ms": 21.485725417733192,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 49.347326383837185
+            },
+            "reasoning-small": {
+              "requests": 80,
+              "elapsed_s": 1.6300881206989288,
+              "throughput_per_s": 49.07710140584216,
+              "p50_ms": 20.217422395944595,
+              "p95_ms": 22.13858813047409,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 49.07710140584216
+            },
+            "reasoning-large": {
+              "requests": 80,
+              "elapsed_s": 1.615768063813448,
+              "throughput_per_s": 49.51205670644854,
+              "p50_ms": 19.443686120212078,
+              "p95_ms": 21.927673369646072,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 49.51205670644854
+            },
+            "incremental-small": {
+              "requests": 80,
+              "elapsed_s": 1.6239031981676817,
+              "throughput_per_s": 49.264020226247084,
+              "p50_ms": 20.193247124552727,
+              "p95_ms": 21.68947458267212,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 49.264020226247084
+            },
+            "logic-small": {
+              "requests": 80,
+              "elapsed_s": 1.6736547723412514,
+              "throughput_per_s": 47.79958287818769,
+              "p50_ms": 20.22026851773262,
+              "p95_ms": 24.903252720832825,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 47.79958287818769
+            },
+            "science-refusal": {
+              "requests": 80,
+              "elapsed_s": 1.617111487314105,
+              "throughput_per_s": 49.47092431633994,
+              "p50_ms": 20.13238985091448,
+              "p95_ms": 20.902913063764572,
+              "outcomes": {
+                "400:invalid_arguments": 80
+              },
+              "answered_throughput_per_s": 0.0
+            },
+            "reader-small": {
+              "requests": 80,
+              "elapsed_s": 10.921649985015392,
+              "throughput_per_s": 7.324900551634667,
+              "p50_ms": 133.99122189730406,
+              "p95_ms": 179.9223404377699,
+              "outcomes": {
+                "200:withheld": 80
+              },
+              "answered_throughput_per_s": 0.0
+            },
+            "reader-composed": {
+              "requests": 80,
+              "elapsed_s": 15.838866546750069,
+              "throughput_per_s": 5.050866472286489,
+              "p50_ms": 194.53910924494267,
+              "p95_ms": 229.5144945383072,
+              "outcomes": {
+                "200:withheld": 80
+              },
+              "answered_throughput_per_s": 0.0
+            },
+            "reader-retained-control": {
+              "requests": 80,
+              "elapsed_s": 6.6951869539916515,
+              "throughput_per_s": 11.948882167107257,
+              "p50_ms": 79.34307865798473,
+              "p95_ms": 110.6253582984209,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 11.948882167107257
+            }
+          },
+          "startup_process_trees": [
+            {
+              "exit": 0,
+              "sampled_tree_peak_rss_kib": 9496,
+              "sampled_tree_peak_pss_kib": 7792,
+              "sampled_tree_peak_private_kib": 7784,
+              "samples": 12,
+              "max_processes": 1,
+              "interval_ms": 10
+            },
+            {
+              "exit": 0,
+              "sampled_tree_peak_rss_kib": 9408,
+              "sampled_tree_peak_pss_kib": 7788,
+              "sampled_tree_peak_private_kib": 7780,
+              "samples": 14,
+              "max_processes": 1,
+              "interval_ms": 10
+            },
+            {
+              "exit": 0,
+              "sampled_tree_peak_rss_kib": 9272,
+              "sampled_tree_peak_pss_kib": 7655,
+              "sampled_tree_peak_private_kib": 7648,
+              "samples": 14,
+              "max_processes": 1,
+              "interval_ms": 10
+            }
+          ],
+          "concurrency": {
+            "clients=1,tenants=1": {
+              "requests": 80,
+              "elapsed_s": 1.6419197712093592,
+              "throughput_per_s": 48.72345251137079,
+              "p50_ms": 20.302158780395985,
+              "p95_ms": 24.29007925093174,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 48.72345251137079
+            },
+            "clients=1,tenants=4": {
+              "requests": 80,
+              "elapsed_s": 1.657333703711629,
+              "throughput_per_s": 48.27030296966661,
+              "p50_ms": 20.449869334697723,
+              "p95_ms": 25.58247558772564,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 48.27030296966661
+            },
+            "clients=4,tenants=1": {
+              "requests": 80,
+              "elapsed_s": 0.4145491551607847,
+              "throughput_per_s": 192.9807334162137,
+              "p50_ms": 20.135678350925446,
+              "p95_ms": 26.167117059230804,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 192.9807334162137
+            },
+            "clients=4,tenants=4": {
+              "requests": 80,
+              "elapsed_s": 0.438757099211216,
+              "throughput_per_s": 182.33323208632189,
+              "p50_ms": 20.680242218077183,
+              "p95_ms": 29.177328571677208,
+              "outcomes": {
+                "200:answered": 80
+              },
+              "answered_throughput_per_s": 182.33323208632189
+            },
+            "clients=8,tenants=1": {
+              "requests": 80,
+              "elapsed_s": 0.2426788192242384,
+              "throughput_per_s": 329.6538208638594,
+              "p50_ms": 21.17975428700447,
+              "p95_ms": 29.314499348402023,
+              "outcomes": {
+                "200:answered": 46,
+                "429:pool_busy": 34
+              },
+              "answered_throughput_per_s": 189.55094699671915
+            },
+            "clients=8,tenants=4": {
+              "requests": 80,
+              "elapsed_s": 0.23370220698416233,
+              "throughput_per_s": 342.31597994888205,
+              "p50_ms": 21.99434209614992,
+              "p95_ms": 30.36394901573658,
+              "outcomes": {
+                "200:answered": 46,
+                "429:pool_busy": 34
+              },
+              "answered_throughput_per_s": 196.8316884706072
+            }
+          },
+          "process_tree": {
+            "exit": 0,
+            "sampled_tree_peak_rss_kib": 44444,
+            "sampled_tree_peak_pss_kib": 43884,
+            "sampled_tree_peak_private_kib": 43864,
+            "samples": 640,
+            "max_processes": 1,
+            "interval_ms": 10
+          },
+          "cancellation": {
+            "http_ms": 22.61095866560936,
+            "response": [
+              503,
+              {
+                "error": "deadline_exceeded",
+                "exact_retry_required": false,
+                "outcome": "error",
+                "retryable": false,
+                "state_may_have_changed": false
+              }
+            ],
+            "drain_observations": [
+              {
+                "after_reply_ms": 18.341079354286194,
+                "busy": 0
+              }
+            ]
+          },
+          "cancel_process_tree": {
+            "exit": 0,
+            "sampled_tree_peak_rss_kib": 9652,
+            "sampled_tree_peak_pss_kib": 8251,
+            "sampled_tree_peak_private_kib": 8244,
+            "samples": 15,
+            "max_processes": 1,
+            "interval_ms": 10
+          },
+          "correctness": {
+            "science-small": {
+              "http_status": 200,
+              "status": "answered",
+              "semantic_status": null,
+              "normalized_sha256": "032a3b78ad42f741ffb688532d842442a48530ed058e9ce45e281c7a1e34d072"
+            },
+            "science-large": {
+              "http_status": 200,
+              "status": "answered",
+              "semantic_status": null,
+              "normalized_sha256": "ceeaf02294a480154bea05b52c1613fcd1a8691fa3f82d59e3eb1705ae356709"
+            },
+            "statistics-small": {
+              "http_status": 200,
+              "status": "answered",
+              "semantic_status": null,
+              "normalized_sha256": "61a14b98692d44964cea5bb8ba0528ce592c650e88adb3047fb5cb1c9a659fa4"
+            },
+            "statistics-large": {
+              "http_status": 200,
+              "status": "answered",
+              "semantic_status": null,
+              "normalized_sha256": "df4db825c67008ce9f73e20b66fb8fd1991456d214f3b0f9ec5c5f96d0e8d28c"
+            },
+            "bio-small": {
+              "http_status": 200,
+              "status": "answered",
+              "semantic_status": null,
+              "normalized_sha256": "354cd33e17791fc86b812a7d103041e8c666e17b6e52e3897887a126c46f9682"
+            },
+            "bio-large": {
+              "http_status": 200,
+              "status": "answered",
+              "semantic_status": null,
+              "normalized_sha256": "ba2afd98092ff1454a86cefa51d1959728f2d854ad13abc914f632744a3b11c6"
+            },
+            "reasoning-small": {
+              "http_status": 200,
+              "status": "answered",
+              "semantic_status": null,
+              "normalized_sha256": "2e721f266d0df65ceb66fc2e4d28bf062f9d5a9a043e70c73764f4dc36a527e3"
+            },
+            "reasoning-large": {
+              "http_status": 200,
+              "status": "answered",
+              "semantic_status": null,
+              "normalized_sha256": "6956ab55c8914ee893df7f37483815265a552328efbbc137140de977992a958b"
+            },
+            "incremental-small": {
+              "http_status": 200,
+              "status": "answered",
+              "semantic_status": null,
+              "normalized_sha256": "c7ae8d781d4984d49dcb9c84eb78d6d20daf3375ada63129e16307a17374e0e4"
+            },
+            "logic-small": {
+              "http_status": 200,
+              "status": "answered",
+              "semantic_status": null,
+              "normalized_sha256": "6614637fb32d8bc09bb2ec6ccfaadf24ce9f8d16e22597b4dfbd278b1f7dd242"
+            },
+            "science-refusal": {
+              "http_status": 400,
+              "status": null,
+              "semantic_status": null,
+              "normalized_sha256": "318e5d5e9f48ee6944b600a1ad0f006b347c299edadc93e4b6371f109faabf3d"
+            },
+            "reader-small": {
+              "http_status": 200,
+              "status": "withheld",
+              "semantic_status": "refused",
+              "normalized_sha256": "0eb919aa030fb134e609b34c2727a2215ca695b1311a94aec3dcfc25e4e7e340"
+            },
+            "reader-composed": {
+              "http_status": 200,
+              "status": "withheld",
+              "semantic_status": "refused",
+              "normalized_sha256": "0d2e045323cf66176dc48c358bd1c418a67ffe1275c08563c9711c7370b27185"
+            },
+            "reader-retained-control": {
+              "http_status": 200,
+              "status": "answered",
+              "semantic_status": "answered",
+              "normalized_sha256": "840412d7dba6121db612f192ad3e5e998c53e6d18fab47dc0d2fff9d21ccfd2f"
+            }
+          }
+        }
+      },
+      "comparisons": {
+        "science-small": {
+          "reply_equal": true,
+          "p50_post_over_pre": 0.9975830801166635
+        },
+        "science-large": {
+          "reply_equal": true,
+          "p50_post_over_pre": 1.0010246420042432
+        },
+        "statistics-small": {
+          "reply_equal": true,
+          "p50_post_over_pre": 0.9982932991696608
+        },
+        "statistics-large": {
+          "reply_equal": true,
+          "p50_post_over_pre": 1.0044298412884678
+        },
+        "bio-small": {
+          "reply_equal": true,
+          "p50_post_over_pre": 0.9948031630062364
+        },
+        "bio-large": {
+          "reply_equal": true,
+          "p50_post_over_pre": 0.9990955783101869
+        },
+        "reasoning-small": {
+          "reply_equal": true,
+          "p50_post_over_pre": 0.9929179596441765
+        },
+        "reasoning-large": {
+          "reply_equal": true,
+          "p50_post_over_pre": 1.005639708089556
+        },
+        "incremental-small": {
+          "reply_equal": true,
+          "p50_post_over_pre": 0.9946741895960094
+        },
+        "logic-small": {
+          "reply_equal": true,
+          "p50_post_over_pre": 0.9986997122426484
+        },
+        "science-refusal": {
+          "reply_equal": true,
+          "p50_post_over_pre": 0.9977653687106932
+        },
+        "reader-small": {
+          "reply_equal": true,
+          "p50_post_over_pre": 0.6699924799116025
+        },
+        "reader-composed": {
+          "reply_equal": true,
+          "p50_post_over_pre": 0.662042271936158
+        },
+        "reader-retained-control": {
+          "reply_equal": true,
+          "p50_post_over_pre": 0.8512331892175201
+        }
+      },
+      "load_before": "14.41 17.62 18.08 6/2523 266247",
+      "image_sha256": "8fcb1db9a08e234179f66ea9e032d2633b38cdcb902f4c95d1ba2c2d49c842f4",
+      "load_after": "31.10 21.35 19.28 27/2752 352329",
+      "raw": {
+        "path": "var/sol-wave-20261031/measurement/http-BA-final.json",
+        "sha256": "7311944935c9a80be5e93d51309312c2885eb0dbf8e094ee17c8389d6dea7922"
+      }
+    }
+  },
+  "memory_probe": {
+    "schema": "native-foundation-performance-v1",
+    "machine": {
+      "system": "Linux",
+      "node": "hbox",
+      "release": "6.11.0-29-generic",
+      "version": "#29-Ubuntu SMP PREEMPT_DYNAMIC Fri Jun 13 20:29:41 UTC 2025",
+      "machine": "x86_64",
+      "processor": "x86_64"
+    },
+    "cpu": "\t: 12th Gen Intel(R) Core(TM) i9-12900",
+    "cpu_logical_count": 24,
+    "thread_environment": {
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "RAYON_NUM_THREADS": "1"
+    },
+    "fixtures_sha256": "df85d9bff150d551c095c6a445ded75de17a60cf63ada366acee85f845215c3a",
+    "repeats": 20,
+    "versions": {
+      "pre": {
+        "binary_sha256": "ad919dd25f74b0213672a848da6bfbfae8cde9dd23af0ed2a7640e9ed752963e",
+        "startup_ms": [
+          1398.5369857400656,
+          1457.5617834925652,
+          1501.581959426403
+        ],
+        "workloads": {
+          "bio-large": {
+            "requests": 20,
+            "elapsed_s": 0.40768399462103844,
+            "throughput_per_s": 49.05760408522033,
+            "p50_ms": 20.248178392648697,
+            "p95_ms": 22.898411378264427,
+            "outcomes": {
+              "200:answered": 20
+            },
+            "answered_throughput_per_s": 49.05760408522033
+          },
+          "logic-process-memory": {
+            "requests": 20,
+            "elapsed_s": 1.2273958548903465,
+            "throughput_per_s": 16.294661514713006,
+            "p50_ms": 60.339927673339844,
+            "p95_ms": 67.66675785183907,
+            "outcomes": {
+              "200:answered": 20
+            },
+            "answered_throughput_per_s": 16.294661514713006
+          }
+        },
+        "startup_process_trees": [
+          {
+            "exit": 0,
+            "sampled_tree_peak_rss_kib": 9664,
+            "sampled_tree_peak_pss_kib": 7787,
+            "sampled_tree_peak_private_kib": 7780,
+            "samples": 527,
+            "max_processes": 1,
+            "interval_ms": 2
+          },
+          {
+            "exit": 0,
+            "sampled_tree_peak_rss_kib": 8760,
+            "sampled_tree_peak_pss_kib": 7660,
+            "sampled_tree_peak_private_kib": 7652,
+            "samples": 549,
+            "max_processes": 1,
+            "interval_ms": 2
+          },
+          {
+            "exit": 0,
+            "sampled_tree_peak_rss_kib": 9464,
+            "sampled_tree_peak_pss_kib": 7656,
+            "sampled_tree_peak_private_kib": 7648,
+            "samples": 545,
+            "max_processes": 1,
+            "interval_ms": 2
+          }
+        ],
+        "concurrency": {},
+        "process_tree": {
+          "exit": 0,
+          "sampled_tree_peak_rss_kib": 25592,
+          "sampled_tree_peak_pss_kib": 22586,
+          "sampled_tree_peak_private_kib": 22572,
+          "samples": 977,
+          "max_processes": 2,
+          "interval_ms": 2
+        },
+        "cancellation": {
+          "http_ms": 22.404255345463753,
+          "response": [
+            503,
+            {
+              "error": "deadline_exceeded",
+              "exact_retry_required": false,
+              "outcome": "error",
+              "retryable": false,
+              "state_may_have_changed": false
+            }
+          ],
+          "drain_observations": [
+            {
+              "after_reply_ms": 18.32304708659649,
+              "busy": 0
+            }
+          ]
+        },
+        "cancel_process_tree": {
+          "exit": 0,
+          "sampled_tree_peak_rss_kib": 9944,
+          "sampled_tree_peak_pss_kib": 8531,
+          "sampled_tree_peak_private_kib": 8524,
+          "samples": 409,
+          "max_processes": 1,
+          "interval_ms": 2
+        },
+        "correctness": {
+          "bio-large": {
+            "http_status": 200,
+            "status": "answered",
+            "semantic_status": null,
+            "normalized_sha256": "ba2afd98092ff1454a86cefa51d1959728f2d854ad13abc914f632744a3b11c6"
+          },
+          "logic-process-memory": {
+            "http_status": 200,
+            "status": "answered",
+            "semantic_status": null,
+            "normalized_sha256": "e6dbc82f4595789e234b44ecc7b66047b3058044481a144a73d8d087a4adeb42"
+          }
+        }
+      },
+      "foundation": {
+        "binary_sha256": "9a555f5b5d6db0823a6e9861275f8fc6dcd7bf6fbbea8462682cf2c16d26fe6a",
+        "startup_ms": [
+          1111.2763080745935,
+          1389.6545879542828,
+          942.1232622116804
+        ],
+        "workloads": {
+          "bio-large": {
+            "requests": 20,
+            "elapsed_s": 0.44296971149742603,
+            "throughput_per_s": 45.14981381546719,
+            "p50_ms": 21.758180111646652,
+            "p95_ms": 26.117971166968346,
+            "outcomes": {
+              "200:answered": 20
+            },
+            "answered_throughput_per_s": 45.14981381546719
+          },
+          "logic-process-memory": {
+            "requests": 20,
+            "elapsed_s": 1.157133961096406,
+            "throughput_per_s": 17.284083496304635,
+            "p50_ms": 59.84308570623398,
+            "p95_ms": 68.34538280963898,
+            "outcomes": {
+              "200:answered": 20
+            },
+            "answered_throughput_per_s": 17.284083496304635
+          }
+        },
+        "startup_process_trees": [
+          {
+            "exit": 0,
+            "sampled_tree_peak_rss_kib": 8832,
+            "sampled_tree_peak_pss_kib": 7675,
+            "sampled_tree_peak_private_kib": 7668,
+            "samples": 378,
+            "max_processes": 1,
+            "interval_ms": 2
+          },
+          {
+            "exit": 0,
+            "sampled_tree_peak_rss_kib": 8864,
+            "sampled_tree_peak_pss_kib": 7815,
+            "sampled_tree_peak_private_kib": 7808,
+            "samples": 444,
+            "max_processes": 1,
+            "interval_ms": 2
+          },
+          {
+            "exit": 0,
+            "sampled_tree_peak_rss_kib": 8964,
+            "sampled_tree_peak_pss_kib": 7571,
+            "sampled_tree_peak_private_kib": 7564,
+            "samples": 329,
+            "max_processes": 1,
+            "interval_ms": 2
+          }
+        ],
+        "concurrency": {},
+        "process_tree": {
+          "exit": 0,
+          "sampled_tree_peak_rss_kib": 22832,
+          "sampled_tree_peak_pss_kib": 20538,
+          "sampled_tree_peak_private_kib": 20524,
+          "samples": 928,
+          "max_processes": 2,
+          "interval_ms": 2
+        },
+        "cancellation": {
+          "http_ms": 23.302344605326653,
+          "response": [
+            503,
+            {
+              "error": "deadline_exceeded",
+              "exact_retry_required": false,
+              "outcome": "error",
+              "retryable": false,
+              "state_may_have_changed": false
+            }
+          ],
+          "drain_observations": [
+            {
+              "after_reply_ms": 18.629545345902443,
+              "busy": 0
+            }
+          ]
+        },
+        "cancel_process_tree": {
+          "exit": 0,
+          "sampled_tree_peak_rss_kib": 9404,
+          "sampled_tree_peak_pss_kib": 8362,
+          "sampled_tree_peak_private_kib": 8356,
+          "samples": 445,
+          "max_processes": 1,
+          "interval_ms": 2
+        },
+        "tenant_capacity_1": {},
+        "tenant_process_tree": {
+          "exit": 0,
+          "sampled_tree_peak_rss_kib": 9484,
+          "sampled_tree_peak_pss_kib": 7656,
+          "sampled_tree_peak_private_kib": 7648,
+          "samples": 432,
+          "max_processes": 1,
+          "interval_ms": 2
+        },
+        "fuel_1_response": [
+          200,
+          {
+            "durable_replay": false,
+            "native_execution": [
+              {
+                "admission": {
+                  "host_sha256": "9a555f5b5d6db0823a6e9861275f8fc6dcd7bf6fbbea8462682cf2c16d26fe6a",
+                  "route": "bio"
+                },
+                "containment": {
+                  "elapsed_ms": 0,
+                  "process": "in_host"
+                }
+              }
+            ],
+            "operation_id": "bio.align_pairwise",
+            "outcome": "completed",
+            "reply": {
+              "authority": "computation_only",
+              "detail": "resource limit: shared work",
+              "operation_id": "bio.align_pairwise",
+              "reason": "native_request_refused",
+              "status": "withheld"
+            }
+          }
+        ],
+        "fuel_process_tree": {
+          "exit": 0,
+          "sampled_tree_peak_rss_kib": 9980,
+          "sampled_tree_peak_pss_kib": 8191,
+          "sampled_tree_peak_private_kib": 8184,
+          "samples": 383,
+          "max_processes": 1,
+          "interval_ms": 2
+        },
+        "correctness": {
+          "bio-large": {
+            "http_status": 200,
+            "status": "answered",
+            "semantic_status": null,
+            "normalized_sha256": "ba2afd98092ff1454a86cefa51d1959728f2d854ad13abc914f632744a3b11c6"
+          },
+          "logic-process-memory": {
+            "http_status": 200,
+            "status": "answered",
+            "semantic_status": null,
+            "normalized_sha256": "e6dbc82f4595789e234b44ecc7b66047b3058044481a144a73d8d087a4adeb42"
+          }
+        }
+      }
+    },
+    "comparisons": {
+      "bio-large": {
+        "reply_equal": true,
+        "p50_post_over_pre": 1.074574694558508
+      },
+      "logic-process-memory": {
+        "reply_equal": true,
+        "p50_post_over_pre": 0.9917659502378657
+      }
+    },
+    "load_before": "31.97 21.85 19.46 26/2760 355476",
+    "image_sha256": "8fcb1db9a08e234179f66ea9e032d2633b38cdcb902f4c95d1ba2c2d49c842f4",
+    "load_after": "35.11 23.42 20.05 29/2774 359975",
+    "raw": {
+      "path": "var/sol-wave-20261031/measurement/memory-final.json",
+      "sha256": "20fc609025cedf18c3a81d32e6e2b042f5809ad86dc02f026588ac45afddb01d"
+    }
+  },
+  "allocation_microbenchmark": {
+    "source": "tools/bench/native_foundation_allocations.rs",
+    "revision": "f0dfad77669dfb3f97f6680cd452b406bcfae271",
+    "fixture_sha256": "98111be29ddb8d567fc2a2af128c5a4216f4ab2d3447c6bc818e3c50b3352238",
+    "results": [
+      {
+        "alloc_calls_per_call": 221.0,
+        "allocated_bytes_per_call": 17274.0,
+        "elapsed_seconds": 0.00127871,
+        "name": "science-small",
+        "repeats": 100,
+        "reply_equal": true,
+        "typed": false
+      },
+      {
+        "alloc_calls_per_call": 158.0,
+        "allocated_bytes_per_call": 9636.0,
+        "elapsed_seconds": 0.000711251,
+        "name": "science-small",
+        "repeats": 100,
+        "reply_equal": true,
+        "typed": true
+      },
+      {
+        "alloc_calls_per_call": 8939.0,
+        "allocated_bytes_per_call": 428145.0,
+        "elapsed_seconds": 0.071999844,
+        "name": "science-large",
+        "repeats": 100,
+        "reply_equal": true,
+        "typed": false
+      },
+      {
+        "alloc_calls_per_call": 3148.0,
+        "allocated_bytes_per_call": 278224.0,
+        "elapsed_seconds": 0.044415175,
+        "name": "science-large",
+        "repeats": 100,
+        "reply_equal": true,
+        "typed": true
+      }
+    ],
+    "scope": "Value to Value using same foundation science kernel; Rust global allocation calls and requested new byte sizes (realloc counted), not live memory, C malloc, HTTP or complete host boundary."
+  },
+  "normalization": [
+    "Outer host execution identity/elapsed envelope excluded",
+    "Top-level provider/runtime runtime_identity and resource_identity excluded",
+    "Provider build_us/search_us/check_us/elapsed_us fields excluded recursively",
+    "All other semantic/evidence data compared, including exact core_reply_json bytes"
+  ],
+  "checks": {
+    "http_normalized_pairs_equal": 28,
+    "memory_probe_normalized_pairs_equal": 2,
+    "allocation_cases_equal": 2,
+    "http_requests_per_fixture_per_revision_per_order": 80,
+    "warmup_calls_per_fixture": 5,
+    "startup_owned_processes_per_revision_per_order": 3,
+    "all_owned_hosts_exit": 0
+  },
+  "confounders": [
+    "Shared hbox not isolated;24logical/16physical CPUs, load1 varied14.41 to31.10 (0.60 to1.30 per logical CPU). No process affinity isolation.",
+    "Original listener polls with20ms sleeps. Pure HTTP latencies near20ms mask internal savings.",
+    "Cold startup is fresh process with warm OS cache and includes image/solver hashing, opening state/journal and readiness; no cache flush.",
+    "The reader workloads include two retained answer_form refusals and one answered retained control. A refusal is not counted as successful answer throughput.",
+    "At8clients capacity4 about half requests are429; requested throughput must not be read as answered throughput.",
+    "New tenant_capacity and execution_fuel knobs cannot be supplied to old strict config parser. Their policy probes are foundation-only, not matched speed comparisons.",
+    "Foundation float_roundtrip fixes old JSON rounding. Performance fixtures use integer coefficients/strings rather than difficult decimal tokens; equality here does not establish universal numeric equivalence.",
+    "Initial global proc scan misses short solver children. Final memory-only probe uses owned task children and2ms wait; max_processes2 observed. Sampling still can miss peaks and RSS double-counts shared pages.",
+    "AB PSS/private missing because parser erroneously tried numeric parsing of smaps00:00 header; corrected BA/memory probe values retained. Missing values are null, not zero.",
+    "Observer normalization initially compared deployment IDs and provider timings; receipt recomputes semantic equality with the explicitly listed exclusions. Raw replies remain in scratch artifacts.",
+    "Exploratory logic descriptor carried TENANT placeholder and returned403. Corrected final AB/BA use actual64a tenant; exploratory artifacts retained, excluded from final matched workload totals.",
+    "No p50/p95 confidence intervals, CPU billing, private heap live accounting, retained-session slope, or cancellation preemption guarantee claimed."
+  ],
+  "failures_and_retries": [
+    {
+      "stage": "pre-build",
+      "exit": 101,
+      "reason": "Initial native-only archive omitted compile-time src/extract/discrete-certificate/main.sml; same pinned source support archive added, retry exit0."
+    },
+    {
+      "stage": "allocation-build",
+      "reason": "Initial standalone resolution not pinned; exact owned cargo PID13533 terminated. Copied foundation Cargo.lock, built offline,exit0."
+    },
+    {
+      "stage": "exploratory-http",
+      "exit": 0,
+      "path": "var/sol-wave-20261031/measurement/http-A.json",
+      "sha256": "c7a6da49a30cc7643698549378179083efafd3a8b0cd041350b73de9c73c5856",
+      "use": "Superseded logic tenant fixture; retained diagnostic only."
+    }
+  ],
+  "logs": {
+    "alloc-build2.log": {
+      "path": "var/sol-wave-20261031/measurement/alloc-build2.log",
+      "sha256": "d505e1a563fea3220811af132cc3e333f00c4cc18cd38c6e62e6c5c243ab5149"
+    },
+    "pre-build.log": {
+      "path": "var/sol-wave-20261031/measurement/pre-build.log",
+      "sha256": "0af1370762507c162625caacb0b2ab2cf923dc75b815e9ddd62106f267f2aed1"
+    },
+    "foundation-build.log": {
+      "path": "var/sol-wave-20261031/measurement/foundation-build.log",
+      "sha256": "383d97bc13099c199d3002c6a3e7de5e44a4affe503207f90b594cf8be226876"
+    },
+    "pre-build2.log": {
+      "path": "var/sol-wave-20261031/measurement/pre-build2.log",
+      "sha256": "fa895769429ee6eca490b69a01948e51d2786f7a07af81d1f9dde0493fa2cd22"
+    },
+    "alloc-build.log": {
+      "path": "var/sol-wave-20261031/measurement/alloc-build.log",
+      "sha256": "82cc8dd6362267243048ceb57a9a04ed9620582bdd4a8946ae64385d46c5ffd7"
+    }
+  },
+  "cleanup": "All owned HTTP hosts terminated by their PID and reaped exit0. No services/builds left; sole runner released to root. Immutable archives, source, binaries and raw logs retained locally/hbox.",
+  "remaining": [
+    "Sol final-wave reader retained-reservation instrumentation",
+    "Sol final-wave small Service::invoke worker reuse vs f0dfad7 and separate HTTP readiness comparison",
+    "New consumer reuse versus fresh equivalent and independent numerical agreement",
+    "Full reader code/data four-way comparison, executed by central validator"
+  ]
+}

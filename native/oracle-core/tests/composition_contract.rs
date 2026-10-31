@@ -362,6 +362,11 @@ fn only_complete_outer_consumers_demand_fragment_work_and_share_it() {
     .unwrap();
     assert_eq!(consumed.len(), 1);
     assert_eq!(calls, 1); // Same typed program, distinct regions/X ordinals.
+                          // The chart has returned and released its arena; output still owns its
+                          // conservative reservation until the receiver drops the returned batch.
+    assert!(budget.memory().snapshot().live > 0);
+    drop(consumed);
+    assert_eq!(budget.memory().snapshot().live, 0);
 }
 
 #[test]

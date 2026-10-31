@@ -300,8 +300,8 @@ fn primitive(v: &[Q], budget: &mut Budget<'_>) -> Result<Option<Vec<String>>> {
             .collect(),
     ))
 }
-/// Exact RREF and complete rational nullspace. Multidimensional positivity search is bounded;
-/// its failure never establishes impossibility. No species are inferred or inserted.
+/// Exact RREF and complete rational nullspace. Bounded rational feasibility
+/// closes multidimensional positivity when a witness or Farkas certificate is found. No species are inferred or inserted.
 /// Elimination, search and independent replay share a single arithmetic work budget.
 pub fn balance_reaction(input: &ReactionInput, limits: &ChemistryLimits) -> Result<BalanceOutput> {
     balance_reaction_controlled(input, limits, &std::sync::atomic::AtomicBool::new(false))
@@ -382,7 +382,7 @@ pub fn balance_reaction_controlled(
         }
         basis.push(v);
     }
-    let mut searched = 0;
+    let searched = 0;
     let (status, coefficients) = if basis.is_empty() {
         (BalanceStatus::NoNonzeroBalance, None)
     } else if basis.len() == 1 {
@@ -396,47 +396,74 @@ pub fn balance_reaction_controlled(
             c,
         )
     } else {
-        let mut found = None;
-        if limits.free_coefficient_bound > 0 {
-            let mut digits = vec![1u32; free.len()];
-            while searched < limits.search_candidates {
-                searched += 1;
-                let mut v = vec![Q::zero(); n];
-                for (b, &d) in basis.iter().zip(&digits) {
-                    for j in 0..n {
-                        budget.step()?;
-                        let term = &b[j] * Q::from_integer(BigInt::from(d));
-                        budget.rational(&term)?;
-                        v[j] += term;
-                        budget.rational(&v[j])?;
-                    }
-                }
-                if let Some(c) = primitive(&v, &mut budget)? {
-                    found = Some(c);
-                    break;
-                }
-                let mut carry = true;
-                for d in &mut digits {
-                    if *d < limits.free_coefficient_bound {
-                        *d += 1;
-                        carry = false;
-                        break;
-                    }
-                    *d = 1;
-                }
-                if carry {
-                    break;
-                }
+        // Original inventories, not the elimination matrix, define the LP.
+        // Each equality is paired inequalities; -x <= -1 requires positivity.
+        let mut rows = Vec::new();
+        for label in &labels {
+            let values: Vec<Q> = input
+                .species
+                .iter()
+                .map(|s| {
+                    let x = amount(s, label);
+                    Q::from_integer(if s.side == Side::Reactant { x } else { -x })
+                })
+                .collect();
+            for sign in [1i32, -1] {
+                rows.push(crate::exact_lp::Row {
+                    id: format!("{label}_{sign}"),
+                    coefficients: values
+                        .iter()
+                        .map(|v| (v * Q::from_integer(sign.into())).to_string())
+                        .collect(),
+                    bound: "0".into(),
+                });
             }
         }
-        (
-            if found.is_some() {
-                BalanceStatus::MultipleWithPositiveCandidate
-            } else {
-                BalanceStatus::MultipleSearchInconclusive
-            },
-            found,
-        )
+        for j in 0..n {
+            rows.push(crate::exact_lp::Row {
+                id: format!("species_{j}_positive"),
+                coefficients: (0..n)
+                    .map(|i| if i == j { "-1" } else { "0" }.into())
+                    .collect(),
+                bound: "-1".into(),
+            });
+        }
+        let problem = crate::exact_lp::Problem {
+            variables: (0..n).map(|i| format!("species_{i}")).collect(),
+            rows,
+            objective: None,
+        };
+        let lp_limits = crate::exact_lp::Limits {
+            variables: limits.species,
+            rows: limits
+                .conserved_rows
+                .saturating_mul(2)
+                .saturating_add(limits.species),
+            generated_rows: limits.search_candidates,
+            bits: limits.coefficient_bits,
+            work: limits.work.saturating_sub(budget.used) / 2,
+        };
+        let result = crate::exact_lp::solve_controlled(&problem, &lp_limits, control)?;
+        budget.used = budget.used.saturating_add(lp_limits.work);
+        match result.certificate {
+            Some(crate::exact_lp::Certificate::Feasible { point }) => {
+                let v = point
+                    .iter()
+                    .map(|text| {
+                        text.parse::<Q>()
+                            .map_err(|_| Error::Check("linear rational witness"))
+                    })
+                    .collect::<Result<Vec<_>>>()?;
+                (
+                    BalanceStatus::MultipleWithPositiveCandidate,
+                    primitive(&v, &mut budget)?,
+                )
+            }
+            Some(crate::exact_lp::Certificate::Infeasible { .. }) => {
+                (BalanceStatus::NoStrictlyPositiveBalance, None)
+            }
+            _ => (BalanceStatus::MultipleSearchInconclusive, None),
+        }
     };
     let conservation = match &coefficients {
         Some(c) => check_balance_inner(input, c, &mut budget)?,
@@ -446,5 +473,5 @@ pub fn balance_reaction_controlled(
         nullspace_basis: basis.iter().map(|v| v.iter().map(ToString::to_string).collect()).collect(),
         free_species_indices: free, coefficients, conservation, searched_candidates: searched,
         free_coefficient_bound: limits.free_coefficient_bound,
-        assurance: "exact rational elimination; positive candidate independently replayed over supplied inventories; no feasibility claim" })
+        assurance: "exact rational elimination and bounded exact positivity certificates; positive candidate independently replayed over supplied inventories; no chemical feasibility or integer minimum claim" })
 }

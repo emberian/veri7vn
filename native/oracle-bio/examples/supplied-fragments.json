@@ -1,0 +1,15 @@
+{
+  "collection": {
+    "schema": "oracle-sequence-collection-v1",
+    "records": [
+      {"label": "supplied sample", "sequence": "TTTCGTAA"},
+      {"label": "supplied sample", "sequence": "AAAAATAT"}
+    ]
+  },
+  "patterns": [
+    {"label": "fragment", "sequence": "ACG"},
+    {"label": "repeat", "sequence": "AA"},
+    {"label": "palindrome", "sequence": "AT"}
+  ],
+  "page_size": 2
+}

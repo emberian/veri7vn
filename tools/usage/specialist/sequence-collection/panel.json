@@ -1,0 +1,313 @@
+{
+  "dev": [
+    {
+      "q": "Find exact fragments: {\"collection\":{\"schema\":\"oracle-sequence-collection-v1\",\"records\":[{\"label\":\"duplicate\",\"sequence\":\"AAAA\"}]},\"patterns\":[{\"label\":\"fragment\",\"sequence\":\"AA\"}],\"page_size\":1}",
+      "a": [
+        [
+          0,
+          0,
+          2,
+          0,
+          "forward"
+        ],
+        [
+          0,
+          1,
+          3,
+          0,
+          "forward"
+        ],
+        [
+          0,
+          2,
+          4,
+          0,
+          "forward"
+        ]
+      ],
+      "absent": [],
+      "valid": true
+    },
+    {
+      "q": "Find exact fragments: {\"collection\":{\"schema\":\"oracle-sequence-collection-v1\",\"records\":[{\"label\":\"duplicate\",\"sequence\":\"TTTCGTAA\"}]},\"patterns\":[{\"label\":\"fragment\",\"sequence\":\"ACG\"}],\"page_size\":1}",
+      "a": [
+        [
+          0,
+          3,
+          6,
+          0,
+          "reverse"
+        ]
+      ],
+      "absent": [],
+      "valid": true
+    },
+    {
+      "q": "Find exact fragments: {\"collection\":{\"schema\":\"oracle-sequence-collection-v1\",\"records\":[{\"label\":\"duplicate\",\"sequence\":\"ATAT\"}]},\"patterns\":[{\"label\":\"fragment\",\"sequence\":\"AT\"}],\"page_size\":1}",
+      "a": [
+        [
+          0,
+          0,
+          2,
+          0,
+          "both"
+        ],
+        [
+          0,
+          2,
+          4,
+          0,
+          "both"
+        ]
+      ],
+      "absent": [],
+      "valid": true
+    },
+    {
+      "q": "Find exact fragments: {\"collection\":{\"schema\":\"oracle-sequence-collection-v1\",\"records\":[{\"label\":\"duplicate\",\"sequence\":\"AC\"},{\"label\":\"duplicate\",\"sequence\":\"GT\"}]},\"patterns\":[{\"label\":\"fragment\",\"sequence\":\"ACGT\"}],\"page_size\":1}",
+      "a": [],
+      "absent": [
+        0
+      ],
+      "valid": true
+    },
+    {
+      "q": "Find exact fragments: {\"collection\":{\"schema\":\"oracle-sequence-collection-v1\",\"records\":[]},\"patterns\":[{\"label\":\"fragment\",\"sequence\":\"A\"}],\"page_size\":1}",
+      "a": [],
+      "absent": [
+        0
+      ],
+      "valid": true
+    },
+    {
+      "q": "Find exact fragments: {\"collection\":{\"schema\":\"oracle-sequence-collection-v1\",\"records\":[{\"label\":\"duplicate\",\"sequence\":\"ACN\"}]},\"patterns\":[{\"label\":\"fragment\",\"sequence\":\"AC\"}],\"page_size\":1}",
+      "a": [],
+      "absent": [],
+      "valid": false
+    },
+    {
+      "q": "Find exact fragments: {\"collection\":{\"schema\":\"oracle-sequence-collection-v1\",\"records\":[{\"label\":\"duplicate\",\"sequence\":\"AC\"}]},\"patterns\":[{\"label\":\"fragment\",\"sequence\":\"\"}],\"page_size\":1}",
+      "a": [],
+      "absent": [],
+      "valid": false
+    }
+  ],
+  "heldout": [
+    {
+      "q": "Find exact fragments: {\"collection\":{\"schema\":\"oracle-sequence-collection-v1\",\"records\":[{\"label\":\"duplicate\",\"sequence\":\"acg\"},{\"label\":\"duplicate\",\"sequence\":\"CGT\"}]},\"patterns\":[{\"label\":\"fragment\",\"sequence\":\"ACG\"}],\"page_size\":1}",
+      "a": [
+        [
+          0,
+          0,
+          3,
+          0,
+          "forward"
+        ],
+        [
+          1,
+          0,
+          3,
+          0,
+          "reverse"
+        ]
+      ],
+      "absent": [],
+      "valid": true
+    },
+    {
+      "q": "Find exact fragments: {\"collection\":{\"schema\":\"oracle-sequence-collection-v1\",\"records\":[{\"label\":\"duplicate\",\"sequence\":\"AAA\"}]},\"patterns\":[{\"label\":\"fragment\",\"sequence\":\"A\"},{\"label\":\"fragment\",\"sequence\":\"A\"}],\"page_size\":1}",
+      "a": [
+        [
+          0,
+          0,
+          1,
+          0,
+          "forward"
+        ],
+        [
+          0,
+          0,
+          1,
+          1,
+          "forward"
+        ],
+        [
+          0,
+          1,
+          2,
+          0,
+          "forward"
+        ],
+        [
+          0,
+          1,
+          2,
+          1,
+          "forward"
+        ],
+        [
+          0,
+          2,
+          3,
+          0,
+          "forward"
+        ],
+        [
+          0,
+          2,
+          3,
+          1,
+          "forward"
+        ]
+      ],
+      "absent": [],
+      "valid": true
+    },
+    {
+      "q": "Find exact fragments: {\"collection\":{\"schema\":\"oracle-sequence-collection-v1\",\"records\":[{\"label\":\"duplicate\",\"sequence\":\"A\"},{\"label\":\"duplicate\",\"sequence\":\"A\"}]},\"patterns\":[{\"label\":\"fragment\",\"sequence\":\"A\"}],\"page_size\":1}",
+      "a": [
+        [
+          0,
+          0,
+          1,
+          0,
+          "forward"
+        ],
+        [
+          1,
+          0,
+          1,
+          0,
+          "forward"
+        ]
+      ],
+      "absent": [],
+      "valid": true
+    },
+    {
+      "q": "Find exact fragments: {\"collection\":{\"schema\":\"oracle-sequence-collection-v1\",\"records\":[{\"label\":\"duplicate\",\"sequence\":\"AAA\"}]},\"patterns\":[{\"label\":\"fragment\",\"sequence\":\"A\"}],\"page_size\":3}",
+      "a": [
+        [
+          0,
+          0,
+          1,
+          0,
+          "forward"
+        ],
+        [
+          0,
+          1,
+          2,
+          0,
+          "forward"
+        ],
+        [
+          0,
+          2,
+          3,
+          0,
+          "forward"
+        ]
+      ],
+      "absent": [],
+      "valid": true
+    },
+    {
+      "q": "Find exact fragments: {\"collection\":{\"schema\":\"oracle-sequence-collection-v1\",\"records\":[{\"label\":\"duplicate\",\"sequence\":\"AAAA\"}]},\"patterns\":[{\"label\":\"fragment\",\"sequence\":\"A\"}],\"page_size\":3}",
+      "a": [
+        [
+          0,
+          0,
+          1,
+          0,
+          "forward"
+        ],
+        [
+          0,
+          1,
+          2,
+          0,
+          "forward"
+        ],
+        [
+          0,
+          2,
+          3,
+          0,
+          "forward"
+        ],
+        [
+          0,
+          3,
+          4,
+          0,
+          "forward"
+        ]
+      ],
+      "absent": [],
+      "valid": true
+    },
+    {
+      "q": "Find exact fragments: {\"collection\":{\"schema\":\"oracle-sequence-collection-v1\",\"records\":[{\"label\":\"duplicate\",\"sequence\":\"\"},{\"label\":\"duplicate\",\"sequence\":\"ACGT\"},{\"label\":\"duplicate\",\"sequence\":\"\"}]},\"patterns\":[{\"label\":\"fragment\",\"sequence\":\"ACGT\"},{\"label\":\"fragment\",\"sequence\":\"AAAAA\"}],\"page_size\":1}",
+      "a": [
+        [
+          1,
+          0,
+          4,
+          0,
+          "both"
+        ]
+      ],
+      "absent": [
+        1
+      ],
+      "valid": true
+    },
+    {
+      "q": "Find exact fragments: {\"collection\":{\"schema\":\"oracle-sequence-collection-v1\",\"records\":[{\"label\":\"duplicate\",\"sequence\":\"TTTT\"}]},\"patterns\":[{\"label\":\"fragment\",\"sequence\":\"AA\"}],\"page_size\":1}",
+      "a": [
+        [
+          0,
+          0,
+          2,
+          0,
+          "reverse"
+        ],
+        [
+          0,
+          1,
+          3,
+          0,
+          "reverse"
+        ],
+        [
+          0,
+          2,
+          4,
+          0,
+          "reverse"
+        ]
+      ],
+      "absent": [],
+      "valid": true
+    },
+    {
+      "q": "Find exact fragments: {\"collection\":{\"schema\":\"oracle-sequence-collection-v1\",\"records\":[{\"label\":\"duplicate\",\"sequence\":\"ACGT\"}]},\"patterns\":[{\"label\":\"fragment\",\"sequence\":\"N\"}],\"page_size\":1}",
+      "a": [],
+      "absent": [],
+      "valid": false
+    },
+    {
+      "q": "Find exact fragments: {\"collection\":{\"schema\":\"oracle-sequence-collection-v1\",\"records\":[{\"label\":\"duplicate\",\"sequence\":\"ACGT\"}]},\"patterns\":[{\"label\":\"fragment\",\"sequence\":\"AC\"}],\"page_size\":0}",
+      "a": [],
+      "absent": [],
+      "valid": false
+    },
+    {
+      "q": "Find exact fragments: {\"collection\":{\"schema\":\"oracle-sequence-collection-v1\",\"records\":[{\"label\":\"duplicate\",\"sequence\":\"ACGT\"}]},\"patterns\":[{\"label\":\"fragment\",\"sequence\":\"AC\"}],\"page_size\":1025}",
+      "a": [],
+      "absent": [],
+      "valid": false
+    }
+  ]
+}

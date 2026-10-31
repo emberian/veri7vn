@@ -79,6 +79,13 @@ pub struct Execution {
     pub result: QueryResult,
 }
 
+// Payload precedes its reservation so every error/early return drops the
+// envelope allocation before releasing the transferred selection charge.
+struct RetainedSessionEnvelope {
+    value: SessionEnvelope,
+    _memory: Option<crate::budget::MemoryReservation>,
+}
+
 /// A completed bounded reader turn, including semantic refusals. This is not a
 /// graph QueryResult or a claim of restoring the upstream dialogue engine.
 #[derive(Debug, Serialize, Deserialize)]
@@ -880,7 +887,13 @@ impl Runtime {
                     },
                     limits.result_bytes,
                 )?,
-                Some(selection),
+                Some({
+                    let memory = budget.reserve_memory(
+                        crate::query::selection_retained_bytes(&selection)
+                            .saturating_add(std::mem::size_of::<Selection>()),
+                    )?;
+                    (selection, memory)
+                }),
             )
         } else {
             let evaluation = crate::reader::evaluate_whole(
@@ -902,20 +915,43 @@ impl Runtime {
                     },
                     limits.result_bytes,
                 )?,
-                selection,
+                selection
+                    .map(|selection| {
+                        let bytes = crate::query::selection_retained_bytes(&selection);
+                        selection.into_owned(bytes, budget)
+                    })
+                    .transpose()?,
             )
         };
         // Refusals and disagreements preserve selection. Every dialect leaves
         // pending interpretations and adapter-owned conversation data intact.
-        if let Some(selection) = selection {
+        let _selection_memory = if let Some((selection, memory)) = selection {
             envelope.selection = SessionSelection {
                 ids: selection.ids,
                 facts: selection.facts,
                 attributes: selection.attributes,
             };
-        }
-        envelope.revision = expected_version + 1;
-        let state = envelope.encode(&session_policy)?;
+            Some(memory)
+        } else {
+            None
+        };
+        let mut envelope = RetainedSessionEnvelope {
+            value: envelope,
+            _memory: _selection_memory,
+        };
+        envelope.value.revision = expected_version + 1;
+        let state_bytes = crate::query::encoded_size(&envelope.value, session_policy.max_bytes)?;
+        // BoundedWriter's growing buffer may retain spare capacity. Install
+        // the serialized state envelope before allocation, through commit.
+        let _state_memory = budget.reserve_memory(
+            state_bytes
+                .saturating_mul(2)
+                .saturating_add(std::mem::size_of::<String>()),
+        )?;
+        let state = envelope.value.encode(&session_policy)?;
+        // The transferred selection guard outlives its actual allocation,
+        // including the durable envelope's borrowed validation/encoding.
+        drop(envelope);
         budget.check()?;
         let mut db = self.state.acquire(&budget)?;
         let tx = db.transaction_with_behavior(TransactionBehavior::Immediate)?;

@@ -1,0 +1,15 @@
+{
+  "scope":"New supplied-network workflow; manufactured independent literal truth cases, not a shipped upstream panel score",
+  "base":"example.json",
+  "cases":[
+    {"id":"series-network","expect":{"temperatures":[[306,302,300],[322,314,310],[307,303,300]],"derivatives":[[0.75,0.25,0],[-2,0,0],[-0.5,-0.5,0]]}},
+    {"id":"reservoir-load","scenario_overrides":[{"id":"normal","applied_heat_w":[8,0,99],"fixed_temperature_k":[null,null,300]}],"sensitivity_overrides":[{"scenario_id":"normal","parameter":{"kind":"load","node_id":"sink"}}],"expect":{"temperatures":[[306,302,300]],"derivatives":[[0,0,0]]}},
+    {"id":"cooling-source","scenario_overrides":[{"id":"normal","applied_heat_w":[-8,0,0],"fixed_temperature_k":[null,null,300]}],"sensitivity_overrides":[],"expect":{"temperatures":[[294,298,300]],"derivatives":[]}},
+    {"id":"all-boundaries","fixed_all":true,"scenario_overrides":[{"id":"normal","applied_heat_w":[8,0,0],"fixed_temperature_k":[306,302,300]}],"sensitivity_overrides":[],"expect":{"temperatures":[[306,302,300]],"derivatives":[]}},
+    {"id":"floating-component","floating":true,"expect":{"refused":true}},
+    {"id":"changed-boundary-mask","scenario_overrides":[{"id":"normal","applied_heat_w":[8,0,0],"fixed_temperature_k":[300,null,300]}],"sensitivity_overrides":[],"expect":{"refused":true}},
+    {"id":"missing-load-row","scenario_overrides":[{"id":"normal","applied_heat_w":[8,0],"fixed_temperature_k":[null,null,300]}],"sensitivity_overrides":[],"expect":{"refused":true}},
+    {"id":"negative-conductance","conductance_override":-2,"expect":{"refused":true}},
+    {"id":"below-zero","scenario_overrides":[{"id":"normal","applied_heat_w":[-800,0,0],"fixed_temperature_k":[null,null,300]}],"sensitivity_overrides":[],"expect":{"refused":true}}
+  ]
+}
