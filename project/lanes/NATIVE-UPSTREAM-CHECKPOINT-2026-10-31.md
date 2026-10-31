@@ -24,6 +24,13 @@ Complete modeling admission remains incomplete after its cold core baseline time
 
 ## What upstream has received
 
+- [Coherent conversation and standalone release checkpoint](https://huggingface.co/psiloceyeben/oracle7-slim/discussions/5#6ae6629d730eabe558c0fb89):
+  published `0bca25c` with the three implementation slices, 165 Rust / 43 Python
+  checks, actual relocated U8 recovery, 28 modeling and eight thermal cases.
+  The comment explicitly leaves modeling admission incomplete and records the
+  observed Engine resource cost and cold readiness problem. Body read back exactly;
+  SHA256 `2809aa24b580e018687db132b56962cc188bdd5380995fa57151ec3b494b2d05`. PRs #10 and #11 remained open at this focused check;
+  no new maintainer response or adoption is implied.
 - [Typed service, packed reader and recovery follow-up](https://huggingface.co/psiloceyeben/oracle7-slim/discussions/5#6ae64aca93643fb6c518d305):
   published `19e64b8` with the three implementation slices, correctness receipt,
   measured encoded-service gains and unresolved reader latency/memory costs.

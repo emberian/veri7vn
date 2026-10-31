@@ -101,3 +101,6 @@ source-bound shared reader artifacts, while moving the already enumerated routes
 to native/extracted kernels and direct shared-store adapters. Other remaining
 work is kept in the [live roadmap](../../native/docs/ROADMAP.md), including history
 policy, wider reader coverage, prepared computation and upstream adoption.
+
+The code and qualification were [shared upstream](https://huggingface.co/psiloceyeben/oracle7-slim/discussions/5#6ae6629d730eabe558c0fb89)
+at `0bca25c`; the posted body was read back exactly. Adoption remains pending.
