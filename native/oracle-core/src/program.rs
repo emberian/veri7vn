@@ -172,6 +172,250 @@ fn operator(text: &str) -> Result<ComparisonOp> {
     }
 }
 
+/// Shared literal/operation admission. Dependency topology belongs to each
+/// occurrence recipe; type compatibility belongs to these checked operations.
+pub(crate) fn validate_operation(
+    index: usize,
+    step: &ProgramStep,
+    dependencies: &[ProgramType],
+) -> Result<ProgramType> {
+    let contract = step.function.contract();
+    if dependencies.len() != contract.dependencies.len() || step.inputs.len() != contract.inputs {
+        return Err(invalid(index, step.function, "dependency or literal arity"));
+    }
+    if dependencies
+        .iter()
+        .zip(&contract.dependencies)
+        .any(|(actual, expected)| actual != expected)
+    {
+        return Err(invalid(index, step.function, "dependency type mismatch"));
+    }
+    use Operation::*;
+    match step.function {
+        Relate if !matches!(step.inputs[1].as_str(), "forward" | "backward") => {
+            return Err(invalid(index, step.function, "invalid relation direction"));
+        }
+        SelectBetween if !matches!(step.inputs[1].as_str(), "greater" | "less") => {
+            return Err(invalid(index, step.function, "expected greater or less"));
+        }
+        SelectAmong if !matches!(step.inputs[1].as_str(), "largest" | "smallest") => {
+            return Err(invalid(
+                index,
+                step.function,
+                "expected largest or smallest",
+            ));
+        }
+        _ => {}
+    }
+    let inferred_literal = match step.function {
+        QueryAttrQualifier => Some(&step.inputs[1]),
+        QueryAttrUnderCondition => Some(&step.inputs[2]),
+        _ => None,
+    };
+    if inferred_literal.is_some_and(|literal| literal.len() > ValueLimits::default().max_text_bytes)
+    {
+        return Err(invalid(index, step.function, "value literal byte limit"));
+    }
+    if let Some(kind) = step.function.literal_kind() {
+        let verification = matches!(
+            step.function,
+            VerifyStr | VerifyNum | VerifyYear | VerifyDate
+        );
+        let literal = &step.inputs[usize::from(!verification)];
+        TypedValue::parse_literal(literal, kind, &ValueLimits::default())
+            .map_err(|err| invalid(index, step.function, &err.to_string()))?;
+        if kind != ValueKind::String {
+            operator(step.inputs.last().expect("arity checked"))
+                .map_err(|err| invalid(index, step.function, &err.to_string()))?;
+        }
+    }
+    Ok(contract.output)
+}
+
+/// Lower a validated operation once. Entity IDs may be normal local plan
+/// indices or request-canonical checked-operation indices.
+pub(crate) fn lower_operation(
+    function: Operation,
+    inputs: &[String],
+    dependencies: &[Lowered],
+) -> Result<(Option<Node>, Option<(usize, Projection)>)> {
+    use Operation::*;
+    let entity = |n: usize| dependencies[n].entity();
+    let predicate = |kind, literal: &str, comparison: &str| -> Result<ValuePredicate> {
+        Ok(ValuePredicate {
+            kind,
+            literal: literal.to_owned(),
+            comparison: operator(comparison)?,
+        })
+    };
+    let result = match function {
+        FindAll => (Some(Node::All), None),
+        Find => (
+            Some(Node::Find {
+                name: inputs[0].clone(),
+            }),
+            None,
+        ),
+        FilterConcept => (
+            Some(Node::FilterConcept {
+                input: entity(0),
+                name: inputs[0].clone(),
+            }),
+            None,
+        ),
+        Relate => (
+            Some(Node::Relate {
+                input: entity(0),
+                predicate: inputs[0].clone(),
+                direction: inputs[1].clone(),
+            }),
+            None,
+        ),
+        And => (
+            Some(Node::And {
+                left: entity(0),
+                right: entity(1),
+            }),
+            None,
+        ),
+        Or => (
+            Some(Node::Or {
+                left: entity(0),
+                right: entity(1),
+            }),
+            None,
+        ),
+        FilterStr | FilterNum | FilterYear | FilterDate | QFilterStr | QFilterNum | QFilterYear
+        | QFilterDate => {
+            let comparison = if inputs.len() == 2 { "=" } else { &inputs[2] };
+            let predicate = predicate(function.literal_kind(), &inputs[1], comparison)?;
+            let input = entity(0);
+            let key = inputs[0].clone();
+            let node = if matches!(
+                function,
+                QFilterStr | QFilterNum | QFilterYear | QFilterDate
+            ) {
+                Node::FilterQualifier {
+                    input,
+                    key,
+                    predicate,
+                }
+            } else {
+                Node::FilterAttribute {
+                    input,
+                    key,
+                    predicate,
+                }
+            };
+            (Some(node), None)
+        }
+        What => (None, Some((entity(0), Projection::UniqueName))),
+        Count => (None, Some((entity(0), Projection::Count))),
+        QueryAttr => (
+            None,
+            Some((
+                entity(0),
+                Projection::UniqueAttribute {
+                    key: inputs[0].clone(),
+                    condition: None,
+                },
+            )),
+        ),
+        QueryAttrUnderCondition => (
+            None,
+            Some((
+                entity(0),
+                Projection::UniqueAttribute {
+                    key: inputs[0].clone(),
+                    condition: Some(QualifierCondition {
+                        key: inputs[1].clone(),
+                        predicate: predicate(None, &inputs[2], "=")?,
+                    }),
+                },
+            )),
+        ),
+        QueryAttrQualifier => (
+            None,
+            Some((
+                entity(0),
+                Projection::AttributeQualifier {
+                    key: inputs[0].clone(),
+                    predicate: predicate(None, &inputs[1], "=")?,
+                    qualifier: inputs[2].clone(),
+                },
+            )),
+        ),
+        QueryRelation => (
+            None,
+            Some((
+                entity(0),
+                Projection::Relation {
+                    target: entity(1),
+                    direction: None,
+                },
+            )),
+        ),
+        QueryRelationQualifier => (
+            None,
+            Some((
+                entity(0),
+                Projection::RelationQualifier {
+                    target: entity(1),
+                    predicate: inputs[0].clone(),
+                    direction: None,
+                    qualifier: inputs[1].clone(),
+                },
+            )),
+        ),
+        SelectAmong => (
+            None,
+            Some((
+                entity(0),
+                Projection::Select {
+                    key: inputs[0].clone(),
+                    order: if inputs[1] == "largest" {
+                        SelectionOrder::Largest
+                    } else {
+                        SelectionOrder::Smallest
+                    },
+                },
+            )),
+        ),
+        SelectBetween => (
+            None,
+            Some((
+                entity(0),
+                Projection::SelectBetween {
+                    target: entity(1),
+                    key: inputs[0].clone(),
+                    order: if inputs[1] == "greater" {
+                        SelectionOrder::Largest
+                    } else {
+                        SelectionOrder::Smallest
+                    },
+                },
+            )),
+        ),
+        VerifyStr | VerifyNum | VerifyYear | VerifyDate => {
+            let Lowered::Scalar { output, projection } = &dependencies[0] else {
+                unreachable!("validated value dependency")
+            };
+            let comparison = if inputs.len() == 1 { "=" } else { &inputs[1] };
+            (
+                None,
+                Some((
+                    *output,
+                    Projection::Verify {
+                        source: Box::new(projection.clone()),
+                        predicate: predicate(function.literal_kind(), &inputs[0], comparison)?,
+                    },
+                )),
+            )
+        }
+    };
+    Ok(result)
+}
+
 impl Program {
     pub fn parse(text: &str, limits: &Limits) -> Result<Self> {
         if text.len() > limits.request_bytes {
@@ -210,46 +454,15 @@ impl Program {
                     return Err(invalid(index, step.function, "dependency type mismatch"));
                 }
             }
-            use Operation::*;
-            match step.function {
-                Relate if !matches!(step.inputs[1].as_str(), "forward" | "backward") => {
-                    return Err(invalid(index, step.function, "invalid relation direction"));
-                }
-                SelectBetween if !matches!(step.inputs[1].as_str(), "greater" | "less") => {
-                    return Err(invalid(index, step.function, "expected greater or less"));
-                }
-                SelectAmong if !matches!(step.inputs[1].as_str(), "largest" | "smallest") => {
-                    return Err(invalid(
-                        index,
-                        step.function,
-                        "expected largest or smallest",
-                    ));
-                }
-                _ => {}
-            }
-            let inferred_literal = match step.function {
-                QueryAttrQualifier => Some(&step.inputs[1]),
-                QueryAttrUnderCondition => Some(&step.inputs[2]),
-                _ => None,
-            };
-            if inferred_literal
-                .is_some_and(|literal| literal.len() > ValueLimits::default().max_text_bytes)
-            {
-                return Err(invalid(index, step.function, "value literal byte limit"));
-            }
-            if let Some(kind) = step.function.literal_kind() {
-                let verification = matches!(
-                    step.function,
-                    VerifyStr | VerifyNum | VerifyYear | VerifyDate
-                );
-                let literal = &step.inputs[usize::from(!verification)];
-                TypedValue::parse_literal(literal, kind, &ValueLimits::default())
-                    .map_err(|err| invalid(index, step.function, &err.to_string()))?;
-                if kind != ValueKind::String {
-                    operator(step.inputs.last().expect("arity checked"))
-                        .map_err(|err| invalid(index, step.function, &err.to_string()))?;
-                }
-            }
+            validate_operation(
+                index,
+                step,
+                &step
+                    .dependencies
+                    .iter()
+                    .map(|&d| types[d])
+                    .collect::<Vec<_>>(),
+            )?;
             types.push(contract.output);
         }
         Ok(())
@@ -268,187 +481,12 @@ impl Program {
         let mut nodes = Vec::new();
         let mut lowered = Vec::<Lowered>::with_capacity(self.0.len());
         for step in &self.0 {
-            use Operation::*;
-            let inputs = &step.inputs;
-            let entity = |n: usize| lowered[step.dependencies[n]].entity();
-            let predicate = |kind, literal: &str, comparison: &str| -> Result<ValuePredicate> {
-                Ok(ValuePredicate {
-                    kind,
-                    literal: literal.to_owned(),
-                    comparison: operator(comparison)?,
-                })
-            };
-            let (node, scalar) = match step.function {
-                FindAll => (Some(Node::All), None),
-                Find => (
-                    Some(Node::Find {
-                        name: inputs[0].clone(),
-                    }),
-                    None,
-                ),
-                FilterConcept => (
-                    Some(Node::FilterConcept {
-                        input: entity(0),
-                        name: inputs[0].clone(),
-                    }),
-                    None,
-                ),
-                Relate => (
-                    Some(Node::Relate {
-                        input: entity(0),
-                        predicate: inputs[0].clone(),
-                        direction: inputs[1].clone(),
-                    }),
-                    None,
-                ),
-                And => (
-                    Some(Node::And {
-                        left: entity(0),
-                        right: entity(1),
-                    }),
-                    None,
-                ),
-                Or => (
-                    Some(Node::Or {
-                        left: entity(0),
-                        right: entity(1),
-                    }),
-                    None,
-                ),
-                FilterStr | FilterNum | FilterYear | FilterDate | QFilterStr | QFilterNum
-                | QFilterYear | QFilterDate => {
-                    let comparison = if inputs.len() == 2 { "=" } else { &inputs[2] };
-                    let predicate =
-                        predicate(step.function.literal_kind(), &inputs[1], comparison)?;
-                    let input = entity(0);
-                    let key = inputs[0].clone();
-                    let node = if matches!(
-                        step.function,
-                        QFilterStr | QFilterNum | QFilterYear | QFilterDate
-                    ) {
-                        Node::FilterQualifier {
-                            input,
-                            key,
-                            predicate,
-                        }
-                    } else {
-                        Node::FilterAttribute {
-                            input,
-                            key,
-                            predicate,
-                        }
-                    };
-                    (Some(node), None)
-                }
-                What => (None, Some((entity(0), Projection::UniqueName))),
-                Count => (None, Some((entity(0), Projection::Count))),
-                QueryAttr => (
-                    None,
-                    Some((
-                        entity(0),
-                        Projection::UniqueAttribute {
-                            key: inputs[0].clone(),
-                            condition: None,
-                        },
-                    )),
-                ),
-                QueryAttrUnderCondition => (
-                    None,
-                    Some((
-                        entity(0),
-                        Projection::UniqueAttribute {
-                            key: inputs[0].clone(),
-                            condition: Some(QualifierCondition {
-                                key: inputs[1].clone(),
-                                predicate: predicate(None, &inputs[2], "=")?,
-                            }),
-                        },
-                    )),
-                ),
-                QueryAttrQualifier => (
-                    None,
-                    Some((
-                        entity(0),
-                        Projection::AttributeQualifier {
-                            key: inputs[0].clone(),
-                            predicate: predicate(None, &inputs[1], "=")?,
-                            qualifier: inputs[2].clone(),
-                        },
-                    )),
-                ),
-                QueryRelation => (
-                    None,
-                    Some((
-                        entity(0),
-                        Projection::Relation {
-                            target: entity(1),
-                            direction: None,
-                        },
-                    )),
-                ),
-                QueryRelationQualifier => (
-                    None,
-                    Some((
-                        entity(0),
-                        Projection::RelationQualifier {
-                            target: entity(1),
-                            predicate: inputs[0].clone(),
-                            direction: None,
-                            qualifier: inputs[1].clone(),
-                        },
-                    )),
-                ),
-                SelectAmong => (
-                    None,
-                    Some((
-                        entity(0),
-                        Projection::Select {
-                            key: inputs[0].clone(),
-                            order: if inputs[1] == "largest" {
-                                SelectionOrder::Largest
-                            } else {
-                                SelectionOrder::Smallest
-                            },
-                        },
-                    )),
-                ),
-                SelectBetween => (
-                    None,
-                    Some((
-                        entity(0),
-                        Projection::SelectBetween {
-                            target: entity(1),
-                            key: inputs[0].clone(),
-                            order: if inputs[1] == "greater" {
-                                SelectionOrder::Largest
-                            } else {
-                                SelectionOrder::Smallest
-                            },
-                        },
-                    )),
-                ),
-                VerifyStr | VerifyNum | VerifyYear | VerifyDate => {
-                    let Lowered::Scalar { output, projection } = &lowered[step.dependencies[0]]
-                    else {
-                        unreachable!("validated value dependency")
-                    };
-                    let comparison = if inputs.len() == 1 { "=" } else { &inputs[1] };
-                    (
-                        None,
-                        Some((
-                            *output,
-                            Projection::Verify {
-                                source: Box::new(projection.clone()),
-                                predicate: predicate(
-                                    step.function.literal_kind(),
-                                    &inputs[0],
-                                    comparison,
-                                )?,
-                            },
-                        )),
-                    )
-                }
-            };
+            let dependencies = step
+                .dependencies
+                .iter()
+                .map(|&d| lowered[d].clone())
+                .collect::<Vec<_>>();
+            let (node, scalar) = lower_operation(step.function, &step.inputs, &dependencies)?;
             if let Some(node) = node {
                 let index = nodes.len();
                 nodes.push(node);
@@ -524,7 +562,8 @@ impl Program {
     }
 }
 
-enum Lowered {
+#[derive(Clone, Debug)]
+pub(crate) enum Lowered {
     Entities(usize),
     Scalar {
         output: usize,
@@ -533,7 +572,7 @@ enum Lowered {
 }
 
 impl Lowered {
-    fn entity(&self) -> usize {
+    pub(crate) fn entity(&self) -> usize {
         match self {
             Self::Entities(index) => *index,
             Self::Scalar { .. } => unreachable!("validated entity dependency"),

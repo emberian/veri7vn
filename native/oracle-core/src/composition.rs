@@ -7,13 +7,15 @@
 use crate::grammar::{
     self, Bindings, Fallback, GrammarSpan, MatchLimits, MatchedProgram, Program, ReaderPolicy,
 };
+use crate::packed_program::{OwnedPackedProgram, PackedProgramRef};
 use crate::segments::{
-    Chart, Fragment, Ledger, NodeId, NodeKey, Owner, ProgramId, RegionPlan, MAX_FRAGMENT_WORDS,
-    MAX_REGION_WORDS,
+    Chart, DiagnosticStore, Fragment, Ledger, NodeId, NodeKey, Owner, ProgramId, RegionPlan,
+    SharedChartMemory, MAX_FRAGMENT_WORDS, MAX_REGION_WORDS,
 };
 use crate::{Budget, Error, Result};
 use rusqlite::{params, Connection};
 use std::collections::{BTreeMap, BTreeSet};
+use std::sync::Arc;
 
 pub const COVERAGE: &str = "exact_fragment_outer_v1";
 #[derive(Clone)]
@@ -30,7 +32,7 @@ struct Edge {
 #[derive(Debug)]
 pub struct ComposedMatches {
     programs: Vec<MatchedProgram>,
-    memory: crate::budget::MemoryReservation,
+    _memory: SharedChartMemory,
 }
 impl std::ops::Deref for ComposedMatches {
     type Target = [MatchedProgram];
@@ -38,20 +40,54 @@ impl std::ops::Deref for ComposedMatches {
         &self.programs
     }
 }
-impl ComposedMatches {
-    pub(crate) fn into_parts(self) -> (Vec<MatchedProgram>, crate::budget::MemoryReservation) {
+
+/// A syntax occurrence retains raw chart roots and witnesses. Rendering is
+/// diagnostic-only; evaluation receives the owned packed program directly.
+#[derive(Clone)]
+pub(crate) struct PackedTemplate {
+    store: Arc<DiagnosticStore>,
+    outer: Arc<str>,
+    witnesses: Box<[NodeId]>,
+}
+impl PackedTemplate {
+    /// Conservative temporary+retained heap envelope, before diagnostics exist.
+    pub fn size_bound(&self) -> usize {
+        self.witnesses
+            .iter()
+            .fold(
+                self.outer.len().saturating_mul(6).saturating_add(128),
+                |size, witness| size.saturating_add(self.store.fragment_bound(*witness)),
+            )
+            .saturating_mul(16)
+    }
+    pub fn render(&self) -> Result<String> {
+        let fragments = self
+            .witnesses
+            .iter()
+            .map(|&id| self.store.fragment(id))
+            .collect::<Result<Vec<_>>>()?;
+        Ok(serde_json::to_string(
+            &serde_json::json!({"family":COVERAGE,"outer":&*self.outer,"fragments":fragments}),
+        )?)
+    }
+}
+pub(crate) struct PackedMatchedProgram {
+    pub template: PackedTemplate,
+    pub level: u8,
+    pub support: u64,
+    pub program: OwnedPackedProgram,
+}
+pub(crate) struct ComposedPackedMatches {
+    programs: Vec<PackedMatchedProgram>,
+    memory: SharedChartMemory,
+}
+impl ComposedPackedMatches {
+    pub fn into_parts(self) -> (Vec<PackedMatchedProgram>, SharedChartMemory) {
         (self.programs, self.memory)
     }
 }
-
-/// Find complete learned outer questions using bounded X-region holes first.
-/// Parse only demanded regions, then validate consumed fragments once per program.
-/// Prefix probes prune impossible lexical choices; unused fragments never run.
-/// The mutable DFS path is shared; parse trees and span powersets are never built.
-/// Exhaustion is an error, never a truncated list that could hide disagreement.
-///
-/// `viable` must reject non-entity and empty fragments, including dead empty
-/// branches. It shares the caller's request budget/worker and must not commit.
+/// Compatibility diagnostic adapter. Production uses match_composed_packed;
+/// this explicit flat API remains for callers requesting exact public syntax.
 #[allow(clippy::too_many_arguments)]
 pub fn match_composed<F>(
     db: &Connection,
@@ -66,6 +102,81 @@ pub fn match_composed<F>(
 ) -> Result<ComposedMatches>
 where
     F: FnMut(&Program) -> Result<bool>,
+{
+    let packed = match_composed_packed(
+        db,
+        normalized,
+        fragment_spans,
+        outer_spans,
+        level,
+        policy,
+        limits,
+        budget,
+        |program| viable(&crate::packed_program::materialize(program)?),
+    )?;
+    let (packed, memory) = packed.into_parts();
+    let mut diagnostic_bytes = 0usize;
+    let mut programs = Vec::with_capacity(packed.len());
+    for candidate in packed {
+        let program_bytes = crate::packed_program::source_bytes(
+            PackedProgramRef::new(&candidate.program),
+            usize::MAX,
+        )?
+        .saturating_mul(16);
+        let bytes = candidate
+            .template
+            .size_bound()
+            .saturating_add(program_bytes);
+        diagnostic_bytes = diagnostic_bytes
+            .checked_add(bytes)
+            .ok_or(Error::Limit("composition bytes"))?;
+        if diagnostic_bytes > limits.materialized_bytes {
+            return Err(Error::Limit("composition bytes"));
+        }
+        let mut guard = memory.lock().expect("chart memory lock");
+        let next = guard.bytes().saturating_add(bytes);
+        if next > limits.materialized_bytes {
+            return Err(Error::Limit("composition bytes"));
+        }
+        guard
+            .resize(next)
+            .map_err(|_| Error::Limit("retained request memory"))?;
+        drop(guard);
+        programs.push(MatchedProgram {
+            template: candidate.template.render()?,
+            level: candidate.level,
+            support: candidate.support,
+            program: crate::packed_program::materialize(PackedProgramRef::new(&candidate.program))?,
+        });
+    }
+    Ok(ComposedMatches {
+        programs,
+        _memory: memory,
+    })
+}
+
+/// Find complete learned outer questions using bounded X-region holes first.
+/// Parse only demanded regions, then validate consumed fragments once per program.
+/// Prefix probes prune impossible lexical choices; unused fragments never run.
+/// The mutable DFS path is shared; parse trees and span powersets are never built.
+/// Exhaustion is an error, never a truncated list that could hide disagreement.
+///
+/// `viable` must reject non-entity and empty fragments, including dead empty
+/// branches. It shares the caller's request budget/worker and must not commit.
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn match_composed_packed<F>(
+    db: &Connection,
+    normalized: &str,
+    fragment_spans: &[GrammarSpan],
+    outer_spans: &[GrammarSpan],
+    level: u8,
+    policy: &ReaderPolicy,
+    limits: MatchLimits,
+    budget: &Budget,
+    mut viable: F,
+) -> Result<ComposedPackedMatches>
+where
+    F: FnMut(PackedProgramRef<'_>) -> Result<bool>,
 {
     if level > 1 || normalized.split_whitespace().collect::<Vec<_>>().join(" ") != normalized {
         return Err(Error::Invalid("composition level or normalization".into()));
@@ -101,10 +212,23 @@ where
     );
     probe::record(&ledger, &result);
     let programs = result?;
-    // compose's chart/arena have dropped. Transfer the already-live output
-    // reservation while releasing only those now-dead owners.
-    let memory = ledger.into_output_memory();
-    Ok(ComposedMatches { programs, memory })
+    // Raw recipes and lazy provenance survive in the packed batch. Keep the
+    // chart envelope until its last request-owned roots/diagnostics are dropped.
+    let memory = if programs.is_empty() {
+        // An empty batch owns no chart data. A callback may independently
+        // retain a Recipe: drop only OUR guard reference, never resize the
+        // shared reservation out from under that escaped source.
+        drop(ledger);
+        Arc::new(std::sync::Mutex::new(
+            budget
+                .memory()
+                .reserve(0)
+                .map_err(|_| Error::Limit("retained request memory"))?,
+        ))
+    } else {
+        ledger.into_packed_memory()
+    };
+    Ok(ComposedPackedMatches { programs, memory })
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -121,9 +245,9 @@ fn compose<F>(
     budget: &Budget,
     ledger: &mut Ledger,
     viable: &mut F,
-) -> Result<Vec<MatchedProgram>>
+) -> Result<Vec<PackedMatchedProgram>>
 where
-    F: FnMut(&Program) -> Result<bool>,
+    F: FnMut(PackedProgramRef<'_>) -> Result<bool>,
 {
     let mut state = Search {
         db,
@@ -284,22 +408,13 @@ where
                 .zip(&cursor)
                 .map(|(alternatives, index)| alternatives[*index])
                 .collect();
-            let scratch: usize = witnesses
-                .iter()
-                .map(|&node| regions.flat_size(regions.node_program(node)))
-                .sum();
-            regions.charge(scratch, Owner::Scratch)?;
             let programs = found
                 .fragments
                 .iter()
                 .zip(&witnesses)
-                .map(|(index, &node)| (index + 1, regions.program(regions.node_program(node))))
+                .map(|(index, &node)| (index + 1, regions.node_program(node)))
                 .collect();
-            let expanded =
-                grammar::expand(&found.program, &Bindings::new(), &programs, limits.steps);
-            drop(programs);
-            regions.release(scratch, Owner::Scratch);
-            if let Some(program) = expanded? {
+            if let Some(program) = regions.splice(&found.program, &programs)? {
                 // Count a complete outer interpretation only after all region
                 // holes resolve. Equivalent parse paths share a node; differing
                 // region/program/child witnesses remain distinct alternatives.
@@ -309,7 +424,7 @@ where
                         .iter()
                         .map(|(_, node)| std::mem::size_of::<(usize, usize)>() + node.size())
                         .sum::<usize>();
-                let key = (regions.intern(&program)?, witness_key);
+                let key = (program, witness_key);
                 if resolved_outer.insert(key) {
                     regions.complete += 1;
                     if regions.complete > limits.combinations {
@@ -317,29 +432,21 @@ where
                     }
                     regions.charge(key_size.saturating_add(32), Owner::Resolved)?;
                 }
-                let fragments = witnesses
-                    .iter()
-                    .map(|&node| regions.fragment(node))
-                    .collect::<Result<Vec<_>>>()?;
-                let template = serde_json::to_string(
-                    &serde_json::json!({"family":COVERAGE,"outer":found.template,"fragments":fragments}),
-                )?;
-                drop(fragments);
-                let candidate = MatchedProgram {
-                    template,
-                    level,
-                    support: found.support,
-                    program,
-                };
                 if output.len() >= limits.matches {
                     return Err(Error::Limit("composition matches"));
                 }
-                let retained = crate::query::encoded_size(&candidate, usize::MAX)?
-                    .checked_mul(16)
-                    .and_then(|n| n.checked_add(256))
-                    .ok_or(Error::Limit("retained memory accounting overflow"))?;
+                let retained = found
+                    .template
+                    .len()
+                    .saturating_add(witnesses.len() * std::mem::size_of::<NodeId>())
+                    .saturating_add(256);
                 regions.charge(retained, Owner::Output)?;
-                output.push(candidate);
+                output.push((
+                    program,
+                    Arc::<str>::from(found.template.as_str()),
+                    found.support,
+                    witnesses,
+                ));
             }
             let mut position = cursor.len();
             while position > 0 {
@@ -355,7 +462,20 @@ where
             }
         }
     }
-    Ok(output)
+    let store = regions.into_diagnostics();
+    Ok(output
+        .into_iter()
+        .map(|(id, outer, support, witnesses)| PackedMatchedProgram {
+            program: store.source(id),
+            level,
+            support,
+            template: PackedTemplate {
+                store: store.clone(),
+                outer,
+                witnesses: witnesses.into(),
+            },
+        })
+        .collect())
 }
 
 struct Found {
@@ -418,7 +538,7 @@ impl Search<'_> {
         family: &str,
         start: usize,
         edges: &[Vec<Edge>],
-        fragments: &[Fragment],
+        _fragments: &[Fragment],
         region_end: Option<usize>,
     ) -> Result<Vec<Found>> {
         struct Frame {
@@ -466,12 +586,12 @@ impl Search<'_> {
                     // their transitions/rows remain fuel/byte/match bounded.
                     for candidate in hit.candidates.into_iter().filter(|c| c.rejection.is_none()) {
                         let skeleton: Program = serde_json::from_value(candidate.skeleton)?;
-                        let xprograms = xindices
+                        let holes = xindices
                             .iter()
-                            .map(|(ordinal, index)| (*ordinal, fragments[*index].program.clone()))
+                            .map(|(ordinal, index)| (*ordinal, index + 1))
                             .collect();
                         if let Some(program) =
-                            grammar::expand(&skeleton, &texts, &xprograms, self.limits.steps)?
+                            grammar::bind_recipe(&skeleton, &texts, &holes, self.limits.steps)?
                         {
                             if out.len() >= self.limits.matches {
                                 return Err(Error::Limit("composition matches"));
@@ -574,7 +694,7 @@ impl Search<'_> {
 /// then records each call's peak ledger and owners. It never changes a result.
 #[doc(hidden)]
 pub mod probe {
-    use super::{Ledger, MatchedProgram, Result};
+    use super::{Ledger, Result};
     use std::sync::atomic::{AtomicBool, Ordering};
     use std::sync::Mutex;
 
@@ -592,7 +712,7 @@ pub mod probe {
     pub fn enable() {
         ENABLED.store(true, Ordering::Relaxed);
     }
-    pub(super) fn record(ledger: &Ledger, result: &Result<Vec<MatchedProgram>>) {
+    pub(super) fn record<T>(ledger: &Ledger, result: &Result<Vec<T>>) {
         if !ENABLED.load(Ordering::Relaxed) {
             return;
         }

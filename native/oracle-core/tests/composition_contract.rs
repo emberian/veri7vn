@@ -331,6 +331,8 @@ fn only_complete_outer_consumers_demand_fragment_work_and_share_it() {
     .unwrap();
     assert!(unused.is_empty());
     assert_eq!(calls, 0);
+    // Keeping an empty batch alive must not pin a discarded search arena.
+    assert_eq!(budget.memory().snapshot().live, 0);
     db.execute(
         "INSERT INTO reader_template VALUES ('outer',0,'X1 and X2',?1,3)",
         [json!([

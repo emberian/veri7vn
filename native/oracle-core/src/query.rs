@@ -588,7 +588,7 @@ pub(crate) enum Delivered {
     Count(u64),
 }
 impl Delivered {
-    fn into_full(self) -> Result<(QueryResult, Selection)> {
+    pub(crate) fn into_full(self) -> Result<(QueryResult, Selection)> {
         match self {
             Self::Full(result, selected) => Ok((*result, selected)),
             _ => Err(Error::Format(
@@ -619,6 +619,60 @@ pub(crate) fn evaluate(
     )?
     .ok_or_else(|| Error::Format("unexpected guarded graph evaluation".into()))?
     .into_full()
+}
+
+/// Borrowed execution view of an already admitted typed plan. Indices follow
+/// original entity-producing occurrence order, including unused and duplicate
+/// stages; dependencies/output/projection use those local occurrence indices.
+/// The producer retains original source byte/step admission and validates every
+/// operation/literal before exposing this crate-private view. Interning unique
+/// operations must never replace that occurrence/admission ledger.
+pub(crate) trait CheckedPlanView {
+    fn node_count(&self) -> usize;
+    fn node(&self, index: usize) -> std::borrow::Cow<'_, Node>;
+    fn output(&self) -> usize;
+    fn projection(&self) -> &Projection;
+}
+impl CheckedPlanView for Plan {
+    fn node_count(&self) -> usize {
+        self.nodes.len()
+    }
+    fn node(&self, index: usize) -> std::borrow::Cow<'_, Node> {
+        std::borrow::Cow::Borrowed(&self.nodes[index])
+    }
+    fn output(&self) -> usize {
+        self.output
+    }
+    fn projection(&self) -> &Projection {
+        &self.projection
+    }
+}
+
+/// Execute a checked packed root without constructing a flattened Plan. The
+/// existing compiler still visits every original entity-stage obligation in
+/// order and reuses the same request/lease-scoped stage and column workspace.
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn evaluate_language_packed(
+    db: &Connection,
+    identity: &str,
+    plan: &dyn CheckedPlanView,
+    previous: &Selection,
+    limits: &Limits,
+    budget: &Budget,
+    shared: &mut LanguageWorkspace,
+    demand: Demand,
+) -> Result<Option<Delivered>> {
+    evaluate_with_mode(
+        db,
+        identity,
+        plan,
+        previous,
+        limits,
+        budget,
+        true,
+        Some(shared),
+        demand,
+    )
 }
 
 /// R7's language-only admission guard: every entity-producing step is evaluated
@@ -951,7 +1005,7 @@ pub(crate) fn evaluate_language_demand(
 fn evaluate_with_mode(
     db: &Connection,
     identity: &str,
-    plan: &Plan,
+    plan: &dyn CheckedPlanView,
     previous: &Selection,
     limits: &Limits,
     budget: &Budget,
@@ -978,11 +1032,13 @@ fn evaluate_with_mode(
         Demand::Full => None,
         Demand::Exists => Some(format!(
             "{} SELECT EXISTS(SELECT 1 FROM n{})",
-            compiled.prefix, plan.output
+            compiled.prefix,
+            plan.output()
         )),
         Demand::Count => Some(format!(
             "{} SELECT count(*) FROM (SELECT DISTINCT id FROM n{})",
-            compiled.prefix, plan.output
+            compiled.prefix,
+            plan.output()
         )),
     };
     if let Some(sql) = scalar {
@@ -1005,7 +1061,8 @@ fn evaluate_with_mode(
     {
         let sql = format!(
             "{} SELECT id FROM n{} ORDER BY id",
-            compiled.prefix, plan.output
+            compiled.prefix,
+            plan.output()
         );
         let mut stmt = db.prepare_cached(&sql)?;
         let count = stmt.parameter_count();
@@ -1017,7 +1074,7 @@ fn evaluate_with_mode(
         }
     }
     {
-        let sql = format!("{} SELECT subject,predicate,direction,object,qualifiers FROM f{} ORDER BY subject,predicate,direction,object,qualifiers",compiled.prefix,plan.output);
+        let sql = format!("{} SELECT subject,predicate,direction,object,qualifiers FROM f{} ORDER BY subject,predicate,direction,object,qualifiers",compiled.prefix,plan.output());
         let mut stmt = db.prepare_cached(&sql)?;
         let count = stmt.parameter_count();
         let mut rows = stmt.query(rusqlite::params_from_iter(
@@ -1037,7 +1094,7 @@ fn evaluate_with_mode(
         }
     }
     {
-        let sql = format!("{} SELECT subject,key,position,value,qualifiers FROM a{} ORDER BY subject,key,position", compiled.prefix, plan.output);
+        let sql = format!("{} SELECT subject,key,position,value,qualifiers FROM a{} ORDER BY subject,key,position", compiled.prefix, plan.output());
         let mut stmt = db.prepare_cached(&sql)?;
         let count = stmt.parameter_count();
         let mut rows = stmt.query(rusqlite::params_from_iter(
@@ -1047,7 +1104,14 @@ fn evaluate_with_mode(
             meter.attribute(&mut selected, attribute_row(row)?)?;
         }
     }
-    let value = project(db, plan, &compiled, &selected, &plan.projection, &mut meter)?;
+    let value = project(
+        db,
+        plan,
+        &compiled,
+        &selected,
+        plan.projection(),
+        &mut meter,
+    )?;
     budget.check()?;
     let result = QueryResult {
         image: identity.into(),
@@ -1066,24 +1130,24 @@ struct Compiled {
 }
 fn compile(
     db: &Connection,
-    plan: &Plan,
+    plan: &dyn CheckedPlanView,
     previous: &Selection,
     meter: &mut Meter<'_>,
     language: bool,
     mut shared: Option<&mut LanguageWorkspace>,
 ) -> Result<Option<Compiled>> {
-    let refuse_empty = language && !matches!(plan.projection, Projection::Count);
+    let refuse_empty = language && !matches!(plan.projection(), Projection::Count);
     let mut ctes = Vec::new();
     let mut parameters = Vec::new();
-    let mut live = vec![language; plan.nodes.len()];
-    let mut pending = vec![plan.output];
-    plan.projection.dependencies(&mut pending);
+    let mut live = vec![language; plan.node_count()];
+    let mut pending = vec![plan.output()];
+    plan.projection().dependencies(&mut pending);
     while let Some(index) = pending.pop() {
         if live[index] {
             continue;
         }
         live[index] = true;
-        match &plan.nodes[index] {
+        match plan.node(index).as_ref() {
             Node::Relate { input, .. }
             | Node::FilterConcept { input, .. }
             | Node::FilterAttribute { input, .. }
@@ -1094,8 +1158,10 @@ fn compile(
     }
     // Shared subplans must not expand exponentially when the SQL planner inlines
     // CTEs (e.g. repeatedly unioning a result with itself). Keep DAG sharing.
-    let mut uses = vec![0usize; plan.nodes.len()];
-    for (index, node) in plan.nodes.iter().enumerate() {
+    let mut uses = vec![0usize; plan.node_count()];
+    for index in 0..plan.node_count() {
+        let node = plan.node(index);
+        let node = node.as_ref();
         if !live[index] {
             continue;
         }
@@ -1111,8 +1177,10 @@ fn compile(
             _ => {}
         }
     }
-    let mut slots = vec![0usize; plan.nodes.len()];
-    for (i, node) in plan.nodes.iter().enumerate() {
+    let mut slots = vec![0usize; plan.node_count()];
+    for i in 0..plan.node_count() {
+        let node = plan.node(i);
+        let node = node.as_ref();
         if !live[i] {
             continue;
         }
@@ -1596,7 +1664,7 @@ fn node_ids(
 }
 fn project(
     db: &Connection,
-    plan: &Plan,
+    plan: &dyn CheckedPlanView,
     compiled: &Compiled,
     selected: &Selection,
     projection: &Projection,
@@ -1697,7 +1765,7 @@ fn project(
             } else {
                 format!(" AND {}", conditions.join(" AND "))
             };
-            let sql = format!("{} SELECT e.subject,e.predicate,e.direction,e.object,e.qualifiers FROM edges e WHERE e.subject IN (SELECT id FROM n{}) AND e.object IN (SELECT id FROM n{target}){extra} ORDER BY e.subject,e.predicate,e.direction,e.object,e.qualifiers",compiled.prefix,plan.output);
+            let sql = format!("{} SELECT e.subject,e.predicate,e.direction,e.object,e.qualifiers FROM edges e WHERE e.subject IN (SELECT id FROM n{}) AND e.object IN (SELECT id FROM n{target}){extra} ORDER BY e.subject,e.predicate,e.direction,e.object,e.qualifiers",compiled.prefix,plan.output());
             let mut stmt = db.prepare(&sql)?;
             let count = stmt.parameter_count();
             let mut rows = stmt.query(rusqlite::params_from_iter(parameters.iter().take(count)))?;
@@ -2819,3 +2887,7 @@ mod output_contract {
         ));
     }
 }
+
+#[cfg(test)]
+#[path = "query_packed_tests.rs"]
+mod packed_view_tests;

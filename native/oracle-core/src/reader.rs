@@ -6,8 +6,9 @@
 //! graph/program execution does not inherit this reader's admission rules.
 use crate::grammar::{self, GrammarSpan, MatchLimits};
 use crate::lexicon::{self, CandidateOptions, LexiconLimits};
-use crate::program::{Operation, Program};
-use crate::query::{encode, evaluate_language_shared, LanguageWorkspace, Selection};
+use crate::packed_program::{self, CompileOrigin, PackedProgramRef, ProgramWorkspace};
+use crate::program::Operation;
+use crate::query::{encode, evaluate_language_packed, LanguageWorkspace, Selection};
 use crate::{Budget, Cancellation, Error, Image, Limits, QueryResult, Result};
 use rusqlite::Connection;
 use serde::{Deserialize, Serialize};
@@ -16,7 +17,7 @@ use std::collections::{BTreeSet, HashMap};
 use std::hash::Hasher;
 use std::io::Write;
 use std::ops::Deref;
-use std::sync::{Arc, OnceLock};
+use std::sync::Arc;
 
 pub const COVERAGE: &str = "whole_and_exact_fragment_outer_v1+exact_segment_and_single_nested_v1";
 
@@ -97,6 +98,12 @@ impl<T> ReaderShared<T> {
             value,
             _memory: Some(memory),
         })))
+    }
+    pub(crate) fn with_reservation(value: T, memory: crate::budget::MemoryReservation) -> Self {
+        Self(Arc::new(Retained {
+            value,
+            _memory: Some(memory),
+        }))
     }
     /// Transfer an owned payload with its reservation. The usual reader return
     /// has one owner; a future shared caller reserves before making a real copy.
@@ -272,7 +279,7 @@ fn evaluate_inner(
     };
     let mut result = ReaderResult::empty(identity, ReaderReason::NoTemplate);
     let mut shared = LanguageWorkspace::new(db)?;
-    let mut compilation = CompilationWorkspace::default();
+    let compilation = ProgramWorkspace::new(limits, budget);
     let mut evidence = EvidenceWorkspace::default();
 
     let mut lexical_workspace = lexicon::LexicalWorkspace::new(db, raw_question);
@@ -323,7 +330,7 @@ fn evaluate_inner(
             .checked_mul(16)
             .and_then(|n| n.checked_add(matched.capacity().saturating_mul(64)))
             .ok_or(Error::Limit("retained memory accounting overflow"))?;
-        let _matched_memory = budget.reserve_memory(matched_bytes)?;
+        let matched_memory = Arc::new(budget.reserve_memory(matched_bytes)?);
         let normalized = candidates.normalized;
         let mut composition_spans = Vec::new();
         for outer in [false, true] {
@@ -351,7 +358,7 @@ fn evaluate_inner(
             composition_spans.push(spans);
         }
         let mut unsupported_fragments = 0usize;
-        let composed = crate::composition::match_composed(
+        let composed = crate::composition::match_composed_packed(
             db,
             &normalized,
             &composition_spans[0],
@@ -361,7 +368,7 @@ fn evaluate_inner(
             match_limits,
             budget,
             |fragment| {
-                let Some(compiled) = compilation.compile(fragment, limits, budget)? else {
+                let Some(compiled) = compilation.compile(fragment, CompileOrigin::Fragment)? else {
                     // A demanded unsupported child vetoes certainty, including
                     // when a learned parent omits its X splice. Keep checking
                     // other alternatives; unsupported syntax is a semantic
@@ -379,10 +386,10 @@ fn evaluate_inner(
                 // the fragment's Entities projection an admitted plan has a
                 // nonempty output, so this equals the former `is_some()`.
                 Ok(matches!(
-                    crate::query::evaluate_language_demand(
+                    crate::query::evaluate_language_packed(
                         db,
                         identity,
-                        &compiled.plan,
+                        compiled.as_ref(),
                         previous,
                         limits,
                         budget,
@@ -399,13 +406,33 @@ fn evaluate_inner(
         // Keep the transferred composition guard alive across iteration and
         // every early return. No copied batch and no uncharged handoff interval.
         let (composed, _composed_memory) = composed.into_parts();
-        for candidate in matched.into_iter().chain(composed) {
+        let whole = matched.into_iter().map(|candidate| PackedCandidate {
+            template: CandidateTemplate::Whole(candidate.template),
+            level: candidate.level,
+            support: candidate.support,
+            program: packed_program::from_flat_retained(
+                candidate.program,
+                Arc::clone(&matched_memory),
+            ),
+        });
+        let composed = composed.into_iter().map(|candidate| PackedCandidate {
+            template: CandidateTemplate::Composed(candidate.template),
+            level: candidate.level,
+            support: candidate.support,
+            program: candidate.program,
+        });
+        for candidate in whole.chain(composed) {
             budget.spend(1)?;
             result.matched_programs += 1;
             if result.matched_programs > reader_limits.matched_programs {
                 return Err(Error::Limit("reader matched programs"));
             }
-            let compiled = compilation.compile(&candidate.program, limits, budget)?;
+            let origin = match &candidate.template {
+                CandidateTemplate::Whole(_) => CompileOrigin::Whole,
+                CandidateTemplate::Composed(_) => CompileOrigin::Composed,
+            };
+            let compiled =
+                compilation.compile(PackedProgramRef::new(&candidate.program), origin)?;
             let Some(compiled) = compiled else {
                 result.unsupported_programs += 1;
                 continue;
@@ -418,17 +445,20 @@ fn evaluate_inner(
                 budget.spend(1)?;
                 cached.clone()
             } else {
-                let evaluation = evaluate_language_shared(
+                let evaluation = evaluate_language_packed(
                     db,
                     identity,
-                    &compiled.plan,
+                    compiled.as_ref(),
                     previous,
                     limits,
                     budget,
                     &mut shared,
+                    crate::query::Demand::Full,
                 );
                 budget.check()?;
                 let execution = evaluation?
+                    .map(|delivered| delivered.into_full())
+                    .transpose()?
                     .map(|(query, selected)| evidence.intern(query, selected, budget))
                     .transpose()?;
                 // No errors/cancellation are cached. None is the complete
@@ -454,26 +484,29 @@ fn evaluate_inner(
                     } else {
                         selection = Some(selected);
                     }
-                    if checked_form_kinds.insert(grammar::answer_kind(&candidate.program)) {
+                    let syntax = compilation.syntax(&compiled)?;
+                    if checked_form_kinds.insert(grammar::answer_kind(&syntax)) {
                         forms_ok &= grammar::forms_allow(
                             db,
                             &normalized,
-                            std::slice::from_ref(&candidate.program),
+                            std::slice::from_ref(&*syntax),
                             &policy,
                             budget,
                         )?;
                     }
+                    let template_bound = candidate.template.size_bound();
                     let memory = budget.reserve_memory(
                         std::mem::size_of::<ReaderReading>()
-                            + candidate.template.capacity()
-                            + answer.capacity()
-                            + 64,
+                            .saturating_add(template_bound)
+                            .saturating_add(answer.capacity())
+                            .saturating_add(64),
                     )?;
+                    let template = candidate.template.render()?;
                     let reading = ReaderReading {
-                        template: candidate.template,
+                        template,
                         level: candidate.level,
                         support: candidate.support,
-                        program: compiled.syntax.clone(),
+                        program: syntax,
                         answer,
                         result: query,
                         _memory: Some(memory),
@@ -530,7 +563,19 @@ fn evaluate_inner(
     let wire_bytes = crate::query::encoded_size(&result, limits.result_bytes.min(bytes_limit))?;
     probe::record(probe::Record {
         matched: result.matched_programs,
-        compiled_plans: compilation.compilations,
+        compiled_plans: compilation.stats().checked_roots,
+        fragment_checks: compilation.stats().fragment_checks,
+        complete_checks: compilation.stats().complete_checks,
+        whole_checks: compilation.stats().whole_checks,
+        composed_checks: compilation.stats().composed_checks,
+        fragment_materializations: compilation.stats().fragment_materializations,
+        resident_roots: compilation.stats().resident_roots,
+        unique_operations: compilation.stats().lowered_operations,
+        syntax_specs: compilation.stats().syntax_specs,
+        validation_failures: compilation.stats().validation_failures,
+        root_cache_hits: compilation.stats().root_cache_hits,
+        rejected_cache_hits: compilation.stats().rejected_cache_hits,
+        diagnostic_materializations: compilation.stats().materializations,
         execution_cache_hits,
         projection_hydrations: evidence.hydrations,
         unique_outcomes: evidence.unique,
@@ -541,104 +586,35 @@ fn evaluate_inner(
     Ok((result, selected))
 }
 
-/// A checked plan is immutable and owned only by this request. Syntax identity
-/// is deliberately stricter than equal answers: it retains dead branches, exact
-/// literal spelling and qualifier operations. Derivation metadata is NOT a key;
-/// every admitted derivation still passes agreement and form checks separately.
-struct CompiledCandidate {
-    terminal: Operation,
-    plan: crate::Plan,
-    syntax: ReaderShared<grammar::Program>,
-    execution: OnceLock<Option<SharedExecution>>,
-    _memory: crate::budget::MemoryReservation,
+enum CandidateTemplate {
+    Whole(String),
+    Composed(crate::composition::PackedTemplate),
 }
-
-#[derive(Default)]
-struct CompilationWorkspace {
-    plans: HashMap<Program, Arc<CompiledCandidate>>,
-    retained_bytes: usize,
-    compilations: usize,
-}
-
-impl CompilationWorkspace {
-    fn compile(
-        &mut self,
-        syntax: &grammar::Program,
-        limits: &Limits,
-        budget: &Budget,
-    ) -> Result<Option<Arc<CompiledCandidate>>> {
-        if syntax.len() > limits.plan_nodes {
-            return Err(Error::Limit("reader program steps"));
+impl CandidateTemplate {
+    fn size_bound(&self) -> usize {
+        match self {
+            Self::Whole(template) => template.capacity(),
+            Self::Composed(template) => template.size_bound(),
         }
-        let program = match Program::from_reader(syntax, limits) {
-            Ok(program) => program,
-            Err(Error::Invalid(_) | Error::Json(_)) => return Ok(None),
-            Err(error) => return Err(error),
-        };
-        if let Some(compiled) = self.plans.get(&program) {
-            return Ok(Some(Arc::clone(compiled)));
-        }
-        let plan = match program.compile(limits) {
-            Ok(plan) => plan,
-            Err(Error::Invalid(_) | Error::Json(_)) => return Ok(None),
-            Err(error) => return Err(error),
-        };
-        // A conservative syntax/plan envelope, including hash-map ownership.
-        // This is retained Rust data, not an estimate of SQLite or process RSS.
-        let charge = crate::query::encoded_size(&program, limits.request_bytes)?
-            .checked_add(crate::query::encoded_size(&plan, usize::MAX)?)
-            .and_then(|n| n.checked_mul(16))
-            .and_then(|n| n.checked_add(512))
-            .ok_or(Error::Limit("retained memory accounting overflow"))?;
-        let memory = budget.reserve_memory(charge)?;
-        let syntax_bytes = syntax.iter().fold(
-            syntax
-                .capacity()
-                .saturating_mul(std::mem::size_of::<grammar::Step>()),
-            |n, step| {
-                n.saturating_add(step.function.capacity())
-                    .saturating_add(
-                        step.dependencies
-                            .capacity()
-                            .saturating_mul(std::mem::size_of::<usize>()),
-                    )
-                    .saturating_add(
-                        step.inputs
-                            .capacity()
-                            .saturating_mul(std::mem::size_of::<Value>()),
-                    )
-                    .saturating_add(
-                        step.inputs
-                            .iter()
-                            .map(crate::query::json_retained_bytes)
-                            .fold(0usize, usize::saturating_add),
-                    )
-            },
-        );
-        self.compilations += 1;
-        let compiled = Arc::new(CompiledCandidate {
-            terminal: program.0.last().expect("validated program").function,
-            plan,
-            syntax: ReaderShared::new(syntax.clone(), syntax_bytes, budget)?,
-            execution: OnceLock::new(),
-            _memory: memory,
-        });
-        if charge
-            <= limits
-                .materialized_bytes
-                .saturating_sub(self.retained_bytes)
-        {
-            self.retained_bytes += charge;
-            self.plans.insert(program, Arc::clone(&compiled));
-        }
-        Ok(Some(compiled))
     }
+    fn render(self) -> Result<String> {
+        match self {
+            Self::Whole(template) => Ok(template),
+            Self::Composed(template) => template.render(),
+        }
+    }
+}
+struct PackedCandidate {
+    template: CandidateTemplate,
+    level: u8,
+    support: u64,
+    program: packed_program::OwnedPackedProgram,
 }
 
 #[derive(Clone)]
-struct SharedExecution {
-    query: ReaderShared<QueryResult>,
-    selected: ReaderShared<Selection>,
+pub(crate) struct SharedExecution {
+    pub(crate) query: ReaderShared<QueryResult>,
+    pub(crate) selected: ReaderShared<Selection>,
 }
 /// Hashes only choose a bucket. Complete reply AND selection equality establish
 /// sharing, including qualifiers/attribute positions; equal answer text does not.
@@ -815,6 +791,18 @@ pub mod probe {
     pub struct Record {
         pub matched: usize,
         pub compiled_plans: usize,
+        pub fragment_checks: usize,
+        pub complete_checks: usize,
+        pub whole_checks: usize,
+        pub composed_checks: usize,
+        pub fragment_materializations: usize,
+        pub resident_roots: usize,
+        pub unique_operations: usize,
+        pub syntax_specs: usize,
+        pub validation_failures: usize,
+        pub root_cache_hits: usize,
+        pub rejected_cache_hits: usize,
+        pub diagnostic_materializations: usize,
         pub execution_cache_hits: usize,
         pub projection_hydrations: usize,
         pub unique_outcomes: usize,
@@ -867,14 +855,20 @@ mod compilation_tests {
     #[test]
     fn compilation_shares_only_exact_complete_syntax_within_request() {
         let limits = Limits::default();
-        let mut workspace = CompilationWorkspace::default();
         let budget = Budget::new(&limits, Cancellation::default()).unwrap();
+        let workspace = ProgramWorkspace::new(&limits, &budget);
         let first = workspace
-            .compile(&syntax("Unused", "2000"), &limits, &budget)
+            .compile(
+                PackedProgramRef::new(&packed_program::from_flat(syntax("Unused", "2000"))),
+                CompileOrigin::Complete,
+            )
             .unwrap()
             .unwrap();
         let repeated = workspace
-            .compile(&syntax("Unused", "2000"), &limits, &budget)
+            .compile(
+                PackedProgramRef::new(&packed_program::from_flat(syntax("Unused", "2000"))),
+                CompileOrigin::Complete,
+            )
             .unwrap()
             .unwrap();
         assert!(Arc::ptr_eq(&first, &repeated));
@@ -883,13 +877,19 @@ mod compilation_tests {
             syntax("Unused", "2001"),
         ] {
             let other = workspace
-                .compile(&alternative, &limits, &budget)
+                .compile(
+                    PackedProgramRef::new(&packed_program::from_flat(alternative)),
+                    CompileOrigin::Complete,
+                )
                 .unwrap()
                 .unwrap();
             assert!(!Arc::ptr_eq(&first, &other));
         }
-        let new_request = CompilationWorkspace::default()
-            .compile(&syntax("Unused", "2000"), &limits, &budget)
+        let new_request = ProgramWorkspace::new(&limits, &budget)
+            .compile(
+                PackedProgramRef::new(&packed_program::from_flat(syntax("Unused", "2000"))),
+                CompileOrigin::Complete,
+            )
             .unwrap()
             .unwrap();
         assert!(!Arc::ptr_eq(&first, &new_request));
@@ -901,8 +901,11 @@ mod compilation_tests {
         syntax[0].function = "NotAnOperation".into();
         let limits = Limits::default();
         let budget = Budget::new(&limits, Cancellation::default()).unwrap();
-        assert!(CompilationWorkspace::default()
-            .compile(&syntax, &limits, &budget)
+        assert!(ProgramWorkspace::new(&limits, &budget)
+            .compile(
+                PackedProgramRef::new(&packed_program::from_flat(syntax)),
+                CompileOrigin::Complete
+            )
             .unwrap()
             .is_none());
     }

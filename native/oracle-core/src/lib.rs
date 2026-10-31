@@ -15,6 +15,7 @@ mod image;
 pub mod kernel;
 pub mod lexicon;
 pub mod program;
+pub(crate) mod packed_program;
 mod query;
 pub mod reader;
 pub mod release;

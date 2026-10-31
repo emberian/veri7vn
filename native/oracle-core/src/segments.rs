@@ -11,17 +11,22 @@
 //! region alternative is a thin node: its region, an interned program, support
 //! and provenance ids (segment units, or a nested recipe and child nodes). The
 //! public `Fragment` JSON, including provenance templates, is rebuilt only at
-//! the output boundary; programs are flattened only for the viability check,
-//! nested expansion and output.
+//! the diagnostic boundary. Viability and nested/outer composition retain
+//! persistent occurrence recipes without flat program construction.
 use crate::grammar::{
     self, Bindings, Fallback, GrammarSpan, MatchLimits, Program, ReaderPolicy, Step,
+};
+use crate::packed_program::{
+    OwnedPackedProgram, PackedProgramRef, PackedProgramSource, PackedStep,
 };
 use crate::{Budget, Error, Result};
 use rusqlite::{params, Connection};
 use serde::Serialize;
 use serde_json::Value;
 use std::collections::{BTreeMap, BTreeSet, HashMap};
-use std::sync::Arc;
+use std::hash::{Hash, Hasher};
+use std::sync::{Arc, Mutex};
+pub(crate) type SharedChartMemory = Arc<Mutex<crate::budget::MemoryReservation>>;
 
 pub const COVERAGE: &str = "exact_segment_and_single_nested_v1";
 pub(crate) const MAX_FRAGMENT_WORDS: usize = 30;
@@ -69,6 +74,7 @@ pub(crate) enum Owner {
     Caches,
     Resolved,
     Viability,
+    #[allow(dead_code)] // Stable probe column; packed admission needs no flat scratch.
     Scratch,
     Output,
 }
@@ -99,7 +105,7 @@ pub(crate) struct Ledger {
     owners: [usize; OWNERS.len()],
     pub peak: usize,
     pub peak_owners: [usize; OWNERS.len()],
-    memory: crate::budget::MemoryReservation,
+    memory: SharedChartMemory,
 }
 impl Ledger {
     pub fn new(limit: usize, budget: &Budget) -> Result<Self> {
@@ -109,7 +115,7 @@ impl Ledger {
             owners: [0; OWNERS.len()],
             peak: 0,
             peak_owners: [0; OWNERS.len()],
-            memory: budget.reserve_memory(0)?,
+            memory: Arc::new(Mutex::new(budget.reserve_memory(0)?)),
         })
     }
     pub fn charge(&mut self, budget: &Budget, bytes: usize, owner: Owner) -> Result<()> {
@@ -122,6 +128,8 @@ impl Ledger {
             return Err(Error::Limit("composition bytes"));
         }
         self.memory
+            .lock()
+            .expect("chart memory lock")
             .resize(next)
             .map_err(|_| Error::Limit("retained request memory"))?;
         self.bytes = next;
@@ -133,10 +141,7 @@ impl Ledger {
         }
         Ok(())
     }
-    pub fn into_output_memory(mut self) -> crate::budget::MemoryReservation {
-        self.memory
-            .resize(self.owners[Owner::Output as usize])
-            .expect("shrinking composition output reservation");
+    pub fn into_packed_memory(self) -> SharedChartMemory {
         self.memory
     }
     pub fn release(&mut self, bytes: usize, owner: Owner) {
@@ -147,6 +152,8 @@ impl Ledger {
             .checked_sub(bytes)
             .expect("balanced composition ownership");
         self.memory
+            .lock()
+            .expect("chart memory lock")
             .resize(self.bytes)
             .expect("shrinking composition reservation");
         let slot = &mut self.owners[owner as usize];
@@ -176,16 +183,95 @@ impl NodeKey {
     }
 }
 
-/// Content-interned steps and programs. A step's identity is the exact JSON
-/// of `(function, inputs)`; dependencies live in the program encoding. A
-/// program is encoded as `[step, dependency count, dependencies..]*`, so two
-/// programs share an id exactly when their serialized JSON is equal.
+/// Existing chart interner, now retaining persistent splice recipes. Raw
+/// function/literal leaves are shared; occurrence recipes retain every use.
+type RawStep = (String, Vec<Value>);
+struct RecipeOperation {
+    step: Arc<RawStep>,
+    identity: u32,
+    dependencies: Box<[usize]>,
+}
+enum RecipeEntry {
+    Operation(RecipeOperation),
+    Child { start: usize, program: Arc<Recipe> },
+}
+struct Recipe {
+    // Sources may escape through a viability callback even when composition errors.
+    // Each root therefore coowns the already-live chart allocation envelope.
+    _memory: SharedChartMemory,
+    entries: Box<[RecipeEntry]>,
+    count: usize,
+}
+struct RecipeSteps<'a> {
+    stack: Vec<(&'a Recipe, usize, usize)>,
+}
+impl<'a> RecipeSteps<'a> {
+    fn new(program: &'a Recipe) -> Self {
+        Self {
+            stack: vec![(program, 0, 0)],
+        }
+    }
+}
+impl<'a> Iterator for RecipeSteps<'a> {
+    type Item = (&'a RecipeOperation, Vec<usize>);
+    fn next(&mut self) -> Option<Self::Item> {
+        loop {
+            let (recipe, index, base) = self.stack.last_mut()?;
+            let program = *recipe;
+            let Some(entry) = program.entries.get(*index) else {
+                self.stack.pop();
+                continue;
+            };
+            *index += 1;
+            let base = *base;
+            match entry {
+                RecipeEntry::Operation(step) => {
+                    return Some((step, step.dependencies.iter().map(|d| d + base).collect()))
+                }
+                RecipeEntry::Child { start, program } => {
+                    self.stack.push((program, 0, base + start))
+                }
+            }
+        }
+    }
+}
+impl PackedProgramSource for Recipe {
+    fn step_count(&self) -> usize {
+        self.count
+    }
+    fn visit_steps(&self, visitor: &mut dyn FnMut(PackedStep<'_>) -> Result<()>) -> Result<()> {
+        for (operation, dependencies) in RecipeSteps::new(self) {
+            visitor(PackedStep {
+                function: &operation.step.0,
+                inputs: &operation.step.1,
+                dependencies: &dependencies,
+            })?;
+        }
+        Ok(())
+    }
+}
+impl Recipe {
+    fn fingerprint(&self) -> u64 {
+        let mut hash = std::collections::hash_map::DefaultHasher::new();
+        for (step, dependencies) in RecipeSteps::new(self) {
+            step.identity.hash(&mut hash);
+            dependencies.hash(&mut hash);
+        }
+        hash.finish()
+    }
+    fn same_content(&self, other: &Self) -> bool {
+        self.count == other.count
+            && RecipeSteps::new(self)
+                .zip(RecipeSteps::new(other))
+                .all(|((left, ld), (right, rd))| left.identity == right.identity && ld == rd)
+    }
+}
 #[derive(Default)]
 struct Arena {
     step_ids: HashMap<String, u32>,
-    steps: Vec<(String, Vec<Value>)>,
-    program_ids: HashMap<Arc<[usize]>, ProgramId>,
-    programs: Vec<Arc<[usize]>>,
+    steps: Vec<Arc<RawStep>>,
+    program_ids: HashMap<u64, Vec<ProgramId>>,
+    programs: Vec<Arc<Recipe>>,
 }
 
 #[derive(Clone)]
@@ -298,6 +384,138 @@ pub(crate) struct Chart<'a> {
     unit_store: Vec<Unit>,
     nodes: Vec<Node>,
 }
+#[cfg(test)]
+thread_local! { static DIAGNOSTIC_PROGRAMS: std::cell::Cell<usize> = const { std::cell::Cell::new(0) }; }
+pub(crate) struct DiagnosticStore {
+    offsets: Vec<usize>,
+    unit_store: Vec<Unit>,
+    nodes: Vec<Node>,
+    arena: Arena,
+}
+impl DiagnosticStore {
+    fn program_bound(&self, id: ProgramId) -> usize {
+        RecipeSteps::new(&self.arena.programs[id.0 as usize]).fold(
+            2usize,
+            |size, (step, dependencies)| {
+                let inputs =
+                    crate::query::encoded_size(&step.step.1, usize::MAX).unwrap_or(usize::MAX);
+                size.saturating_add(step.step.0.len().saturating_mul(6))
+                    .saturating_add(inputs)
+                    .saturating_add(dependencies.len().saturating_mul(24))
+                    .saturating_add(96)
+            },
+        )
+    }
+    fn template_bound(&self, id: NodeId) -> usize {
+        match &self.nodes[id.0 as usize].origin {
+            Origin::Direct(template) => template.len(),
+            Origin::Chain(units) => units.iter().fold(64usize, |size, unit| {
+                size.saturating_add(
+                    self.unit_store[unit.0 as usize]
+                        .template
+                        .len()
+                        .saturating_mul(6),
+                )
+                .saturating_add(128)
+            }),
+            Origin::Nested { recipe, children } => children.iter().fold(
+                recipe.len().saturating_mul(6).saturating_add(128),
+                |size, child| {
+                    size.saturating_add(self.template_bound(*child).saturating_mul(6))
+                        .saturating_add(128)
+                },
+            ),
+        }
+    }
+    pub fn fragment_bound(&self, id: NodeId) -> usize {
+        let node = &self.nodes[id.0 as usize];
+        let mut size = self
+            .program_bound(node.program)
+            .saturating_add(self.template_bound(id).saturating_mul(6))
+            .saturating_add(256);
+        if let Origin::Nested { children, .. } = &node.origin {
+            for child in children.iter() {
+                size = size
+                    .saturating_add(self.program_bound(self.nodes[child.0 as usize].program))
+                    .saturating_add(128);
+            }
+        }
+        size
+    }
+    pub fn source(&self, id: ProgramId) -> OwnedPackedProgram {
+        self.arena.programs[id.0 as usize].clone()
+    }
+    fn program(&self, id: ProgramId) -> Program {
+        #[cfg(test)]
+        DIAGNOSTIC_PROGRAMS.with(|count| count.set(count.get() + 1));
+        RecipeSteps::new(&self.arena.programs[id.0 as usize])
+            .map(|(step, dependencies)| Step {
+                function: step.step.0.clone(),
+                inputs: step.step.1.clone(),
+                dependencies,
+            })
+            .collect()
+    }
+    fn template(&self, id: NodeId) -> Result<String> {
+        let node = &self.nodes[id.0 as usize];
+        Ok(match &node.origin {
+            Origin::Direct(template) => template.to_string(),
+            Origin::Chain(units) => {
+                let provenance: Vec<_> = units
+                    .iter()
+                    .map(|u| {
+                        let unit = &self.unit_store[u.0 as usize];
+                        (&*unit.template, unit.role(), unit.support)
+                    })
+                    .collect();
+                serde_json::to_string(
+                    &serde_json::json!({"family":COVERAGE,"segments":provenance}),
+                )?
+            }
+            Origin::Nested { recipe, children } => {
+                let mut rows = Vec::with_capacity(children.len());
+                for &child in children.iter() {
+                    let node = &self.nodes[child.0 as usize];
+                    rows.push((
+                        self.offsets[node.region.0],
+                        self.offsets[node.region.1] - 1,
+                        self.template(child)?,
+                        node.support,
+                    ));
+                }
+                serde_json::to_string(&serde_json::json!({
+                    "family":COVERAGE,"nested":&**recipe,"children":rows
+                }))?
+            }
+        })
+    }
+    /// The public fragment, rebuilt from the arena. Callers charge it while live.
+    pub fn fragment(&self, id: NodeId) -> Result<Fragment> {
+        let node = &self.nodes[id.0 as usize];
+        let required_children = match &node.origin {
+            Origin::Nested { children, .. } => children
+                .iter()
+                .map(|&c| {
+                    let child = &self.nodes[c.0 as usize];
+                    ChildWitness {
+                        start: self.offsets[child.region.0],
+                        end: self.offsets[child.region.1] - 1,
+                        program: self.program(child.program),
+                    }
+                })
+                .collect(),
+            _ => vec![],
+        };
+        Ok(Fragment {
+            start: self.offsets[node.region.0],
+            end: self.offsets[node.region.1] - 1,
+            template: self.template(id)?,
+            support: node.support,
+            program: self.program(node.program),
+            required_children,
+        })
+    }
+}
 impl<'a> Chart<'a> {
     #[allow(clippy::too_many_arguments)]
     pub fn new(
@@ -398,31 +616,64 @@ impl<'a> Chart<'a> {
             u32::try_from(self.arena.steps.len()).map_err(|_| Error::Limit("composition bytes"))?;
         self.arena
             .steps
-            .push((function.to_owned(), inputs.to_vec()));
+            .push(Arc::new((function.to_owned(), inputs.to_vec())));
         self.arena.step_ids.insert(key, id);
         Ok(id)
     }
-    fn intern_encoded(&mut self, encoded: Vec<usize>) -> Result<ProgramId> {
-        if let Some(&id) = self.arena.program_ids.get(encoded.as_slice()) {
-            return Ok(id);
+    fn intern_recipe(&mut self, recipe: Recipe) -> Result<ProgramId> {
+        let fingerprint = recipe.fingerprint();
+        if let Some(ids) = self.arena.program_ids.get(&fingerprint) {
+            if let Some(&id) = ids
+                .iter()
+                .find(|id| self.arena.programs[id.0 as usize].same_content(&recipe))
+            {
+                return Ok(id);
+            }
         }
-        self.charge(
-            encoded
-                .len()
-                .saturating_mul(std::mem::size_of::<usize>())
-                .saturating_add(64),
-            Owner::Arena,
-        )?;
+        let bytes = recipe
+            .entries
+            .iter()
+            .map(|entry| match entry {
+                RecipeEntry::Operation(step) => {
+                    std::mem::size_of::<RecipeEntry>() + std::mem::size_of_val(&*step.dependencies)
+                }
+                RecipeEntry::Child { .. } => std::mem::size_of::<RecipeEntry>(),
+            })
+            .sum::<usize>()
+            .saturating_add(128);
+        self.charge(bytes, Owner::Arena)?;
         let id = ProgramId(
             u32::try_from(self.arena.programs.len())
                 .map_err(|_| Error::Limit("composition bytes"))?,
         );
-        let shared: Arc<[usize]> = encoded.into();
-        self.arena.programs.push(shared.clone());
-        self.arena.program_ids.insert(shared, id);
+        self.arena.programs.push(Arc::new(recipe));
+        self.arena
+            .program_ids
+            .entry(fingerprint)
+            .or_default()
+            .push(id);
         Ok(id)
     }
-    /// Intern a program by exact content; equal JSON yields the same id.
+    fn intern_encoded(&mut self, encoded: Vec<usize>) -> Result<ProgramId> {
+        let mut entries = Vec::new();
+        let mut i = 0;
+        while i < encoded.len() {
+            let identity = encoded[i] as u32;
+            let count = encoded[i + 1];
+            entries.push(RecipeEntry::Operation(RecipeOperation {
+                step: self.arena.steps[identity as usize].clone(),
+                identity,
+                dependencies: encoded[i + 2..i + 2 + count].into(),
+            }));
+            i += 2 + count;
+        }
+        let count = entries.len();
+        self.intern_recipe(Recipe {
+            _memory: self.ledger.memory.clone(),
+            entries: entries.into(),
+            count,
+        })
+    }
     pub fn intern(&mut self, program: &Program) -> Result<ProgramId> {
         let mut encoded = Vec::with_capacity(program.len() * 3);
         for step in program {
@@ -432,46 +683,85 @@ impl<'a> Chart<'a> {
         }
         self.intern_encoded(encoded)
     }
-    /// Steps of an interned program, as (step id, dependencies).
-    fn decode(&self, id: ProgramId) -> Vec<(u32, &[usize])> {
-        let encoded = &self.arena.programs[id.0 as usize];
-        let mut steps = Vec::new();
-        let mut i = 0;
-        while i < encoded.len() {
-            let count = encoded[i + 1];
-            steps.push((encoded[i] as u32, &encoded[i + 2..i + 2 + count]));
-            i += 2 + count;
+    /// Persistent splice: only parent occurrences and child handles are stored.
+    /// Counts and dependency validity preserve the original expanded contract.
+    pub fn splice(
+        &mut self,
+        skeleton: &Program,
+        children: &BTreeMap<usize, ProgramId>,
+    ) -> Result<Option<ProgramId>> {
+        if skeleton.len() > self.limits.steps {
+            return Err(Error::Limit("reader skeleton steps"));
         }
-        steps
-    }
-    /// The flat public program. Callers charge it while it is live.
-    pub fn program(&self, id: ProgramId) -> Program {
-        self.decode(id)
-            .into_iter()
-            .map(|(step, dependencies)| {
-                let (function, inputs) = &self.arena.steps[step as usize];
-                Step {
-                    function: function.clone(),
-                    dependencies: dependencies.to_vec(),
-                    inputs: inputs.clone(),
+        let mut entries = Vec::new();
+        let mut indices = BTreeMap::new();
+        let mut count = 0usize;
+        for (i, step) in skeleton.iter().enumerate() {
+            if step.function == "@NOP" {
+                continue;
+            }
+            if step.function == "@X" {
+                let ordinal = step
+                    .inputs
+                    .first()
+                    .and_then(Value::as_u64)
+                    .and_then(|n| usize::try_from(n).ok())
+                    .ok_or_else(|| Error::Format("X input".into()))?;
+                let Some(id) = children.get(&ordinal) else {
+                    return Ok(None);
+                };
+                let program = self.arena.programs[id.0 as usize].clone();
+                if program.count == 0 {
+                    return Ok(None);
                 }
-            })
+                // A shared child remains a fresh occurrence at every splice.
+                for (j, (_, dependencies)) in RecipeSteps::new(&program).enumerate() {
+                    if dependencies.iter().any(|d| *d >= j) {
+                        return Err(Error::Invalid("X program dependency".into()));
+                    }
+                }
+                if program.count > self.limits.steps.saturating_sub(count) {
+                    return Err(Error::Limit("reader program steps"));
+                }
+                let start = count;
+                count += program.count;
+                entries.push(RecipeEntry::Child { start, program });
+            } else {
+                let mut dependencies = Vec::with_capacity(step.dependencies.len());
+                for dependency in &step.dependencies {
+                    let Some(mapped) = indices.get(dependency) else {
+                        return Ok(None);
+                    };
+                    dependencies.push(*mapped);
+                }
+                if count >= self.limits.steps {
+                    return Err(Error::Limit("reader program steps"));
+                }
+                let identity = self.intern_step(&step.function, &step.inputs)?;
+                entries.push(RecipeEntry::Operation(RecipeOperation {
+                    step: self.arena.steps[identity as usize].clone(),
+                    identity,
+                    dependencies: dependencies.into(),
+                }));
+                count += 1;
+            }
+            indices.insert(i, count - 1);
+        }
+        self.intern_recipe(Recipe {
+            _memory: self.ledger.memory.clone(),
+            entries: entries.into(),
+            count,
+        })
+        .map(Some)
+    }
+    fn decode(&self, id: ProgramId) -> Vec<(u32, Vec<usize>)> {
+        RecipeSteps::new(&self.arena.programs[id.0 as usize])
+            .map(|(step, dependencies)| (step.identity, dependencies))
             .collect()
     }
-    /// Upper bound on a flattened program's heap bytes, for scratch charges.
-    pub fn flat_size(&self, id: ProgramId) -> usize {
-        self.decode(id)
-            .into_iter()
-            .map(|(step, dependencies)| {
-                let (function, inputs) = &self.arena.steps[step as usize];
-                std::mem::size_of::<Step>()
-                    + function.len()
-                    + std::mem::size_of_val(dependencies)
-                    + serde_json::to_string(inputs).map_or(0, |s| s.len())
-            })
-            .sum()
+    pub fn source(&self, id: ProgramId) -> OwnedPackedProgram {
+        self.arena.programs[id.0 as usize].clone()
     }
-
     // ---- Nodes -----------------------------------------------------------
 
     pub fn key(&self, id: NodeId) -> (Region, NodeKey) {
@@ -506,63 +796,12 @@ impl<'a> Chart<'a> {
             _ => vec![],
         }
     }
-    fn template(&self, id: NodeId) -> Result<String> {
-        let node = &self.nodes[id.0 as usize];
-        Ok(match &node.origin {
-            Origin::Direct(template) => template.to_string(),
-            Origin::Chain(units) => {
-                let provenance: Vec<_> = units
-                    .iter()
-                    .map(|u| {
-                        let unit = &self.unit_store[u.0 as usize];
-                        (&*unit.template, unit.role(), unit.support)
-                    })
-                    .collect();
-                serde_json::to_string(
-                    &serde_json::json!({"family":COVERAGE,"segments":provenance}),
-                )?
-            }
-            Origin::Nested { recipe, children } => {
-                let mut rows = Vec::with_capacity(children.len());
-                for &child in children.iter() {
-                    let node = &self.nodes[child.0 as usize];
-                    rows.push((
-                        self.offsets[node.region.0],
-                        self.offsets[node.region.1] - 1,
-                        self.template(child)?,
-                        node.support,
-                    ));
-                }
-                serde_json::to_string(&serde_json::json!({
-                    "family":COVERAGE,"nested":&**recipe,"children":rows
-                }))?
-            }
-        })
-    }
-    /// The public fragment, rebuilt from the arena. Callers charge it while live.
-    pub fn fragment(&self, id: NodeId) -> Result<Fragment> {
-        let node = &self.nodes[id.0 as usize];
-        let required_children = match &node.origin {
-            Origin::Nested { children, .. } => children
-                .iter()
-                .map(|&c| {
-                    let child = &self.nodes[c.0 as usize];
-                    ChildWitness {
-                        start: self.offsets[child.region.0],
-                        end: self.offsets[child.region.1] - 1,
-                        program: self.program(child.program),
-                    }
-                })
-                .collect(),
-            _ => vec![],
-        };
-        Ok(Fragment {
-            start: self.offsets[node.region.0],
-            end: self.offsets[node.region.1] - 1,
-            template: self.template(id)?,
-            support: node.support,
-            program: self.program(node.program),
-            required_children,
+    pub fn into_diagnostics(self) -> Arc<DiagnosticStore> {
+        Arc::new(DiagnosticStore {
+            offsets: self.offsets,
+            unit_store: self.unit_store,
+            nodes: self.nodes,
+            arena: self.arena,
         })
     }
 
@@ -587,17 +826,13 @@ impl<'a> Chart<'a> {
         viable: &mut F,
     ) -> Result<bool>
     where
-        F: FnMut(&Program) -> Result<bool>,
+        F: FnMut(PackedProgramRef<'_>) -> Result<bool>,
     {
         if let Some(value) = cache.get(&program) {
             return Ok(*value);
         }
-        let scratch = self.flat_size(program);
-        self.charge(scratch, Owner::Scratch)?;
-        let flat = self.program(program);
-        let value = viable(&flat);
-        drop(flat);
-        self.release(scratch, Owner::Scratch);
+        let source = self.source(program);
+        let value = viable(PackedProgramRef::new(&source));
         let value = value?;
         self.charge(
             std::mem::size_of::<(ProgramId, bool)>().saturating_add(ENTRY),
@@ -702,7 +937,7 @@ impl<'a> Chart<'a> {
         viable: &mut F,
     ) -> Result<Vec<NodeId>>
     where
-        F: FnMut(&Program) -> Result<bool>,
+        F: FnMut(PackedProgramRef<'_>) -> Result<bool>,
     {
         let mut output = Vec::new();
         let mut seen = BTreeSet::new();
@@ -764,26 +999,12 @@ impl<'a> Chart<'a> {
                     .zip(&cursor)
                     .map(|((_, alternatives), i)| alternatives[*i])
                     .collect();
-                let scratch: usize = selected
-                    .iter()
-                    .map(|&id| self.flat_size(self.node_program(id)))
-                    .sum();
-                self.charge(scratch, Owner::Scratch)?;
                 let programs = choices
                     .iter()
                     .zip(&selected)
-                    .map(|((ordinal, _), &id)| (*ordinal, self.program(self.node_program(id))))
+                    .map(|((ordinal, _), &id)| (*ordinal, self.node_program(id)))
                     .collect();
-                let expanded = grammar::expand(
-                    &nested.program,
-                    &Bindings::new(),
-                    &programs,
-                    self.limits.steps,
-                );
-                drop(programs);
-                self.release(scratch, Owner::Scratch);
-                if let Some(program) = expanded? {
-                    let program = self.intern(&program)?;
+                if let Some(program) = self.splice(&nested.program, &programs)? {
                     let key = NodeKey {
                         program,
                         children: selected
@@ -1095,21 +1316,9 @@ impl<'a> Chart<'a> {
                         } else {
                             (serde_json::from_value(candidate.skeleton)?, None)
                         };
-                        let placeholders = children
-                            .keys()
-                            .map(|&n| {
-                                (
-                                    n,
-                                    vec![Step {
-                                        function: "@X".into(),
-                                        dependencies: vec![],
-                                        inputs: vec![serde_json::json!(n)],
-                                    }],
-                                )
-                            })
-                            .collect();
+                        let holes = children.keys().map(|&n| (n, n)).collect();
                         if let Some(program) =
-                            grammar::expand(&skeleton, &texts, &placeholders, self.limits.steps)?
+                            grammar::bind_recipe(&skeleton, &texts, &holes, self.limits.steps)?
                         {
                             if emitted >= self.limits.matches {
                                 return Err(Error::Limit("composition matches"));
@@ -1234,3 +1443,7 @@ fn advance(cursor: &mut [usize], sizes: &[usize]) -> bool {
     }
     false
 }
+
+#[cfg(test)]
+#[path = "packed_recipe_tests.rs"]
+mod packed_recipe_tests;

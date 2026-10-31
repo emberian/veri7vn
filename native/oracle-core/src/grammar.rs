@@ -476,6 +476,77 @@ pub fn hidden_literal(steps: &[Step]) -> bool {
         })
 }
 
+/// Bind one learned syntax recipe without expanding child programs. X labels
+/// are redirected to chart holes; @NOP removal/dependency mapping matches the
+/// former singleton-placeholder expansion, with no child flattening.
+pub(crate) fn bind_recipe(
+    skeleton: &[Step],
+    texts: &Bindings,
+    holes: &BTreeMap<usize, usize>,
+    max_steps: usize,
+) -> Result<Option<Program>> {
+    if skeleton.len() > max_steps {
+        return Err(Error::Limit("reader skeleton steps"));
+    }
+    let mut output = Vec::with_capacity(skeleton.len());
+    let mut indices = BTreeMap::new();
+    for (index, step) in skeleton.iter().enumerate() {
+        if step.function == "@NOP" {
+            continue;
+        }
+        if step.function == "@X" {
+            let ordinal = step
+                .inputs
+                .first()
+                .and_then(Value::as_u64)
+                .and_then(|n| usize::try_from(n).ok())
+                .ok_or_else(|| Error::Format("X input".into()))?;
+            let Some(hole) = holes.get(&ordinal) else {
+                return Ok(None);
+            };
+            output.push(Step {
+                function: "@X".into(),
+                dependencies: vec![],
+                inputs: vec![Value::from(*hole as u64)],
+            });
+        } else {
+            let mut dependencies = Vec::with_capacity(step.dependencies.len());
+            for d in &step.dependencies {
+                let Some(mapped) = indices.get(d) else {
+                    return Ok(None);
+                };
+                dependencies.push(*mapped);
+            }
+            let mut inputs = Vec::with_capacity(step.inputs.len());
+            for input in &step.inputs {
+                if input.is_array() {
+                    let (kind, ordinal, unit) = slot(input)?;
+                    let Some(text) = texts.get(&(kind, ordinal)) else {
+                        return Ok(None);
+                    };
+                    inputs.push(Value::String(if kind == 'N' && !unit.is_empty() {
+                        format!("{text} {unit}")
+                    } else {
+                        text.clone()
+                    }));
+                } else {
+                    inputs.push(input.clone());
+                }
+            }
+            output.push(Step {
+                function: step.function.clone(),
+                dependencies,
+                inputs,
+            });
+        }
+        if output.len() > max_steps {
+            return Err(Error::Limit("reader program steps"));
+        }
+        indices.insert(index, output.len() - 1);
+    }
+    Ok(Some(output))
+}
+
 /// Fill ordinary slots and splice X programs while rebasing all dependencies.
 /// Missing bindings return None; malformed release rows return a format error.
 pub fn expand(
