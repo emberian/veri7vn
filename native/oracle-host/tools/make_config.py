@@ -47,6 +47,8 @@ def main():
     ap.add_argument("--pure", default="")
     ap.add_argument("--solver")
     ap.add_argument("--no-reader", action="store_true")
+    ap.add_argument("--conversation-profile", choices=["readonly-v1"])
+    ap.add_argument("--conversation-entity-namespace", choices=["wikidata"])
     ap.add_argument("--organ", action="append", default=[])
     ap.add_argument("--engine-python")
     ap.add_argument("--engine-answerer", default=str(REPO / "tools/appliance/engine_worker.py"))
@@ -61,10 +63,23 @@ def main():
 
     config = {"schema": "oracle-host-v1", "port": a.port, "journal": str(Path(a.journal).resolve()),
               "limits": {"capacity": a.capacity, "invoke_ms": 30000}}
+    if a.conversation_entity_namespace:
+        if a.conversation_profile != "readonly-v1" or not a.image:
+            ap.error("--conversation-entity-namespace requires --conversation-profile readonly-v1 and --image")
+        config["conversation_entity_namespace"] = a.conversation_entity_namespace
+    if a.conversation_profile:
+        if not a.image:
+            ap.error("--conversation-profile requires --image")
+        config["conversation_profile"] = a.conversation_profile
     if a.image:
         limits = json.loads(a.core_limits)
-        release = json.loads(subprocess.run([a.host, "manifest", "--image-sha256", a.image_sha256,
-                                             "--core-limits", json.dumps(limits)],
+        manifest_args = [a.host, "manifest", "--image-sha256", a.image_sha256,
+                         "--core-limits", json.dumps(limits)]
+        if a.conversation_profile:
+            manifest_args += ["--conversation-profile", a.conversation_profile]
+        if a.conversation_entity_namespace:
+            manifest_args += ["--conversation-entity-namespace", a.conversation_entity_namespace]
+        release = json.loads(subprocess.run(manifest_args,
                                             check=True, capture_output=True, text=True).stdout)
         native = {"image": str(Path(a.image).resolve()), "image_sha256": a.image_sha256,
                   "state": str(Path(a.state).resolve()), "core_limits": limits, "release": release,
@@ -106,6 +121,9 @@ def main():
                   "answerer": {"path": str(Path(a.engine_answerer).resolve()), "sha256": sha256(a.engine_answerer)},
                   "checkout": str(Path(a.engine_checkout).resolve()), "revision": revision,
                   "state": str(Path(a.engine_state).resolve()), "workers": 1, "turn_ms": a.engine_turn_ms}
+        if a.conversation_profile:
+            adapter = Path(a.engine_answerer).resolve().with_name("conversation_adapter.py")
+            engine["conversation_adapter"] = {"path": str(adapter), "sha256": sha256(adapter)}
         if materialization:
             engine["materialization"] = materialization
         for key in ("specialist", "compose", "tip"):

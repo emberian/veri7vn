@@ -1,0 +1,215 @@
+{
+  "dev": [
+    {
+      "id": "forward-line",
+      "q": "Model supplied data: {\"operation\":\"statistics.calibration\",\"arguments\":{\"x\":[0,1,2],\"response\":[1,3,5],\"x_name\":\"declared setting\",\"x_unit\":\"m\",\"response_unit\":\"N\",\"assumptions\":[\"Fixed design, prespecified linear conditional mean, independent mean-zero errors.\"],\"covariance\":\"classical_normal_errors\",\"direction\":\"forward_mean\",\"uncertainty\":\"point_only\",\"values\":[3,4]}}",
+      "valid": true,
+      "values": [
+        7,
+        9
+      ],
+      "unit": "N"
+    },
+    {
+      "id": "inverse-line",
+      "q": "Model supplied data: {\"operation\":\"statistics.calibration\",\"arguments\":{\"x\":[0,1,2],\"response\":[1,3,5],\"x_name\":\"declared setting\",\"x_unit\":\"m\",\"response_unit\":\"N\",\"assumptions\":[\"Fixed design, prespecified linear conditional mean, independent mean-zero errors.\"],\"covariance\":\"classical_normal_errors\",\"direction\":\"inverse_point\",\"uncertainty\":\"point_only\",\"values\":[7]}}",
+      "valid": true,
+      "values": [
+        3
+      ],
+      "unit": "m"
+    },
+    {
+      "id": "mean-interval-cauchy",
+      "q": "Model supplied data: {\"operation\":\"statistics.calibration\",\"arguments\":{\"x\":[-1,0,1],\"response\":[0,-1,4],\"x_name\":\"declared position\",\"x_unit\":\"m\",\"response_unit\":\"N\",\"assumptions\":[\"Fixed design, independent Gaussian errors with common unknown variance, prespecified correct linear conditional mean.\"],\"covariance\":\"classical_normal_errors\",\"direction\":\"forward_mean\",\"uncertainty\":\"pointwise_interval\",\"values\":[0]}}",
+      "valid": true,
+      "values": [
+        1
+      ],
+      "unit": "N",
+      "interval": [
+        -16.96928706418751,
+        18.96928706418751
+      ]
+    },
+    {
+      "id": "binomial-half",
+      "q": "Model supplied data: {\"operation\":\"statistics.events_exposure\",\"arguments\":{\"family\":\"grouped_binomial_logit\",\"method\":\"maximum_likelihood\",\"features\":[[],[]],\"intercept\":true,\"uncertainty\":\"model_based_wald\",\"model\":{\"description\":\"Supplied independent interval model\",\"predictor_names\":[],\"predictor_units\":[],\"independent_unit\":\"independent declared interval\",\"grouping\":\"One row per independent interval; no repeated units.\",\"assumptions\":[\"Independent observations, fixed design, prespecified correct likelihood.\"]},\"predictions\":[{\"features\":[],\"trials\":20}],\"successes\":[2,8],\"trials\":[10,10]}}",
+      "valid": true,
+      "field": "probability",
+      "values_glm": [
+        0.5
+      ],
+      "glm_probability_interval": [
+        0.29389891185975303,
+        0.7061010881402471
+      ]
+    },
+    {
+      "id": "poisson-rate",
+      "q": "Model supplied data: {\"operation\":\"statistics.events_exposure\",\"arguments\":{\"family\":\"poisson_log\",\"method\":\"maximum_likelihood\",\"features\":[[],[]],\"intercept\":true,\"uncertainty\":\"none\",\"model\":{\"description\":\"Supplied independent interval model\",\"predictor_names\":[],\"predictor_units\":[],\"independent_unit\":\"independent declared interval\",\"grouping\":\"One row per independent interval; no repeated units.\",\"assumptions\":[\"Independent observations, fixed design, prespecified correct likelihood.\"]},\"predictions\":[{\"features\":[],\"exposure\":2}],\"counts\":[1,3],\"exposures\":[1,3],\"exposure_unit\":\"device-hour\"}}",
+      "valid": true,
+      "field": "expected_count",
+      "values_glm": [
+        2
+      ]
+    },
+    {
+      "id": "poisson-no-finite-rate",
+      "q": "Model supplied data: {\"operation\":\"statistics.events_exposure\",\"arguments\":{\"family\":\"poisson_log\",\"method\":\"maximum_likelihood\",\"features\":[[],[]],\"intercept\":true,\"uncertainty\":\"none\",\"model\":{\"description\":\"Supplied independent interval model\",\"predictor_names\":[],\"predictor_units\":[],\"independent_unit\":\"independent declared interval\",\"grouping\":\"One row per independent interval; no repeated units.\",\"assumptions\":[\"Independent observations, fixed design, prespecified correct likelihood.\"]},\"predictions\":[{\"features\":[],\"exposure\":2}],\"counts\":[0,0],\"exposures\":[1,3],\"exposure_unit\":\"device-hour\"}}",
+      "valid": true,
+      "refusal": "separation_certified"
+    },
+    {
+      "id": "missing-sampling-declaration",
+      "q": "Model supplied data: {\"operation\":\"statistics.events_exposure\",\"arguments\":{\"family\":\"poisson_log\",\"method\":\"maximum_likelihood\",\"features\":[[],[]],\"intercept\":true,\"uncertainty\":\"none\",\"model\":{\"description\":\"Supplied independent interval model\",\"predictor_names\":[],\"predictor_units\":[],\"independent_unit\":\"independent declared interval\",\"assumptions\":[\"Independent observations, fixed design, prespecified correct likelihood.\"]},\"predictions\":[{\"features\":[],\"exposure\":2}],\"counts\":[1,3],\"exposures\":[1,3],\"exposure_unit\":\"device-hour\"}}",
+      "valid": false
+    },
+    {
+      "id": "missing-calibration-declaration",
+      "q": "Model supplied data: {\"operation\":\"statistics.calibration\",\"arguments\":{\"x\":[0,1,2],\"response\":[1,3,5],\"x_name\":\"declared setting\",\"x_unit\":\"m\",\"response_unit\":\"N\",\"covariance\":\"classical_normal_errors\",\"direction\":\"forward_mean\",\"uncertainty\":\"point_only\",\"values\":[3]}}",
+      "valid": false
+    },
+    {
+      "id": "missing-new-exposure",
+      "q": "Model supplied data: {\"operation\":\"statistics.events_exposure\",\"arguments\":{\"family\":\"poisson_log\",\"method\":\"maximum_likelihood\",\"features\":[[],[]],\"intercept\":true,\"uncertainty\":\"none\",\"model\":{\"description\":\"Supplied independent interval model\",\"predictor_names\":[],\"predictor_units\":[],\"independent_unit\":\"independent declared interval\",\"grouping\":\"One row per independent interval; no repeated units.\",\"assumptions\":[\"Independent observations, fixed design, prespecified correct likelihood.\"]},\"predictions\":[{\"features\":[]}],\"counts\":[1,3],\"exposures\":[1,3],\"exposure_unit\":\"device-hour\"}}",
+      "valid": false
+    },
+    {
+      "id": "invalid-support",
+      "q": "Model supplied data: {\"operation\":\"statistics.events_exposure\",\"arguments\":{\"family\":\"grouped_binomial_logit\",\"method\":\"maximum_likelihood\",\"features\":[[],[]],\"intercept\":true,\"uncertainty\":\"none\",\"model\":{\"description\":\"Supplied independent interval model\",\"predictor_names\":[],\"predictor_units\":[],\"independent_unit\":\"independent declared interval\",\"grouping\":\"One row per independent interval; no repeated units.\",\"assumptions\":[\"Independent observations, fixed design, prespecified correct likelihood.\"]},\"predictions\":[{\"features\":[],\"trials\":5}],\"successes\":[11,8],\"trials\":[10,10]}}",
+      "valid": false
+    },
+    {
+      "id": "lane-0",
+      "q": "Who are you?",
+      "lane_control": true,
+      "valid": false
+    },
+    {
+      "id": "lane-1",
+      "q": "What is the mean of 1, 2, 3?",
+      "lane_control": true,
+      "valid": false
+    },
+    {
+      "id": "lane-2",
+      "q": "Fit a causal model to my patients.",
+      "lane_control": true,
+      "valid": false
+    },
+    {
+      "id": "lane-3",
+      "q": "How many trials should I run?",
+      "lane_control": true,
+      "valid": false
+    }
+  ],
+  "heldout": [
+    {
+      "id": "forward-offset",
+      "q": "Model supplied data: {\"operation\":\"statistics.calibration\",\"arguments\":{\"x\":[-2,0,2],\"response\":[9,5,1],\"x_name\":\"declared setting\",\"x_unit\":\"m\",\"response_unit\":\"N\",\"assumptions\":[\"Fixed design, prespecified linear conditional mean, independent mean-zero errors.\"],\"covariance\":\"classical_normal_errors\",\"direction\":\"forward_mean\",\"uncertainty\":\"point_only\",\"values\":[-1,3]}}",
+      "valid": true,
+      "values": [
+        7,
+        -1
+      ],
+      "unit": "N"
+    },
+    {
+      "id": "inverse-offset",
+      "q": "Model supplied data: {\"operation\":\"statistics.calibration\",\"arguments\":{\"x\":[-2,0,2],\"response\":[9,5,1],\"x_name\":\"declared setting\",\"x_unit\":\"m\",\"response_unit\":\"N\",\"assumptions\":[\"Fixed design, prespecified linear conditional mean, independent mean-zero errors.\"],\"covariance\":\"classical_normal_errors\",\"direction\":\"inverse_point\",\"uncertainty\":\"point_only\",\"values\":[3,-3]}}",
+      "valid": true,
+      "values": [
+        1,
+        4
+      ],
+      "unit": "m"
+    },
+    {
+      "id": "mean-interval-cauchy",
+      "q": "Model supplied data: {\"operation\":\"statistics.calibration\",\"arguments\":{\"x\":[-1,0,1],\"response\":[2,0,4],\"x_name\":\"declared position\",\"x_unit\":\"m\",\"response_unit\":\"N\",\"assumptions\":[\"Fixed design, independent Gaussian errors with common unknown variance, prespecified correct linear conditional mean.\"],\"covariance\":\"classical_normal_errors\",\"direction\":\"forward_mean\",\"uncertainty\":\"pointwise_interval\",\"values\":[0]}}",
+      "valid": true,
+      "values": [
+        2
+      ],
+      "unit": "N",
+      "interval": [
+        -15.969287064187512,
+        19.96928706418751
+      ]
+    },
+    {
+      "id": "binomial-two-fifths",
+      "q": "Model supplied data: {\"operation\":\"statistics.events_exposure\",\"arguments\":{\"family\":\"grouped_binomial_logit\",\"method\":\"maximum_likelihood\",\"features\":[[],[]],\"intercept\":true,\"uncertainty\":\"model_based_wald\",\"model\":{\"description\":\"Supplied independent interval model\",\"predictor_names\":[],\"predictor_units\":[],\"independent_unit\":\"independent declared interval\",\"grouping\":\"One row per independent interval; no repeated units.\",\"assumptions\":[\"Independent observations, fixed design, prespecified correct likelihood.\"]},\"predictions\":[{\"features\":[],\"trials\":25}],\"successes\":[1,3],\"trials\":[4,6]}}",
+      "valid": true,
+      "field": "expected_count",
+      "values_glm": [
+        10
+      ],
+      "glm_probability_interval": [
+        0.1583420113623416,
+        0.7025950891508473
+      ]
+    },
+    {
+      "id": "poisson-different-exposure",
+      "q": "Model supplied data: {\"operation\":\"statistics.events_exposure\",\"arguments\":{\"family\":\"poisson_log\",\"method\":\"maximum_likelihood\",\"features\":[[],[]],\"intercept\":true,\"uncertainty\":\"none\",\"model\":{\"description\":\"Supplied independent interval model\",\"predictor_names\":[],\"predictor_units\":[],\"independent_unit\":\"independent declared interval\",\"grouping\":\"One row per independent interval; no repeated units.\",\"assumptions\":[\"Independent observations, fixed design, prespecified correct likelihood.\"]},\"predictions\":[{\"features\":[],\"exposure\":4}],\"counts\":[2,7],\"exposures\":[1,2],\"exposure_unit\":\"device-hour\"}}",
+      "valid": true,
+      "field": "expected_count",
+      "values_glm": [
+        12
+      ]
+    },
+    {
+      "id": "all-successes-no-finite-logit",
+      "q": "Model supplied data: {\"operation\":\"statistics.events_exposure\",\"arguments\":{\"family\":\"grouped_binomial_logit\",\"method\":\"maximum_likelihood\",\"features\":[[],[]],\"intercept\":true,\"uncertainty\":\"none\",\"model\":{\"description\":\"Supplied independent interval model\",\"predictor_names\":[],\"predictor_units\":[],\"independent_unit\":\"independent declared interval\",\"grouping\":\"One row per independent interval; no repeated units.\",\"assumptions\":[\"Independent observations, fixed design, prespecified correct likelihood.\"]},\"predictions\":[{\"features\":[],\"trials\":5}],\"successes\":[4,6],\"trials\":[4,6]}}",
+      "valid": true,
+      "refusal": "separation_certified"
+    },
+    {
+      "id": "missing-sampling-declaration",
+      "q": "Model supplied data: {\"operation\":\"statistics.events_exposure\",\"arguments\":{\"family\":\"poisson_log\",\"method\":\"maximum_likelihood\",\"features\":[[],[]],\"intercept\":true,\"uncertainty\":\"none\",\"model\":{\"description\":\"Supplied independent interval model\",\"predictor_names\":[],\"predictor_units\":[],\"grouping\":\"One row per independent interval; no repeated units.\",\"assumptions\":[\"Independent observations, fixed design, prespecified correct likelihood.\"]},\"predictions\":[{\"features\":[],\"exposure\":2}],\"counts\":[1,3],\"exposures\":[1,3],\"exposure_unit\":\"device-hour\"}}",
+      "valid": false
+    },
+    {
+      "id": "missing-calibration-declaration",
+      "q": "Model supplied data: {\"operation\":\"statistics.calibration\",\"arguments\":{\"x\":[0,1,2],\"response\":[1,3,5],\"x_name\":\"declared setting\",\"x_unit\":\"m\",\"assumptions\":[\"Fixed design, prespecified linear conditional mean, independent mean-zero errors.\"],\"covariance\":\"classical_normal_errors\",\"direction\":\"forward_mean\",\"uncertainty\":\"point_only\",\"values\":[3]}}",
+      "valid": false
+    },
+    {
+      "id": "missing-new-exposure",
+      "q": "Model supplied data: {\"operation\":\"statistics.events_exposure\",\"arguments\":{\"family\":\"poisson_log\",\"method\":\"maximum_likelihood\",\"features\":[[],[]],\"intercept\":true,\"uncertainty\":\"none\",\"model\":{\"description\":\"Supplied independent interval model\",\"predictor_names\":[],\"predictor_units\":[],\"independent_unit\":\"independent declared interval\",\"grouping\":\"One row per independent interval; no repeated units.\",\"assumptions\":[\"Independent observations, fixed design, prespecified correct likelihood.\"]},\"predictions\":[{\"features\":[]}],\"counts\":[1,3],\"exposures\":[1,3],\"exposure_unit\":\"device-hour\"}}",
+      "valid": false
+    },
+    {
+      "id": "invalid-support",
+      "q": "Model supplied data: {\"operation\":\"statistics.events_exposure\",\"arguments\":{\"family\":\"grouped_binomial_logit\",\"method\":\"maximum_likelihood\",\"features\":[[],[]],\"intercept\":true,\"uncertainty\":\"none\",\"model\":{\"description\":\"Supplied independent interval model\",\"predictor_names\":[],\"predictor_units\":[],\"independent_unit\":\"independent declared interval\",\"grouping\":\"One row per independent interval; no repeated units.\",\"assumptions\":[\"Independent observations, fixed design, prespecified correct likelihood.\"]},\"predictions\":[{\"features\":[],\"trials\":5}],\"successes\":[11,8],\"trials\":[10,10]}}",
+      "valid": false
+    },
+    {
+      "id": "lane-0",
+      "q": "Who are you?",
+      "lane_control": true,
+      "valid": false
+    },
+    {
+      "id": "lane-1",
+      "q": "What is the mean of 1, 2, 3?",
+      "lane_control": true,
+      "valid": false
+    },
+    {
+      "id": "lane-2",
+      "q": "Fit a causal model to my patients.",
+      "lane_control": true,
+      "valid": false
+    },
+    {
+      "id": "lane-3",
+      "q": "How many trials should I run?",
+      "lane_control": true,
+      "valid": false
+    }
+  ]
+}

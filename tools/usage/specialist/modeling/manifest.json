@@ -1,0 +1,33 @@
+{
+  "id": "supplied-modeling-explicit",
+  "name": "Conditional modeling of explicitly supplied rows",
+  "sources": [
+    {
+      "name": "Caller-supplied rows and explicit model/sampling assumptions",
+      "licence": "caller supplied",
+      "url": "https://www.itl.nist.gov/div898/handbook/pmd/section4/pmd43.htm"
+    }
+  ],
+  "organ": {
+    "module": "organ_modeling",
+    "class": "Organ",
+    "init": {}
+  },
+  "accept": {
+    "kinds": [
+      "supplied_modeling"
+    ],
+    "declines_in_domain": [
+      "modeling_input"
+    ],
+    "context_regex": "^Model supplied data: "
+  },
+  "panel": {
+    "path": "panel.json",
+    "scorer_module": "scorer",
+    "scorer_fn": "ok"
+  },
+  "budgets": {
+    "latency_p50_ms": 1000
+  }
+}

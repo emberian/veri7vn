@@ -14,6 +14,7 @@ import re
 import tempfile
 
 from package_native import clean_path, read_regular, publish_directory
+from host_release import release_metadata, write_archive
 
 ROOT = Path(__file__).resolve().parents[2]
 FORMAT = 'oracle-host-distribution-v1'
@@ -94,7 +95,7 @@ def main():
         organ['executable'] = resolve_path(organ['executable'])
     if config.get('engine'):
         engine = config['engine']
-        for key in ('python', 'answerer', 'materialization'):
+        for key in ('python', 'answerer', 'materialization', 'conversation_adapter'):
             if engine.get(key): engine[key]['path'] = resolve_path(engine[key]['path'])
         for key in ('checkout', 'state', 'specialist'):
             if engine.get(key): engine[key] = resolve_path(engine[key])
@@ -119,7 +120,7 @@ except (OSError, ValueError, KeyError, TypeError) as error:
 '''
 
 
-def build_distribution(host, sha256, config, output, *, source_root=ROOT):
+def build_distribution(host, sha256, config, output, *, source_root=ROOT, archive=None, release_input=None):
     if not re.fullmatch('[0-9a-f]{64}', sha256):
         raise ValueError('expected lowercase host SHA-256 required')
     host_data = read_regular(host)
@@ -128,10 +129,17 @@ def build_distribution(host, sha256, config, output, *, source_root=ROOT):
     config = json.loads(read_regular(config))
     if config.get('schema') != 'oracle-host-v1':
         raise ValueError('expected oracle-host-v1 config')
+    release = release_metadata(release_input, config) if release_input else None
     output = clean_path(output)
+    archive_path = clean_path(archive) if archive else None
+    if archive_path and (archive_path == output or output in archive_path.parents):
+        raise ValueError('archive must be outside payload')
     if output.exists() or not output.parent.is_dir():
         raise ValueError('output must be absent with existing parent')
     payload = {'lib/oracle-host': host_data, 'bin/oracle-host': LAUNCHER.encode()}
+    if release_input:
+        descriptor_path = json.loads(read_regular(release_input))['descriptors']['path']
+        payload['release-descriptors.json'] = read_regular(descriptor_path)
     external = []
 
     def copy_artifact(row, key, name):
@@ -157,6 +165,16 @@ def build_distribution(host, sha256, config, output, *, source_root=ROOT):
         if digest(worker) != e['answerer']['sha256'] or read_regular(e['answerer']['path']) != worker:
             raise ValueError('engine answerer must be the self-contained appliance engine_worker.py')
         copy_artifact(e['answerer'], 'path', 'python/engine_worker.py')
+        adapter = read_regular(Path(source_root) / 'tools/appliance/conversation_adapter.py')
+        if e.get('conversation_adapter'):
+            declared = e['conversation_adapter']
+            if digest(adapter) != declared['sha256'] or read_regular(declared['path']) != adapter:
+                raise ValueError('conversation adapter must match the appliance helper')
+            copy_artifact(declared, 'path', 'python/conversation_adapter.py')
+        else:
+            # The production worker imports this sibling lazily. Retain the
+            # closure even for legacy generation-bound Engine configurations.
+            payload['python/conversation_adapter.py'] = adapter
         # Virtualenv executables are normally symlinks. Admit the resolved binary;
         # preserve the venv invocation path so Python retains its site environment.
         interpreter = Path(e['python']['path'])
@@ -193,11 +211,14 @@ def build_distribution(host, sha256, config, output, *, source_root=ROOT):
     manifest = {'schema': FORMAT, 'host_sha256': sha256,
                 'build_provenance_verified': False, 'external_files': external,
                 'builder_code': {name: digest(read_regular(Path(__file__).parent / name))
-                                 for name in ('package_host.py', 'package_native.py')},
-                'runtime_helper_closure': ['python/engine_worker.py'] if config.get('engine') else [],
+                                 for name in ('package_host.py', 'package_native.py', 'host_release.py')},
+                'runtime_helper_closure': ['python/engine_worker.py', 'python/conversation_adapter.py'] if config.get('engine') else [],
                 'requirements': {'hermetic': False, 'python_environment_verified': False,
                                  'dynamic_libraries_bundled': False},
                 'files': {name: {'sha256': digest(data), 'bytes': len(data)} for name, data in sorted(payload.items())}}
+    if release is not None:
+        manifest['release'] = release
+    archive_receipt = None
     with tempfile.TemporaryDirectory(prefix='.oracle-host-package-', dir=output.parent) as temporary:
         stage = Path(temporary) / 'payload'
         stage.mkdir()
@@ -207,8 +228,10 @@ def build_distribution(host, sha256, config, output, *, source_root=ROOT):
             path.write_bytes(data)
             path.chmod(0o755 if name.startswith(('lib/', 'bin/')) else 0o644)
         (stage / 'MANIFEST.json').write_bytes(encoded(manifest))
+        if archive_path is not None:
+            archive_receipt = write_archive(stage, archive_path)
         publish_directory(stage, output)
-    return {'output': str(output), 'manifest_sha256': digest(encoded(manifest))}
+    return {'output': str(output), 'manifest_sha256': digest(encoded(manifest)), 'archive': archive_receipt}
 
 
 def main():
@@ -217,9 +240,11 @@ def main():
     ap.add_argument('--sha256', required=True)
     ap.add_argument('--config', required=True)
     ap.add_argument('--output', required=True)
+    ap.add_argument('--archive')
+    ap.add_argument('--release-input', help='measured frozen-source and build identity JSON; not build attestation')
     a = ap.parse_args()
     try:
-        print(json.dumps(build_distribution(a.host, a.sha256, a.config, a.output), sort_keys=True))
+        print(json.dumps(build_distribution(a.host, a.sha256, a.config, a.output, archive=a.archive, release_input=a.release_input), sort_keys=True))
     except (OSError, ValueError, KeyError, TypeError) as error:
         ap.exit(2, 'package_host: ' + str(error) + '\n')
 

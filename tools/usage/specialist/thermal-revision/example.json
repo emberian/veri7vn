@@ -1,0 +1,249 @@
+{
+  "conversation": "supplied-thermal-revision",
+  "package": {
+    "schema": "supplied-thermal-measurements-v1",
+    "coverage_atom": "covered",
+    "measurements": [
+      {
+        "id": "load-a",
+        "value": 8,
+        "unit": "W",
+        "target": {
+          "kind": "load",
+          "node_id": "chip"
+        },
+        "source": "supplied bench log",
+        "source_revision": "load-a",
+        "support_atom": "load-a"
+      },
+      {
+        "id": "load-b",
+        "value": 8,
+        "unit": "W",
+        "target": {
+          "kind": "load",
+          "node_id": "chip"
+        },
+        "source": "supplied bench log",
+        "source_revision": "load-b",
+        "support_atom": "load-b"
+      },
+      {
+        "id": "load-corrected",
+        "value": 16,
+        "unit": "W",
+        "target": {
+          "kind": "load",
+          "node_id": "chip"
+        },
+        "source": "supplied bench log",
+        "source_revision": "load-corrected",
+        "support_atom": "load-corrected"
+      },
+      {
+        "id": "g-original",
+        "value": 2,
+        "unit": "W/K",
+        "target": {
+          "kind": "conductance",
+          "link_index": 0
+        },
+        "source": "supplied bench log",
+        "source_revision": "g-original",
+        "support_atom": "g-original"
+      },
+      {
+        "id": "g-corrected",
+        "value": 4,
+        "unit": "W/K",
+        "target": {
+          "kind": "conductance",
+          "link_index": 0
+        },
+        "source": "supplied bench log",
+        "source_revision": "g-corrected",
+        "support_atom": "g-corrected"
+      }
+    ],
+    "network": {
+      "description": "Supplied board and ideal cooling boundary",
+      "assumptions": [
+        "Steady passive constant-conductance conduction; no radiation, airflow or storage"
+      ],
+      "reference_temperature_k": 300,
+      "nodes": [
+        {
+          "id": "chip",
+          "applied_heat_w": 0
+        },
+        {
+          "id": "sink",
+          "applied_heat_w": 0,
+          "fixed_temperature_k": 300
+        }
+      ],
+      "links": [
+        {
+          "from": "chip",
+          "to": "sink",
+          "conductance_w_per_k": 2
+        }
+      ]
+    },
+    "decision": {
+      "node_id": "chip",
+      "maximum_temperature_k": 306
+    }
+  },
+  "steps": [
+    {
+      "revision": {
+        "token": "thermal-1",
+        "expected_revision": 0,
+        "insert": [
+          {
+            "kind": "coverage",
+            "id": "coverage-log",
+            "source": "supplied bench log",
+            "source_revision": "1",
+            "domain": "all declared measurements in this supplied package"
+          },
+          {
+            "kind": "rule",
+            "id": "coverage-rule",
+            "head": "covered",
+            "positive": [],
+            "negative": [],
+            "coverage": [
+              "coverage-log"
+            ]
+          },
+          {
+            "kind": "observation",
+            "id": "load-a",
+            "source": "supplied bench log",
+            "source_revision": "load-a",
+            "atom": "load-a"
+          },
+          {
+            "kind": "observation",
+            "id": "load-b",
+            "source": "supplied bench log",
+            "source_revision": "load-b",
+            "atom": "load-b"
+          },
+          {
+            "kind": "observation",
+            "id": "g-original",
+            "source": "supplied bench log",
+            "source_revision": "g-original",
+            "atom": "g-original"
+          }
+        ],
+        "withdraw": []
+      },
+      "expected": {
+        "decision": "accept",
+        "temperature_k": 304
+      }
+    },
+    {
+      "revision": {
+        "token": "thermal-2",
+        "expected_revision": 1,
+        "insert": [],
+        "withdraw": [
+          "load-a"
+        ]
+      },
+      "expected": {
+        "decision": "accept",
+        "temperature_k": 304
+      }
+    },
+    {
+      "revision": {
+        "token": "thermal-3",
+        "expected_revision": 2,
+        "insert": [
+          {
+            "kind": "observation",
+            "id": "load-corrected",
+            "source": "supplied bench log",
+            "source_revision": "load-corrected",
+            "atom": "load-corrected"
+          }
+        ],
+        "withdraw": []
+      },
+      "expected": {
+        "decision": "withheld",
+        "temperature_k": null
+      }
+    },
+    {
+      "revision": {
+        "token": "thermal-4",
+        "expected_revision": 3,
+        "insert": [],
+        "withdraw": [
+          "load-b"
+        ]
+      },
+      "expected": {
+        "decision": "reject",
+        "temperature_k": 308
+      }
+    },
+    {
+      "revision": {
+        "token": "thermal-5",
+        "expected_revision": 4,
+        "insert": [
+          {
+            "kind": "observation",
+            "id": "g-corrected",
+            "source": "supplied bench log",
+            "source_revision": "g-corrected",
+            "atom": "g-corrected"
+          }
+        ],
+        "withdraw": [
+          "g-original"
+        ]
+      },
+      "expected": {
+        "decision": "accept",
+        "temperature_k": 304
+      }
+    },
+    {
+      "revision": {
+        "token": "thermal-6",
+        "expected_revision": 5,
+        "insert": [],
+        "withdraw": [
+          "load-corrected"
+        ]
+      },
+      "expected": {
+        "decision": "withheld",
+        "temperature_k": null
+      }
+    },
+    {
+      "revision": {
+        "token": "thermal-7",
+        "expected_revision": 6,
+        "insert": [],
+        "withdraw": [
+          "coverage-log"
+        ]
+      },
+      "expected": {
+        "decision": "withheld",
+        "temperature_k": null
+      }
+    }
+  ]
+}

@@ -9,6 +9,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import tarfile
 import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -106,8 +107,20 @@ class HostDistribution(unittest.TestCase):
                        'checkout': str(checkout), 'revision': 'fixture', 'state': '/old/source/engine',
                        'materialization': {'path': str(receipt), 'sha256': P.digest(receipt.read_bytes())}}
         self.config.write_text(json.dumps(c))
+        adapter = ROOT / 'tools/appliance/conversation_adapter.py'
+        c['engine']['conversation_adapter'] = {'path': str(adapter), 'sha256': P.digest(adapter.read_bytes())}
+        self.config.write_text(json.dumps(c))
         self.build()
         self.assertEqual(self.launch().returncode, 0)
+        copied_adapter = self.bundle / 'python/conversation_adapter.py'
+        original_adapter = copied_adapter.read_bytes()
+        copied_adapter.write_bytes(original_adapter + b'\n# changed\n')
+        self.assertNotEqual(self.launch().returncode, 0)
+        copied_adapter.write_bytes(original_adapter)
+        manifest = json.loads((self.bundle / 'MANIFEST.json').read_text())
+        self.assertIn('python/conversation_adapter.py', manifest['runtime_helper_closure'])
+        template = json.loads((self.bundle / 'host.template.json').read_text())
+        self.assertEqual(template['engine']['conversation_adapter']['path'], '@bundle/python/conversation_adapter.py')
         bundled = self.bundle / 'python/engine_worker.py'
         bundled.write_bytes(bundled.read_bytes() + b'\n# changed\n')
         self.assertNotEqual(self.launch().returncode, 0)
@@ -157,6 +170,46 @@ class HostDistribution(unittest.TestCase):
         self.assertIsNone(actual['pure'])
         self.assertIsNone(actual['kernels'])
         self.assertIsNone(actual['engine'])
+
+    def test_host_archive_is_repeatable_and_preserves_executables(self):
+        archive = self.root / 'first.tar.gz'
+        first = P.build_distribution(self.host, P.digest(self.host.read_bytes()),
+                                    self.config, self.bundle, archive=archive)
+        second_archive = self.root / 'second.tar.gz'
+        P.build_distribution(self.host, P.digest(self.host.read_bytes()),
+                             self.config, self.root / 'second', archive=second_archive)
+        self.assertEqual(archive.read_bytes(), second_archive.read_bytes())
+        self.assertEqual(first['archive']['sha256'], P.digest(archive.read_bytes()))
+        with tarfile.open(archive) as stream:
+            self.assertEqual(stream.getmember('oracle-host/lib/oracle-host').mode, 0o755)
+            self.assertEqual(stream.getmember('oracle-host/bin/oracle-host').mode, 0o755)
+        with self.assertRaises(ValueError):
+            P.build_distribution(self.host, P.digest(self.host.read_bytes()),
+                                 self.config, self.root / 'third', archive=archive)
+
+    def test_release_metadata_pins_source_and_derived_catalog(self):
+        source = self.root / 'source.tar.gz'
+        source.write_bytes(b'frozen source fixture')
+        descriptors = self.root / 'pure.json'
+        descriptors.write_text(json.dumps({'schema': 'oracle-host-pure-descriptors-v1',
+            'profiles': {'science': {'catalog_sha256': 'a' * 64, 'declarations': []}}}))
+        release = self.root / 'release.json'
+        row = {'source_revision': '1' * 40, 'target': 'x86_64-unknown-linux-gnu',
+               'features': ['science'], 'toolchain': {'rustc': 'fixture'},
+               'source_archive': {'path': str(source), 'sha256': P.digest(source.read_bytes())},
+               'descriptors': {'path': str(descriptors), 'sha256': P.digest(descriptors.read_bytes())}}
+        release.write_text(json.dumps(row))
+        P.build_distribution(self.host, P.digest(self.host.read_bytes()), self.config,
+                             self.bundle, release_input=release)
+        manifest = json.loads((self.bundle / 'MANIFEST.json').read_text())
+        self.assertEqual(manifest['release']['profiles_requested'], ['runtime', 'science'])
+        self.assertFalse(manifest['release']['source_to_binary_attested'])
+        self.assertEqual(manifest['release']['catalogs_declared'], {'science': 'a' * 64})
+        self.assertEqual(self.launch().returncode, 0)
+        source.write_bytes(b'changed source')
+        with self.assertRaises(ValueError):
+            P.build_distribution(self.host, P.digest(self.host.read_bytes()), self.config,
+                                 self.root / 'bad-source', release_input=release)
 
     def test_state_cannot_be_payload(self):
         self.build()
