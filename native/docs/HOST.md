@@ -31,21 +31,23 @@ outer host assigns. **It is not authentication.** Requests with an `Origin`
 or `Sec-Fetch-Site` header are refused (403), as is any `Host` header other
 than the loopback address. The host binds 127.0.0.1 only.
 
-`/invoke` serves 21 operations when every provider is configured:
+`/invoke` serves the operations admitted by the configured runtime and compiled
+providers. Use discovery for the running service's exact list and the
+[capability catalog](CAPABILITIES.md) for their meanings:
 
 | Provider | Operations | Where they run |
 | --- | --- | --- |
-| native runtime | `reader.whole`, `reader.execute`, `kqa.query`, `kqa.execute`, `graph.query`, `graph.execute` | In the host, over the admitted image and durable session store |
-| pure computations | `graph.minimum_spanning_forest`, `graph.shortest_path`, `algebra.optimize_polynomial`, `algebra.optimize_dimensional_polynomial`, `algebra.simplify_rational`, `chemistry.balance_reaction`, `science.solve_linear`, `science.least_squares`, `science.thermal_network`, `incremental.dependencies`, `incremental.rooted_dependencies`, `bio.align_pairwise`, `statistics.linear_regression`, `logic.query`, `logic.enumerate` | In the host, linked from the provider crates under the same cargo features as the Python extension |
+| native runtime | Learned reads, graph/KQA queries and batches, source coverage, scalar context and revisable evidence | In the host, over the admitted image and durable session store; evidence solving additionally needs the logic feature and admitted solver |
+| pure computations | Graph and symbolic reasoning, scientific models, statistics, sequence operations, incremental dependencies and logic | In the host, linked from the provider crates under the corresponding cargo features |
 
 The pure operations' descriptions come from the reference Python adapters
 themselves: `native/oracle-host/tools/snapshot_descriptors.py` feeds the
 compiled catalogs to those adapters and writes `descriptors/pure.json`, which
 the host embeds. The host refuses to start if a compiled catalog no longer
-matches the snapshot. The checks applied to each native reply are a port of
-the same adapters. A differential run against the Python service over the
-same provider code gave identical replies on 65 of 65 invocations and identical
-descriptors for all 15 pure operations (see Qualification).
+matches the snapshot. Typed native replies retain the adapters' domain and
+evidence checks. The original 29 October differential qualification covered
+65 invocations and the then-available 15 pure operations; it is not a current
+operation count or validation of later additions (see Qualification).
 
 ## The rule for questions
 

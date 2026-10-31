@@ -10,6 +10,52 @@ The preceding [checkpoint](NATIVE-UPSTREAM-CHECKPOINT-2026-10-31.md) is pushed a
 sent upstream. This plan follows direct source reading plus four Sol design
 follow-ups; it does not treat their hypotheses as measured bottlenecks.
 
+## Active implementation ownership
+
+Ember approved continuing this plan after commit `d2bd96d`. Root launched these
+existing deputies; no implementation or performance result is implied by dispatch.
+
+- `sol_surface`: typed provider request/result path in host `pure.rs` and new modules.
+- `sol_host_workers`: service, HTTP, wire and the narrow encoded journal interface.
+- `sol_reader_sharing`: program/reader and checked operation workspace.
+- `sol_reader_data`: segment chart, composition and grammar adapters.
+- `sol_query_batches`: query execution view over checked shared programs.
+- `sol_memory`: graph representation and independent forest checker storage.
+- `sol_native_state`: domain evidence checkpoint, owner adapter and resumable client.
+- `sol_native_surface`: evidence operation registration and host dispatch.
+- `astra_sol_arch_review`: host/transport/state source review.
+- `astra_sol_domain_review`: reader/graph source review.
+- `sol_expansion_validation`: central focused validation; wait for root's frozen-source go.
+
+Root integrates shared exports/catalogs and decides semantic changes. Authors do
+not build, run tests, commit or publish; they author decisive checks and send exact
+commands to the validator. The encoded journal interface must preserve old retry
+bytes and poison semantics. Packed reader implementation initially preserves the
+current Date/quantity and empty-child refusals; changing those rules is a separate
+reviewed semantic change, not a side effect of replacing vectors with handles.
+
+Implementation and correctness are complete for this cycle. The
+[validation receipt](../../native/evidence/2026-10-31-native-cycle-validation.json)
+records 169 unique Rust tests, eight Python recovery cases, nine actual PyO3 calls,
+the runtime-only build, release HTTP LP/GLM and both real clingo modes, and a
+lost-acknowledgement host restart followed by exact replay and six-revision resume.
+Both reader cells retain every prior answer, refusal and evidence field. One
+empty-result chart retention defect was repaired without weakening its assertion.
+The initial failure, repair and a logic-mode harness correction remain recorded.
+
+Code is committed in three reviewable slices: `70f4ca5` (graph/control),
+`14ceb7d` (packed reader), and `64430c7` (typed host/recovery). The prepared single
+performance comparison follows correctness; results are not implied by these
+tests. Pre-change artifacts remain pinned by
+`native/evidence/2026-10-31-native-expansion-validation.json`.
+
+Review repaired a mutable admitted-operation list, reader source-memory custody
+on composition failure, client cursor write/read size disagreement, optimization
+versus feasibility status admission, and typed result-contract omissions. The
+remaining bounded duplicate evidence-history validation is explicit; a general
+checked-owner interface and Date/unit/empty-count semantic changes are not hidden
+inside this representation refactor.
+
 ## Cycle 1: shared interfaces and independent implementation
 
 About the first 60–90 minutes. Root coordinates seams before overlapping edits.

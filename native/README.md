@@ -22,6 +22,13 @@ parses the whole source offline; serving shares indexes rather than a Python
 object graph per tenant. `oracle-python` exposes the core through PyO3 and
 releases the interpreter while native work runs.
 
+Inside the Rust host, admitted inputs and computation results stay typed through
+their domain checks. The HTTP boundary encodes a bounded response once and keeps
+those bytes through delivery. The `/query` journal retains those bytes for replay;
+native stateful operations retain their exact core reply.
+The Value-based library entry remains a compatibility adapter. Independent
+certificate, source and numerical checks still run.
+
 The reader uses offline-exported lexical and learned grammar tables bound to the
 KB digest. It executes whole templates, exact fragment/outer composition,
 2–4-segment chains and one nested fragment pass under one worker budget.
@@ -33,7 +40,13 @@ have zero wrong answers and execution errors at the same one-second limit.
 Earlier debug runs had variable deadline failures; all results remain in the
 [validation receipts](evidence/2026-10-31-native-expansion-validation.json).
 The limit contains failed work; it is not a latency target.
-
+Shared syntax recipes and checked operations now remain packed through fragment
+viability and composition. Original step occurrences, dead branches, child
+obligations and evidence remain distinct; public programs expand only for
+diagnostics. Sharing computation does not discard competing interpretations.
+The [current cycle receipt](evidence/2026-10-31-native-cycle-validation.json)
+records the typed-host, packed-reader and recovery checks, including unchanged
+answers and evidence on both pinned reader cells.
 
 This does not replace the complete Oracle Engine or install it in signed v7.
 The full route cascade, dialogue adapters, remaining language families and real

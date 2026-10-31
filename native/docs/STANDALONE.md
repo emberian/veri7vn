@@ -1,6 +1,10 @@
-# Run the native appliance independently
+# Run the Python reference service independently
 
-The native appliance has a standalone HTTP service. It needs Python 3.12 or
+The [Rust appliance host](HOST.md) is the shared native serving path. It can run
+supplied-data computations without Python; the original Oracle Engine is an
+optional contained worker. Both hosts run independently of Mini.
+
+This page describes the older Python reference service. It needs Python 3.12 or
 newer, the built PyO3 extension and this repository's Python adapters. It needs
 no minidregg checkout, daemon, Store, genesis or account. Supplied-argument
 profiles need no public Oracle dataset. An optional [durable data runtime](RUNTIME-HOST.md)

@@ -39,6 +39,14 @@ Current `tools/` adapters are repository source, not that upstream snapshot.
 | Release/capability identity: appliance receipts and the shared image hash. | `release.rs` binds executable/data/profile/resource/schema/operation identity; checks host measurements and exact serving registrations; computes actual capability counts. `Runtime::open_release` consumes an admitted release, checks actual image/profile/required schemas before opening state, binds session/journal identity, and gates its graph/KQA/pure-reader/durable-language entrypoints. `oracle-python/src/release.rs` authors the corresponding fixed-registry host factory. | Runtime integration is authored and connected; `runtime_release_contract.rs` exercises actual persisted consumers, with retained centralized execution results. The PyO3 factory/getter exports are integrated and their seven actual-extension tests pass. The standalone runtime adapter consumes release declarations and advertises admitted operations. A manifest's own hash is not authentication or verification of loaded code. |
 | HTTP/agent discovery and tenant hosting: `tools/appliance/serve.py`, `operations.py`, `tenant_pool.py`. | Transport, bounded scheduling and native dispatch can use the same shared native runtime. Discovery reports actual registered operations and resource profiles. | Private standalone HTTP and relocated distribution are implemented with bounded shared processes and durable runtime restart/retry. Authenticated Mini principal binding, fairness, quotas, signed package integration, hard process containment and the real browser/agent journey remain host work. Existing `live_direct` means a callable exists; it does not mean native or verified. |
 
+The current native representation keeps provider inputs/results typed through
+checking, encodes the final host response once, and carries shared reader syntax
+and checked operations through composition. Exact syntax occurrences remain
+separate from shared computation, so original limits and admission obligations
+still apply. These changes do not broaden the learned language or migrate the
+remaining Python conversation owners. The [current work cycle](../../project/lanes/NATIVE-NEXT-CYCLES-2026-10-31.md)
+records the implementation and qualification status.
+
 ## Python that remains useful
 
 Python remains appropriate for authoring, training, source import and measuring

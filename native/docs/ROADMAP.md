@@ -10,16 +10,20 @@ DNA and statistical operations run through that service. See the
 
 The destination remains the complete Oracle service: shared public resources,
 compact private state and bounded active computation. No new shipped specialist
-panel scores are available. The full Engine and signed Mini composition remain.
+panel scores are available. Full Engine state migration remains; Mini integration
+belongs to its hosting team. The [current cycle](../../project/lanes/NATIVE-NEXT-CYCLES-2026-10-31.md)
+records active implementation and validation.
 
 ## Priorities
 
-1. **Resolve reader failures and extend useful coverage.** The retained 100
-   questions stay at 36 correct, 4 refused, 60 unknown, zero wrong/errors.
-   The [new 16-question cohort](../evidence/2026-10-29-targeted-composition.json) failed, including four byte-limit
-   errors. Fix the representation/consumer failures before claiming that family
-   complete. Then address deeper composition, analogy and clause/date wrappers
-   against declared independent questions and affected panels.
+1. **Resolve reader semantics and extend useful coverage.** The retained 100
+   questions still have 36 correct answers. The plural-first repair gives ten
+   correct answers and six expected declines on the targeted 16; the old byte
+   failures are repaired. Date/quantity slot domains, unit context across
+   composed fragments and checked empty-count semantics remain. Do not discard
+   an inconvenient interpretation or relax admission to force a dataset answer.
+   Deeper composition, analogy and clause/date wrappers need independent questions
+   and affected-panel checks.
 2. **Complete the actual turn.** Connect remaining relation/document stores,
    Python C3 route order and guards, arbitration and dialogue state owners.
    Test corrections, ambiguity, switching and restart through real conversations.
@@ -29,14 +33,19 @@ panel scores are available. The full Engine and signed Mini composition remain.
    fairness, sustained mixed-tenant load, composed resource admission and actual
    effect executors remain. External exactly-once execution needs a receiver
    contract. The outbox alone cannot provide it.
-4. **Connect specialist consumers.** Use existing providers to answer new
-   questions; measure the affected panels. Integrate the standalone logic crate
-   only with solver identity, process containment and host/package composition
-   checks. [Integration designs](INTEGRATIONS.md) name candidate consumers.
-5. **Improve cost where profiles justify it.** Compare packed charts, stable
-   integer IDs, typed image columns, bitmap indexes, batching and allocation
-   reuse against current SQLite/native paths. Preserve every interpretation and
-   refusal rule. Cheap tenant handles are not a throughput measurement.
+4. **Deepen the connected consumers.** Calibration, GLM, sequential monitoring,
+   thermal scenarios/transients, sequence search/translation, exact optimization
+   and hosted logic already have callable workflows. Next work includes scalable
+   evidence restore and incremental solving checked against fresh solving.
+   Stronger domain models need their own assumptions and truth cases. The
+   [code/literature synthesis](../../project/scouts/native-2026-10-31/README.md)
+   and [integration designs](INTEGRATIONS.md) retain the broader possibilities.
+5. **Bring cost closer to useful computation.** Typed provider calls, packed
+   reader operations, bounded response encoding and contiguous graph checking
+   are implemented in the current cycle. Measure their actual effect before
+   choosing the next change. Stable image IDs/columns, persistent solver work
+   and further scratch reuse are candidates, not automatic wins. Preserve every
+   interpretation and refusal rule; a one-second timeout is not a speed target.
 6. **Land upstream in reviewable pieces.** Offer optional native data/program
    execution, then shared readers/state and specialist providers. Keep Python
    useful for training, manufacture, measurement and compatibility; preserve
@@ -64,7 +73,7 @@ evidence. None should acquire a generic `verified` label.
 ## Libraries and further experiments
 
 The optional providers already use petgraph, egg, faer and differential dataflow.
-The standalone logic prototype uses contained clingo. Other entries remain
+Hosted logic uses contained clingo with an admitted solver identity. Other entries remain
 proposals. Links below came from the 28 October design review; verify versions,
 licenses and platform cost before adding a dependency.
 
@@ -75,10 +84,10 @@ licenses and platform cost before adding a dependency.
 | [fst](https://docs.rs/fst/latest/fst/) + [roaring](https://docs.rs/roaring/latest/roaring/) | Compact immutable vocabulary/template indexes and integer-ID posting sets. | Compare against current SQLite prefixes/joins. Neither crate automatically gives a complete zero-copy, persistent Oracle image. |
 | [ANISE](https://nyxspace.com/anise/) + [hifitime](https://docs.rs/hifitime/latest/hifitime/) | Ephemerides, frames, orbit computations and explicit time scales for astronomy specialists. | Audit supported kernels, time ranges, leap-second inputs and frame/aberration semantics. Precise time arithmetic alone does not define a Mars calendar or replace geological dates. |
 | [Z3 bindings](https://docs.rs/z3/latest/z3/) | Constraint questions, consistency checks, planning and counterexamples beyond small truth tables. | Native foreign solver. Bound work; distinguish SAT witnesses, UNSAT claims and UNKNOWN. Choose proof/certificate handling per supported logic. |
-| [clingo bindings](https://docs.rs/clingo/latest/clingo/) / [Potassco](https://potassco.org/clingo/) | Answer-set programming for defaults, exceptions and alternative consistent plans. | The standalone prototype uses a contained clingo executable and explicit stable-model semantics. Host/package integration and admitted solver identity remain. |
+| [clingo bindings](https://docs.rs/clingo/latest/clingo/) / [Potassco](https://potassco.org/clingo/) | Answer-set programming for defaults, exceptions and alternative consistent plans. | The contained executable is hosted and packaged with explicit stable-model semantics and admitted solver identity. Reusing solver state and scaling evidence history remain. |
 | [differential-dataflow](https://timelydataflow.github.io/differential-dataflow/) | Maintain derived relations under additions/retractions: private lessons, dependency closure and change impact. | The finite batch provider runs; its small retained benchmark loses to fresh traversal. Maintained arrangements consume memory; incremental execution is not itself a nonmonotonic logic. |
 | [Clarabel](https://docs.rs/clarabel/latest/clarabel/) | Convex optimization for allocations, constrained engineering and finance calculations. | Floating-point solver, not general integer optimization. Report residuals/conditioning and check certificates or rigorous bounds where required. |
-| [faer](https://docs.rs/faer/latest/faer/), [safetensors](https://docs.rs/safetensors/latest/safetensors/), [Candle](https://huggingface.github.io/candle/) | Linear algebra, shared tensor artifacts and native inference for scientific calculations and learned readout computations. | The faer linear/fitting provider runs; tensor/model readouts remain proposed. Account for model workspace, BLAS/backend threads and GPU memory; keep statistical evidence distinct from mathematical proof. |
+| [faer](https://docs.rs/faer/latest/faer/), [safetensors](https://docs.rs/safetensors/latest/safetensors/), [Candle](https://huggingface.github.io/candle/) | Linear algebra, shared tensor artifacts and native inference for scientific calculations and learned readout computations. | The faer linear/fitting provider runs. A tiny frozen-model readout pilot ran in Python with no useful held-out coverage; native model integration remains proposed. Account for model workspace and backend threads; keep empirical evidence distinct from mathematical proof. |
 | [geo](https://docs.rs/geo/latest/geo/) + [rstar](https://docs.rs/rstar/latest/rstar/) | Spatial predicates, proximity and indexed geographic questions. | Explicit coordinate reference systems, units, robust boundary cases and source coverage. Float geometry is not automatically a verified predicate. |
 | [Tantivy](https://docs.rs/tantivy/latest/tantivy/) | Shared document search feeding readers with attributable evidence spans. | Retrieval rank is not truth or completeness. A top-k result must not justify absence or exhaustive aggregates. |
 | [Oxigraph](https://docs.rs/oxigraph/latest/oxigraph/) | Optional RDF/SPARQL interoperability for relation data. | Lower priority: another store and migration cost. Its docs warn that SPARQL evaluation remains under development; do not assume a performance win or complete ontology reasoning. |

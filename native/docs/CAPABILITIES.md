@@ -31,9 +31,13 @@ A listed Rust library is not automatically an HTTP operation.
 | `runtime` | `graph.coverage` | Traverses a declared canonical relation domain to actual EOF. Count, absence and uniqueness require complete traversal and matching snapshot/domain. Does not establish alias, class or world completeness. |
 | `runtime` | `context.execute` | Atomically observes, scales, clears or inspects a delivered dimensionless scalar. Preserves exact versus imported Python-float origin. Uses native session ownership; no automatic Engine conversation takeover. |
 | `runtime` + `logic` | `logic.workspace`, `logic.workspace.solve` | Persists identified supplied evidence and withdrawals in the session journal, then freshly solves a checked immutable revision. Solving needs the operator-admitted solver. Local coverage declarations remain supplied premises; negative conclusions retain solver trust. |
+| `runtime` + `logic` | `logic.workspace.checkpoint` | Reads a bounded receipt for the current evidence snapshot and compares an optional saved identity. Does not advance state or need a solver; stale versions conflict. A receipt is not stored historical state or a client-importable ledger. |
 
 New operations require matching compiled catalogs and host descriptors. The
-first and expansion batches have passed their hosted workflow panels. See the results below and the [data/state guide](DATA-AND-STATE.md).
+first and expansion batches have passed their hosted workflow panels. The
+[current cycle](../evidence/2026-10-31-native-cycle-validation.json) checks typed
+host replies, packed reading and evidence checkpoint recovery. See the results
+below and the [data/state guide](DATA-AND-STATE.md).
 
 Pure supplied-argument operations recompute on retry. Stateful runtime operations
 persist exact replies with their session changes; pure operations do not.

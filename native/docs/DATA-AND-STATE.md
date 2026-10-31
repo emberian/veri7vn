@@ -160,6 +160,34 @@ session or store a retry reply. A failed solve leaves the already committed
 evidence intact. Support records retain observation, rule, negative-guard and
 coverage dependencies; supplied source names do not acquire external authority.
 
+`logic.workspace.checkpoint` reads a receipt for the current persisted evidence
+without running a solver or advancing the session. For the preceding example:
+
+```json
+{
+  "expected_version": 1,
+  "command": {"command": "checkpoint", "expected_revision": 1}
+}
+```
+
+The receipt identifies the runtime, conversation, session version, evidence
+revision and exact snapshot, with bounded lists of active record and coverage
+IDs. An optional `expected_snapshot_identity` compares a saved receipt with the
+current snapshot. A stale version or identity conflicts; it does not silently
+move the client to newer evidence. The operation still needs operator admission.
+It is available in the Rust host; the older Python runtime bridge does not expose
+these native evidence-owner operations.
+
+A client resume record must keep its pending exact request before sending and
+replace it with the acknowledgement only after receiving a valid reply. After a
+lost response, retry that request first; then compare the server checkpoint.
+The server's session journal remains authoritative. The local record is a retry
+cursor, not an importable evidence ledger. Checkpoint receipts do not retain old
+snapshots, compact history or raise the current history limit.
+The [cycle receipt](../evidence/2026-10-31-native-cycle-validation.json) records
+actual lost-reply recovery across a host restart, exact retry, and continuation
+through the supplied evidence history.
+
 ## What stays alive, and what the memory limit means
 
 The image outlives requests and is shared rather than charged afresh to every

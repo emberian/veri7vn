@@ -1,0 +1,533 @@
+{
+  "schema": "native-cycle-validation-v1",
+  "status": "correctness-passed-measurement-handed-off",
+  "source_manifest": "var/native-next-cycles-20261031/validation/source.json",
+  "source_archive_sha256": "168e07443af4ece3d3116fe2e4733757a208cc904429167a18267e37556932ec",
+  "members": 675,
+  "execution": [
+    {
+      "name": "execution-prepaid",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-native-cycle-20261031/source/native/Cargo.toml -p oracle-execution --lib prepaid_work_tests -- --test-threads=1 --nocapture'",
+      "exit": 0,
+      "elapsed_seconds": 4.549,
+      "finished_utc": "2026-10-31T19:42:21.156219+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-next-cycles-20261031/validation/execution-prepaid.log",
+      "log_sha256": "48a9c470b19a36ae2350f7fe7a4940b1d927303d105a13748129f4cdee6d0dbf"
+    },
+    {
+      "name": "host-recovery",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-native-cycle-20261031/source/native/Cargo.toml -p oracle-host --all-features --test recovery -- --test-threads=1 --nocapture'",
+      "exit": 0,
+      "elapsed_seconds": 56.539,
+      "finished_utc": "2026-10-31T19:44:38.908582+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-next-cycles-20261031/validation/host-recovery.log",
+      "log_sha256": "75502b4013846cef243906aadb1f86598262760588a6a5c525b26354f0f2324d"
+    },
+    {
+      "name": "evidence-host",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-native-cycle-20261031/source/native/Cargo.toml -p oracle-host --all-features --test evidence_checkpoint --test revisions_owner_contract -- --test-threads=1 --nocapture'",
+      "exit": 0,
+      "elapsed_seconds": 9.649,
+      "finished_utc": "2026-10-31T19:43:42.270123+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-next-cycles-20261031/validation/evidence-host.log",
+      "log_sha256": "7a4a07846dbc38b25f7a0571d5be06e1d36434df98a82331f3d222d5e6fd57e1"
+    },
+    {
+      "name": "reader-public",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-native-cycle-20261031/source/native/Cargo.toml -p oracle-runtime-core --test reader_contract --test composition_contract --test segments_contract --test runtime_language_contract --test batch_shared_admission -- --test-threads=1 --nocapture'",
+      "exit": 101,
+      "elapsed_seconds": 13.543,
+      "finished_utc": "2026-10-31T19:43:26.346748+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-next-cycles-20261031/validation/reader-public.log",
+      "log_sha256": "ca5cf0c1536b95523145720419dceff3c243b1e43631b4d3822222097b3bc90c"
+    },
+    {
+      "name": "typed-host",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-native-cycle-20261031/source/native/Cargo.toml -p oracle-host --all-features --lib pure::typed::tests -- --test-threads=1 --nocapture'",
+      "exit": 0,
+      "elapsed_seconds": 23.108,
+      "finished_utc": "2026-10-31T19:41:36.940777+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-next-cycles-20261031/validation/typed-host.log",
+      "log_sha256": "29b2ac92b9bd17afb188a1b01e59ea2f25efad4af16870c8d8a7a887f04ee0e3"
+    },
+    {
+      "name": "wire-parser-prior",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-native-cycle-20261031/source/native/Cargo.toml -p oracle-host --all-features --lib wire::tests -- --test-threads=1'",
+      "exit": 0,
+      "elapsed_seconds": 9.713,
+      "finished_utc": "2026-10-31T19:47:21.208223+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-next-cycles-20261031/validation/wire-parser-prior.log",
+      "log_sha256": "ee51b8ac083d1a9601d26a8666bff23d33c8352f7f9a2f86098ba597ac72659a"
+    },
+    {
+      "name": "reader-public-pending",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-native-cycle-20261031/source/native/Cargo.toml -p oracle-runtime-core --test reader_contract --test segments_contract --test runtime_language_contract -- --test-threads=1'",
+      "exit": 0,
+      "elapsed_seconds": 6.052,
+      "finished_utc": "2026-10-31T19:46:39.404831+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-next-cycles-20261031/validation/reader-public-pending.log",
+      "log_sha256": "fe3c43ed98658eda87f716027612e6bd82be660266e1d15f636cce5e2cbd3a2d"
+    },
+    {
+      "name": "host-minimal",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo check --locked --offline --manifest-path /tank/lanes/o7-native-cycle-20261031/source/native/Cargo.toml -p oracle-host --no-default-features'",
+      "exit": 0,
+      "elapsed_seconds": 8.435,
+      "finished_utc": "2026-10-31T19:47:03.603826+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-next-cycles-20261031/validation/host-minimal.log",
+      "log_sha256": "3836a7b2ab1ca2009b3c0646ffa545aa3c4b232fb6ee0cfb23fcb803054be4d9"
+    },
+    {
+      "name": "reader-packed",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-native-cycle-20261031/source/native/Cargo.toml -p oracle-runtime-core --lib packed_program::tests -- --test-threads=1 --nocapture'",
+      "exit": 0,
+      "elapsed_seconds": 10.514,
+      "finished_utc": "2026-10-31T19:42:58.022314+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-next-cycles-20261031/validation/reader-packed.log",
+      "log_sha256": "fa981093f3c36171678fb8022451c9acc0887aaec4fc039f21a6ba291bb5e64c"
+    },
+    {
+      "name": "service-encoding",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-native-cycle-20261031/source/native/Cargo.toml -p oracle-host --all-features --lib service::encoded_reply_tests -- --test-threads=1 --nocapture'",
+      "exit": 0,
+      "elapsed_seconds": 22.236,
+      "finished_utc": "2026-10-31T19:42:08.522885+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-next-cycles-20261031/validation/service-encoding.log",
+      "log_sha256": "40c17640cd9cd14a3dc047b11f86414ca8355f438e52c6bf411b8c22e0fc193d"
+    },
+    {
+      "name": "validated-source-freeze",
+      "command": "ssh hbox 'python3 -B /tank/lanes/o7-native-cycle-20261031/validation/final_snapshot.py'",
+      "exit": 0,
+      "elapsed_seconds": 4.09,
+      "finished_utc": "2026-10-31T19:52:08.890475+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-next-cycles-20261031/validation/validated-source-freeze.log",
+      "log_sha256": "04641b2fc98a619ee65954b2c571d17b39c2efe36cb12bf45ce60b26e2fa3c78"
+    },
+    {
+      "name": "retain-release",
+      "command": "ssh hbox 'python3 -B /tank/lanes/o7-native-cycle-20261031/validation/retain_release.py'",
+      "exit": 0,
+      "elapsed_seconds": 6.205,
+      "finished_utc": "2026-10-31T19:50:34.037268+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-next-cycles-20261031/validation/retain-release.log",
+      "log_sha256": "6e0beae6eb96503f254d5ade32fc5646883d6f6b6efbb8382d0cb7f8692b5122"
+    },
+    {
+      "name": "typed-parity",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-native-cycle-20261031/source/native/Cargo.toml -p oracle-host --all-features --lib pure::typed_parity -- --test-threads=1 --nocapture'",
+      "exit": 0,
+      "elapsed_seconds": 3.779,
+      "finished_utc": "2026-10-31T19:41:40.795671+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-next-cycles-20261031/validation/typed-parity.log",
+      "log_sha256": "50ccb0815f08bbad997c839e8539b13fb6e1aea1ced364b430180e7a623fc4f0"
+    },
+    {
+      "name": "reader-empty-repair",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-native-cycle-20261031/source/native/Cargo.toml -p oracle-runtime-core --test composition_contract only_complete_outer_consumers_demand_fragment_work_and_share_it -- --test-threads=1'",
+      "exit": 0,
+      "elapsed_seconds": 6.534,
+      "finished_utc": "2026-10-31T19:46:26.486806+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-next-cycles-20261031/validation/reader-empty-repair.log",
+      "log_sha256": "91dd311b60e193985604e49caeb58faa3bbfd37504e4fb89727a1e10ee9585e1"
+    },
+    {
+      "name": "actual-pyo3",
+      "command": "ssh hbox 'cd /tank/lanes/o7-native-cycle-20261031/source && ORACLE_NATIVE_TEST_EXTENSION=/tank/lanes/o7-native-cycle-20261031/artifacts-release/oracle_native.so python3 -B -m unittest discover -v -s tests/appliance -p test_sol_surface.py'",
+      "exit": 0,
+      "elapsed_seconds": 4.141,
+      "finished_utc": "2026-10-31T19:50:38.229787+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-next-cycles-20261031/validation/actual-pyo3.log",
+      "log_sha256": "e2094cc76aa71c4028bd8f4c8b07d2913d909ac12556e3a4589ec0526e2c266b"
+    },
+    {
+      "name": "wire-encoding",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-native-cycle-20261031/source/native/Cargo.toml -p oracle-host --all-features --lib wire::encoded_tests -- --test-threads=1 --nocapture'",
+      "exit": 0,
+      "elapsed_seconds": 5.339,
+      "finished_utc": "2026-10-31T19:41:46.200513+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-next-cycles-20261031/validation/wire-encoding.log",
+      "log_sha256": "cbc4f916424fde4b0538a674b33d4a4b7bc867260c4a4f57f767ef5372cf1093"
+    },
+    {
+      "name": "release-build",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo build --locked --offline --release --manifest-path /tank/lanes/o7-native-cycle-20261031/source/native/Cargo.toml -p oracle-host -p oracle-runtime-python --all-features'",
+      "exit": 0,
+      "elapsed_seconds": 121.286,
+      "finished_utc": "2026-10-31T19:49:22.545171+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-next-cycles-20261031/validation/release-build.log",
+      "log_sha256": "19b0f6f7914c2f27c0be28ada38d85234923990e93f438520d167ce69b47e5be"
+    },
+    {
+      "name": "evidence-domain",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-native-cycle-20261031/source/native/Cargo.toml -p oracle-logic --test checkpoint_contract --test revisions_contract -- --test-threads=1 --nocapture'",
+      "exit": 0,
+      "elapsed_seconds": 6.139,
+      "finished_utc": "2026-10-31T19:43:32.568451+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-next-cycles-20261031/validation/evidence-domain.log",
+      "log_sha256": "e9f7f24aa3e0e3f2f4110c16312e547422f50fb1c198acf80dc8f4ba94c0da7e"
+    },
+    {
+      "name": "graph-deep-tree",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-native-cycle-20261031/source/native/Cargo.toml -p oracle-reasoning --test contracts empty_singleton_and_deep_tree_are_explicit -- --test-threads=1'",
+      "exit": 0,
+      "elapsed_seconds": 3.882,
+      "finished_utc": "2026-10-31T19:47:11.446988+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-next-cycles-20261031/validation/graph-deep-tree.log",
+      "log_sha256": "9bc76e2fa341a58ea90092a96b5bad70971369db85402877794e79ff354f074c"
+    },
+    {
+      "name": "http-encoding",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-native-cycle-20261031/source/native/Cargo.toml -p oracle-host --all-features --lib http::encoded_reply_tests -- --test-threads=1 --nocapture'",
+      "exit": 0,
+      "elapsed_seconds": 7.948,
+      "finished_utc": "2026-10-31T19:42:16.531414+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-next-cycles-20261031/validation/http-encoding.log",
+      "log_sha256": "7b6f58c03a1d732ffbd99a12ab10e601ed7ef20d20e195fab3b63c16028122c5"
+    },
+    {
+      "name": "execution-restrictions",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-native-cycle-20261031/source/native/Cargo.toml -p oracle-execution --lib restricted_context_tests -- --test-threads=1 --nocapture'",
+      "exit": 0,
+      "elapsed_seconds": 3.526,
+      "finished_utc": "2026-10-31T19:42:28.559425+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-next-cycles-20261031/validation/execution-restrictions.log",
+      "log_sha256": "50f2134bd8d4776ba62dc3960c0aa05b662ff359b98b0eb4fb155dce79ce6609"
+    },
+    {
+      "name": "reader-compilation",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-native-cycle-20261031/source/native/Cargo.toml -p oracle-runtime-core --lib reader::compilation_tests -- --test-threads=1 --nocapture'",
+      "exit": 0,
+      "elapsed_seconds": 3.748,
+      "finished_utc": "2026-10-31T19:43:08.844810+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-next-cycles-20261031/validation/reader-compilation.log",
+      "log_sha256": "c53690eb05d0bc27e3d42e9ed24ea1f78c168f1b85f6c2537deb791ab174947c"
+    },
+    {
+      "name": "graph-disconnected",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-native-cycle-20261031/source/native/Cargo.toml -p oracle-reasoning --test contracts disconnected_isolated_parallel_negative_and_exact_large_weights -- --test-threads=1'",
+      "exit": 0,
+      "elapsed_seconds": 3.871,
+      "finished_utc": "2026-10-31T19:47:07.521505+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-next-cycles-20261031/validation/graph-disconnected.log",
+      "log_sha256": "b42094a39a097f18ac522c9f074fcdb620ff582c94df4b9aeb7c54103ab5d058"
+    },
+    {
+      "name": "reader-recipes-repaired",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-native-cycle-20261031/source/native/Cargo.toml -p oracle-runtime-core --lib packed_recipe_tests -- --test-threads=1'",
+      "exit": 0,
+      "elapsed_seconds": 6.773,
+      "finished_utc": "2026-10-31T19:46:33.304367+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-next-cycles-20261031/validation/reader-recipes-repaired.log",
+      "log_sha256": "212fcc39fbd636b555bf79809f8e123254ff673cc93e4f18ac6103fc8d0fda76"
+    },
+    {
+      "name": "reader-views",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-native-cycle-20261031/source/native/Cargo.toml -p oracle-runtime-core --lib packed_view_tests -- --test-threads=1 --nocapture'",
+      "exit": 0,
+      "elapsed_seconds": 3.459,
+      "finished_utc": "2026-10-31T19:43:05.020790+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-next-cycles-20261031/validation/reader-views.log",
+      "log_sha256": "7378182267ac177ddbc137428066426149794ce3a78a3fc8b9b0631384017d48"
+    },
+    {
+      "name": "execution-memory",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-native-cycle-20261031/source/native/Cargo.toml -p oracle-execution --lib memory_work_identity_tests -- --test-threads=1 --nocapture'",
+      "exit": 0,
+      "elapsed_seconds": 4.447,
+      "finished_utc": "2026-10-31T19:42:33.062005+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-next-cycles-20261031/validation/execution-memory.log",
+      "log_sha256": "37826177a561915a49b7ecc1d75ce607c923b9c2e0bf877a34df5906fd3bfaca"
+    },
+    {
+      "name": "reader-program",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-native-cycle-20261031/source/native/Cargo.toml -p oracle-runtime-core --lib program:: -- --test-threads=1 --nocapture'",
+      "exit": 0,
+      "elapsed_seconds": 3.801,
+      "finished_utc": "2026-10-31T19:43:12.730070+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-next-cycles-20261031/validation/reader-program.log",
+      "log_sha256": "97acf786ccd285b001511cc440b92f17d531c091fa90f864814c9d0beeec5c8b"
+    },
+    {
+      "name": "execution-prior",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-native-cycle-20261031/source/native/Cargo.toml -p oracle-execution --lib execution_contract_tests -- --test-threads=1 --nocapture'",
+      "exit": 0,
+      "elapsed_seconds": 3.758,
+      "finished_utc": "2026-10-31T19:42:24.982214+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-next-cycles-20261031/validation/execution-prior.log",
+      "log_sha256": "1185af7558eab932a53e490064dff9e2a3d4cf01e2266680b3ef90ec39d83e3e"
+    },
+    {
+      "name": "actual-http-recovery-fixed",
+      "command": "ssh hbox 'python3 -B /tank/lanes/o7-native-cycle-20261031/validation/host_cycle.py'",
+      "exit": 0,
+      "elapsed_seconds": 5.114,
+      "finished_utc": "2026-10-31T19:51:29.850049+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-next-cycles-20261031/validation/actual-http-recovery-fixed.log",
+      "log_sha256": "2283a4ccd804b4ae7d0973d7fb367f8b1e08db2aceb3358e471aa97ef5f53218"
+    },
+    {
+      "name": "graph-layout",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-native-cycle-20261031/source/native/Cargo.toml -p oracle-reasoning --test graph_layout -- --test-threads=1 --nocapture'",
+      "exit": 0,
+      "elapsed_seconds": 8.735,
+      "finished_utc": "2026-10-31T19:42:41.847730+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-next-cycles-20261031/validation/graph-layout.log",
+      "log_sha256": "ca28ee5bedf3daf0ce73bca27a35fee7f3474b71840938f98c4e3254fba01e32"
+    },
+    {
+      "name": "graph-forest-contracts",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-native-cycle-20261031/source/native/Cargo.toml -p oracle-reasoning --test contracts forest -- --test-threads=1 --nocapture'",
+      "exit": 0,
+      "elapsed_seconds": 5.551,
+      "finished_utc": "2026-10-31T19:42:47.463324+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-next-cycles-20261031/validation/graph-forest-contracts.log",
+      "log_sha256": "c741bd38d3f6d69f38c344406f02b328a0c4765644de76c407801821318ca2a7"
+    },
+    {
+      "name": "actual-http-recovery",
+      "command": "ssh hbox 'python3 -B /tank/lanes/o7-native-cycle-20261031/validation/host_cycle.py'",
+      "exit": 1,
+      "elapsed_seconds": 5.391,
+      "finished_utc": "2026-10-31T19:50:43.666422+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-next-cycles-20261031/validation/actual-http-recovery.log",
+      "log_sha256": "a89b66c8b66cf0bbfa5d7c3dfca70f199d42fae74416972e4420fa43990bf00a"
+    },
+    {
+      "name": "initial-build",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo build --locked --offline --manifest-path /tank/lanes/o7-native-cycle-20261031/source/native/Cargo.toml -p oracle-host -p oracle-runtime-python --all-features'",
+      "exit": 0,
+      "elapsed_seconds": 57.027,
+      "finished_utc": "2026-10-31T19:40:46.393239+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-next-cycles-20261031/validation/initial-build.log",
+      "log_sha256": "b05cb946c59b6bda7524ad32a97b1dbc985552abf1b5814a68e6d472cc5b9cf6"
+    },
+    {
+      "name": "host-journey",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-native-cycle-20261031/source/native/Cargo.toml -p oracle-host --all-features --test journey sol_consumers_discover_and_invoke_through_http -- --test-threads=1 --nocapture'",
+      "exit": 0,
+      "elapsed_seconds": 15.618,
+      "finished_utc": "2026-10-31T19:44:54.584725+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-next-cycles-20261031/validation/host-journey.log",
+      "log_sha256": "6bc4d845114174b2e8d99d3c4446b041a5ac6cd03b3dc9b903ab35851135d9a2"
+    },
+    {
+      "name": "local-recovery-tests",
+      "command": "python3 -B tools/usage/specialist/revisable-evidence/test_recovery.py",
+      "exit": 0,
+      "elapsed_seconds": 0.696,
+      "finished_utc": "2026-10-31T19:37:57.506727+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-next-cycles-20261031/validation/local-recovery-tests.log",
+      "log_sha256": "95d93c660b8ca585585027293722d711964a46f286338c433a86fbf646bf32dc"
+    },
+    {
+      "name": "reader-recipes",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-native-cycle-20261031/source/native/Cargo.toml -p oracle-runtime-core --lib packed_recipe_tests -- --test-threads=1 --nocapture'",
+      "exit": 0,
+      "elapsed_seconds": 3.358,
+      "finished_utc": "2026-10-31T19:43:01.472547+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-next-cycles-20261031/validation/reader-recipes.log",
+      "log_sha256": "10cad7500ba96b4fcbb2bb5b6a211949602dbbcbcf7f84d493bd87775868cf35"
+    },
+    {
+      "name": "reader-two-cells",
+      "command": "ssh hbox 'python3 -B /tank/lanes/o7-native-cycle-20261031/validation/reader_two_cells.py'",
+      "exit": 0,
+      "elapsed_seconds": 34.843,
+      "finished_utc": "2026-10-31T19:52:04.737429+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-next-cycles-20261031/validation/reader-two-cells.log",
+      "log_sha256": "cff4754f68e8d6fe49dfe679000a6049246242cc3049594806b9fe9a1d95d854"
+    }
+  ],
+  "transport_failure": {
+    "finished_utc": "2026-10-31T19:36:31.824636+00:00",
+    "stage": "source-transfer-before-build",
+    "host": "hbox",
+    "address": "100.70.164.91",
+    "errors": [
+      "scp: ssh connect port22 Operation timed out; Connection closed",
+      "ssh -o ConnectTimeout=10 hbox: Operation timed out (255)"
+    ],
+    "remote_builds_started": 0,
+    "owned_pending_ssh_stopped_by_pid": 58561
+  },
+  "shipped_specialist_panel_numbers": null,
+  "theorem_claims": [],
+  "local_standard_library_checks": {
+    "authorization": "Root explicitly authorized cheap local stdlib recovery tests and syntax checks while VPN stopped; no compiled fallback.",
+    "source": "Current files individually SHA256-matched against immutable frozen source manifest before execution.",
+    "recovery_tests": {
+      "tests": 8,
+      "passed": 8,
+      "failed": 0,
+      "skipped": 0,
+      "report": "var/native-next-cycles-20261031/validation/local-recovery-tests.json",
+      "scope": "Fake transport/server state only; no extension imports, native host, Rust build or real HTTP recovery."
+    },
+    "syntax": {
+      "files": 5,
+      "passed": 5,
+      "report": "var/native-next-cycles-20261031/validation/local-python-syntax.json",
+      "scope": "AST parse only; harnesses not executed."
+    }
+  },
+  "failures": [
+    {
+      "target": "composition_contract::only_complete_outer_consumers_demand_fragment_work_and_share_it",
+      "location": "native/oracle-core/tests/composition_contract.rs:366",
+      "actual_live_bytes": 1458,
+      "expected_live_bytes": 0,
+      "status": "repaired: empty batch no longer retains discarded chart reservation; escaped callback sources retain independent shared ownership",
+      "repair_overlay": "var/native-next-cycles-20261031/validation/empty-batch-overlay.json",
+      "checks": [
+        "reader-empty-repair",
+        "reader-recipes-repaired",
+        "reader-public-pending"
+      ]
+    }
+  ],
+  "structural_typed": {
+    "operations": [
+      "reasoning.exact_linear_feasibility",
+      "statistics.events_exposure"
+    ],
+    "origin": "cfg(test) catalog example0, not performance baseline",
+    "each": {
+      "input_decodes": 1,
+      "provider_envelope_counts": 1,
+      "payload_to_value": 0,
+      "result_redecodes": 0,
+      "checked_reply_serializations": 1
+    },
+    "passing_log": "var/native-next-cycles-20261031/validation/typed-host.log"
+  },
+  "rust_tests": {
+    "unique_passed": 169,
+    "ignored": [
+      "composition_byte_peaks_on_frozen_cases"
+    ],
+    "test_names": "var/native-next-cycles-20261031/validation/test-names.json"
+  },
+  "minimal_host_check": "passed no-default-features",
+  "limits": [
+    "No new theorem or shipped fleet-panel claim.",
+    "Typed structural counters are cfg(test) catalog fixtures, not measured production or baseline costs.",
+    "No measurement protocol executed by central validator; release baton passes to measurement after correctness."
+  ],
+  "validated_source": {
+    "members": 675,
+    "archive": "var/native-next-cycles-20261031/validation/validated-source.tar",
+    "archive_sha256": "5bf5c85a6280b47e63e118e1eeaf1eb313c0a7f7c00df4883dd4e7a794810c14",
+    "manifest": "var/native-next-cycles-20261031/validation/validated-source.json",
+    "manifest_sha256": "1b49da5359223da03f2fa79d38e1d6dcaa2c590088ad13442f47b0e7bdf3b5a1",
+    "changes_from_initial_freeze": "Only the three approved empty-batch repair files; no membership changes."
+  },
+  "release_artifacts": {
+    "oracle-host": {
+      "path": "/tank/lanes/o7-native-cycle-20261031/artifacts-release/oracle-host",
+      "sha256": "161dd07d271d00e83dad503dc6e79c62e542c7a4b9decf6c83c4828d8f0476d0",
+      "bytes": 19395952
+    },
+    "oracle_native.so": {
+      "path": "/tank/lanes/o7-native-cycle-20261031/artifacts-release/oracle_native.so",
+      "sha256": "fe8a9e48b8915cc5488984ae4f1aab7f01af4c5fc61f6e4fc7ec20e7b7a3cfb6",
+      "bytes": 15728800
+    }
+  },
+  "python_native_surface": {
+    "test_count": 1,
+    "passed": 1,
+    "skipped": 0,
+    "actual_catalog_example_calls": 9,
+    "report": "var/native-next-cycles-20261031/validation/actual-pyo3.json"
+  },
+  "actual_http": {
+    "lp": {
+      "right": 6,
+      "wrong": 0,
+      "withheld": 0
+    },
+    "glm": {
+      "total": 27,
+      "right": 27,
+      "wrong": 0,
+      "withheld": 15,
+      "false_yes": 0
+    },
+    "pure_logic": {
+      "logic.query": {
+        "fixture": "default-flight",
+        "status": "consistent",
+        "completeness_trust": "solver_trusted_query_unsat_no_certificate",
+        "gold": "passed independently asserted fixture truth/models",
+        "admitted_solver_sha256": "fba811b7b18e9379aa701dd92451880b2ce6537a43c359bd726d5ee5ad7b8753"
+      },
+      "logic.enumerate": {
+        "fixture": "alternative-plans",
+        "status": "consistent",
+        "completeness_trust": "solver_trusted_no_certificate",
+        "gold": "passed independently asserted fixture truth/models",
+        "admitted_solver_sha256": "fba811b7b18e9379aa701dd92451880b2ce6537a43c359bd726d5ee5ad7b8753"
+      }
+    },
+    "recovery": {
+      "lost_ack_pending_saved": true,
+      "host_stopped_and_restarted_same_store": true,
+      "resume_pending": null,
+      "resume_next_index": 6,
+      "complete_revision_gold_count": 6,
+      "scope": "actual native host and pinned solver; supplied incident workflow, not external source completeness"
+    },
+    "reports": "var/native-next-cycles-20261031/validation/host-cycle-fixed"
+  },
+  "reader_control": {
+    "changed_full_semantics_or_evidence": {
+      "code_only": [],
+      "combined": []
+    },
+    "counts": {
+      "code_only": {
+        "retained100:": {
+          "unanswered": 64,
+          "answered_correct": 36
+        },
+        "targeted16:": {
+          "unanswered": 8,
+          "answered_correct": 2,
+          "declined_expected": 6
+        }
+      },
+      "combined": {
+        "retained100:": {
+          "unanswered": 64,
+          "answered_correct": 36
+        },
+        "targeted16:": {
+          "answered_correct": 10,
+          "declined_expected": 6
+        }
+      }
+    },
+    "scope": "candidate release build on two original source-pinned images; retained100 dataset labels, targeted16 source verified; no shipped specialist panel gain",
+    "bad_cases": [],
+    "limits": {
+      "workers": 2,
+      "timeout_ms": 1000,
+      "fuel": 10000000
+    },
+    "baseline": "Immutable expansion release observations; original100 dataset controls plus16 source-verified targets on both original/plural images."
+  },
+  "typed_differential_scope": "All catalog examples across five non-logic profiles. Prior typed/wire parity logic cases used an absent solver; real admitted solver modes validated separately through actual HTTP.",
+  "harness_failure": {
+    "reason": "Owned new HTTP harness initially expected enumeration trust label for query; correct query reply retained with correct witnesses/truth.",
+    "repair": "Assertion now requires solver_trusted_query_unsat_no_certificate for query and solver_trusted_no_certificate for enumeration; implementation unchanged.",
+    "initial_report": "var/native-next-cycles-20261031/validation/actual-http-recovery.json",
+    "passing_report": "var/native-next-cycles-20261031/validation/actual-http-recovery-fixed.json"
+  },
+  "cleanup": {
+    "owned_hosts_stopped": true,
+    "owned_builds_finished": true,
+    "runner_handed_to": "sol_measurement",
+    "measurement_executed_by_validator": false
+  }
+}
