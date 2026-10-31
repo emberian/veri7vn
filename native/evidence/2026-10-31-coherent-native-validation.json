@@ -1,0 +1,1624 @@
+{
+  "schema": "oracle-coherent-native-validation-v1",
+  "updated_utc": "2026-10-31T21:44:24.068149+00:00",
+  "status": "qualified_with_explicit_modeling_baseline_limit",
+  "source": {
+    "base_revision": "afc7ea2574a5e5d8814cc764a0c50f0e0004d750",
+    "archive_sha256": "05425b928de5966619e0fce7e9117fe4d8a602de34d651e6838a90baf8405cf3",
+    "members": 707,
+    "manifest": "var/coherent-native-20261031/validation/validated-source.json",
+    "source_archive": "var/coherent-native-20261031/validation/validated-source.tar",
+    "scope": "exact frozen707 member set plus named source overlays; post-freeze root documentation edits intentionally not imported",
+    "overlays": [
+      "var/coherent-native-20261031/validation/compile-seam-overlay.json",
+      "var/coherent-native-20261031/validation/conversation-export-overlay.json",
+      "var/coherent-native-20261031/validation/evidence-fixture-overlays.json",
+      "var/coherent-native-20261031/validation/final-semantic-overlay.json",
+      "var/coherent-native-20261031/validation/helper-overlay.json",
+      "var/coherent-native-20261031/validation/literal-fixture-overlay.json",
+      "var/coherent-native-20261031/validation/native-first-overlay.json",
+      "var/coherent-native-20261031/validation/native-ordering-overlay.json",
+      "var/coherent-native-20261031/validation/recipe-call-overlay.json",
+      "var/coherent-native-20261031/validation/semantic-refusal-overlay.json"
+    ]
+  },
+  "resources": {
+    "host": "hbox",
+    "cargo_jobs": 2,
+    "target": "/tank/lanes/o7-native-20261028/target",
+    "tests": "focused targets only; no benchmark"
+  },
+  "focused": {
+    "rust_passed": 165,
+    "python_passed": 43,
+    "ignored": 1,
+    "ignored_reason": "existing opt-in byte peak observation, not required correctness",
+    "actual_pyo3": {
+      "language_tests": 2,
+      "adapter_tests": 1,
+      "catalog_calls": 9,
+      "skipped": 0
+    }
+  },
+  "commands": [
+    {
+      "name": "actual-python-language",
+      "command": "ssh hbox 'cd /tank/lanes/o7-coherent-native-20261031/source && PYTHONPATH=/tank/lanes/o7-coherent-native-20261031/artifacts-release:native/tests python3 -B native/tests/test_python_language.py'",
+      "exit": 0,
+      "elapsed_seconds": 2.421,
+      "finished_utc": "2026-10-31T21:29:19.589023+00:00",
+      "log": "/Users/ember/dev/o7vn/var/coherent-native-20261031/validation/actual-python-language.log",
+      "log_sha256": "f17e74ae6d4c64bbf7742b3b4c4070447c991e5a061c812e883aa883e88edd81",
+      "record": "var/coherent-native-20261031/validation/actual-python-language.json"
+    },
+    {
+      "name": "actual-python-surface-test",
+      "command": "ssh hbox 'cd /tank/lanes/o7-coherent-native-20261031/source && ORACLE_NATIVE_TEST_EXTENSION=/tank/lanes/o7-coherent-native-20261031/artifacts-release/oracle_native.so python3 -B -m unittest discover -s tests/appliance -p test_sol_surface.py -v'",
+      "exit": 0,
+      "elapsed_seconds": 3.203,
+      "finished_utc": "2026-10-31T21:29:46.162525+00:00",
+      "log": "/Users/ember/dev/o7vn/var/coherent-native-20261031/validation/actual-python-surface-test.log",
+      "log_sha256": "a130f198fccbbb1736bda986ce078d1c5038d8698166efe1d78e4d0dbefe5ec0",
+      "record": "var/coherent-native-20261031/validation/actual-python-surface-test.json"
+    },
+    {
+      "name": "actual-python-surface",
+      "command": "ssh hbox 'cd /tank/lanes/o7-coherent-native-20261031/source && ORACLE_NATIVE_TEST_EXTENSION=/tank/lanes/o7-coherent-native-20261031/artifacts-release/oracle_native.so python3 -B tests/appliance/test_sol_surface.py'",
+      "exit": 0,
+      "elapsed_seconds": 2.548,
+      "finished_utc": "2026-10-31T21:29:18.558775+00:00",
+      "log": "/Users/ember/dev/o7vn/var/coherent-native-20261031/validation/actual-python-surface.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "record": "var/coherent-native-20261031/validation/actual-python-surface.json"
+    },
+    {
+      "name": "build-exports-fixed",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo build --locked --offline --manifest-path /tank/lanes/o7-coherent-native-20261031/source/native/Cargo.toml -p oracle-host -p oracle-runtime-python --all-features'",
+      "exit": 0,
+      "elapsed_seconds": 16.133,
+      "finished_utc": "2026-10-31T20:54:48.220694+00:00",
+      "log": "/Users/ember/dev/o7vn/var/coherent-native-20261031/validation/build-exports-fixed.log",
+      "log_sha256": "2608d021fd7b9d5a01d050aeab126d4317177b2c34a6cd481c4d42fb8ea717d6",
+      "record": "var/coherent-native-20261031/validation/build-exports-fixed.json"
+    },
+    {
+      "name": "build-seams-fixed",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo build --locked --offline --manifest-path /tank/lanes/o7-coherent-native-20261031/source/native/Cargo.toml -p oracle-host -p oracle-runtime-python --all-features'",
+      "exit": 101,
+      "elapsed_seconds": 13.7,
+      "finished_utc": "2026-10-31T20:51:55.017989+00:00",
+      "log": "/Users/ember/dev/o7vn/var/coherent-native-20261031/validation/build-seams-fixed.log",
+      "log_sha256": "56bd7e08a7324e3a25f38c8c49a410b15347a22b9de0c7c43475ebf50a3d8d95",
+      "record": "var/coherent-native-20261031/validation/build-seams-fixed.json"
+    },
+    {
+      "name": "core-composition",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-coherent-native-20261031/source/native/Cargo.toml -p oracle-runtime-core --test runtime_context_contract --test runtime_language_contract --test session_contract --test runtime_release_contract -- --test-threads=1 --nocapture'",
+      "exit": 0,
+      "elapsed_seconds": 4.055,
+      "finished_utc": "2026-10-31T20:57:40.962484+00:00",
+      "log": "/Users/ember/dev/o7vn/var/coherent-native-20261031/validation/core-composition.log",
+      "log_sha256": "916579106d99e722fcadb8fe2ee415733340ad4a833d595b7d3d65a0ca7738b9",
+      "record": "var/coherent-native-20261031/validation/core-composition.json"
+    },
+    {
+      "name": "core-conversation-contract-retry2",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-coherent-native-20261031/source/native/Cargo.toml -p oracle-runtime-core --lib runtime::conversation::tests -- --test-threads=1 --nocapture'",
+      "exit": 0,
+      "elapsed_seconds": 9.487,
+      "finished_utc": "2026-10-31T20:57:36.816500+00:00",
+      "log": "/Users/ember/dev/o7vn/var/coherent-native-20261031/validation/core-conversation-contract-retry2.log",
+      "log_sha256": "02a214f03fe559b8ea9423501d0cb507e715ee5f12221e0b10916a038669598a",
+      "record": "var/coherent-native-20261031/validation/core-conversation-contract-retry2.json"
+    },
+    {
+      "name": "core-conversation-contract",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-coherent-native-20261031/source/native/Cargo.toml -p oracle-runtime-core --lib runtime::conversation::tests -- --test-threads=1 --nocapture'",
+      "exit": 101,
+      "elapsed_seconds": 5.511,
+      "finished_utc": "2026-10-31T20:55:04.781127+00:00",
+      "log": "/Users/ember/dev/o7vn/var/coherent-native-20261031/validation/core-conversation-contract.log",
+      "log_sha256": "c2a292b39ca4112d3c0225bbded3a6bc91e2e190acfb883ad836b58cfd7f6455",
+      "record": "var/coherent-native-20261031/validation/core-conversation-contract.json"
+    },
+    {
+      "name": "core-conversation",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-coherent-native-20261031/source/native/Cargo.toml -p oracle-runtime-core --test runtime_conversation_contract -- --test-threads=1 --nocapture'",
+      "exit": 0,
+      "elapsed_seconds": 10.824,
+      "finished_utc": "2026-10-31T20:54:59.129018+00:00",
+      "log": "/Users/ember/dev/o7vn/var/coherent-native-20261031/validation/core-conversation.log",
+      "log_sha256": "224ceb02775ccd9eddbc5b5b40ce609e6200a05e27a8be7fbabfa70f1304bae6",
+      "record": "var/coherent-native-20261031/validation/core-conversation.json"
+    },
+    {
+      "name": "evidence-owner",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-coherent-native-20261031/source/native/Cargo.toml -p oracle-host --all-features --test revisions_owner_contract -- --test-threads=1 --nocapture'",
+      "exit": 0,
+      "elapsed_seconds": 19.723,
+      "finished_utc": "2026-10-31T20:58:31.938169+00:00",
+      "log": "/Users/ember/dev/o7vn/var/coherent-native-20261031/validation/evidence-owner.log",
+      "log_sha256": "874f39c9e52a411dc31aab5fbf3ed691f8d0f1e1da30626ccfa3fa2cc35303e3",
+      "record": "var/coherent-native-20261031/validation/evidence-owner.json"
+    },
+    {
+      "name": "evidence-restoration",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-coherent-native-20261031/source/native/Cargo.toml -p oracle-logic --test checked_restore -- --test-threads=1 --nocapture'",
+      "exit": 0,
+      "elapsed_seconds": 4.379,
+      "finished_utc": "2026-10-31T20:58:12.168828+00:00",
+      "log": "/Users/ember/dev/o7vn/var/coherent-native-20261031/validation/evidence-restoration.log",
+      "log_sha256": "a025b31c82814ff41ba092629c82128f50556599cfd73e3721d2729336c11f36",
+      "record": "var/coherent-native-20261031/validation/evidence-restoration.json"
+    },
+    {
+      "name": "final-helper-tests",
+      "command": "ssh hbox 'cd /tank/lanes/o7-coherent-native-20261031/source && python3 -B -m unittest discover -s tools/appliance/tests -p test_conversation_adapter.py'",
+      "exit": 0,
+      "elapsed_seconds": 2.667,
+      "finished_utc": "2026-10-31T21:30:58.848696+00:00",
+      "log": "/Users/ember/dev/o7vn/var/coherent-native-20261031/validation/final-helper-tests.log",
+      "log_sha256": "bf7f191a5a2c4cda87f56dd622a55eaf71c5135461cf7f1e8bbd0557e80a4d35",
+      "record": "var/coherent-native-20261031/validation/final-helper-tests.json"
+    },
+    {
+      "name": "helper-semantic-tests",
+      "command": "ssh hbox 'cd /tank/lanes/o7-coherent-native-20261031/source && python3 -B -m unittest discover -s tools/appliance/tests -p test_conversation_adapter.py'",
+      "exit": 0,
+      "elapsed_seconds": 2.665,
+      "finished_utc": "2026-10-31T21:28:52.841849+00:00",
+      "log": "/Users/ember/dev/o7vn/var/coherent-native-20261031/validation/helper-semantic-tests.log",
+      "log_sha256": "89c48ea958c8c59bec5bffc7ebf46f45d438a38afae22ecf9e5cda42c5b3009f",
+      "record": "var/coherent-native-20261031/validation/helper-semantic-tests.json"
+    },
+    {
+      "name": "host-conversation-recovery",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-coherent-native-20261031/source/native/Cargo.toml -p oracle-host --all-features --lib conversation_recovery_tests -- --test-threads=1 --nocapture'",
+      "exit": 0,
+      "elapsed_seconds": 3.366,
+      "finished_utc": "2026-10-31T20:59:33.330136+00:00",
+      "log": "/Users/ember/dev/o7vn/var/coherent-native-20261031/validation/host-conversation-recovery.log",
+      "log_sha256": "16bf9fa53b4efb7ef338cdf2b995399a0c50596d78229cd8f2725e82d0ac696a",
+      "record": "var/coherent-native-20261031/validation/host-conversation-recovery.json"
+    },
+    {
+      "name": "host-conversation",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-coherent-native-20261031/source/native/Cargo.toml -p oracle-host --all-features --lib conversation_host_tests -- --test-threads=1 --nocapture'",
+      "exit": 0,
+      "elapsed_seconds": 57.883,
+      "finished_utc": "2026-10-31T20:59:29.886508+00:00",
+      "log": "/Users/ember/dev/o7vn/var/coherent-native-20261031/validation/host-conversation.log",
+      "log_sha256": "3f90388d47d3f7eb7e8f38724ab72d1cef877fc2fa87a6a90b7021e817a37d11",
+      "record": "var/coherent-native-20261031/validation/host-conversation.json"
+    },
+    {
+      "name": "host-encoded-replies",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-coherent-native-20261031/source/native/Cargo.toml -p oracle-host --all-features --lib encoded_reply_tests -- --test-threads=1 --nocapture'",
+      "exit": 0,
+      "elapsed_seconds": 27.166,
+      "finished_utc": "2026-10-31T21:00:00.537122+00:00",
+      "log": "/Users/ember/dev/o7vn/var/coherent-native-20261031/validation/host-encoded-replies.log",
+      "log_sha256": "7a540e5cfc948e7b180d2126724aead21be0af40e68a45f9c34f87826fa7766a",
+      "record": "var/coherent-native-20261031/validation/host-encoded-replies.json"
+    },
+    {
+      "name": "host-engine-ownership",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-coherent-native-20261031/source/native/Cargo.toml -p oracle-host --all-features --test engine_ownership -- --test-threads=1 --nocapture'",
+      "exit": 0,
+      "elapsed_seconds": 5.519,
+      "finished_utc": "2026-10-31T21:00:28.057780+00:00",
+      "log": "/Users/ember/dev/o7vn/var/coherent-native-20261031/validation/host-engine-ownership.log",
+      "log_sha256": "1a9eafbe985f0ddaa1742c0610fde65ab1911a0d04833e11dcf5a01e8099055f",
+      "record": "var/coherent-native-20261031/validation/host-engine-ownership.json"
+    },
+    {
+      "name": "host-manifest",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-coherent-native-20261031/source/native/Cargo.toml -p oracle-host --all-features --test conversation_manifest -- --test-threads=1 --nocapture'",
+      "exit": 0,
+      "elapsed_seconds": 3.952,
+      "finished_utc": "2026-10-31T21:00:04.551130+00:00",
+      "log": "/Users/ember/dev/o7vn/var/coherent-native-20261031/validation/host-manifest.log",
+      "log_sha256": "16beb79341d21db33419af1165a36061e8e37222664774f48ad4909d282cf0ae",
+      "record": "var/coherent-native-20261031/validation/host-manifest.json"
+    },
+    {
+      "name": "host-native-extensions",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-coherent-native-20261031/source/native/Cargo.toml -p oracle-host --all-features --test native_extensions -- --test-threads=1 --nocapture'",
+      "exit": 0,
+      "elapsed_seconds": 17.866,
+      "finished_utc": "2026-10-31T21:00:22.460590+00:00",
+      "log": "/Users/ember/dev/o7vn/var/coherent-native-20261031/validation/host-native-extensions.log",
+      "log_sha256": "81a2848463560b810c2a2e24abf769491fa6e76de541a3b0b7262d9ca989d946",
+      "record": "var/coherent-native-20261031/validation/host-native-extensions.json"
+    },
+    {
+      "name": "initial-build",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo build --locked --offline --manifest-path /tank/lanes/o7-coherent-native-20261031/source/native/Cargo.toml -p oracle-host -p oracle-runtime-python --all-features'",
+      "exit": 101,
+      "elapsed_seconds": 20.259,
+      "finished_utc": "2026-10-31T20:47:26.819539+00:00",
+      "log": "/Users/ember/dev/o7vn/var/coherent-native-20261031/validation/initial-build.log",
+      "log_sha256": "0b6f55d50d9171dc7005897bcfae9736be30863fa48d12bcb8cf0031f597e701",
+      "record": "var/coherent-native-20261031/validation/initial-build.json"
+    },
+    {
+      "name": "journey-continuation",
+      "command": "ssh hbox 'python3 -B /tank/lanes/o7-coherent-native-20261031/journey_continue.py'",
+      "exit": 1,
+      "elapsed_seconds": 63.674,
+      "finished_utc": "2026-10-31T21:36:25.432408+00:00",
+      "log": "/Users/ember/dev/o7vn/var/coherent-native-20261031/validation/journey-continuation.log",
+      "log_sha256": "fc417518a3d28ab986d75ae25cf4634557fa3c7fdd3c968165666a464ddda393",
+      "record": "var/coherent-native-20261031/validation/journey-continuation.json"
+    },
+    {
+      "name": "journey-final",
+      "command": "ssh hbox 'python3 -B /tank/lanes/o7-coherent-native-20261031/journey_final.py'",
+      "exit": 1,
+      "elapsed_seconds": 108.418,
+      "finished_utc": "2026-10-31T21:38:35.027143+00:00",
+      "log": "/Users/ember/dev/o7vn/var/coherent-native-20261031/validation/journey-final.log",
+      "log_sha256": "005a86411acee76c7bb230e5ea29c2f63fd55106b863993bea3dd67f14e061aa",
+      "record": "var/coherent-native-20261031/validation/journey-final.json"
+    },
+    {
+      "name": "journey-resume",
+      "command": "ssh hbox 'python3 -B /tank/lanes/o7-coherent-native-20261031/journey_resume.py'",
+      "exit": 0,
+      "elapsed_seconds": 242.353,
+      "finished_utc": "2026-10-31T21:43:18.123481+00:00",
+      "log": "/Users/ember/dev/o7vn/var/coherent-native-20261031/validation/journey-resume.log",
+      "log_sha256": "a66b280630a90add9b3e3e837997c71b549c2295f5a97b2c8b184a3c7f421d31",
+      "record": "var/coherent-native-20261031/validation/journey-resume.json"
+    },
+    {
+      "name": "minimal-feature",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo check --locked --offline --manifest-path /tank/lanes/o7-coherent-native-20261031/source/native/Cargo.toml -p oracle-host --no-default-features'",
+      "exit": 0,
+      "elapsed_seconds": 13.022,
+      "finished_utc": "2026-10-31T21:17:01.598009+00:00",
+      "log": "/Users/ember/dev/o7vn/var/coherent-native-20261031/validation/minimal-feature.log",
+      "log_sha256": "7f187da3b86aea2ba4cd9f995cb368c573659bc29bbe0c3f3115a096e1cce409",
+      "record": "var/coherent-native-20261031/validation/minimal-feature.json"
+    },
+    {
+      "name": "modeling-core-dev",
+      "command": "ssh hbox 'cd /tank/lanes/o7-coherent-native-20261031/source && /tank/lanes/o7-coherent-native-20261031/u8/venv/bin/python -B tools/usage/specialist/modeling/core_cases.py --split dev --out /tank/lanes/o7-coherent-native-20261031/modeling-dev-cases.json && /tank/lanes/o7-coherent-native-20261031/u8/venv/bin/python -B tools/usage/run_batch.py --runtime /tank/lanes/o7-coherent-native-20261031/u8/view --cases /tank/lanes/o7-coherent-native-20261031/modeling-dev-cases.json --out /tank/lanes/o7-coherent-native-20261031/modeling-core-dev'",
+      "exit": 1,
+      "elapsed_seconds": 57.541,
+      "finished_utc": "2026-10-31T21:13:53.427148+00:00",
+      "log": "/Users/ember/dev/o7vn/var/coherent-native-20261031/validation/modeling-core-dev.log",
+      "log_sha256": "5f53a6161ce4725c8beef0b84c5223b481b8537679cd5619caa425c835846fd2",
+      "record": "var/coherent-native-20261031/validation/modeling-core-dev.json"
+    },
+    {
+      "name": "modeling-diagnostic",
+      "command": "ssh hbox 'ORACLE_DIAGNOSTIC_REPO=/tank/lanes/o7-coherent-native-20261031/source /tank/lanes/o7-coherent-native-20261031/u8/venv/bin/python -B /tank/lanes/o7-coherent-native-20261031/modeling-diagnostic/run_diagnostic.py --runtime /tank/lanes/o7-coherent-native-20261031/u8/view --cases /tank/lanes/o7-coherent-native-20261031/modeling-diagnostic/one-unchanged-case.json --out /tank/lanes/o7-coherent-native-20261031/modeling-diagnostic/result --query-timeout 30 --startup-timeout 120'",
+      "exit": 1,
+      "elapsed_seconds": 46.094,
+      "finished_utc": "2026-10-31T21:20:07.289009+00:00",
+      "log": "/Users/ember/dev/o7vn/var/coherent-native-20261031/validation/modeling-diagnostic.log",
+      "log_sha256": "4078ed06829cefd805409fd25e5e0a8a8ec6459d07dab71586e8a6a0376e8cb2",
+      "record": "var/coherent-native-20261031/validation/modeling-diagnostic.json"
+    },
+    {
+      "name": "native-first-core",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-coherent-native-20261031/source/native/Cargo.toml -p oracle-runtime-core --test runtime_conversation_contract -- --test-threads=1'",
+      "exit": 0,
+      "elapsed_seconds": 6.491,
+      "finished_utc": "2026-10-31T21:14:23.660581+00:00",
+      "log": "/Users/ember/dev/o7vn/var/coherent-native-20261031/validation/native-first-core.log",
+      "log_sha256": "4e9ee3a202021c9c952e0808211a2173dd7fb16f24a8cfcfe18f7d73d59e1833",
+      "record": "var/coherent-native-20261031/validation/native-first-core.json"
+    },
+    {
+      "name": "native-first-host",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-coherent-native-20261031/source/native/Cargo.toml -p oracle-host --all-features --lib conversation_host_tests -- --test-threads=1'",
+      "exit": 0,
+      "elapsed_seconds": 144.813,
+      "finished_utc": "2026-10-31T21:16:48.521611+00:00",
+      "log": "/Users/ember/dev/o7vn/var/coherent-native-20261031/validation/native-first-host.log",
+      "log_sha256": "d88e9a83155f873defd147bbf08c09d80b8ffa5323ef09fe6c805a1bfff725c8",
+      "record": "var/coherent-native-20261031/validation/native-first-host.json"
+    },
+    {
+      "name": "native-ordering-host",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-coherent-native-20261031/source/native/Cargo.toml -p oracle-host --all-features --lib conversation_host_tests'",
+      "exit": 0,
+      "elapsed_seconds": 44.199,
+      "finished_utc": "2026-10-31T21:27:44.242599+00:00",
+      "log": "/Users/ember/dev/o7vn/var/coherent-native-20261031/validation/native-ordering-host.log",
+      "log_sha256": "a28f0c92b6ad6f2b83966bf374a87bfae6f6212f274b89359579d4069aeb3407",
+      "record": "var/coherent-native-20261031/validation/native-ordering-host.json"
+    },
+    {
+      "name": "package-final",
+      "command": "ssh hbox 'python3 -B /tank/lanes/o7-coherent-native-20261031/package_product.py'",
+      "exit": 0,
+      "elapsed_seconds": 8.246,
+      "finished_utc": "2026-10-31T21:31:53.343536+00:00",
+      "log": "/Users/ember/dev/o7vn/var/coherent-native-20261031/validation/package-final.log",
+      "log_sha256": "892dbf11c7cab4a0019abfdfd796d8dbf013f4a8aef3b128272c0ee74b83f154",
+      "record": "var/coherent-native-20261031/validation/package-final.json"
+    },
+    {
+      "name": "python-adapter",
+      "command": "ssh hbox 'cd /tank/lanes/o7-coherent-native-20261031/source && python3 -B -m unittest discover -s tools/appliance/tests -p test_conversation_adapter.py'",
+      "exit": 0,
+      "elapsed_seconds": 2.731,
+      "finished_utc": "2026-10-31T20:50:32.545630+00:00",
+      "log": "/Users/ember/dev/o7vn/var/coherent-native-20261031/validation/python-adapter.log",
+      "log_sha256": "fc23540c8545d4075fe2f0420accd022e74e5566176c3bd4c597964ff02c2e14",
+      "record": "var/coherent-native-20261031/validation/python-adapter.json"
+    },
+    {
+      "name": "python-config",
+      "command": "ssh hbox 'cd /tank/lanes/o7-coherent-native-20261031/source && python3 -B -m unittest discover -s tests/appliance -p test_host_make_config.py'",
+      "exit": 0,
+      "elapsed_seconds": 2.567,
+      "finished_utc": "2026-10-31T20:50:41.256415+00:00",
+      "log": "/Users/ember/dev/o7vn/var/coherent-native-20261031/validation/python-config.log",
+      "log_sha256": "e4e5670f4432ebc1fea9229eadfe613add44d2bc848fe64731cb40881dab9689",
+      "record": "var/coherent-native-20261031/validation/python-config.json"
+    },
+    {
+      "name": "python-modeling",
+      "command": "ssh hbox 'cd /tank/lanes/o7-coherent-native-20261031/source && python3 -B tools/usage/specialist/modeling/test_contract.py'",
+      "exit": 0,
+      "elapsed_seconds": 2.567,
+      "finished_utc": "2026-10-31T20:50:43.872625+00:00",
+      "log": "/Users/ember/dev/o7vn/var/coherent-native-20261031/validation/python-modeling.log",
+      "log_sha256": "cb4b0893c1ad095466f5a4fff264cb5c39aa41cb3196ed219c998fc981e85d18",
+      "record": "var/coherent-native-20261031/validation/python-modeling.json"
+    },
+    {
+      "name": "python-package",
+      "command": "ssh hbox 'cd /tank/lanes/o7-coherent-native-20261031/source && python3 -B -m unittest discover -s tests/appliance -p test_package_host.py'",
+      "exit": 0,
+      "elapsed_seconds": 3.264,
+      "finished_utc": "2026-10-31T20:50:35.858292+00:00",
+      "log": "/Users/ember/dev/o7vn/var/coherent-native-20261031/validation/python-package.log",
+      "log_sha256": "ce799f61b06b7d5af8ee82b669c7edaab346d2a2f18fe8e25b23fb9251037244",
+      "record": "var/coherent-native-20261031/validation/python-package.json"
+    },
+    {
+      "name": "python-qualifier",
+      "command": "ssh hbox 'cd /tank/lanes/o7-coherent-native-20261031/source && python3 -B -m unittest discover -s tests/appliance -p test_qualify_host.py'",
+      "exit": 0,
+      "elapsed_seconds": 2.739,
+      "finished_utc": "2026-10-31T20:50:38.642826+00:00",
+      "log": "/Users/ember/dev/o7vn/var/coherent-native-20261031/validation/python-qualifier.log",
+      "log_sha256": "199ba496f288116d36c62f29346d4fbf0bd75745a1c893abfcbdaa4c6d5b1033",
+      "record": "var/coherent-native-20261031/validation/python-qualifier.json"
+    },
+    {
+      "name": "python-thermal-revision",
+      "command": "ssh hbox 'cd /tank/lanes/o7-coherent-native-20261031/source && python3 -B tools/usage/specialist/thermal-revision/test_contract.py'",
+      "exit": 0,
+      "elapsed_seconds": 2.374,
+      "finished_utc": "2026-10-31T20:50:46.291757+00:00",
+      "log": "/Users/ember/dev/o7vn/var/coherent-native-20261031/validation/python-thermal-revision.log",
+      "log_sha256": "4190e6532da5d52050bd5ea71ff40310f4ffe0846610b4b159650675a5a9c2b2",
+      "record": "var/coherent-native-20261031/validation/python-thermal-revision.json"
+    },
+    {
+      "name": "reader-count-policy",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-coherent-native-20261031/source/native/Cargo.toml -p oracle-runtime-core --lib reader::count_policy::tests -- --test-threads=1 --nocapture'",
+      "exit": 0,
+      "elapsed_seconds": 3.339,
+      "finished_utc": "2026-10-31T20:57:53.962185+00:00",
+      "log": "/Users/ember/dev/o7vn/var/coherent-native-20261031/validation/reader-count-policy.log",
+      "log_sha256": "1f68b269661453fadb8dae9c33a2b2b04293fc33e8308f7360e8a33e4081e898",
+      "record": "var/coherent-native-20261031/validation/reader-count-policy.json"
+    },
+    {
+      "name": "reader-count",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-coherent-native-20261031/source/native/Cargo.toml -p oracle-runtime-core --test reader_count_contract -- --test-threads=1 --nocapture'",
+      "exit": 0,
+      "elapsed_seconds": 3.418,
+      "finished_utc": "2026-10-31T20:57:50.513626+00:00",
+      "log": "/Users/ember/dev/o7vn/var/coherent-native-20261031/validation/reader-count.log",
+      "log_sha256": "aaf61235d2d214fc0a2b00c171fe6df1a80b1c7562750ea84cbdc9c23646ce31",
+      "record": "var/coherent-native-20261031/validation/reader-count.json"
+    },
+    {
+      "name": "reader-final-cohort",
+      "command": "ssh hbox 'python3 -B /tank/lanes/o7-coherent-native-20261031/reader_two_cells.py'",
+      "exit": 1,
+      "elapsed_seconds": 59.653,
+      "finished_utc": "2026-10-31T21:27:51.742048+00:00",
+      "log": "/Users/ember/dev/o7vn/var/coherent-native-20261031/validation/reader-final-cohort.log",
+      "log_sha256": "d3fe7c98592c235fef65c02b93d58fc798237ad0ceff9d4cafce54e6be7deaee",
+      "record": "var/coherent-native-20261031/validation/reader-final-cohort.json"
+    },
+    {
+      "name": "reader-legacy",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-coherent-native-20261031/source/native/Cargo.toml -p oracle-runtime-core --test reader_contract --test composition_contract --test segments_contract -- --test-threads=1 --nocapture'",
+      "exit": 0,
+      "elapsed_seconds": 5.772,
+      "finished_utc": "2026-10-31T20:58:07.693548+00:00",
+      "log": "/Users/ember/dev/o7vn/var/coherent-native-20261031/validation/reader-legacy.log",
+      "log_sha256": "c5014e35fae4d2cf9f5111b61c80c8fd1fe3d00ca5c6c44c3f63c09bb30fb6e1",
+      "record": "var/coherent-native-20261031/validation/reader-legacy.json"
+    },
+    {
+      "name": "reader-literal-grammar",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-coherent-native-20261031/source/native/Cargo.toml -p oracle-runtime-core --lib grammar::literal_binding_tests -- --test-threads=1 --nocapture'",
+      "exit": 0,
+      "elapsed_seconds": 2.593,
+      "finished_utc": "2026-10-31T20:57:47.035319+00:00",
+      "log": "/Users/ember/dev/o7vn/var/coherent-native-20261031/validation/reader-literal-grammar.log",
+      "log_sha256": "ae0fb8e406fd5e9a71d05b59d2453aff1ab3e99b54832cc14a74dc0f6f79f6bd",
+      "record": "var/coherent-native-20261031/validation/reader-literal-grammar.json"
+    },
+    {
+      "name": "reader-literals-fixed",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-coherent-native-20261031/source/native/Cargo.toml -p oracle-runtime-core --test reader_literal_domains -- --test-threads=1 --nocapture'",
+      "exit": 0,
+      "elapsed_seconds": 4.484,
+      "finished_utc": "2026-10-31T21:09:14.711217+00:00",
+      "log": "/Users/ember/dev/o7vn/var/coherent-native-20261031/validation/reader-literals-fixed.log",
+      "log_sha256": "7071d3e7b5042776941b674be055bb8f1edd058fbf4023e8eefbde3ac3f64223",
+      "record": "var/coherent-native-20261031/validation/reader-literals-fixed.json"
+    },
+    {
+      "name": "reader-literals",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-coherent-native-20261031/source/native/Cargo.toml -p oracle-runtime-core --test reader_literal_domains -- --test-threads=1 --nocapture'",
+      "exit": 101,
+      "elapsed_seconds": 3.367,
+      "finished_utc": "2026-10-31T20:57:44.384238+00:00",
+      "log": "/Users/ember/dev/o7vn/var/coherent-native-20261031/validation/reader-literals.log",
+      "log_sha256": "765e72ab915eb55cfbee169a6c370d7f00b9035df1652d0cc8d5644a33c29b75",
+      "record": "var/coherent-native-20261031/validation/reader-literals.json"
+    },
+    {
+      "name": "reader-packed",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-coherent-native-20261031/source/native/Cargo.toml -p oracle-runtime-core --lib packed_program::tests -- --test-threads=1 --nocapture'",
+      "exit": 0,
+      "elapsed_seconds": 2.793,
+      "finished_utc": "2026-10-31T20:58:01.858945+00:00",
+      "log": "/Users/ember/dev/o7vn/var/coherent-native-20261031/validation/reader-packed.log",
+      "log_sha256": "2f800ce9403cf1373ef0940a37f4ca60684e98594ba76d30aa10f665fc93e280",
+      "record": "var/coherent-native-20261031/validation/reader-packed.json"
+    },
+    {
+      "name": "reader-recipes",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-coherent-native-20261031/source/native/Cargo.toml -p oracle-runtime-core --lib segments::packed_recipe_tests -- --test-threads=1 --nocapture'",
+      "exit": 0,
+      "elapsed_seconds": 2.455,
+      "finished_utc": "2026-10-31T20:57:56.466812+00:00",
+      "log": "/Users/ember/dev/o7vn/var/coherent-native-20261031/validation/reader-recipes.log",
+      "log_sha256": "2c12f98a7f519b39c500687746b16e6989b35b3d7842eb8ae72ac2f4f0e2ab1c",
+      "record": "var/coherent-native-20261031/validation/reader-recipes.json"
+    },
+    {
+      "name": "reader-stages",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-coherent-native-20261031/source/native/Cargo.toml -p oracle-runtime-core --lib packed_view_tests -- --test-threads=1 --nocapture'",
+      "exit": 0,
+      "elapsed_seconds": 2.466,
+      "finished_utc": "2026-10-31T20:57:59.011136+00:00",
+      "log": "/Users/ember/dev/o7vn/var/coherent-native-20261031/validation/reader-stages.log",
+      "log_sha256": "90dd0f19e84ad429563057986c6f13070d1dad879cadc369bcefee926683c261",
+      "record": "var/coherent-native-20261031/validation/reader-stages.json"
+    },
+    {
+      "name": "release-build",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo build --locked --offline --release --manifest-path /tank/lanes/o7-coherent-native-20261031/source/native/Cargo.toml -p oracle-host -p oracle-runtime-python --all-features'",
+      "exit": 0,
+      "elapsed_seconds": 208.651,
+      "finished_utc": "2026-10-31T21:20:30.296783+00:00",
+      "log": "/Users/ember/dev/o7vn/var/coherent-native-20261031/validation/release-build.log",
+      "log_sha256": "f966b006f6edf0737686fba2e9e32b0b69d24a16f7fec1c6b121bab1441ea979",
+      "record": "var/coherent-native-20261031/validation/release-build.json"
+    },
+    {
+      "name": "release-final-build",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo build --locked --offline --release --manifest-path /tank/lanes/o7-coherent-native-20261031/source/native/Cargo.toml -p oracle-host --all-features'",
+      "exit": 0,
+      "elapsed_seconds": 201.523,
+      "finished_utc": "2026-10-31T21:31:34.807698+00:00",
+      "log": "/Users/ember/dev/o7vn/var/coherent-native-20261031/validation/release-final-build.log",
+      "log_sha256": "f9a68d548838245807e8e2e4cd03a4e98cec2da63b1efd03096f30b8311099ea",
+      "record": "var/coherent-native-20261031/validation/release-final-build.json"
+    },
+    {
+      "name": "relocated-journey",
+      "command": "ssh hbox 'python3 -B /tank/lanes/o7-coherent-native-20261031/qualify_journey.py'",
+      "exit": 1,
+      "elapsed_seconds": 98.714,
+      "finished_utc": "2026-10-31T21:33:36.141011+00:00",
+      "log": "/Users/ember/dev/o7vn/var/coherent-native-20261031/validation/relocated-journey.log",
+      "log_sha256": "33ed63e20bacd0363ae27ac948072ac2247901ee3da52b6a27ae0b4e3e616504",
+      "record": "var/coherent-native-20261031/validation/relocated-journey.json"
+    },
+    {
+      "name": "retained-value-checks",
+      "command": "ssh hbox 'python3 -B /tank/lanes/o7-coherent-native-20261031/validate_observations.py'",
+      "exit": 1,
+      "elapsed_seconds": 2.468,
+      "finished_utc": "2026-10-31T21:43:23.747677+00:00",
+      "log": "/Users/ember/dev/o7vn/var/coherent-native-20261031/validation/retained-value-checks.log",
+      "log_sha256": "678dc16b52cfa5b4444719d2ddb1ae3e60c0c84bab8243c8f42c32b571ff0b0f",
+      "record": "var/coherent-native-20261031/validation/retained-value-checks.json"
+    },
+    {
+      "name": "retained-values-final",
+      "command": "ssh hbox 'python3 -B /tank/lanes/o7-coherent-native-20261031/validate_observations.py'",
+      "exit": 0,
+      "elapsed_seconds": 2.427,
+      "finished_utc": "2026-10-31T21:43:53.933344+00:00",
+      "log": "/Users/ember/dev/o7vn/var/coherent-native-20261031/validation/retained-values-final.log",
+      "log_sha256": "544e1ec6932fdfc9e7ee730d7789cfd68568efb6b3b321b5db4adb6a350a53ad",
+      "record": "var/coherent-native-20261031/validation/retained-values-final.json"
+    },
+    {
+      "name": "u8-environment",
+      "command": "ssh hbox 'python3 -m venv /tank/lanes/o7-coherent-native-20261031/u8/venv && /tank/lanes/o7-coherent-native-20261031/u8/venv/bin/python -m pip install --only-binary=:all: -r /tank/lanes/o7-coherent-native-20261031/u8/view/requirements.txt zstandard==0.25.0 && /tank/lanes/o7-coherent-native-20261031/u8/venv/bin/python -m pip freeze > /tank/lanes/o7-coherent-native-20261031/u8/environment-freeze.txt'",
+      "exit": 0,
+      "elapsed_seconds": 167.369,
+      "finished_utc": "2026-10-31T21:05:54.156295+00:00",
+      "log": "/Users/ember/dev/o7vn/var/coherent-native-20261031/validation/u8-environment.log",
+      "log_sha256": "c4465c54ec340b536db76f748e19e9f5c9e598333515d45f957c566c1a167766",
+      "record": "var/coherent-native-20261031/validation/u8-environment.json"
+    },
+    {
+      "name": "u8-stores",
+      "command": "ssh hbox 'python3 -B /tank/lanes/o7-coherent-native-20261031/u8/assemble.py'",
+      "exit": 0,
+      "elapsed_seconds": 400.299,
+      "finished_utc": "2026-10-31T21:05:26.131927+00:00",
+      "log": "/Users/ember/dev/o7vn/var/coherent-native-20261031/validation/u8-stores.log",
+      "log_sha256": "e9b1e4b05e0f9cc554f5de9eb3d64f85f591ec8fe08faedcc3a0b239e1062bfd",
+      "record": "var/coherent-native-20261031/validation/u8-stores.json"
+    }
+  ],
+  "reader": {
+    "changed_full_semantics_or_evidence": {
+      "code_only": [],
+      "combined": []
+    },
+    "counts": {
+      "code_only": {
+        "retained100:": {
+          "unanswered": 64,
+          "answered_correct": 36
+        },
+        "targeted16:": {
+          "unanswered": 8,
+          "answered_correct": 2,
+          "declined_expected": 6
+        }
+      },
+      "combined": {
+        "retained100:": {
+          "unanswered": 64,
+          "answered_correct": 36
+        },
+        "targeted16:": {
+          "answered_correct": 10,
+          "declined_expected": 6
+        }
+      }
+    },
+    "scope": "candidate release build on two original source-pinned images; retained100 dataset labels, targeted16 source verified; no shipped specialist panel gain",
+    "bad_cases": []
+  },
+  "engine": {
+    "scope": "Read-only inventory; no Engine imports, startup, build or data-store sweep.",
+    "u8_root": "/Users/ember/dev/o7vn/var/appliance-20261029/candidate-u8",
+    "appliance_receipt": "/Users/ember/dev/o7vn/var/appliance-20261029/candidate-u8/APPLIANCE.json",
+    "appliance_sha256": "97286fb824bb102a24ac9e7458fc8d8426212ad0bff2b585bd00d6e0462d00a5",
+    "source_repository": "https://huggingface.co/psiloceyeben/oracle7-slim",
+    "source_revision": "c473d28914e480425adb29b4f7f42485b8cfb4e3",
+    "profile": "oracle7-slim-10.1",
+    "inventory_files": 14779,
+    "stores": [
+      {
+        "path": "root/fable-content/oracle-m-series-2026-08-15/m13a_wordnet_build_a_v4/wordnet_specialist.sqlite3",
+        "sha256": "5f330958033a397aeb1c7e8c4ce165edd1dd2c5e2a91efdf2dcd936c6b22b9c7",
+        "size": 77045760,
+        "zst_size": 19751628
+      },
+      {
+        "path": "root/fable-content/oracle-m-series-2026-08-15/m13e5_conceptnet_build_a_v1/conceptnet_specialist.sqlite3",
+        "sha256": "5e28406c418ca1c82e5fae81ebafe826018c10094b66989c2ca5e97017913669",
+        "size": 491732992,
+        "zst_size": 98294620
+      },
+      {
+        "path": "root/fable-content/oracle-m-series-2026-08-15/m13e5_dbpedia_build_a_v2/wikipedia_specialist.sqlite3",
+        "sha256": "cdbcfc53f8d12952ad748f47107384e218b5221b32b91c2d4ae59b2bbdbcdbd3",
+        "size": 1154691072,
+        "zst_size": 508181350
+      },
+      {
+        "path": "root/fable-content/oracle-m-series-2026-08-15/m13e5_simplewiki_build_a_v1/wikipedia_specialist.sqlite3",
+        "sha256": "206020fdc40b7d3a76ce89d5b4e590a05e0772a363b254e139153a5b506e6b62",
+        "size": 816103424,
+        "zst_size": 358653251
+      },
+      {
+        "path": "root/fable-content/oracle-m-series-2026-08-15/m13e5_simplewiki_full_build_a_v1/wikipedia_specialist.sqlite3",
+        "sha256": "cdbcfc53f8d12952ad748f47107384e218b5221b32b91c2d4ae59b2bbdbcdbd3",
+        "size": 1154691072,
+        "zst_size": 508181350
+      },
+      {
+        "path": "root/fable-content/oracle-m-series-2026-08-15/m13e5_wiktionary_build_a_v1/wiktionary_specialist.sqlite3",
+        "sha256": "5ad78211433bd419be073ec60678c6df792b204f63b043cdbf28420b7ce63d1a",
+        "size": 234348544,
+        "zst_size": 76271098
+      },
+      {
+        "path": "root/fable-content/oracle-m-series-2026-08-15/m31_wordnet_corpus_v3.sqlite3",
+        "sha256": "73ec6c387676eac85d5b55e8f7c0df89c5ebf0f1f7ad183c7596e2f59dc7862c",
+        "size": 252764160,
+        "zst_size": 61367860
+      },
+      {
+        "path": "root/relstore/names_v1.sqlite3",
+        "sha256": "042f94dbe34089e70ca0ae1d3c8bf13c00610f0e22872dc4ba15360690922f2d",
+        "size": 1660297216,
+        "zst_size": 565581124
+      },
+      {
+        "path": "root/relstore/relations_v1.sqlite3",
+        "sha256": "8ef21f19237b8f977735e56a7b62e29943b37d01b5cb6778c217f9c080fbb6da",
+        "size": 3593560064,
+        "zst_size": 1113221569
+      },
+      {
+        "path": "root/relstore/relations_v2.sqlite3",
+        "sha256": "7df5c620982634e7ed6ff097f7d9082605cc879e9ee938d36d6a14af11cc4095",
+        "size": 5569425408,
+        "zst_size": 1725936675
+      }
+    ],
+    "key_sources": [
+      {
+        "path": "/Users/ember/dev/o7vn/var/appliance-20261029/candidate-u8/oracle7.py",
+        "relative_path": "oracle7.py",
+        "sha256": "9d68865540b23122e0020c0b8ee52471a71a3dfa8e3572b23b961ea4b3bf920e",
+        "inventory": {
+          "executable": false,
+          "sha256": "9d68865540b23122e0020c0b8ee52471a71a3dfa8e3572b23b961ea4b3bf920e",
+          "size": 9424
+        },
+        "matches_inventory": true
+      },
+      {
+        "path": "/Users/ember/dev/o7vn/var/appliance-20261029/candidate-u8/root/wander-train/oracle_release_runtime.py",
+        "relative_path": "root/wander-train/oracle_release_runtime.py",
+        "sha256": "b75db6fbb66be817b7aac01235d4c684a69f771235c445d998f1f5f1ca9ddf99",
+        "inventory": {
+          "executable": false,
+          "sha256": "b75db6fbb66be817b7aac01235d4c684a69f771235c445d998f1f5f1ca9ddf99",
+          "size": 6481
+        },
+        "matches_inventory": true
+      },
+      {
+        "path": "/Users/ember/dev/o7vn/var/appliance-20261029/candidate-u8/root/wander-train/chat_context_v2.py",
+        "relative_path": "root/wander-train/chat_context_v2.py",
+        "sha256": "271b62bf8e9c7228c30b7ac5bb00a5b2d2e0e7b9ba97a7976dd33bdeb404b514",
+        "inventory": {
+          "executable": false,
+          "sha256": "271b62bf8e9c7228c30b7ac5bb00a5b2d2e0e7b9ba97a7976dd33bdeb404b514",
+          "size": 21421
+        },
+        "matches_inventory": true
+      },
+      {
+        "path": "/Users/ember/dev/o7vn/var/appliance-20261029/candidate-u8/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w574.py",
+        "relative_path": "root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w574.py",
+        "sha256": "0ea46a0569a5d0827bbc2359b9602c7aded9a04e2aab92e64cf22d6bfe08d57c",
+        "inventory": {
+          "executable": false,
+          "sha256": "0ea46a0569a5d0827bbc2359b9602c7aded9a04e2aab92e64cf22d6bfe08d57c",
+          "size": 5387
+        },
+        "matches_inventory": true
+      },
+      {
+        "path": "/Users/ember/dev/o7vn/var/appliance-20261029/candidate-u8/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/runtime_conversation_state.py",
+        "relative_path": "root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/runtime_conversation_state.py",
+        "sha256": "bd59010ba45df5bbbfec39a71cb9dcdbc6a1eed9df2337db0eb0e5e1c3751be8",
+        "inventory": {
+          "executable": false,
+          "sha256": "bd59010ba45df5bbbfec39a71cb9dcdbc6a1eed9df2337db0eb0e5e1c3751be8",
+          "size": 4098
+        },
+        "matches_inventory": true
+      },
+      {
+        "path": "/Users/ember/dev/o7vn/var/appliance-20261029/candidate-u8/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/runtime_final_outcome.py",
+        "relative_path": "root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/runtime_final_outcome.py",
+        "sha256": "9851cdcfac26f9ee0901d9c700f0ad6f18b2a52881f415b127ce203d926e8e2b",
+        "inventory": {
+          "executable": false,
+          "sha256": "9851cdcfac26f9ee0901d9c700f0ad6f18b2a52881f415b127ce203d926e8e2b",
+          "size": 5623
+        },
+        "matches_inventory": true
+      }
+    ],
+    "patches": [
+      {
+        "name": "oracle7-slim-10.1-dates-boundary.patch",
+        "sha256": "a4bdf85e14805bb0253858f712b7b943327dcc12b4257348e1207f744c3dc338"
+      },
+      {
+        "name": "oracle7-slim-10.1-operations-v3.patch",
+        "sha256": "9d83ee0122f6897c7e901df6d72137060d09a75c251120a02e3209cbbd097350"
+      },
+      {
+        "name": "oracle7-slim-10.1-transfer-extension.patch",
+        "sha256": "55d63586cf45ab7a1c614e4d1a0e3d0873f2c9471043c9d19a8153571c8738ae"
+      }
+    ],
+    "prior_tip": "oracle_release_runtime_w574",
+    "prior_config": "/Users/ember/dev/o7vn/var/host-validation-20261031/u8-config.json",
+    "prior_receipt": "/Users/ember/dev/o7vn/var/host-validation-20261031/actual-u8-receipt.json",
+    "prior_real_engine_platform": "macOS; prior Linux relocated package validated pure logic only, not U8 Engine.",
+    "warm_hbox": {
+      "target": "/tank/lanes/o7-native-20261028/target",
+      "jobs": 2,
+      "previous_validated_source": "/tank/lanes/o7-native-cycle-20261031/source",
+      "archive_sha256": "5bf5c85a6280b47e63e118e1eeaf1eb313c0a7f7c00df4883dd4e7a794810c14",
+      "manifest_sha256": "1b49da5359223da03f2fa79d38e1d6dcaa2c590088ad13442f47b0e7bdf3b5a1",
+      "host": "/tank/lanes/o7-native-cycle-20261031/artifacts-release/oracle-host",
+      "host_sha256": "161dd07d271d00e83dad503dc6e79c62e542c7a4b9decf6c83c4828d8f0476d0",
+      "extension": "/tank/lanes/o7-native-cycle-20261031/artifacts-release/oracle_native.so",
+      "extension_sha256": "fe8a9e48b8915cc5488984ae4f1aab7f01af4c5fc61f6e4fc7ec20e7b7a3cfb6",
+      "solver": "/tank/lanes/o7-sol-measurement-20261031/clingo",
+      "solver_sha256": "fba811b7b18e9379aa701dd92451880b2ce6537a43c359bd726d5ee5ad7b8753"
+    },
+    "limits": [
+      "Six key source files individually hash checked; full14779-file inventory and large stores were not rehashed.",
+      "Retained previous release artifacts are baseline/working context, not the new batch implementation.",
+      "Materialization remains read-only; no fresh upstream changes or new downloads."
+    ]
+  },
+  "modeling_six_criteria": {
+    "status": "incomplete",
+    "reason": "real U8 dev case3 HTTP504 at unchanged30s;11dev notrun and heldout notstarted; one unchanged diagnostic again504",
+    "baseline": "var/coherent-native-20261031/modeling-core-dev",
+    "diagnostic": "var/coherent-native-20261031/modeling-diagnostic/result",
+    "diagnostic_scope": "actual Engine executor stack; cold standing-family imports and concurrent facts reader initialization; not proof of deadlock or parser defect",
+    "shipped_panels": null
+  },
+  "release": {
+    "archive": "var/coherent-native-20261031/release/oracle-host-coherent-linux.tar.gz",
+    "sha256": "1634fa7eeb76da5eca1c3e4535888f1230cbc566e828e3b65160dd626d6fc5f1",
+    "host_sha256": "0bd5ea0c73348778387908ca2a5157ee79b41e1ea423f1c6589a50f3cf231289",
+    "profile": "release",
+    "target": "x86_64-unknown-linux-gnu",
+    "manifest_sha256": "d470d5d0f4e29aa4f8c6228f38f351a4055a88bf318eab847f7200afdad05df5",
+    "qualification": {
+      "status": "passed",
+      "path": "var/coherent-native-20261031/release/qualification.json",
+      "sha256": "6c38a1dd3b5df8550c01445bac3f5951c56f684f9c656af61e9e72cc499be49c",
+      "profiles": [
+        "bio",
+        "engine",
+        "incremental",
+        "logic",
+        "reasoning",
+        "runtime",
+        "science",
+        "statistics"
+      ]
+    },
+    "launch_on_hbox": "python3 -I -B -S \"/tank/lanes/o7-coherent-native-20261031/relocated product/bin/oracle-host\" --state-root /tank/lanes/o7-coherent-native-20261031/operator-new-state --port 0",
+    "external_resources": "exact admitted image, solver, Python/U8 materialization remain external; bundle contains selected host and helper closure",
+    "actual_journey": {
+      "status": "passed",
+      "observations": "var/coherent-native-20261031/release/observations",
+      "typed_native_to_real_u8": {
+        "fixture": "manufactured Hamlet author image, not fullKQA",
+        "native_answer": "William Shakespeare",
+        "retained_native_id": "Q692",
+        "retained_oracle_answer_id": "wd:Q692",
+        "actual_u8_birthplace_id": "wd:Q189288"
+      },
+      "quantities": {
+        "physics": {
+          "value": 20,
+          "unit": "J"
+        },
+        "cost": {
+          "value": 1.111111111111111e-06,
+          "unit": "$"
+        },
+        "after_restart_scale": {
+          "value": 2.222222222222222e-06,
+          "unit": "$"
+        },
+        "tolerance_absolute": 1e-18
+      },
+      "recovery": [
+        "actual lostmutationACK exactpending request recovered aftersame-store hostrestart",
+        "quantity owner captured/restored afterrestart without questionreplay",
+        "nativefirst inspect\u2192supportedquery",
+        "oldinvoke exactHTTPbyte retry afterrevisionadvance",
+        "actualWhitman twoP19values withheld, nextsupportedturn answers"
+      ],
+      "reader_options": {
+        "whole": {
+          "default": "declined",
+          "supplied_snapshot": "exactanswer0"
+        },
+        "execute": {
+          "default": "declined",
+          "supplied_snapshot": "exactanswer0"
+        },
+        "date": "exactanswer1"
+      },
+      "cold_stateful_invoke_seconds": 13.996155738830566,
+      "cold_limit": "ordinary admitted invoke30s/core60s; no deadlineinflation",
+      "numeric_and_id_check": "var/coherent-native-20261031/release/observations/release-journey-resume/independent-values.json",
+      "scope": "supported source-audited readonly adapter routes; no arbitrary legacy chat or generic nativeinvoke result projection claim"
+    }
+  },
+  "claims": {
+    "theorem": false,
+    "full_kqa_coverage": false,
+    "fleet": false,
+    "shipped_specialist_panel_gain": false,
+    "benchmark": false
+  },
+  "preserved_failures": [
+    "initial Rust ReaderOptions/CandidateOptions shadow and RawStep accessor compile errors",
+    "private conversation module imports compile error",
+    "packed recipe chart.check test signature compile error",
+    "reader literal fixture missing plural alias (expectations unchanged)",
+    "reader comparison-only harness wrong retained path (calls preserved, no rerun)",
+    "modeling realU8 coldbaseline query30s timeout and unchanged diagnostic timeout",
+    "direct test_sol_surface.py initially executed no tests; corrected unittest invocation ran1actualtest9calls",
+    "first relocated journey external harness used forbidden dot in conversation_id; corrected only harness, retained passing8provider qualifier and resumed remaining controls",
+    "reader.execute harness initially omitted required expected_version, refused400 beforedispatch; corrected request only",
+    "native publicreply omitted private ID asdesigned; incorrect harness fieldassert stopped after successful commit; read-only native+Oracle context verified actualwd:Q692 before resuming fromcommit",
+    "posthoc value checker first used stateless answerpath for stateful language wrapper; corrected retainedJSON parsing only, no hostcall rerun"
+  ],
+  "consumers": {
+    "modeling": {
+      "scope": "supplied modeling analytic panel; not shipped panels or six-criterion exam",
+      "counts": {
+        "dev": {
+          "items": 14,
+          "correct": 14,
+          "wrong": 0,
+          "withheld_valid": 0,
+          "false_yes": 0,
+          "execution_failures": 0
+        },
+        "heldout": {
+          "items": 14,
+          "correct": 14,
+          "wrong": 0,
+          "withheld_valid": 0,
+          "false_yes": 0,
+          "execution_failures": 0
+        }
+      },
+      "failures": []
+    },
+    "thermal_revision": {
+      "right": 8,
+      "wrong": 0,
+      "execution_errors": 0,
+      "scope": "seven supplied revision cases plus injected numerical-timeout/retry preservation; no shipped specialist-panel score",
+      "host_url": "http://127.0.0.1:40701",
+      "rows": [
+        {
+          "revision": 1,
+          "correct": true,
+          "actual": {
+            "evidence_receipt": {
+              "scope": {
+                "tenant": "00f3d88f513bd95c3e1afa2125643b07d1b4ab0edf0297a2f7dcb10c1339d7f7",
+                "workspace": "57db45e6f4f0af6445014812450e56745d3523029645cc43dcd245f49b21e148"
+              },
+              "revision": 1,
+              "snapshot_identity": "db9f87daba620e154a6a1d652cdd3100e04f71909b35344bf0bf3dcde6529da1",
+              "program_identity": "1790034fe65170db52717b45e4feee122a720e0eb5544346c0b4bb8533a72a30",
+              "request_identity": "280de4a85986c19a601bcbeebbe0d165384da18290a342e42b773a80fc991ec4",
+              "compiler": "oracle.logic.revisions/1"
+            },
+            "measurement_package_identity": "67524f46796f0f7eb2d5295c622716969a65d0873d825f5f25829443ef4abe7f",
+            "base_supplied_model_identity": "8d3fb9087b7602ce435e8ad7f33759a1f8be01a6410843ad0022a53e8d45e23a",
+            "selected_measurements": [
+              {
+                "target": {
+                  "kind": "load",
+                  "node_id": "chip"
+                },
+                "value": 8,
+                "unit": "W",
+                "supporting_measurements": [
+                  "load-a",
+                  "load-b"
+                ]
+              },
+              {
+                "target": {
+                  "kind": "conductance",
+                  "link_index": 0
+                },
+                "value": 2,
+                "unit": "W/K",
+                "supporting_measurements": [
+                  "g-original"
+                ]
+              }
+            ],
+            "supplied_model_identity": "56d975361a0d6ff5535f87f63ec91c0f82705e9927c59de317f1f704cc0f7a7d",
+            "status": "answered",
+            "decision": "accept",
+            "temperature_k": 304.0,
+            "maximum_temperature_k": 306,
+            "numerical": {
+              "status": "answered",
+              "network_identity": "sha256:bd4fd8b3af045699c1eb90d24aea87ffcc05b293c3fb224e8a62118d25d7f5b1",
+              "scenarios": [
+                {
+                  "id": "revision",
+                  "temperature_k": {
+                    "chip": 304.0,
+                    "sink": 300.0
+                  },
+                  "boundary_exchange_w": {
+                    "sink": -8.0
+                  }
+                }
+              ],
+              "sensitivities": [],
+              "factorization_count": 1,
+              "scope": "supplied steady passive linear network; local derivatives; no uncertainty bound",
+              "outcome_and_balance": {
+                "schema": "oracle-science-experimental-v1",
+                "operation": "science.thermal_network",
+                "assurance": "experimental floating-point physical-model adapter; not formally verified",
+                "model": "steady passive linear conductances: q_ij=G_ij*(T_i-T_j); free-node outgoing heat equals applied heat; fixed nodes are ideal reservoirs; no heat storage, nonlinear radiation or advection",
+                "description": "Supplied board and ideal cooling boundary",
+                "assumptions": [
+                  "Steady passive constant-conductance conduction; no radiation, airflow or storage"
+                ],
+                "outcome": "solved_within_tolerance",
+                "reference_temperature_k": 300.0,
+                "power_tolerance_w": 1e-08,
+                "tolerances": {
+                  "rank_relative": 1e-12,
+                  "consistency_relative": 1e-10
+                },
+                "expected_rank_from_topology": 1,
+                "linear_unknown_node_ids": [
+                  "chip"
+                ],
+                "components": [
+                  {
+                    "node_ids": [
+                      "chip",
+                      "sink"
+                    ],
+                    "fixed_node_ids": [
+                      "sink"
+                    ],
+                    "grounded": true,
+                    "net_applied_heat_w": 8.0,
+                    "floating_source_balance_within_tolerance": null
+                  }
+                ],
+                "nodes": [
+                  {
+                    "id": "chip",
+                    "fixed_temperature_k": null,
+                    "temperature_k": 304.0,
+                    "candidate_temperature_k": 304.0,
+                    "candidate_offset_k": 4.0,
+                    "applied_heat_w": 8.0,
+                    "outgoing_link_heat_w": 8.0,
+                    "boundary_exchange_w": null,
+                    "power_balance_residual_w": 0.0,
+                    "permitted_power_balance_error_w": 1.16e-08,
+                    "power_balance_within_tolerance": true
+                  },
+                  {
+                    "id": "sink",
+                    "fixed_temperature_k": 300.0,
+                    "temperature_k": 300.0,
+                    "candidate_temperature_k": 300.0,
+                    "candidate_offset_k": 0.0,
+                    "applied_heat_w": 0.0,
+                    "outgoing_link_heat_w": -8.0,
+                    "boundary_exchange_w": -8.0,
+                    "power_balance_residual_w": 0.0,
+                    "permitted_power_balance_error_w": 1.08e-08,
+                    "power_balance_within_tolerance": true
+                  }
+                ],
+                "links": [
+                  {
+                    "from": "chip",
+                    "to": "sink",
+                    "conductance_w_per_k": 2.0,
+                    "candidate_heat_from_to_w": 8.0
+                  }
+                ],
+                "conservation": {
+                  "total_applied_heat_w": 8.0,
+                  "total_boundary_exchange_w": -8.0,
+                  "net_external_heat_w": 0.0,
+                  "internal_link_cancellation_w": 0.0,
+                  "total_node_power_residual_w": 0.0
+                },
+                "linear_diagnostics": null,
+                "warnings": [
+                  "Supplied steady linear conductances and heat sources are model assumptions, not inferred facts; power residuals do not validate them.",
+                  "Fixed temperatures denote ideal reservoirs. Reported boundary heat is computed to close their balance, not independently measured."
+                ]
+              }
+            },
+            "preparation_policy": "fresh complete network preparation on every call; no retained cross-request factors",
+            "scope": "decision for this supplied model and evidence snapshot; not necessarily latest at return; not a physical forecast"
+          }
+        },
+        {
+          "revision": 2,
+          "correct": true,
+          "actual": {
+            "evidence_receipt": {
+              "scope": {
+                "tenant": "00f3d88f513bd95c3e1afa2125643b07d1b4ab0edf0297a2f7dcb10c1339d7f7",
+                "workspace": "57db45e6f4f0af6445014812450e56745d3523029645cc43dcd245f49b21e148"
+              },
+              "revision": 2,
+              "snapshot_identity": "3f68b00816d2fb67f8518ec420aa1df0f3152f56b67c0fd6e02e25993286a881",
+              "program_identity": "2e4e758f54bc0338db1989e516deee8737e91ccbf95ac2b975092c12f5c59997",
+              "request_identity": "dbde1d67ccac4f79601c45e891c05e9ac27d3affffbbde984b0d99c86081749c",
+              "compiler": "oracle.logic.revisions/1"
+            },
+            "measurement_package_identity": "67524f46796f0f7eb2d5295c622716969a65d0873d825f5f25829443ef4abe7f",
+            "base_supplied_model_identity": "8d3fb9087b7602ce435e8ad7f33759a1f8be01a6410843ad0022a53e8d45e23a",
+            "selected_measurements": [
+              {
+                "target": {
+                  "kind": "load",
+                  "node_id": "chip"
+                },
+                "value": 8,
+                "unit": "W",
+                "supporting_measurements": [
+                  "load-b"
+                ]
+              },
+              {
+                "target": {
+                  "kind": "conductance",
+                  "link_index": 0
+                },
+                "value": 2,
+                "unit": "W/K",
+                "supporting_measurements": [
+                  "g-original"
+                ]
+              }
+            ],
+            "supplied_model_identity": "56d975361a0d6ff5535f87f63ec91c0f82705e9927c59de317f1f704cc0f7a7d",
+            "status": "answered",
+            "decision": "accept",
+            "temperature_k": 304.0,
+            "maximum_temperature_k": 306,
+            "numerical": {
+              "status": "answered",
+              "network_identity": "sha256:bd4fd8b3af045699c1eb90d24aea87ffcc05b293c3fb224e8a62118d25d7f5b1",
+              "scenarios": [
+                {
+                  "id": "revision",
+                  "temperature_k": {
+                    "chip": 304.0,
+                    "sink": 300.0
+                  },
+                  "boundary_exchange_w": {
+                    "sink": -8.0
+                  }
+                }
+              ],
+              "sensitivities": [],
+              "factorization_count": 1,
+              "scope": "supplied steady passive linear network; local derivatives; no uncertainty bound",
+              "outcome_and_balance": {
+                "schema": "oracle-science-experimental-v1",
+                "operation": "science.thermal_network",
+                "assurance": "experimental floating-point physical-model adapter; not formally verified",
+                "model": "steady passive linear conductances: q_ij=G_ij*(T_i-T_j); free-node outgoing heat equals applied heat; fixed nodes are ideal reservoirs; no heat storage, nonlinear radiation or advection",
+                "description": "Supplied board and ideal cooling boundary",
+                "assumptions": [
+                  "Steady passive constant-conductance conduction; no radiation, airflow or storage"
+                ],
+                "outcome": "solved_within_tolerance",
+                "reference_temperature_k": 300.0,
+                "power_tolerance_w": 1e-08,
+                "tolerances": {
+                  "rank_relative": 1e-12,
+                  "consistency_relative": 1e-10
+                },
+                "expected_rank_from_topology": 1,
+                "linear_unknown_node_ids": [
+                  "chip"
+                ],
+                "components": [
+                  {
+                    "node_ids": [
+                      "chip",
+                      "sink"
+                    ],
+                    "fixed_node_ids": [
+                      "sink"
+                    ],
+                    "grounded": true,
+                    "net_applied_heat_w": 8.0,
+                    "floating_source_balance_within_tolerance": null
+                  }
+                ],
+                "nodes": [
+                  {
+                    "id": "chip",
+                    "fixed_temperature_k": null,
+                    "temperature_k": 304.0,
+                    "candidate_temperature_k": 304.0,
+                    "candidate_offset_k": 4.0,
+                    "applied_heat_w": 8.0,
+                    "outgoing_link_heat_w": 8.0,
+                    "boundary_exchange_w": null,
+                    "power_balance_residual_w": 0.0,
+                    "permitted_power_balance_error_w": 1.16e-08,
+                    "power_balance_within_tolerance": true
+                  },
+                  {
+                    "id": "sink",
+                    "fixed_temperature_k": 300.0,
+                    "temperature_k": 300.0,
+                    "candidate_temperature_k": 300.0,
+                    "candidate_offset_k": 0.0,
+                    "applied_heat_w": 0.0,
+                    "outgoing_link_heat_w": -8.0,
+                    "boundary_exchange_w": -8.0,
+                    "power_balance_residual_w": 0.0,
+                    "permitted_power_balance_error_w": 1.08e-08,
+                    "power_balance_within_tolerance": true
+                  }
+                ],
+                "links": [
+                  {
+                    "from": "chip",
+                    "to": "sink",
+                    "conductance_w_per_k": 2.0,
+                    "candidate_heat_from_to_w": 8.0
+                  }
+                ],
+                "conservation": {
+                  "total_applied_heat_w": 8.0,
+                  "total_boundary_exchange_w": -8.0,
+                  "net_external_heat_w": 0.0,
+                  "internal_link_cancellation_w": 0.0,
+                  "total_node_power_residual_w": 0.0
+                },
+                "linear_diagnostics": null,
+                "warnings": [
+                  "Supplied steady linear conductances and heat sources are model assumptions, not inferred facts; power residuals do not validate them.",
+                  "Fixed temperatures denote ideal reservoirs. Reported boundary heat is computed to close their balance, not independently measured."
+                ]
+              }
+            },
+            "preparation_policy": "fresh complete network preparation on every call; no retained cross-request factors",
+            "scope": "decision for this supplied model and evidence snapshot; not necessarily latest at return; not a physical forecast"
+          }
+        },
+        {
+          "revision": 3,
+          "correct": true,
+          "actual": {
+            "evidence_receipt": {
+              "scope": {
+                "tenant": "00f3d88f513bd95c3e1afa2125643b07d1b4ab0edf0297a2f7dcb10c1339d7f7",
+                "workspace": "57db45e6f4f0af6445014812450e56745d3523029645cc43dcd245f49b21e148"
+              },
+              "revision": 3,
+              "snapshot_identity": "fef91af00fe000ebc17a5ed135d230e380be56facf43bd57dc6ab5aac9d09a46",
+              "program_identity": "dc482139cb94a0f87e041345b8248cbe6534d4d8b6e92a0ae108baef831f0d3d",
+              "request_identity": "9d2468a873d8b325be612636d436ce81dbd72b9fed135d358f8b7b62b03dc86e",
+              "compiler": "oracle.logic.revisions/1"
+            },
+            "measurement_package_identity": "67524f46796f0f7eb2d5295c622716969a65d0873d825f5f25829443ef4abe7f",
+            "base_supplied_model_identity": "8d3fb9087b7602ce435e8ad7f33759a1f8be01a6410843ad0022a53e8d45e23a",
+            "status": "withheld",
+            "reason": "missing or conflicting measurement support",
+            "target": {
+              "kind": "load",
+              "node_id": "chip"
+            }
+          }
+        },
+        {
+          "revision": 4,
+          "correct": true,
+          "actual": {
+            "evidence_receipt": {
+              "scope": {
+                "tenant": "00f3d88f513bd95c3e1afa2125643b07d1b4ab0edf0297a2f7dcb10c1339d7f7",
+                "workspace": "57db45e6f4f0af6445014812450e56745d3523029645cc43dcd245f49b21e148"
+              },
+              "revision": 4,
+              "snapshot_identity": "f89d37ba42d75a38c2be2a71d216f8a9533858c5121fbf9075a105a053a406e8",
+              "program_identity": "ffeb6e816706b8ecbf9a24f13c93ca601a2820db63cb8fb3dac120ab9d77dffa",
+              "request_identity": "589b2418d3e01334bc81e89b77d8918aef9e60d733bbd640349488a44b74ca61",
+              "compiler": "oracle.logic.revisions/1"
+            },
+            "measurement_package_identity": "67524f46796f0f7eb2d5295c622716969a65d0873d825f5f25829443ef4abe7f",
+            "base_supplied_model_identity": "8d3fb9087b7602ce435e8ad7f33759a1f8be01a6410843ad0022a53e8d45e23a",
+            "selected_measurements": [
+              {
+                "target": {
+                  "kind": "load",
+                  "node_id": "chip"
+                },
+                "value": 16,
+                "unit": "W",
+                "supporting_measurements": [
+                  "load-corrected"
+                ]
+              },
+              {
+                "target": {
+                  "kind": "conductance",
+                  "link_index": 0
+                },
+                "value": 2,
+                "unit": "W/K",
+                "supporting_measurements": [
+                  "g-original"
+                ]
+              }
+            ],
+            "supplied_model_identity": "a4f4ce2ef14679b607446fb3030cbbcf938e98771e276dc550ddc1399cec9944",
+            "status": "answered",
+            "decision": "reject",
+            "temperature_k": 308.0,
+            "maximum_temperature_k": 306,
+            "numerical": {
+              "status": "answered",
+              "network_identity": "sha256:5602d798fc88fc27b77826aa6d56f26026e78fd628b27a748683b2d4cea6cfa9",
+              "scenarios": [
+                {
+                  "id": "revision",
+                  "temperature_k": {
+                    "chip": 308.0,
+                    "sink": 300.0
+                  },
+                  "boundary_exchange_w": {
+                    "sink": -16.0
+                  }
+                }
+              ],
+              "sensitivities": [],
+              "factorization_count": 1,
+              "scope": "supplied steady passive linear network; local derivatives; no uncertainty bound",
+              "outcome_and_balance": {
+                "schema": "oracle-science-experimental-v1",
+                "operation": "science.thermal_network",
+                "assurance": "experimental floating-point physical-model adapter; not formally verified",
+                "model": "steady passive linear conductances: q_ij=G_ij*(T_i-T_j); free-node outgoing heat equals applied heat; fixed nodes are ideal reservoirs; no heat storage, nonlinear radiation or advection",
+                "description": "Supplied board and ideal cooling boundary",
+                "assumptions": [
+                  "Steady passive constant-conductance conduction; no radiation, airflow or storage"
+                ],
+                "outcome": "solved_within_tolerance",
+                "reference_temperature_k": 300.0,
+                "power_tolerance_w": 1e-08,
+                "tolerances": {
+                  "rank_relative": 1e-12,
+                  "consistency_relative": 1e-10
+                },
+                "expected_rank_from_topology": 1,
+                "linear_unknown_node_ids": [
+                  "chip"
+                ],
+                "components": [
+                  {
+                    "node_ids": [
+                      "chip",
+                      "sink"
+                    ],
+                    "fixed_node_ids": [
+                      "sink"
+                    ],
+                    "grounded": true,
+                    "net_applied_heat_w": 16.0,
+                    "floating_source_balance_within_tolerance": null
+                  }
+                ],
+                "nodes": [
+                  {
+                    "id": "chip",
+                    "fixed_temperature_k": null,
+                    "temperature_k": 308.0,
+                    "candidate_temperature_k": 308.0,
+                    "candidate_offset_k": 8.0,
+                    "applied_heat_w": 16.0,
+                    "outgoing_link_heat_w": 16.0,
+                    "boundary_exchange_w": null,
+                    "power_balance_residual_w": 0.0,
+                    "permitted_power_balance_error_w": 1.32e-08,
+                    "power_balance_within_tolerance": true
+                  },
+                  {
+                    "id": "sink",
+                    "fixed_temperature_k": 300.0,
+                    "temperature_k": 300.0,
+                    "candidate_temperature_k": 300.0,
+                    "candidate_offset_k": 0.0,
+                    "applied_heat_w": 0.0,
+                    "outgoing_link_heat_w": -16.0,
+                    "boundary_exchange_w": -16.0,
+                    "power_balance_residual_w": 0.0,
+                    "permitted_power_balance_error_w": 1.16e-08,
+                    "power_balance_within_tolerance": true
+                  }
+                ],
+                "links": [
+                  {
+                    "from": "chip",
+                    "to": "sink",
+                    "conductance_w_per_k": 2.0,
+                    "candidate_heat_from_to_w": 16.0
+                  }
+                ],
+                "conservation": {
+                  "total_applied_heat_w": 16.0,
+                  "total_boundary_exchange_w": -16.0,
+                  "net_external_heat_w": 0.0,
+                  "internal_link_cancellation_w": 0.0,
+                  "total_node_power_residual_w": 0.0
+                },
+                "linear_diagnostics": null,
+                "warnings": [
+                  "Supplied steady linear conductances and heat sources are model assumptions, not inferred facts; power residuals do not validate them.",
+                  "Fixed temperatures denote ideal reservoirs. Reported boundary heat is computed to close their balance, not independently measured."
+                ]
+              }
+            },
+            "preparation_policy": "fresh complete network preparation on every call; no retained cross-request factors",
+            "scope": "decision for this supplied model and evidence snapshot; not necessarily latest at return; not a physical forecast"
+          }
+        },
+        {
+          "revision": 5,
+          "correct": true,
+          "actual": {
+            "evidence_receipt": {
+              "scope": {
+                "tenant": "00f3d88f513bd95c3e1afa2125643b07d1b4ab0edf0297a2f7dcb10c1339d7f7",
+                "workspace": "57db45e6f4f0af6445014812450e56745d3523029645cc43dcd245f49b21e148"
+              },
+              "revision": 5,
+              "snapshot_identity": "4ea82afff0f75f6e297c28edf5a9ea16d4fa30da31c0a82830394d94ae342324",
+              "program_identity": "da4fe5a3dfce69eb8fb1ce75ef01ef9b9e1c031940f826555dd52768a22f7c3e",
+              "request_identity": "8746b335545d7d3223422627f2223126b8f8d1a51ad1e7ece096ffcc4501b1b4",
+              "compiler": "oracle.logic.revisions/1"
+            },
+            "measurement_package_identity": "67524f46796f0f7eb2d5295c622716969a65d0873d825f5f25829443ef4abe7f",
+            "base_supplied_model_identity": "8d3fb9087b7602ce435e8ad7f33759a1f8be01a6410843ad0022a53e8d45e23a",
+            "selected_measurements": [
+              {
+                "target": {
+                  "kind": "load",
+                  "node_id": "chip"
+                },
+                "value": 16,
+                "unit": "W",
+                "supporting_measurements": [
+                  "load-corrected"
+                ]
+              },
+              {
+                "target": {
+                  "kind": "conductance",
+                  "link_index": 0
+                },
+                "value": 4,
+                "unit": "W/K",
+                "supporting_measurements": [
+                  "g-corrected"
+                ]
+              }
+            ],
+            "supplied_model_identity": "386337b1441a1aafcaab67f04a929dc0fcce6e566a480335fef9feba55f0a3b5",
+            "status": "answered",
+            "decision": "accept",
+            "temperature_k": 304.0,
+            "maximum_temperature_k": 306,
+            "numerical": {
+              "status": "answered",
+              "network_identity": "sha256:47a65f8089ad248bb40151e1ede3fb878e9f6dc52c0d5333f18f63b8792fc875",
+              "scenarios": [
+                {
+                  "id": "revision",
+                  "temperature_k": {
+                    "chip": 304.0,
+                    "sink": 300.0
+                  },
+                  "boundary_exchange_w": {
+                    "sink": -16.0
+                  }
+                }
+              ],
+              "sensitivities": [],
+              "factorization_count": 1,
+              "scope": "supplied steady passive linear network; local derivatives; no uncertainty bound",
+              "outcome_and_balance": {
+                "schema": "oracle-science-experimental-v1",
+                "operation": "science.thermal_network",
+                "assurance": "experimental floating-point physical-model adapter; not formally verified",
+                "model": "steady passive linear conductances: q_ij=G_ij*(T_i-T_j); free-node outgoing heat equals applied heat; fixed nodes are ideal reservoirs; no heat storage, nonlinear radiation or advection",
+                "description": "Supplied board and ideal cooling boundary",
+                "assumptions": [
+                  "Steady passive constant-conductance conduction; no radiation, airflow or storage"
+                ],
+                "outcome": "solved_within_tolerance",
+                "reference_temperature_k": 300.0,
+                "power_tolerance_w": 1e-08,
+                "tolerances": {
+                  "rank_relative": 1e-12,
+                  "consistency_relative": 1e-10
+                },
+                "expected_rank_from_topology": 1,
+                "linear_unknown_node_ids": [
+                  "chip"
+                ],
+                "components": [
+                  {
+                    "node_ids": [
+                      "chip",
+                      "sink"
+                    ],
+                    "fixed_node_ids": [
+                      "sink"
+                    ],
+                    "grounded": true,
+                    "net_applied_heat_w": 16.0,
+                    "floating_source_balance_within_tolerance": null
+                  }
+                ],
+                "nodes": [
+                  {
+                    "id": "chip",
+                    "fixed_temperature_k": null,
+                    "temperature_k": 304.0,
+                    "candidate_temperature_k": 304.0,
+                    "candidate_offset_k": 4.0,
+                    "applied_heat_w": 16.0,
+                    "outgoing_link_heat_w": 16.0,
+                    "boundary_exchange_w": null,
+                    "power_balance_residual_w": 0.0,
+                    "permitted_power_balance_error_w": 1.32e-08,
+                    "power_balance_within_tolerance": true
+                  },
+                  {
+                    "id": "sink",
+                    "fixed_temperature_k": 300.0,
+                    "temperature_k": 300.0,
+                    "candidate_temperature_k": 300.0,
+                    "candidate_offset_k": 0.0,
+                    "applied_heat_w": 0.0,
+                    "outgoing_link_heat_w": -16.0,
+                    "boundary_exchange_w": -16.0,
+                    "power_balance_residual_w": 0.0,
+                    "permitted_power_balance_error_w": 1.16e-08,
+                    "power_balance_within_tolerance": true
+                  }
+                ],
+                "links": [
+                  {
+                    "from": "chip",
+                    "to": "sink",
+                    "conductance_w_per_k": 4.0,
+                    "candidate_heat_from_to_w": 16.0
+                  }
+                ],
+                "conservation": {
+                  "total_applied_heat_w": 16.0,
+                  "total_boundary_exchange_w": -16.0,
+                  "net_external_heat_w": 0.0,
+                  "internal_link_cancellation_w": 0.0,
+                  "total_node_power_residual_w": 0.0
+                },
+                "linear_diagnostics": null,
+                "warnings": [
+                  "Supplied steady linear conductances and heat sources are model assumptions, not inferred facts; power residuals do not validate them.",
+                  "Fixed temperatures denote ideal reservoirs. Reported boundary heat is computed to close their balance, not independently measured."
+                ]
+              }
+            },
+            "preparation_policy": "fresh complete network preparation on every call; no retained cross-request factors",
+            "scope": "decision for this supplied model and evidence snapshot; not necessarily latest at return; not a physical forecast"
+          }
+        },
+        {
+          "revision": 6,
+          "correct": true,
+          "actual": {
+            "evidence_receipt": {
+              "scope": {
+                "tenant": "00f3d88f513bd95c3e1afa2125643b07d1b4ab0edf0297a2f7dcb10c1339d7f7",
+                "workspace": "57db45e6f4f0af6445014812450e56745d3523029645cc43dcd245f49b21e148"
+              },
+              "revision": 6,
+              "snapshot_identity": "fbe8650791c6aa693d3e83b5a03a7cbaa8b8647a42d399563e62a99ed7a66a46",
+              "program_identity": "b30477ee78e934dc535318eaa48daa14f6c6bf60a70ae8ecf6b42dba507989f2",
+              "request_identity": "bcc24ca719c4753db0256e776594b61271e586415be5264f650e17b862c5d57d",
+              "compiler": "oracle.logic.revisions/1"
+            },
+            "measurement_package_identity": "67524f46796f0f7eb2d5295c622716969a65d0873d825f5f25829443ef4abe7f",
+            "base_supplied_model_identity": "8d3fb9087b7602ce435e8ad7f33759a1f8be01a6410843ad0022a53e8d45e23a",
+            "status": "withheld",
+            "reason": "missing or conflicting measurement support",
+            "target": {
+              "kind": "load",
+              "node_id": "chip"
+            }
+          }
+        },
+        {
+          "revision": 7,
+          "correct": true,
+          "actual": {
+            "evidence_receipt": {
+              "scope": {
+                "tenant": "00f3d88f513bd95c3e1afa2125643b07d1b4ab0edf0297a2f7dcb10c1339d7f7",
+                "workspace": "57db45e6f4f0af6445014812450e56745d3523029645cc43dcd245f49b21e148"
+              },
+              "revision": 7,
+              "snapshot_identity": "0ae7fe4ffe00fc9ec4860917a0e65cc910ed7ee50379aefe513042732e285b93",
+              "program_identity": "2cc9f2e0f504978aafbbdd71ea4d3b01857f07a166f1af63a946f677e7996183",
+              "request_identity": "d93d689903c1863a50e7ed72a11d5dfe2425661c76e2c41445705bc5c5044a59",
+              "compiler": "oracle.logic.revisions/1"
+            },
+            "measurement_package_identity": "67524f46796f0f7eb2d5295c622716969a65d0873d825f5f25829443ef4abe7f",
+            "base_supplied_model_identity": "8d3fb9087b7602ce435e8ad7f33759a1f8be01a6410843ad0022a53e8d45e23a",
+            "status": "withheld",
+            "reason": "measurement coverage unavailable"
+          }
+        }
+      ]
+    }
+  },
+  "process_observation": {
+    "scope": "single observed owned host subtree, not throughput/RSS qualification",
+    "processes": [
+      {
+        "pid": 1805978,
+        "ppid": 1805971,
+        "threads": 6,
+        "rss_kib": 28680,
+        "args": "/tank/lanes/o7-coherent-native-20261031/relocated product/lib/oracle-host --config /tank/lanes/o7-coherent-native-20261031/product-state/.oracle-host-vcdv53uk.json"
+      },
+      {
+        "pid": 1815029,
+        "ppid": 1805978,
+        "threads": 49,
+        "rss_kib": 945808,
+        "args": "/tank/lanes/o7-coherent-native-20261031/u8/venv/bin/python -B /tank/lanes/o7-coherent-native-20261031/relocated product/python/engine_worker.py --tip oracle_release_runtime_w574 --checkout /tank/lanes/o7-coherent-native-20261031/u8/view --state /tank/lanes/o7-coherent-native-20261031/product-state/engine/worker-0-1b8e9a18e3bb11073e2e65-1"
+      },
+      {
+        "pid": 1815035,
+        "ppid": 1815029,
+        "threads": 1,
+        "rss_kib": 10540,
+        "args": "/tank/lanes/o7-coherent-native-20261031/u8/venv/bin/python -B -c import os,signal,socket,sys fd,group=map(int,sys.argv[1:]) if group<=1 or os.getpgrp()!=group or os.getpid()==group:  raise SystemExit('invalid guardian group') s=socket.socket(fileno=fd) try:  while s.recv(1): pass finally:  os.killpg(group,signal.SIGKILL)  16 1815029"
+      }
+    ],
+    "limit": "Engine49threads observed; no attribution, oversubscription, hardRSS or throughput claim. Threadcap remains follow-up."
+  },
+  "services_stopped": true
+}

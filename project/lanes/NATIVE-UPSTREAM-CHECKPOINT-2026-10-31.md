@@ -16,6 +16,12 @@ graph checking and resumable evidence clients. Its separate receipts record
 Small service medians improved; reader latency did not show a resolved gain.
 These results do not replace the earlier expansion's evidence or its limits.
 
+The [coherent appliance checkpoint](COHERENT-NATIVE-2026-10-31.md) adds reader
+literal/count semantics, exact delivered conversation recovery, checked evidence
+restoration and the modeling/thermal consumers (`5fb1f1f`, `53540d2`, `9b1c921`).
+Its receipt records 165 Rust / 43 Python checks and the real relocated U8 journey.
+Complete modeling admission remains incomplete after its cold core baseline timeout.
+
 ## What upstream has received
 
 - [Typed service, packed reader and recovery follow-up](https://huggingface.co/psiloceyeben/oracle7-slim/discussions/5#6ae64aca93643fb6c518d305):
@@ -50,25 +56,10 @@ as an open pull request. Publication does not mean acceptance or merge.
 Earlier sibling issues and GitHub contributions are recorded in their own
 upstream trackers; this checkpoint does not claim a fresh census of every thread.
 
-## Work still needed, in priority order
+## Remaining work
 
-| Work | Concrete problem | Next useful result |
-| --- | --- | --- |
-| Reader representation and semantics | Packed composition removes fragment flattening, but the retained question still needs 1,292 fragment checks and about 55–56 ms. Numeric literals can still occupy Date slots, and empty-child count semantics withhold valid zero results. | Stable checked-stage handles through execution, exact cached recipe admission, and separate slot/completeness repairs. Preserve every interpretation and witness. |
-| Native call overhead | Typed encoding lowered scoped LP/GLM/small-graph medians to 49/85/27 microseconds; the retained chain reached 1.96 ms. Contract traversals and substantial graph work remain. | Remove further demonstrated repeated work without weakening independent checks. The latest library boundary excludes TCP; it does not supersede earlier HTTP observations. |
-| Prepared consumers | Thermal reuse pays off in the scoped internal benchmark; sequence timings reverse with execution order. | Symmetric warmup, output lifetime and accounting before changing sequence code or claiming a gain. |
-| State ownership | Native scalar context and revisable evidence are durable, but several Python conversation owners remain outside native recovery. | Migrate each real owner with explicit import/export and delivered-answer commit semantics; test cross-provider handoff and restart. |
-| Evidence scale | Host policy caps history at 128 records/revisions and restore checks the complete history. | Configurable owner limits and measured checkpoint/retention design preserving IDs, withdrawals and exact retry. Incremental solving must agree with the fresh reference. |
-| Learned bindings | The tiny Pythia readout pilot fit training data but all held-out proposals abstained. | A larger predeclared study with independent prose, rejection controls and useful held-out coverage; keep uncertainty visible. |
-| Upstream integration | The native runtime is published in our repository, while upstream currently receives small Python repairs and the architectural proposal. | Review and adopt coherent layers with explicit compatibility boundaries, rather than presenting a large feature count as integration. |
-
-The [next work cycles](NATIVE-NEXT-CYCLES-2026-10-31.md) concentrate on the first two rows, with
-specialist consumers exposing the cost of the shared architecture. Deeper
-scientific models, approximate sequence search, scheduling and stronger learned
-readouts remain design avenues in the scout reports; they are not secretly
-completed features or prerequisites for publishing this checkpoint.
-
-Full Python Engine takeover, automatic release-identity migration and public
-gateway authentication are not qualified by this native cut. Mini integration
-is outside the current work. No new formal theorem is claimed for the Python
-binomial correction or the numerical modeling additions.
+The [live roadmap](../../native/docs/ROADMAP.md) owns remaining implementation
+work; completed reader/state tasks are no longer duplicated in this ledger.
+Full Engine migration, source-bound shared startup artifacts, modeling admission,
+resource policy and upstream adoption remain explicit there. Publication does
+not establish receiving qualification, a current fleet score or a new theorem.

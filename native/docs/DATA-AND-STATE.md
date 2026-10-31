@@ -41,6 +41,16 @@ all facts about the world. A batch reports item outcomes and workspace costs;
 a failed item can leave later items `not_run`. It changes no conversation state
 and retains no durable retry reply.
 
+## Count matching records in an explicit snapshot
+
+Reader calls can request `"count_scope": "supplied_snapshot"` in the arguments
+to `reader.whole` or `reader.execute`. An empty live branch can then contribute
+zero to a terminal Count; dead stages and syntactically consumed but omitted
+children retain their admission obligations. Results declare the scope. This
+counts matching stored records, not missing real-world facts: a missing attribute
+supplies no matching row and does not prove the corresponding fact absent. The
+default policy is unchanged. Source-wide absence needs separate coverage premises.
+
 ## Say exactly what a source scan covered
 
 `graph.coverage` traverses the image's relation rows for explicit canonical IDs,
@@ -86,7 +96,9 @@ for these native calls. Retry with the same tenant, conversation, request ID,
 operation, typed command and `expected_version` to recover `core_reply_json`,
 including after restart or a lost response. New structured commands derive
 journal identity from their typed encoding. Legacy graph/KQA string inputs keep
-their exact input-byte identity. HTTP wrapper bytes need not replay identically.
+their exact input-byte identity. HTTP wrapper bytes need not replay identically in the ordinary host profile.
+The explicit [conversation profile](HOST.md#optional-supported-conversation-profile)
+commits the complete HTTP reply with covered state and replays those exact bytes.
 
 Schema-2 state can migrate additively under the same binding and revision: its
 selection, coverage and optional Oracle payload survive; native owners begin

@@ -36,7 +36,12 @@ The [capability catalog](native/docs/CAPABILITIES.md) describes callable graph,
 exact optimization, symbolic, scientific, statistical, biological and logic
 operations. Current workflows include calibration, events/exposure models,
 sequential monitoring, thermal scenarios and transients, exact blends, sequence
-search and coordinate-preserving translation. Their manufactured workflow cases
+search and coordinate-preserving translation. New consumers connect
+[supplied-data modeling](tools/usage/specialist/modeling/README.md) to an explicit
+specialist interface, and [revised evidence](tools/usage/specialist/thermal-revision/README.md)
+to thermal decisions. The supplied modeling panel passes 28/28 and the thermal revision workflow 8/8;
+complete modeling admission remains open after a real Engine baseline timeout.
+Their manufactured workflow cases
 are separate from the shipped specialist exams. A structured operation does not
 automatically become a natural-language specialist in the complete Oracle cascade.
 
@@ -49,18 +54,23 @@ changes preserve both cohorts' answers and evidence. Coverage and performance
 limits are in the catalog and [performance report](native/docs/PERFORMANCE.md).
 
 Native sessions persist selections, explicit scalar state and revisable evidence;
-retries survive lost replies and restart. Front-door native reads and Python
-fallback do not yet share a complete conversation. Each Engine worker belongs to
-one tenant per generation; eviction requires reset unless its state has an
-explicit supported restoration path. Full Engine restoration, wider reader
-coverage, sustained mixed-tenant qualification and release-history migration remain.
+retries survive lost replies and restart. The optional
+[conversation profile](native/docs/HOST.md#optional-supported-conversation-profile)
+commits delivered native state and exact HTTP replies together. It provides a
+bounded, source-pinned Engine adapter for supported entity and quantity follow-ups,
+acknowledgements and topic changes. The supported real-U8 journey passes handoff,
+refusal, restart and exact replay;
+it does not restore the complete Engine conversation. Each Engine worker belongs
+to one tenant per generation. Full Engine restoration, wider reader coverage,
+sustained mixed-tenant qualification and release-history migration remain.
 The [roadmap](native/docs/ROADMAP.md) is the live plan; the
 [migration map](native/docs/MIGRATION.md) identifies remaining source consumers.
 
-The [latest completed native cycle](project/lanes/NATIVE-NEXT-CYCLES-2026-10-31.md)
-records typed host calls, packed reader programs, contiguous graph checking and
-resumable evidence clients. Its code and evidence are pushed and
-[shared upstream](project/lanes/NATIVE-UPSTREAM-CHECKPOINT-2026-10-31.md).
+The [current checkpoint](project/lanes/COHERENT-NATIVE-2026-10-31.md) records
+165 Rust and 43 Python checks, actual relocated calls through every enabled
+provider, the supported conversation journey and the new consumer results.
+The [upstream ledger](project/lanes/NATIVE-UPSTREAM-CHECKPOINT-2026-10-31.md)
+tracks publication separately from adoption.
 Separate [design experiments](native/experiments/README.md) explore streaming
 queries, maintained views and conditional formulas. Those experiments remain
 outside service registration; their fixtures are not deployed capability claims.

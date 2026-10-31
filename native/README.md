@@ -25,15 +25,21 @@ releases the interpreter while native work runs.
 Inside the Rust host, admitted inputs and computation results stay typed through
 their domain checks. The HTTP boundary encodes a bounded response once and keeps
 those bytes through delivery. The `/query` journal retains those bytes for replay;
-native stateful operations retain their exact core reply.
+native stateful operations retain their exact core reply. The optional
+[conversation profile](docs/HOST.md#optional-supported-conversation-profile)
+adds atomic delivered-state/HTTP-reply commits and a bounded Engine restoration
+adapter. The [current receipt](evidence/2026-10-31-coherent-native-validation.json)
+records real U8 handoff, restart, exact replay and semantic refusal continuation.
 The Value-based library entry remains a compatibility adapter. Independent
 certificate, source and numerical checks still run.
 
 The reader uses offline-exported lexical and learned grammar tables bound to the
 KB digest. It executes whole templates, exact fragment/outer composition,
 2–4-segment chains and one nested fragment pass under one worker budget.
-Consumed children must run and be nonempty; successful interpretations must
-agree. Serving neither learns nor unpickles. The release comparison retains 36 correct answers on the 100-question control.
+Consumed children must run and, by default, be nonempty; successful interpretations
+must agree. An explicit [supplied-snapshot count](docs/DATA-AND-STATE.md#count-matching-records-in-an-explicit-snapshot)
+can count an empty live input without claiming source completeness. Dead stages
+and omitted child obligations remain strict. Serving neither learns nor unpickles. The release comparison retains 36 correct answers on the 100-question control.
 A repaired plural-first grammar export raises the targeted 16-question cohort
 from two correct answers to ten, with six expected declines. Both release runs
 have zero wrong answers and execution errors at the same one-second limit.
@@ -59,6 +65,14 @@ The [migration map](docs/MIGRATION.md) describes these gaps; the
 [roadmap](docs/ROADMAP.md) names the next work. Handwritten Rust contracts do not
 inherit Isabelle proofs. [Resident connected-MST checking](../src/extract/discrete-certificate/README.md)
 has its own theorem scope and receipt admission.
+
+The [coherent appliance checkpoint](../project/lanes/COHERENT-NATIVE-2026-10-31.md)
+adds supplied-data modeling (28/28 panel cases) and evidence-driven thermal
+revision (8/8 workflow checks). Its relocated release passed calls through all
+six pure providers, the data runtime and the real pinned Engine. Complete
+modeling specialist admission remains incomplete: the original core baseline
+hit a 30-second cold-initialization timeout. These results add no fleet-wide
+score or new performance claim.
 
 ## Use from Python
 

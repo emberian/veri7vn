@@ -1,8 +1,144 @@
-# Package the native appliance for another host
+# Package the standalone Rust appliance
+
+Use the Rust [host](HOST.md) for the current standalone appliance. It serves
+private loopback HTTP without Mini, a source checkout or an Oracle7 Engine.
+The bundle contains the selected host binary, launcher, derived descriptors and
+any explicitly admitted solver, extracted organs and Engine bridge helpers.
+Public images and stores, an optional pinned Engine checkout and Python
+environment, and every tenant journal/session remain outside the bundle. Supply
+a separate absolute `--state-root` at each deployment.
+
+The [31 October checkpoint](../../project/lanes/COHERENT-NATIVE-2026-10-31.md)
+records a current Linux archive and its relocated qualification through all six
+providers, the data runtime and supported real-U8 conversation routes.
+
+## Quick start
+
+These paths are examples for operator-supplied artifacts, not published download
+locations. Obtain the frozen Linux host through the controlled build process,
+with `reasoning,science,incremental,bio,statistics,logic` enabled. Create the
+output parent directories first. For all six compiled providers without Oracle
+images or corpora, generate configuration from the host and an admitted solver:
+
+```sh
+python3 -B native/oracle-host/tools/make_config.py \
+  --host /operator/build/oracle-host --out /operator/config/host.json \
+  --journal /operator/state/current/journal.sqlite3 \
+  --pure reasoning,science,incremental,bio,statistics,logic \
+  --solver /operator/build/clingo
+```
+
+The supplied-data computations use rows, sequences, models and graphs in each
+request. Logic solving needs the admitted solver; selecting a feature alone does
+not supply that executable. No Oracle7 checkout or data is needed for this mode.
+
+For the intended runtime-plus-six-provider release, add these options to the
+same command, using the actual admitted public image and its measured digest:
+
+```sh
+  --image /operator/data/image.sqlite --image-sha256 ACTUAL_IMAGE_SHA256 \
+  --state /operator/state/current/sessions.sqlite3
+```
+
+The helper asks the exact host binary to declare its runtime release. Keep the
+image at its external read-only location; the package does not copy it. Optional
+Engine and extracted-organ arguments are described in [HOST.md](HOST.md).
+Engine configuration must name a pinned materialization receipt and a usable
+external Python environment. It is unnecessary for native-only operation.
+
+Next create the measured `release-input.json`, package, relocate and launch using
+the commands below. Qualification applies only to the exact frozen artifact,
+configuration and external resources that were exercised.
+
+## Manufacture and qualify the Rust release
+
+The current release path is `tools/appliance/package_host.py`. It needs no Mini
+checkout or account. The older Python-extension format is documented below for
+compatibility. Freeze source first; central validation builds `oracle-host` with
+`reasoning,science,incremental,bio,statistics,logic` and uses
+`native/oracle-host/tools/make_config.py` to admit the external image and select
+those profiles. Its `--pure` value is that comma-separated list. Add `--solver`
+only with a measured solver. Engine and extracted organs use that helper's
+explicit options; neither is required. `--conversation-profile readonly-v1`
+requires an image. Add `--conversation-entity-namespace wikidata` only for an
+image whose entity identifiers the operator explicitly maps to Wikidata. The
+helper forwards both options to the host manifest declaration and records them
+in deployment configuration. Regenerate descriptors with the existing
+`snapshot_descriptors.py` process before freezing when provider catalogs changed.
+
+Create an external `release-input.json` with these measured fields:
+
+```json
+{
+  "source_revision": "FULL_40_CHARACTER_FROZEN_GIT_REVISION",
+  "source_archive": {"path": "/operator/source/frozen.tar.gz", "sha256": "ACTUAL_SHA256"},
+  "target": "x86_64-unknown-linux-gnu",
+  "features": ["reasoning", "science", "incremental", "bio", "statistics", "logic"],
+  "toolchain": {"rustc": "ACTUAL_RUSTC_VERBOSE_VERSION", "cargo": "ACTUAL_CARGO_VERSION", "build_command": "ACTUAL_COMMAND"},
+  "descriptors": {"path": "/operator/source/native/oracle-host/descriptors/pure.json", "sha256": "ACTUAL_SHA256"}
+}
+```
+
+This records operator declarations and verifies the named input bytes; it cannot
+prove that a binary was compiled from those sources. Keep the exact frozen source
+archive alongside the release. A dirty-tree archive needs its own exact digest;
+a Git revision alone does not identify uncommitted work.
+
+```sh
+python3 -B tools/appliance/package_host.py \
+  --host /operator/build/oracle-host --sha256 ACTUAL_HOST_SHA256 \
+  --config /operator/config/host.json --release-input /operator/config/release-input.json \
+  --output /operator/releases/current --archive /operator/releases/current.tar.gz
+mv /operator/releases/current '/operator/releases/relocated current'
+cd /operator/unrelated
+python3 -I -B -S '/operator/releases/relocated current/bin/oracle-host' \
+  --state-root /operator/state/current --port 0
+```
+
+The archive has fixed `oracle-host/` entries, deterministic metadata, executable
+host/solver/organ modes and exclusive publication. Its digest is returned beside
+the payload manifest digest. Archive publication precedes directory publication;
+a later directory collision leaves the archive for inspection. Images, stores,
+Engine materialization, Python environment and all persistent state stay external.
+The manifest includes requested profiles, source/build declarations, derived
+catalog hashes, solver/organ hashes and Engine receipt identity. Hashing the
+Python executable does not bind its standard library or installed packages.
+Receiving-host dynamic libraries and optional Engine dependencies need separate
+admission. This is an unsigned, nonhermetic artifact.
+
+Central qualification supplies independent case data and starts the relocated
+bundle from an unrelated directory. With the printed loopback address:
+
+```sh
+python3 -B /operator/source/tools/appliance/qualify_host.py \
+  --bundle '/operator/releases/relocated current' --url http://127.0.0.1:PRINTED_PORT \
+  --cases /operator/config/release-cases.json --out /operator/receipts/current-calls.json
+```
+
+Cases are a JSON array. Each contains `provider`, `operation_id`, `arguments` and
+nonempty `expected` JSON-pointer/value assertions against the full reply. Use
+`provider: "runtime"` for image-backed operations and the configured profile name
+for compiled computations. Engine/extracted cases instead contain `text`, with
+provider `engine` or `organ:ID`; assert the expected answer and actual route.
+Every enabled provider needs a real call with an independently justified result.
+The helper discovers every operation page, binds the running host digest to the
+bundle, checks pure operation ownership through the bundled derived descriptors,
+and records complete discovery and calls. It assumes trusted operator case data.
+It does not infer correctness from a successful HTTP status. Central separately
+records relocation, tenant separation, exact retry/restart, selected specialist
+controls and receiving-host dependencies on these same artifacts. No new shipped
+specialist-panel score or formal theorem is claimed by packaging.
+
+For an enabled read-only Engine profile the package also copies the admitted
+`conversation_adapter.py` beside `engine_worker.py`; both are manifest-bound,
+and the adapter artifact is independently admitted by the host. No source
+checkout adapter import is needed after relocation.
+
+## Python-extension compatibility distribution
 
 The distribution builder creates a local directory that runs without a source
 checkout, Oracle7, Mini, an account or a network installer. It contains the exact
-operator-selected extension and twelve explicitly listed Python adapter files.
+operator-selected extension and explicitly listed Python adapter files.
 The interpreter and system libraries come from the receiving host. This is not a
 hermetic operating-system image or a signed release.
 

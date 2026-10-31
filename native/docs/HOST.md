@@ -3,8 +3,8 @@
 `oracle-host` serves Oracle queries and named computations through a private
 HTTP boundary. It runs independently of Mini, opens the shared native data image once, keeps the
 extracted proof-backed organs resident, and runs the original Python Oracle7
-Engine as a contained child process for everything the native side does not
-read. Every question goes through one written rule: the routes that take a
+Engine as a contained child process for legacy fallback. An optional conversation
+profile instead uses supported compatibility routes with restored state. Every question goes through one written rule: the routes that take a
 question must agree, or the host refuses. It never picks between answers.
 
 The earlier appliance ran the Python Engine with native pieces inside it.
@@ -101,7 +101,7 @@ and its own provenance, so a reader can see who answered and who declined.
 | Bounded ingress | At most `limits.connections` open connections (more are closed at once), and one absolute deadline (`ingress_ms`) for headers plus body, as the reference server. |
 | Engine kill-and-reap | Each Engine worker runs in its own process group with a cleared environment, `PYTHONDONTWRITEBYTECODE=1`, a private `--state` directory and a PID file. A turn that misses `turn_ms` kills that process group by the recorded PID and reaps it; a replacement starts lazily for subsequent admitted work. Shutdown closes its input, waits, then kills and reaps the group. |
 | Exact retry | `/query` results are journalled by (tenant, request_id). The same bytes replay the stored reply, across restarts; different bytes under the same id get `409 request_id_conflict`. A turn refused before work (busy) leaves no record. |
-| Conversations | A conversation that reached the Engine is pinned to that worker generation. If the worker was replaced or the host restarted, the next turn gets `409 conversation_reset_required`, as the Python tenant pool does, instead of silently losing context. |
+| Conversations | In the ordinary profile, a conversation that reached the Engine is pinned to its worker generation; worker loss requires `409 conversation_reset_required`. The optional profile below restores only its explicitly covered owners. |
 
 ## Native calls and execution limits
 
@@ -138,7 +138,7 @@ hardlink aliases are refused. The sidecar is never removed during normal use.
 A request moves from admission to
 opaque dispatch to a retained result; dispatch and conversation reservation are
 stored before sending a question to Python. An uncertain outcome poisons that
-conversation. A successful reply commit clears the poison. Completed exact
+conversation. A successful reply commit clears poison belonging to that request; an older replay cannot clear a later dispatch's poison. Completed exact
 retries do not consume an execution slot, including after restart or saturation.
 A new request against lost Engine context requires a fresh conversation ID.
 
@@ -156,12 +156,73 @@ active production worker has a small guardian process watching a host-owned
 socket. Host death closes that socket; the guardian kills its own worker process
 group, even when Engine native code holds Python's interpreter lock.
 This is interim isolation for legacy code: switching tenants can still reconstruct an
-Engine, and worker eviction does not restore its conversational state. Native
-operations continue to share the indexed image and bounded worker resources.
+Engine. The ordinary profile cannot restore an evicted conversation; the optional
+profile below restores its covered state. Native operations continue to share the
+indexed image and bounded worker resources.
 
-Native front-door reads are currently pure reads. They do not import or update
-Engine dialogue context. Full context transfer between providers remains work;
-validating an Engine generation does not establish that transfer.
+In the ordinary profile, native front-door reads are pure reads and do not update
+Engine dialogue context. The explicit profile below adds supported cross-provider
+state. Full Engine context transfer remains work; validating a worker generation
+does not establish it.
+
+### Optional supported conversation profile
+
+`conversation_profile: "readonly-v1"` opts into a new conversation contract over
+the core session store. The ordinary profile keeps its previous behavior. In the
+new profile, `/query` and stateful `/invoke` share conversation admission and
+revision checks. The core commits delivered state and exact HTTP reply together.
+Completed core replies take precedence over pending host dispatch after restart;
+an old successful retry cannot clear a later turn's uncertainty. Completed
+refusals advance revision while preserving native selection. Operational failure
+before commit does not invent a turn. A genuinely new session started by a
+stateful `/invoke` obtains a real empty covered Engine snapshot before committing
+its native state, so a later `/query` can continue. Retained sessions without
+coverage still require reset, including retained revision-zero sessions.
+
+When an Engine is configured, this first stateful invocation may start its worker
+and remains subject to the invocation deadline. Pure calls and configurations
+without an Engine do not pay that cost. Native invocation results update their
+registered native owners; they do not implicitly become Python entity or scalar
+context. The initialization establishes empty covered state, not a generic
+translation of every operation result.
+
+With an Engine configured, this profile requires the adjacent, separately hashed
+`conversation_adapter.py`. Its source-pinned U8 compatibility routes cover bounded
+arithmetic, supported physical quantities, entity follow-ups, explicit topic
+changes and acknowledgements. It does not call arbitrary `eng.chat` under a
+restoration guarantee. Teaching, tools and general dialogue remain outside this
+profile. Physics routes require their source organ to be ready.
+
+Only delivered answers update supported context. Native entity projection requires
+the operator's explicit `conversation_entity_namespace: "wikidata"`; a Q-prefixed
+ID alone is insufficient. Profile and namespace have distinct release identities.
+Quantities preserve units and do not become dimensionless scalar memory. Extracted
+rendered numbers carry `displayed_decimal` origin: the delivered digits are retained
+without asserting exact source arithmetic. Acknowledgements preserve supported
+factual context; successful arithmetic consumes its pending conversion according
+to the adapter.
+
+Known unsupported or ambiguous requests, undefined arithmetic/quantity division
+and the source's typed physics declines return `withheld` after restoring the
+committed owners and capturing them normally. This also preserves context when
+a declined request began with topic-change syntax. A malformed provider reply,
+source mismatch, failed restoration or failed capture remains an operational
+failure; it cannot be disguised as a successful refusal.
+
+The worker restores committed covered owners before each supported evaluation.
+Unknown coverage, incompatible source identity or failed capture cannot become an
+empty recovered conversation. Failed opaque dispatch retains uncertainty and may
+require reset; no automatic repeat of a possibly effectful action is implied.
+Existing completed legacy replies remain replayable, but old Engine conversations
+without covered snapshots do not acquire them through migration.
+
+`make_config.py --conversation-profile readonly-v1` generates the corresponding
+release declaration and helper artifact record. Add
+`--conversation-entity-namespace wikidata` only for an image whose IDs the operator
+declares to use that namespace. These options require a native image and state
+store. Packaging carries the helper beside the worker and inventories its hash.
+Execution and receiving qualification apply only to the exact artifacts named by
+their validation receipts.
 
 For a materialized Engine, configure `engine.materialization` with the absolute
 `APPLIANCE.json` path and its admitted digest. Startup checks every declared file,
@@ -321,11 +382,11 @@ noise):
 - No effect executors (teaching, growth, files, network). The core's effect
   outbox is not exposed.
 - Each bounded Engine worker belongs to one tenant per generation. Reassigning
-  a slot retires the old process; it does not restore the evicted conversation.
-  Cheap switching requires explicit state/resource migration beyond isolation.
-- Conversations do not cross providers: a turn the reader answered is not part
-  of the Engine's conversation memory, and the `/query` reader route reads
-  each question alone (`reader.whole`, not `reader.execute`).
+  a slot retires the old process. The opt-in profile restores supported state, but
+  starting a replacement Engine still costs time and memory. Cheap switching needs
+  further separation of shared resources from private state.
+- Ordinary-profile conversations do not cross providers. The opt-in profile
+  covers explicit adapter routes; it does not restore every Engine owner or route.
 - Linked computations run inside the host process under shared work, deadline
   and tracked-memory budgets. These are cooperative controls, not hard CPU/RSS
   isolation. Opaque library calls keep capacity until they return; deployment
