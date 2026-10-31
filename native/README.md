@@ -25,10 +25,13 @@ The reader uses offline-exported lexical and learned grammar tables bound to the
 KB digest. It executes whole templates, exact fragment/outer composition,
 2–4-segment chains and one nested fragment pass under one worker budget.
 Consumed children must run and be nonempty; successful interpretations must
-agree. Serving neither learns nor unpickles. The retained 100 questions have
-36 correct answers, 4 refusals and 60 unknowns with no wrong answers/errors;
-a separate 16-question expansion failed acceptance, including four byte-limit
-errors. Details and evidence are in the catalog.
+agree. Serving neither learns nor unpickles. The retained 100-question control has 36 correct answers. A repaired plural-first
+grammar export raises a separate 16-question cohort from two correct answers
+to ten, with six expected declines. Repeated one-second-budget runs have
+variable deadline failures under shared-host load; this is not stable latency
+qualification. A newly exposed ill-typed fragment now refuses instead of
+raising an execution error. Details and all runs are in the
+[reader receipt](evidence/2026-10-31-sol-wave-validation.json).
 
 This does not replace the complete Oracle Engine or install it in signed v7.
 The full route cascade, dialogue adapters, remaining language families and real

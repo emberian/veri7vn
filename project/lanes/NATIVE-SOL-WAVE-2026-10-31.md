@@ -54,8 +54,9 @@ First-wave source checkpoint: the four typed operations now answer through the
 actual HTTP host under default memory limits and through the all-provider PyO3
 extension. Focused core, host and domain checks pass. Independent Astra source
 reviews have no remaining blockers after repairs. This is not final qualification:
-new workflow panels, the four-cell reader experiment and final-wave performance
-comparison remain in progress under the central validation lane.
+workflow panels have passed, the four-cell reader experiment has completed
+with budget-sensitive failures, and final-wave performance measurement remains
+in progress.
 
 Real HTTP use exposed excessive thermal scratch reservation, now computed from
 actual matrix dimensions. It also exposed invalid tenant/envelope defaults in the
@@ -82,3 +83,19 @@ Reader data sources and fixed cohort provenance are documented in
 `tools/usage/specialist/{calibration,thermal-scenarios,sequence-collection,exact-blend}`.
 The three extracted calibration comparisons passed, distinguishing rational
 internal least-squares assurance from four-decimal display and untrusted recognition.
+
+## Reader data result
+
+Plural-first relearning changes the targeted 16 questions from two correct/eight
+unanswered/six expected declines to ten correct/six expected declines in the
+completed comparisons. The original 100-question set has no answer gain. A newly
+reachable invalid Date interpretation of a quantity now produces an explicit
+unsupported-program refusal rather than a Python exception. It still cannot
+answer the source-backed zero-count question; typed scalar slots, unit context
+and checked empty-count semantics remain in `tools/reader_audit/README.md`.
+
+Repeated one-second runs produced varying deadline errors. A bounded five-case
+diagnostic completed at five seconds, with several calls taking 1.02–1.29 seconds.
+It explains the sensitivity, not a passed one-second admission. The receipt
+retains original and repeated runs, including the unchanged old extension's
+new-data failure. No extra reruns were used to manufacture a clean result.

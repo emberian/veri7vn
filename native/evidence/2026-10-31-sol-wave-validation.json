@@ -1,0 +1,1521 @@
+{
+  "schema": "oracle-sol-wave-validation-v1",
+  "date": "2026-10-31",
+  "status": "complete_for_scoped_validation_with_reader_budget_instability",
+  "scope": "Firstwave scoped contracts and actual supplied-data consumers validated; frozen reader data/code experiment executed with observed1s deadline instability. No performance, phase2, new theorem, full specialist admission or stable1s completion claim.",
+  "specialist_panels": {
+    "new_workflows": {
+      "scope": "Manufactured supplied-data consumer cases; not six-criterion shipped specialist admission",
+      "calibration": {
+        "total": 16,
+        "right": 16,
+        "wrong": 0,
+        "withheld": 7,
+        "false_yes": 0
+      },
+      "thermal": {
+        "total": 9,
+        "right": 9,
+        "wrong": 0,
+        "false_yes": 0,
+        "execution_errors": 0
+      },
+      "sequence": {
+        "dev_total": 7,
+        "dev_right": 7,
+        "heldout_total": 10,
+        "heldout_right": 10,
+        "wrong": 0,
+        "false_yes": 0
+      },
+      "exact_blend": {
+        "total": 4,
+        "right": 4,
+        "wrong": 0,
+        "withheld": 0
+      }
+    },
+    "shipped_controls": {
+      "statistics": {
+        "dev_right": 142,
+        "heldout_right": 142,
+        "heldout_total": 142
+      },
+      "statistics-v2": {
+        "dev_right": 144,
+        "heldout_right": 144,
+        "heldout_total": 144
+      },
+      "statistics-v3": {
+        "dev_right": 144,
+        "heldout_right": 144,
+        "heldout_total": 144
+      },
+      "wrong": 0,
+      "false_yes": 0,
+      "decision": "NEGATIVE",
+      "reason": "Family-wide binary takes11 general questions; each specialist cap9. Head-relative DOMAIN and FALSE YES unmeasured. Existing unchanged binary; no wave gain."
+    },
+    "extracted_calibration": {
+      "total": 3,
+      "right": 3,
+      "wrong": 0,
+      "withheld": 2,
+      "false_yes": 0,
+      "scope": "new manufactured extracted rounded comparison, not shipped panel"
+    }
+  },
+  "resource_policy": {
+    "build_host": "hbox",
+    "target": "/tank/lanes/o7-native-20261028/target",
+    "jobs": 2,
+    "execution_authorized": false,
+    "execution_finished": true,
+    "major_builds_and_full_learners_serialized": true,
+    "exception": "A supplementary one-test0.62s test compilation overlapped the end of first finalcandidate combined cell by about2s. That run is retained; isolated unchanged-limit repeat still had deadlines. No performance claim uses these runs."
+  },
+  "snapshot": {
+    "source_manifest": "var/sol-wave-20261031/validation/snapshot-source.json",
+    "source_manifest_sha256": "6aa2376c63dba4e957b5458f78c02c1f26c4540ee34e3085d6d4f93c14b60531",
+    "archive_sha256": "18ee2651ed8bbec5337e7d2649e653af6ccd3bbb866aee621a8f843575576f0d",
+    "overlays": [
+      [
+        {
+          "path": "tools/oracle_components/test_reasoning.py",
+          "before_sha256": "03a6e147092149bae57c96ed7421d31b36ead94d0ae97b7cc0036b266cb5bfac",
+          "after_sha256": "6f7ee64316bb75927ee5bf21ef79a5d2e6b3f05f529ca9914f6d0bd014bda3c4"
+        },
+        {
+          "path": "tools/oracle_components/native_bio.py",
+          "before_sha256": "a50eab435c8fccde8cf83d73baadecd8716c910cf0cca61b28fa163ce8f38740",
+          "after_sha256": "a8f4f62b23997a9e9eae226fc2981d600df6f00ff1b167be70bd54bf1335a44e"
+        }
+      ],
+      [
+        {
+          "path": "tools/oracle_components/native_bio.py",
+          "before_sha256": "a8f4f62b23997a9e9eae226fc2981d600df6f00ff1b167be70bd54bf1335a44e",
+          "after_sha256": "9ea8e2b8da1278c0287bb4fede6700255c4b47c2cb4cf09238527ca339f44ded"
+        },
+        {
+          "path": "tools/oracle_components/test_native_bio.py",
+          "before_sha256": "b34a18a5e0e674e4515fb77ec12f62d896edc3fee565c90aa23bbbd8990d477a",
+          "after_sha256": "6f0a8c6e68e43b2767ce198fd81794bdf3127620562a345f01fb2a92b6070cb5"
+        }
+      ],
+      [
+        {
+          "path": "native/oracle-science/src/thermal_scenarios.rs",
+          "before_sha256": "7fc7d2d69185d953fb6ba7bcd979f26273b546bd9cb535fadfd34b93fd2fb1d7",
+          "after_sha256": "f83391742c82fec583c1d5e48553c93ad4e67bb59f171de63dc7ed3c87f72f83"
+        },
+        {
+          "path": "native/oracle-science/tests/thermal_scenarios.rs",
+          "before_sha256": "b574648a4451486ae39df7c92fa42d78358e8b36a2c25c38fbb4e1b50a9e7312",
+          "after_sha256": "a9c4a2320a2a73f7145dc5afed14d8605bcc8f39d30c65a2d95c914768b703fa"
+        }
+      ],
+      [
+        {
+          "path": "tools/usage/hosted_reasoning.py",
+          "before_sha256": "c37756d79fb9b08dc74037c9079748d6e457d3b9215344299cd9c727303e2b29",
+          "after_sha256": "e33f5dd4b61fc99b6fc960287d4ad8b514c4db1c3df48197d9a08e2f35de0d8f"
+        },
+        {
+          "path": "tools/usage/calibration.py",
+          "before_sha256": "cf9225be35f6061e7b1a2dea86708370860a140de048ee504a17966456b86ad6",
+          "after_sha256": "200f80c664d1ac1b376b733bc4bc8afd0c932b331653c301030af28468281017"
+        },
+        {
+          "path": "tools/usage/thermal_scenarios.py",
+          "before_sha256": "5dc8cbb1ecf3359f83d5e7c96bf343ce34aab64bcc9bbdf8ba735f977a9fdaee",
+          "after_sha256": "32043be088d5163a381cdb4c8d11d9ec551bee294ebf278be865d883af280895"
+        },
+        {
+          "path": "tools/usage/sequence_collection.py",
+          "before_sha256": "91291fd0fb1e1fc749399863f11f64c328b356bf0e15fbf1b83c038034657f37",
+          "after_sha256": "e0cf704fdd6382eab71a984777ebd4382a69bc552816d304b1fe072423fd8e3c"
+        },
+        {
+          "path": "tools/usage/exact_blend.py",
+          "before_sha256": "5a5605de90427a987babca15fac79bce1bbee6a2f9fcc418eb425f64d8026226",
+          "after_sha256": "32bdb6225b8220b0652bbbdb1b182837825f255ad0404ae55c81728a3e19bdb5"
+        },
+        {
+          "path": "tests/usage/test_supplied_transport.py",
+          "before_sha256": null,
+          "after_sha256": "3f8f2f95ff364d55a51cbe659db9193d91976f91321210975c131f8fec7a2ec2"
+        }
+      ],
+      [
+        {
+          "path": "tools/usage/calibration.py",
+          "before_sha256": "200f80c664d1ac1b376b733bc4bc8afd0c932b331653c301030af28468281017",
+          "after_sha256": "cfabbc9991326f359cec3845af807340ded17bae36e80034cb9548d2d4323b35"
+        },
+        {
+          "path": "tools/usage/thermal_scenarios.py",
+          "before_sha256": "32043be088d5163a381cdb4c8d11d9ec551bee294ebf278be865d883af280895",
+          "after_sha256": "63648f61642ee00a8d528541e82b3c9c473960abc3510e85be555ef9dad295a6"
+        },
+        {
+          "path": "tools/usage/sequence_collection.py",
+          "before_sha256": "e0cf704fdd6382eab71a984777ebd4382a69bc552816d304b1fe072423fd8e3c",
+          "after_sha256": "47978e0290cf22672e77669760d1573b8cdbfcc623179c97385b5aab42186475"
+        },
+        {
+          "path": "tools/usage/exact_blend.py",
+          "before_sha256": "32bdb6225b8220b0652bbbdb1b182837825f255ad0404ae55c81728a3e19bdb5",
+          "after_sha256": "8a696da843a44de0935ac6bd7b73cdab0dc709de4b5841ddb736d3a360d2e6fe"
+        }
+      ],
+      [
+        {
+          "path": "tools/usage/specialist/calibration/score.py",
+          "before_sha256": "e734d478e86e9e20e90f9ea11fc650bfc0682f6661540e12bc24534d0ed6c437",
+          "after_sha256": "7a8f4fb96b9bedaf894ca5ebbae543e55c8e0339b3ae07525c473645760b1eae"
+        }
+      ],
+      {
+        "base": "firstwave archived local-source (no query.rs change)",
+        "files": [
+          {
+            "path": "native/oracle-core/src/reader.rs",
+            "base_sha256": "4164070de8a8fee253a3a5cc56fbf1ff2cf525f18d2715bba8c010084b067eac",
+            "patched_sha256": "7fbb909820f61253ba17d29975e34a5029d540673d72cdebb766bda023fc9ceb",
+            "live_matches_overlay": true
+          },
+          {
+            "path": "native/oracle-core/tests/composition_contract.rs",
+            "base_sha256": "fa71d82a46d4f5f6806bf8be5eff7619485d9eeb44112c92302c9f7018ca3b38",
+            "patched_sha256": "32c6d001fa8f9374c3ed8cf281fbd47511283bd4ae2b02fc569b66054422f1c6",
+            "live_matches_overlay": true
+          },
+          {
+            "path": "native/oracle-core/tests/segments_contract.rs",
+            "base_sha256": "8cc31e9812f7653baa73df9979b1d03420ac4f303452283cdbc5743493261a9e",
+            "patched_sha256": "a707a15552022ba8c9ec25bf346d7a49bdef6788b5b61aa623248b0802c5d921",
+            "live_matches_overlay": true
+          }
+        ]
+      },
+      {
+        "files": [
+          {
+            "path": "native/oracle-core/tests/segments_contract.rs",
+            "before_sha256": "a707a15552022ba8c9ec25bf346d7a49bdef6788b5b61aa623248b0802c5d921",
+            "after_sha256": "2d5a111e73a08ed8ba1b937f4cc03c2190fbf8326c62171102ef32bd74a30e9e"
+          }
+        ]
+      },
+      {
+        "scope": "test-only production Date literal finite counterexample; runtime bytes unchanged",
+        "files": [
+          {
+            "path": "native/oracle-core/tests/composition_contract.rs",
+            "before_sha256": "32c6d001fa8f9374c3ed8cf281fbd47511283bd4ae2b02fc569b66054422f1c6",
+            "after_sha256": "fc8d2ec246adb9aea5f2fca89b31a3d9fa0a7ff568ea763a856d3b3d5a5af65a"
+          }
+        ]
+      }
+    ],
+    "mtime_refresh": "Touched snapshot native files after stale foundation target artifact was reused; bytes unchanged.",
+    "generated_lock_sha256": "dbba2d78c9095b59d03307ed00fa22988ead7420196e30262fca03f8f450aabf",
+    "generated_descriptors_sha256": "ceaadd5e64988b7660713dca2bd655515fd0fe1f8ad4e8b785c78fbb79d190ea",
+    "final_manifest": {
+      "path": "var/sol-wave-20261031/validation/checked-source.json",
+      "sha256": "6935098ca7b9615f07026e34aa441e396edb37ef5db3535bb8ef0e4594a3d69b",
+      "files": 722
+    },
+    "final_archive_sha256": "1cc9257be31ca0279350d4b8f73e36db923797311fb149323ebbfdcabf55674e"
+  },
+  "runs": [
+    {
+      "name": "actual-pyo3-adapters",
+      "command": "ssh hbox 'cd /tank/lanes/o7-sol-validation-20261031/integrated && ORACLE_NATIVE_TEST_EXTENSION=/tank/lanes/o7-native-20261028/target/debug/liboracle_native.so python3 -B -m unittest discover -s tests/appliance -p test_sol_surface.py'",
+      "exit": 0,
+      "elapsed_seconds": 1.669,
+      "finished_utc": "2026-10-31T14:17:21.669306+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/actual-pyo3-adapters.log",
+      "log_sha256": "c3a83593d26384c7ba197fc59d784f63c97d392d7d404bd5e99e5f1e4a48395d"
+    },
+    {
+      "name": "bio-adapter-portable-fixed",
+      "command": "cd var/sol-wave-20261031/validation/local-source && python3 -B -m unittest tools.oracle_components.test_native_bio",
+      "exit": 0,
+      "elapsed_seconds": 0.224,
+      "finished_utc": "2026-10-31T14:12:39.342151+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/bio-adapter-portable-fixed.log",
+      "log_sha256": "74c03fc16fde9a2dfeff03db0ec8f472a5a8dfed04e9e982a912b4b7f64faee3"
+    },
+    {
+      "name": "bio-contracts",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-sol-validation-20261031/integrated/native/Cargo.toml -p oracle-bio --test collection_contract --test alignment_contract -- --test-threads=1'",
+      "exit": 0,
+      "elapsed_seconds": 20.434,
+      "finished_utc": "2026-10-31T14:12:59.695566+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/bio-contracts.log",
+      "log_sha256": "ad9a3217fd6e5d01cecf849f6416304dcee8b43327326f4924d29769aed1847e"
+    },
+    {
+      "name": "blend-client",
+      "command": "cd var/sol-wave-20261031/validation/local-source && python3 -B -m unittest discover -s tests/usage -p test_exact_blend.py",
+      "exit": 0,
+      "elapsed_seconds": 0.077,
+      "finished_utc": "2026-10-31T14:06:07.755665+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/blend-client.log",
+      "log_sha256": "fe008aab760eb03ccac7578e2b84665b1b50b0d7f855b17a0c7a8d039435b658"
+    },
+    {
+      "name": "calibration-client",
+      "command": "python3 -B var/sol-wave-20261031/validation/local-source/tools/usage/specialist/calibration/test_consumer.py",
+      "exit": 0,
+      "elapsed_seconds": 0.11,
+      "finished_utc": "2026-10-31T14:06:07.398637+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/calibration-client.log",
+      "log_sha256": "d094b1bd2c8318c96097f80c50da282add5b2972970a77046de8db6c8935f6ca"
+    },
+    {
+      "name": "clients-final",
+      "command": "cd var/sol-wave-20261031/validation/local-source && python3 -B -m unittest discover -s tests/usage -p test_supplied_transport.py && python3 -B -m unittest discover -s tests/usage -p test_exact_blend.py && python3 -B -m unittest discover -s tests/usage -p test_hosted_reasoning.py && python3 -B tools/usage/specialist/calibration/test_consumer.py && python3 -B tools/usage/specialist/thermal-scenarios/test_consumer.py && python3 -B tools/usage/specialist/sequence-collection/test_consumer.py",
+      "exit": 0,
+      "elapsed_seconds": 0.713,
+      "finished_utc": "2026-10-31T14:23:21.165453+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/clients-final.log",
+      "log_sha256": "562f377d2753ad246085ec2a23767806848cf82beb031a0faebee0f18880af18"
+    },
+    {
+      "name": "descriptors-portable",
+      "command": "ssh hbox 'python3 -B /tank/lanes/o7-sol-validation-20261031/integrated/native/oracle-host/tools/snapshot_descriptors.py --host /tank/lanes/o7-native-20261028/target/debug/oracle-host'",
+      "exit": 0,
+      "elapsed_seconds": 1.518,
+      "finished_utc": "2026-10-31T14:12:54.316563+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/descriptors-portable.log",
+      "log_sha256": "e61d6be6d222c025276edf290cf3ad5f691f6239d433db7128952d8e8d96bacc"
+    },
+    {
+      "name": "descriptors",
+      "command": "ssh hbox 'python3 -B /tank/lanes/o7-sol-validation-20261031/integrated/native/oracle-host/tools/snapshot_descriptors.py --host /tank/lanes/o7-native-20261028/target/debug/oracle-host'",
+      "exit": 0,
+      "elapsed_seconds": 1.703,
+      "finished_utc": "2026-10-31T14:08:43.400383+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/descriptors.log",
+      "log_sha256": "e61d6be6d222c025276edf290cf3ad5f691f6239d433db7128952d8e8d96bacc"
+    },
+    {
+      "name": "exact-chemistry",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-sol-validation-20261031/integrated/native/Cargo.toml -p oracle-reasoning --test exact_lp_contract --test stoichiometry_contract -- --test-threads=1'",
+      "exit": 0,
+      "elapsed_seconds": 17.085,
+      "finished_utc": "2026-10-31T14:13:16.829928+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/exact-chemistry.log",
+      "log_sha256": "d4cc9c05cc38d37c0675a53acc3fd075d36e5491145b0f1ff447e10f5e32a523"
+    },
+    {
+      "name": "execution-memory",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-sol-validation-20261031/integrated/native/Cargo.toml -p oracle-execution --lib memory:: -- --test-threads=1'",
+      "exit": 0,
+      "elapsed_seconds": 3.106,
+      "finished_utc": "2026-10-31T14:09:47.794515+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/execution-memory.log",
+      "log_sha256": "84d80d2bf9738fb950310309c6ff87fc52fb7311ee4914de0c7663a52fb6edd1"
+    },
+    {
+      "name": "extracted-calibration",
+      "command": "python3 -B var/sol-wave-20261031/validation/local-source/tools/usage/specialist/calibration/score.py --geostats /Users/ember/dev/o7vn/var/expanded-runtime-20261029/geostats --out /Users/ember/dev/o7vn/var/sol-wave-20261031/validation/extracted-calibration-panel.json",
+      "exit": 0,
+      "elapsed_seconds": 0.337,
+      "finished_utc": "2026-10-31T14:05:37.380389+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/extracted-calibration.log",
+      "log_sha256": "6a4f19619100c2bf29ebd7e26c217af5841d925ceb87138d61a2dafe024a0548"
+    },
+    {
+      "name": "host-admission",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-sol-validation-20261031/integrated/native/Cargo.toml -p oracle-host --all-features --test admission -- --test-threads=1'",
+      "exit": 0,
+      "elapsed_seconds": 10.17,
+      "finished_utc": "2026-10-31T14:13:58.266697+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/host-admission.log",
+      "log_sha256": "cfc3d7722e3fabbb4adcf8dff65410daf5e4de79aa533a3f660bb126e2121940"
+    },
+    {
+      "name": "host-http",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-sol-validation-20261031/integrated/native/Cargo.toml -p oracle-host --all-features --lib http:: -- --test-threads=1'",
+      "exit": 0,
+      "elapsed_seconds": 9.378,
+      "finished_utc": "2026-10-31T14:11:07.321260+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/host-http.log",
+      "log_sha256": "f8de7192ea094eb79ba8dcd40f8d151506a630d2fb91a9eafaf0c6c3f680d6c8"
+    },
+    {
+      "name": "host-pure-fixed",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-sol-validation-20261031/integrated/native/Cargo.toml -p oracle-host --all-features --lib pure:: -- --test-threads=1'",
+      "exit": 0,
+      "elapsed_seconds": 4.398,
+      "finished_utc": "2026-10-31T14:13:48.043689+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/host-pure-fixed.log",
+      "log_sha256": "4b8d4ac9adf2ee5da7d8a837a67102a75eb647787ab0dfa6022480aa3f5a05c7"
+    },
+    {
+      "name": "host-pure",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-sol-validation-20261031/integrated/native/Cargo.toml -p oracle-host --all-features --lib pure:: -- --test-threads=1'",
+      "exit": 101,
+      "elapsed_seconds": 1.532,
+      "finished_utc": "2026-10-31T14:11:08.913512+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/host-pure.log",
+      "log_sha256": "329a99653e7cfe50205d527d2e1cb8a6f75b36e637ddc975f375e7221e0041cf"
+    },
+    {
+      "name": "host-rebuild-descriptors",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo build --locked --offline --manifest-path /tank/lanes/o7-sol-validation-20261031/integrated/native/Cargo.toml -p oracle-host --all-features'",
+      "exit": 0,
+      "elapsed_seconds": 55.23,
+      "finished_utc": "2026-10-31T14:09:41.932934+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/host-rebuild-descriptors.log",
+      "log_sha256": "47acbc264f475e607bbd9ec2b1ce210ac2a8b5ff4b355adca579239f3c96aaa1"
+    },
+    {
+      "name": "host-rebuild-portable",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo build --locked --offline --manifest-path /tank/lanes/o7-sol-validation-20261031/integrated/native/Cargo.toml -p oracle-host --all-features'",
+      "exit": 0,
+      "elapsed_seconds": 4.991,
+      "finished_utc": "2026-10-31T14:13:30.834697+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/host-rebuild-portable.log",
+      "log_sha256": "0175cd0510535f447ae14b33b11e0768394ae4ba52e44116fadd2e5b7cd0b1cb"
+    },
+    {
+      "name": "host-sol-journey-thermal-fixed",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-sol-validation-20261031/integrated/native/Cargo.toml -p oracle-host --all-features --test journey sol_consumers_discover_and_invoke_through_http -- --test-threads=1'",
+      "exit": 0,
+      "elapsed_seconds": 15.114,
+      "finished_utc": "2026-10-31T14:16:54.958522+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/host-sol-journey-thermal-fixed.log",
+      "log_sha256": "f10536678485c3866d3d71d90097bad7357af983d59facc481635b9296f07ee4"
+    },
+    {
+      "name": "host-sol-journey",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-sol-validation-20261031/integrated/native/Cargo.toml -p oracle-host --all-features --test journey sol_consumers_discover_and_invoke_through_http -- --test-threads=1'",
+      "exit": 101,
+      "elapsed_seconds": 12.616,
+      "finished_utc": "2026-10-31T14:14:10.945825+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/host-sol-journey.log",
+      "log_sha256": "63ca3589a95bfbdfcb38cd32574c2c3550b3819966da95ddd9807728eb176cba"
+    },
+    {
+      "name": "host-workers",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-sol-validation-20261031/integrated/native/Cargo.toml -p oracle-host --all-features --lib workers:: -- --test-threads=1'",
+      "exit": 0,
+      "elapsed_seconds": 12.84,
+      "finished_utc": "2026-10-31T14:10:57.888333+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/host-workers.log",
+      "log_sha256": "5298dc6b459153320d9e1b40f3e61d552e966e0918becca359201f519ecb93fa"
+    },
+    {
+      "name": "integrated-build-offline",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo build --offline --manifest-path /tank/lanes/o7-sol-validation-20261031/integrated/native/Cargo.toml -p oracle-runtime-python -p oracle-host -p oracle-statistics --all-features'",
+      "exit": 101,
+      "elapsed_seconds": 33.475,
+      "finished_utc": "2026-10-31T14:07:06.674217+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/integrated-build-offline.log",
+      "log_sha256": "857067be6cc0558a544a12efdb3f37bc505d0e85e28e370fcac8159c65e64c2a"
+    },
+    {
+      "name": "integrated-build-refreshed",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo build --locked --offline --manifest-path /tank/lanes/o7-sol-validation-20261031/integrated/native/Cargo.toml -p oracle-runtime-python -p oracle-host -p oracle-statistics --all-features'",
+      "exit": 0,
+      "elapsed_seconds": 56.469,
+      "finished_utc": "2026-10-31T14:08:31.934563+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/integrated-build-refreshed.log",
+      "log_sha256": "54a5b48abd55cbcc9743660804cb75b81cc07aa27cd1b788b53df03a5c3d1c42"
+    },
+    {
+      "name": "integrated-build",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo build --locked --manifest-path /tank/lanes/o7-sol-validation-20261031/integrated/native/Cargo.toml -p oracle-runtime-python -p oracle-host -p oracle-statistics --all-features'",
+      "exit": 101,
+      "elapsed_seconds": 1.599,
+      "finished_utc": "2026-10-31T14:05:56.971110+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/integrated-build.log",
+      "log_sha256": "8798b4f6c49bafac5e56d3643980b3f771b1b582f7090ac65057625f08fbd12a"
+    },
+    {
+      "name": "integrated-thermal-rebuild",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo build --locked --offline --manifest-path /tank/lanes/o7-sol-validation-20261031/integrated/native/Cargo.toml -p oracle-host -p oracle-runtime-python -p oracle-statistics --all-features'",
+      "exit": 0,
+      "elapsed_seconds": 6.205,
+      "finished_utc": "2026-10-31T14:16:20.850332+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/integrated-thermal-rebuild.log",
+      "log_sha256": "1f87f175ad5683e0b8d27c92c14f421a3c0656f370321ca4197387acadd86518"
+    },
+    {
+      "name": "plural-export-delta",
+      "command": "ssh hbox 'python3 -B /tank/lanes/o7-sol-validation-20261031/integrated/tools/reader_audit/export_delta.py /tank/lanes/o7-native-20261028/data/reader-v1.json /tank/lanes/o7-sol-validation-20261031/plural-retrain/reader-plural.json /tank/lanes/o7-sol-validation-20261031/plural-delta.json'",
+      "exit": 0,
+      "elapsed_seconds": 20.091,
+      "finished_utc": "2026-10-31T14:20:32.512160+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/plural-export-delta.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "plural-full-learning",
+      "command": "ssh hbox 'python3 -B /tank/lanes/o7-sol-validation-20261031/integrated/tools/reader_audit/prepare_plural_export.py --source-dir /tank/lanes/o7-native-20261028/source/swarm --train /tank/lanes/o7-native-20261028/data/train.json --kb /tank/lanes/o7-native-20261028/data/kb.json --work /tank/lanes/o7-sol-validation-20261031/plural-retrain'",
+      "exit": 0,
+      "elapsed_seconds": 67.247,
+      "finished_utc": "2026-10-31T14:18:37.905873+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/plural-full-learning.log",
+      "log_sha256": "62a5f1e39e33b2103cfda5b6664bdf06cffcb5e8eeff2df741eefa3085e3b6f4"
+    },
+    {
+      "name": "plural-image-build",
+      "command": "ssh hbox 'python3 -B /tank/lanes/o7-sol-validation-20261031/build_reader_candidate.py'",
+      "exit": 0,
+      "elapsed_seconds": 267.207,
+      "finished_utc": "2026-10-31T14:25:33.688326+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/plural-image-build.log",
+      "log_sha256": "e62205b028a9c45d8e232dad903352763f5681c73d1535fb704ae6e30ee45cd5"
+    },
+    {
+      "name": "python-adapters-fixed",
+      "command": "cd var/sol-wave-20261031/validation/local-source && python3 -B -m unittest tools.oracle_components.test_native_statistics tools.oracle_components.test_native_science tools.oracle_components.test_native_bio tools.oracle_components.test_reasoning",
+      "exit": 0,
+      "elapsed_seconds": 0.168,
+      "finished_utc": "2026-10-31T14:06:44.961189+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/python-adapters-fixed.log",
+      "log_sha256": "21503872298181f3e7052bc82815acf3f74fda50e2d0e1a1ff7738b5bab297e6"
+    },
+    {
+      "name": "python-adapters",
+      "command": "cd var/sol-wave-20261031/validation/local-source && python3 -B -m unittest tools.oracle_components.test_native_statistics tools.oracle_components.test_native_science tools.oracle_components.test_native_bio tools.oracle_components.test_reasoning",
+      "exit": 1,
+      "elapsed_seconds": 0.462,
+      "finished_utc": "2026-10-31T14:06:07.246551+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/python-adapters.log",
+      "log_sha256": "10b96fe6cdd19136f4c886ff0c299b25f0ad962994ec03e88828fbd11b28a1bd"
+    },
+    {
+      "name": "query-sharing-actual",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-sol-validation-20261031/integrated/native/Cargo.toml -p oracle-runtime-core --lib query:: -- --test-threads=1'",
+      "exit": 0,
+      "elapsed_seconds": 2.196,
+      "finished_utc": "2026-10-31T14:11:40.733086+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/query-sharing-actual.log",
+      "log_sha256": "b6540f3ffba56627ccc47c8bde4d09a83c0e95c1ebe0ca0efe17cfd4765a437a"
+    },
+    {
+      "name": "query-sharing",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-sol-validation-20261031/integrated/native/Cargo.toml -p oracle-runtime-core --lib query::tests -- --test-threads=1'",
+      "exit": 0,
+      "elapsed_seconds": 1.58,
+      "finished_utc": "2026-10-31T14:10:12.960930+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/query-sharing.log",
+      "log_sha256": "964229a7fa391032b3b3bdfab7e514dc6042c8db3f172def929c0e8bdd8ab803"
+    },
+    {
+      "name": "reader-5s-diagnostic",
+      "command": "ssh hbox 'python3 -B /tank/lanes/o7-sol-validation-20261031/reader_deadline_diagnostic.py'",
+      "exit": 0,
+      "elapsed_seconds": 26.712,
+      "finished_utc": "2026-10-31T14:35:37.128448+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/reader-5s-diagnostic.log",
+      "log_sha256": "55734be97c886a88ebdcb37af8703a5ea7c6e5c3747c14452078d554dff51421"
+    },
+    {
+      "name": "reader-contracts",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-sol-validation-20261031/integrated/native/Cargo.toml -p oracle-runtime-core --test reader_contract --test composition_contract --test segments_contract --test runtime_language_contract -- --test-threads=1'",
+      "exit": 0,
+      "elapsed_seconds": 31.95,
+      "finished_utc": "2026-10-31T14:10:44.968856+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/reader-contracts.log",
+      "log_sha256": "3fd9362f88e6ad7d336f77d007fd0a10a106fa02272b9c799c657d654bbc75f4"
+    },
+    {
+      "name": "reader-date-literal-refusal-fixture",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-sol-validation-20261031/integrated/native/Cargo.toml -p oracle-runtime-core --test composition_contract demanded_unsupported_or_scalar_fragment_vetoes_a_successful_whole_reading -- --test-threads=1'",
+      "exit": 0,
+      "elapsed_seconds": 2.034,
+      "finished_utc": "2026-10-31T14:32:28.877589+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/reader-date-literal-refusal-fixture.log",
+      "log_sha256": "fb1a923a85911d3c779c81dbdaa5f8eddc4523932e4a12f231ccb3aaa1301723"
+    },
+    {
+      "name": "reader-final-candidate-cells-quiet",
+      "command": "ssh hbox 'python3 -B /tank/lanes/o7-sol-validation-20261031/reader_final_cells_quiet.py'",
+      "exit": 0,
+      "elapsed_seconds": 44.118,
+      "finished_utc": "2026-10-31T14:34:30.322459+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/reader-final-candidate-cells-quiet.log",
+      "log_sha256": "d185433acca0e06f74902da083853dfad440bba29241146dd2fad74be1b035b6"
+    },
+    {
+      "name": "reader-final-candidate-cells",
+      "command": "ssh hbox 'python3 -B /tank/lanes/o7-sol-validation-20261031/reader_final_cells.py'",
+      "exit": 0,
+      "elapsed_seconds": 50.482,
+      "finished_utc": "2026-10-31T14:32:29.830688+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/reader-final-candidate-cells.log",
+      "log_sha256": "e6ddb54ff50d38a20bf5d0785d2cf94f5c1b0280b46704a408b6948be5a8a818"
+    },
+    {
+      "name": "reader-four-cell-freeze",
+      "command": "ssh hbox 'python3 -B /tank/lanes/o7-sol-validation-20261031/freeze_reader.py'",
+      "exit": 0,
+      "elapsed_seconds": 4.149,
+      "finished_utc": "2026-10-31T14:25:46.366677+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/reader-four-cell-freeze.log",
+      "log_sha256": "1b3c8f2360d023bdc2ab9e69cf2ff402d88a43960ddfc04a7da4d95716f2d601"
+    },
+    {
+      "name": "reader-four-cells",
+      "command": "ssh hbox 'python3 -B /tank/lanes/o7-sol-validation-20261031/integrated/tools/reader_audit/compare_frozen.py --manifest /tank/lanes/o7-sol-validation-20261031/reader-four-cell-manifest.json --work /tank/lanes/o7-sol-validation-20261031/reader-four-cells'",
+      "exit": 1,
+      "elapsed_seconds": 88.336,
+      "finished_utc": "2026-10-31T14:27:14.757719+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/reader-four-cells.log",
+      "log_sha256": "0be4133d0d98cc8f2ce8fec6072c4d68699316c97198a18867cbd280550f393a"
+    },
+    {
+      "name": "reader-intern",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-sol-validation-20261031/integrated/native/Cargo.toml -p oracle-runtime-core --lib reader::compilation_tests -- --test-threads=1'",
+      "exit": 0,
+      "elapsed_seconds": 23.455,
+      "finished_utc": "2026-10-31T14:10:11.319700+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/reader-intern.log",
+      "log_sha256": "b603767b381f43cf336800e917685887741f72ecc30c372ff63d3c116bb61f5c"
+    },
+    {
+      "name": "reader-refusal-artifacts-build",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo build --locked --offline --manifest-path /tank/lanes/o7-sol-validation-20261031/integrated/native/Cargo.toml -p oracle-host -p oracle-runtime-python --all-features'",
+      "exit": 0,
+      "elapsed_seconds": 13.263,
+      "finished_utc": "2026-10-31T14:31:06.631605+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/reader-refusal-artifacts-build.log",
+      "log_sha256": "567072e210a76577c513bf06ea33d3343d6b399d27a90808eddb4e54a19e6786"
+    },
+    {
+      "name": "reader-segments-refusal-fixed",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-sol-validation-20261031/integrated/native/Cargo.toml -p oracle-runtime-core --test segments_contract -- --test-threads=1'",
+      "exit": 0,
+      "elapsed_seconds": 4.578,
+      "finished_utc": "2026-10-31T14:30:46.479206+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/reader-segments-refusal-fixed.log",
+      "log_sha256": "a6a96e8f6461bcf1a5b9062ae58ffe2807dc7f5d923dd9837c98b231efd7ec6e"
+    },
+    {
+      "name": "reader-unsupported-refusal-contracts",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-sol-validation-20261031/integrated/native/Cargo.toml -p oracle-runtime-core --test composition_contract --test segments_contract --test reader_contract -- --test-threads=1'",
+      "exit": 101,
+      "elapsed_seconds": 8.614,
+      "finished_utc": "2026-10-31T14:30:00.904955+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/reader-unsupported-refusal-contracts.log",
+      "log_sha256": "7b844bbe110c37c07e05c6b90de1b97867a0825136487124cbfa39b4df8b33fe"
+    },
+    {
+      "name": "real-host-panels-final",
+      "command": "ssh hbox 'python3 -B /tank/lanes/o7-sol-validation-20261031/host_panels_final.py'",
+      "exit": 0,
+      "elapsed_seconds": 11.92,
+      "finished_utc": "2026-10-31T14:22:37.090144+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/real-host-panels-final.log",
+      "log_sha256": "af3ff9896a1b2327cf21d4a93d9c4bd9a311e0766ce99a6af575389d0d418fd8"
+    },
+    {
+      "name": "real-host-panels-fixed",
+      "command": "ssh hbox 'python3 -B /tank/lanes/o7-sol-validation-20261031/host_panels_fixed.py'",
+      "exit": 1,
+      "elapsed_seconds": 12.831,
+      "finished_utc": "2026-10-31T14:20:11.306677+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/real-host-panels-fixed.log",
+      "log_sha256": "5904ef10a32d6d146b8f26205c75b95c23f2371d0f10d9ec278d81fbe0576318"
+    },
+    {
+      "name": "real-host-panels",
+      "command": "ssh hbox 'python3 -B /tank/lanes/o7-sol-validation-20261031/host_panels.py'",
+      "exit": 1,
+      "elapsed_seconds": 11.61,
+      "finished_utc": "2026-10-31T14:14:56.178429+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/real-host-panels.log",
+      "log_sha256": "c1ccab2a5740f80e3da5d29c436c264420815536f83abc2457fb2912e38f8b21"
+    },
+    {
+      "name": "retain-final-artifacts",
+      "command": "ssh hbox 'mkdir -p /tank/lanes/o7-sol-validation-20261031/candidate-final; cp --reflink=never /tank/lanes/o7-native-20261028/target/debug/liboracle_native.so /tank/lanes/o7-sol-validation-20261031/candidate-final/oracle_native.so; cp --reflink=never /tank/lanes/o7-native-20261028/target/debug/oracle-host /tank/lanes/o7-sol-validation-20261031/candidate-final/oracle-host; sha256sum /tank/lanes/o7-sol-validation-20261031/candidate-final/*'",
+      "exit": 0,
+      "elapsed_seconds": 7.245,
+      "finished_utc": "2026-10-31T14:31:29.814661+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/retain-final-artifacts.log",
+      "log_sha256": "d2e37e1b08bee4b9ae62d97024574047763cb3248561799b20d370ec3f94b5e1"
+    },
+    {
+      "name": "retain-integrated-artifacts",
+      "command": "ssh hbox 'mkdir -p /tank/lanes/o7-sol-validation-20261031/candidate; cp --reflink=never /tank/lanes/o7-native-20261028/target/debug/liboracle_native.so /tank/lanes/o7-sol-validation-20261031/candidate/oracle_native.so; cp --reflink=never /tank/lanes/o7-native-20261028/target/debug/oracle-host /tank/lanes/o7-sol-validation-20261031/candidate/oracle-host; sha256sum /tank/lanes/o7-sol-validation-20261031/candidate/*'",
+      "exit": 0,
+      "elapsed_seconds": 14.62,
+      "finished_utc": "2026-10-31T14:17:15.743861+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/retain-integrated-artifacts.log",
+      "log_sha256": "746f6e76182121619edb362d6348cb90707f8829205203d8f8df06a754d8b709"
+    },
+    {
+      "name": "science-contracts",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-sol-validation-20261031/integrated/native/Cargo.toml -p oracle-science --test thermal_scenarios --test thermal -- --test-threads=1'",
+      "exit": 0,
+      "elapsed_seconds": 21.761,
+      "finished_utc": "2026-10-31T14:12:39.217490+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/science-contracts.log",
+      "log_sha256": "37163da982af1efa12bf9d9949a6002ae381ecdc703022919f6e4607639c4d16"
+    },
+    {
+      "name": "sequence-client",
+      "command": "python3 -B var/sol-wave-20261031/validation/local-source/tools/usage/specialist/sequence-collection/test_consumer.py",
+      "exit": 0,
+      "elapsed_seconds": 0.075,
+      "finished_utc": "2026-10-31T14:06:07.627068+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/sequence-client.log",
+      "log_sha256": "feabb4add9e2ca3374e538560634d1ec97dc4f4ce89aab12f3d726e36ea9b2f6"
+    },
+    {
+      "name": "shipped-statistics-controls",
+      "command": "PARITY_UPSTREAM=/Users/ember/dev/o7vn/upstream python3 -B var/sol-wave-20261031/validation/local-source/tools/parity/harness.py --answerer /Users/ember/dev/o7vn/var/expanded-runtime-20261029/geostats --lane-answerer /Users/ember/dev/o7vn/var/expanded-runtime-20261029/geostats --specialist statistics,statistics-v2,statistics-v3 --split both --out /Users/ember/dev/o7vn/var/sol-wave-20261031/validation/shipped-statistics-controls",
+      "exit": 0,
+      "elapsed_seconds": 2.261,
+      "finished_utc": "2026-10-31T14:07:14.524500+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/shipped-statistics-controls.log",
+      "log_sha256": "92eee9f75b1cac1fa01696afba52df33605370976e30ead084f9123fcfda18eb"
+    },
+    {
+      "name": "statistics-contracts",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-sol-validation-20261031/integrated/native/Cargo.toml -p oracle-statistics --test calibration --test regression -- --test-threads=1'",
+      "exit": 0,
+      "elapsed_seconds": 24.553,
+      "finished_utc": "2026-10-31T14:12:17.367030+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/statistics-contracts.log",
+      "log_sha256": "56ff4e28e393f5293f8bde3c82c686f4e5c56ecb28f9ccc08a76339230933da6"
+    },
+    {
+      "name": "supplied-transport",
+      "command": "cd var/sol-wave-20261031/validation/local-source && python3 -B -m unittest discover -s tests/usage -p test_supplied_transport.py",
+      "exit": 0,
+      "elapsed_seconds": 0.988,
+      "finished_utc": "2026-10-31T14:19:50.830626+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/supplied-transport.log",
+      "log_sha256": "b70aaee4b98aed3c929b11d2edf077f243b297ed21e6fabbffb70bd38d82b0f9"
+    },
+    {
+      "name": "thermal-client",
+      "command": "python3 -B var/sol-wave-20261031/validation/local-source/tools/usage/specialist/thermal-scenarios/test_consumer.py",
+      "exit": 0,
+      "elapsed_seconds": 0.072,
+      "finished_utc": "2026-10-31T14:06:07.510611+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/thermal-client.log",
+      "log_sha256": "6273232de4d3ef7acd4ecafa5c86beeeb974f56586b21089a2990b3f72facbe6"
+    },
+    {
+      "name": "thermal-default-memory-fixed",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-sol-validation-20261031/integrated/native/Cargo.toml -p oracle-science --test thermal_scenarios -- --test-threads=1'",
+      "exit": 0,
+      "elapsed_seconds": 4.046,
+      "finished_utc": "2026-10-31T14:16:08.267242+00:00",
+      "log": "/Users/ember/dev/o7vn/var/sol-wave-20261031/validation/thermal-default-memory-fixed.log",
+      "log_sha256": "43839ccf4be0da27e1ceb385641fb225946c3550c4b9648e9e181f5854a67250"
+    }
+  ],
+  "resource_check": {
+    "host": "hbox",
+    "available_memory_gib": 48,
+    "available_disk_gib": 525,
+    "load_1m": 37.15,
+    "note": "Existing high host load; correctness validation only, no performance claims."
+  },
+  "foundation_extension": {
+    "commit": "f0dfad77669dfb3f97f6680cd452b406bcfae271",
+    "host": "hbox",
+    "path": "/tank/lanes/o7-sol-validation-20261031/foundation/oracle_native.so",
+    "sha256": "ccf89835a39402cc7a24e8acc6eccad2724322e65002dbb6768d7246a4395bce",
+    "profile": "dev",
+    "features": "all",
+    "command": "CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo build --locked --manifest-path /tank/lanes/o7-sol-measurement-20261031/foundation/native/Cargo.toml -p oracle-runtime-python --all-features",
+    "exit": 0,
+    "log": "var/sol-wave-20261031/validation/foundation-extension-build.log",
+    "log_sha256": "0f074bcda7b02f96c8d5c796b558e0e3da795981b602994e52aec4c229e3b018"
+  },
+  "known_failures": [
+    {
+      "issue": "Warm target reused stale execution artifact across snapshots",
+      "resolved": "Refresh only owned snapshot mtimes; rerun compile succeeded."
+    },
+    {
+      "issue": "Cargo.lock missing new sha2 edges",
+      "resolved": "Offline generated lock adds two existing dependency edges; no versions changed."
+    },
+    {
+      "issue": "Reasoning tests use catalog positions",
+      "resolved": "Lookup by operation ID;46adapterchecks passed."
+    },
+    {
+      "issue": "DNA trailing newline and nonportable lookahead",
+      "resolved": "Portable schema plus explicit Python fullmatch;7bioadapterchecks and7hostpurechecks pass."
+    },
+    {
+      "issue": "Thermal reserves fixed64MiB scratch under host32MiB",
+      "resolved": "Actual-dimension scratch reservation;9thermalchecks and realHTTP4ops pass."
+    },
+    {
+      "issue": "Consumer tenant/envelope/import errors",
+      "resolved": "Shared helper and sibling imports;22clienttests and46hostedworkflowcases pass."
+    },
+    {
+      "issue": "Calibration scorer rejects intended resultless input refusal",
+      "resolved": "Only explicit native_request_refused credits expected.error;16hostcases pass."
+    },
+    {
+      "issue": "Grammar repair exposes unsupported Date-literal demanded fragment",
+      "resolved": "Candidate structuredUnsupportedProgram refusal; finite unsupported/scalar/invalidDate+validwhole competitor regressionpasses; data-onlycontrolerror retained."
+    }
+  ],
+  "candidate_artifacts": {
+    "host": {
+      "path": "/tank/lanes/o7-sol-validation-20261031/candidate-final/oracle-host",
+      "sha256": "6a0a0f0ddaaecf205b8b7d8593eba1f799535d3723ae377f2a77329afd08e9e7"
+    },
+    "extension": {
+      "path": "/tank/lanes/o7-sol-validation-20261031/candidate-final/oracle_native.so",
+      "sha256": "d37a5e4e3c3d892592d2902bc44f5e3d620b94ff39714e825b1a044f1d6f5997"
+    }
+  },
+  "scoped_tests": {
+    "rust_unique_passed": 188,
+    "rust_opt_in_ignored": 1,
+    "note": "Sum of final affected Rust contract/filter groups; successful unrelated groups were not rerun after Python-only fixes. Failed runs retained below.",
+    "python_unique_passed": 78,
+    "python_breakdown": {
+      "adapter_contracts": 47,
+      "usage_client_contracts": 22,
+      "actual_all_provider_extension": 1,
+      "plural_alignment_fixtures": 8
+    }
+  },
+  "reader_experiment": {
+    "scope": "Pinned original100datasetcontrol plus16source-verified cases; fresh child for each code/data cell; not shipped specialist score.",
+    "manifest": {
+      "retained100": {
+        "path": "/tank/lanes/o7-sol-validation-20261031/retained100.json",
+        "sha256": "9089a3c9f5bdee2cb916ad775b41b4631f91d35393e26e9a376eb7bb0a863d15"
+      },
+      "targeted16": {
+        "path": "/tank/lanes/o7-sol-validation-20261031/integrated/native/tests/composition_cases_targeted_20261029.json",
+        "sha256": "388810fd2d99c1f25e2e53b0e906e21669915c7836a8fd1524967d755862b853"
+      },
+      "extensions": {
+        "control": {
+          "path": "/tank/lanes/o7-sol-validation-20261031/foundation/oracle_native.so",
+          "sha256": "ccf89835a39402cc7a24e8acc6eccad2724322e65002dbb6768d7246a4395bce",
+          "coverage": "whole_and_exact_fragment_outer_v1+exact_segment_and_single_nested_v1"
+        },
+        "candidate": {
+          "path": "/tank/lanes/o7-sol-validation-20261031/candidate/oracle_native.so",
+          "sha256": "1f62efd2654cad664defa9f36da6bcbb873ce863c56d8f2756abcd471e447bad",
+          "coverage": "whole_and_exact_fragment_outer_v1+exact_segment_and_single_nested_v1"
+        }
+      },
+      "images": {
+        "control": {
+          "path": "/tank/lanes/o7-native-20261028/data/reader-image-v3.sqlite",
+          "sha256": "8fcb1db9a08e234179f66ea9e032d2633b38cdcb902f4c95d1ba2c2d49c842f4"
+        },
+        "candidate": {
+          "path": "/tank/lanes/o7-sol-validation-20261031/reader-plural.sqlite",
+          "sha256": "0522cdc44f8c485385c6737623916750e3fe6eedc39c9072190d084b5cac86a8"
+        }
+      },
+      "limits": {
+        "workers": 2,
+        "timeout_ms": 1000,
+        "fuel": 10000000
+      },
+      "process_timeout_seconds": 600
+    },
+    "candidate_image_receipt": {
+      "schema": "oracle-image-v3",
+      "image_sha256": "0522cdc44f8c485385c6737623916750e3fe6eedc39c9072190d084b5cac86a8",
+      "source_sha256": "04da7408320c5cb7023c44372cce32846d56d369d8865d2e61a18c3956661a7c",
+      "nodes": 17754,
+      "edges": 435900,
+      "bytes": 260026368,
+      "capabilities": {
+        "version": 1,
+        "lexicon": "oracle-lexicon-v1",
+        "reader": "oracle-reader-tables-v1"
+      }
+    },
+    "full_learning_seconds": 67.247,
+    "source_alignment_tests_passed": 8,
+    "delta": {
+      "templates_removed": 2392,
+      "templates_added": 1403,
+      "shapes_removed": 857,
+      "shapes_added": 488,
+      "aliases_changed": false,
+      "words_changed": false,
+      "forms_changed": false,
+      "policy_changed": false,
+      "poisoned_which_X1_Count": "All candidate outer whichX1 Count skeletons have singleton support; previous support2 split; number-of wording retained with support2 in level0/1."
+    },
+    "four_cell_results": {
+      "counts": {
+        "baseline": {
+          "retained100:": {
+            "unanswered": 64,
+            "answered_correct": 36
+          },
+          "targeted16:": {
+            "unanswered": 8,
+            "answered_correct": 2,
+            "declined_expected": 6
+          }
+        },
+        "code_only": {
+          "retained100:": {
+            "unanswered": 64,
+            "answered_correct": 36
+          },
+          "targeted16:": {
+            "unanswered": 8,
+            "answered_correct": 2,
+            "declined_expected": 6
+          }
+        },
+        "data_only": {
+          "retained100:": {
+            "unanswered": 63,
+            "answered_correct": 36,
+            "errors": 1
+          },
+          "targeted16:": {
+            "answered_correct": 10,
+            "declined_expected": 6
+          }
+        },
+        "combined": {
+          "retained100:": {
+            "unanswered": 63,
+            "answered_correct": 36,
+            "errors": 1
+          },
+          "targeted16:": {
+            "answered_correct": 10,
+            "declined_expected": 6
+          }
+        }
+      },
+      "changed_semantics_or_evidence": {
+        "baseline_to_code_only": [],
+        "baseline_to_data_only": [
+          {
+            "id": "retained100:3625",
+            "before": "unanswered",
+            "after": "errors"
+          },
+          {
+            "id": "targeted16:baseline_city_website_saskatoon",
+            "before": "unanswered",
+            "after": "answered_correct"
+          },
+          {
+            "id": "targeted16:segment_city_website_population_saskatoon",
+            "before": "unanswered",
+            "after": "answered_correct"
+          },
+          {
+            "id": "targeted16:segment_city_population_website_saskatoon",
+            "before": "unanswered",
+            "after": "answered_correct"
+          },
+          {
+            "id": "targeted16:nested_university_city_website_saskatoon",
+            "before": "unanswered",
+            "after": "answered_correct"
+          },
+          {
+            "id": "targeted16:nested_university_city_website_population_saskatoon",
+            "before": "unanswered",
+            "after": "answered_correct"
+          },
+          {
+            "id": "targeted16:nested_university_city_website_population_belfast",
+            "before": "unanswered",
+            "after": "answered_correct"
+          },
+          {
+            "id": "targeted16:nested_headquarters_city_website_population_bristol",
+            "before": "unanswered",
+            "after": "answered_correct"
+          },
+          {
+            "id": "targeted16:segment_city_website_population_bristol",
+            "before": "unanswered",
+            "after": "answered_correct"
+          },
+          {
+            "id": "targeted16:ambiguous_human_selection_bristol",
+            "before": "declined_expected",
+            "after": "declined_expected"
+          },
+          {
+            "id": "targeted16:ambiguous_university_selection_cardiff",
+            "before": "declined_expected",
+            "after": "declined_expected"
+          }
+        ],
+        "data_only_to_combined": [],
+        "baseline_to_combined": [
+          {
+            "id": "retained100:3625",
+            "before": "unanswered",
+            "after": "errors"
+          },
+          {
+            "id": "targeted16:baseline_city_website_saskatoon",
+            "before": "unanswered",
+            "after": "answered_correct"
+          },
+          {
+            "id": "targeted16:segment_city_website_population_saskatoon",
+            "before": "unanswered",
+            "after": "answered_correct"
+          },
+          {
+            "id": "targeted16:segment_city_population_website_saskatoon",
+            "before": "unanswered",
+            "after": "answered_correct"
+          },
+          {
+            "id": "targeted16:nested_university_city_website_saskatoon",
+            "before": "unanswered",
+            "after": "answered_correct"
+          },
+          {
+            "id": "targeted16:nested_university_city_website_population_saskatoon",
+            "before": "unanswered",
+            "after": "answered_correct"
+          },
+          {
+            "id": "targeted16:nested_university_city_website_population_belfast",
+            "before": "unanswered",
+            "after": "answered_correct"
+          },
+          {
+            "id": "targeted16:nested_headquarters_city_website_population_bristol",
+            "before": "unanswered",
+            "after": "answered_correct"
+          },
+          {
+            "id": "targeted16:segment_city_website_population_bristol",
+            "before": "unanswered",
+            "after": "answered_correct"
+          },
+          {
+            "id": "targeted16:ambiguous_human_selection_bristol",
+            "before": "declined_expected",
+            "after": "declined_expected"
+          },
+          {
+            "id": "targeted16:ambiguous_university_selection_cardiff",
+            "before": "declined_expected",
+            "after": "declined_expected"
+          }
+        ]
+      },
+      "scope": "finite reader cohorts; no shipped specialist panel score; retained100 are dataset text controls, targeted16 additionally require source-verified entity sets",
+      "comparison": "Complete readings/programs/entities/facts/attributes retained in each observations.json; review evidence and changed refusal obligations before accepting code equivalence."
+    },
+    "first_four_cell_results": {
+      "counts": {
+        "baseline": {
+          "retained100:": {
+            "unanswered": 64,
+            "answered_correct": 36
+          },
+          "targeted16:": {
+            "unanswered": 8,
+            "answered_correct": 2,
+            "declined_expected": 6
+          }
+        },
+        "code_only": {
+          "retained100:": {
+            "unanswered": 64,
+            "answered_correct": 36
+          },
+          "targeted16:": {
+            "unanswered": 8,
+            "answered_correct": 2,
+            "declined_expected": 6
+          }
+        },
+        "data_only": {
+          "retained100:": {
+            "unanswered": 63,
+            "answered_correct": 36,
+            "errors": 1
+          },
+          "targeted16:": {
+            "answered_correct": 10,
+            "declined_expected": 6
+          }
+        },
+        "combined": {
+          "retained100:": {
+            "unanswered": 63,
+            "answered_correct": 36,
+            "errors": 1
+          },
+          "targeted16:": {
+            "answered_correct": 10,
+            "declined_expected": 6
+          }
+        }
+      },
+      "changed_semantics_or_evidence": {
+        "baseline_to_code_only": [],
+        "baseline_to_data_only": [
+          {
+            "id": "retained100:3625",
+            "before": "unanswered",
+            "after": "errors"
+          },
+          {
+            "id": "targeted16:baseline_city_website_saskatoon",
+            "before": "unanswered",
+            "after": "answered_correct"
+          },
+          {
+            "id": "targeted16:segment_city_website_population_saskatoon",
+            "before": "unanswered",
+            "after": "answered_correct"
+          },
+          {
+            "id": "targeted16:segment_city_population_website_saskatoon",
+            "before": "unanswered",
+            "after": "answered_correct"
+          },
+          {
+            "id": "targeted16:nested_university_city_website_saskatoon",
+            "before": "unanswered",
+            "after": "answered_correct"
+          },
+          {
+            "id": "targeted16:nested_university_city_website_population_saskatoon",
+            "before": "unanswered",
+            "after": "answered_correct"
+          },
+          {
+            "id": "targeted16:nested_university_city_website_population_belfast",
+            "before": "unanswered",
+            "after": "answered_correct"
+          },
+          {
+            "id": "targeted16:nested_headquarters_city_website_population_bristol",
+            "before": "unanswered",
+            "after": "answered_correct"
+          },
+          {
+            "id": "targeted16:segment_city_website_population_bristol",
+            "before": "unanswered",
+            "after": "answered_correct"
+          },
+          {
+            "id": "targeted16:ambiguous_human_selection_bristol",
+            "before": "declined_expected",
+            "after": "declined_expected"
+          },
+          {
+            "id": "targeted16:ambiguous_university_selection_cardiff",
+            "before": "declined_expected",
+            "after": "declined_expected"
+          }
+        ],
+        "data_only_to_combined": [],
+        "baseline_to_combined": [
+          {
+            "id": "retained100:3625",
+            "before": "unanswered",
+            "after": "errors"
+          },
+          {
+            "id": "targeted16:baseline_city_website_saskatoon",
+            "before": "unanswered",
+            "after": "answered_correct"
+          },
+          {
+            "id": "targeted16:segment_city_website_population_saskatoon",
+            "before": "unanswered",
+            "after": "answered_correct"
+          },
+          {
+            "id": "targeted16:segment_city_population_website_saskatoon",
+            "before": "unanswered",
+            "after": "answered_correct"
+          },
+          {
+            "id": "targeted16:nested_university_city_website_saskatoon",
+            "before": "unanswered",
+            "after": "answered_correct"
+          },
+          {
+            "id": "targeted16:nested_university_city_website_population_saskatoon",
+            "before": "unanswered",
+            "after": "answered_correct"
+          },
+          {
+            "id": "targeted16:nested_university_city_website_population_belfast",
+            "before": "unanswered",
+            "after": "answered_correct"
+          },
+          {
+            "id": "targeted16:nested_headquarters_city_website_population_bristol",
+            "before": "unanswered",
+            "after": "answered_correct"
+          },
+          {
+            "id": "targeted16:segment_city_website_population_bristol",
+            "before": "unanswered",
+            "after": "answered_correct"
+          },
+          {
+            "id": "targeted16:ambiguous_human_selection_bristol",
+            "before": "declined_expected",
+            "after": "declined_expected"
+          },
+          {
+            "id": "targeted16:ambiguous_university_selection_cardiff",
+            "before": "declined_expected",
+            "after": "declined_expected"
+          }
+        ]
+      },
+      "scope": "finite reader cohorts; no shipped specialist panel score; retained100 are dataset text controls, targeted16 additionally require source-verified entity sets",
+      "comparison": "Complete readings/programs/entities/facts/attributes retained in each observations.json; review evidence and changed refusal obligations before accepting code equivalence."
+    },
+    "failure": {
+      "id": "retained100:3625",
+      "question": "How many national cuisines are in the sovereign state country whose inflation rate is 49.3 percentage?",
+      "error": "ValueError: invalid input: unsupported composition fragment",
+      "cells": [
+        "data_only",
+        "combined"
+      ],
+      "attribution": "Triggered by grammar data; both code versions fail. No dataset answer-coverage gain. Candidate refusal repair pending; control error retained.",
+      "resolution": "Finalcandidate structuredUnsupportedProgram refusal; original dataonlyfailure retained."
+    },
+    "final_candidate_reruns": {
+      "reader-final-cells": {
+        "code_only": {
+          "counts": {
+            "retained100:": {
+              "unanswered": 64,
+              "answered_correct": 36
+            },
+            "targeted16:": {
+              "unanswered": 7,
+              "errors": 4,
+              "answered_correct": 1,
+              "declined_expected": 4
+            }
+          },
+          "changes_from_baseline": [
+            {
+              "id": "targeted16:nested_headquarters_city_website_population_bristol",
+              "before": "unanswered",
+              "after": "errors",
+              "after_status": null,
+              "after_reason": null
+            },
+            {
+              "id": "targeted16:nested_university_count_cardiff",
+              "before": "answered_correct",
+              "after": "errors",
+              "after_status": null,
+              "after_reason": null
+            },
+            {
+              "id": "targeted16:ambiguous_university_selection_cardiff",
+              "before": "declined_expected",
+              "after": "errors",
+              "after_status": null,
+              "after_reason": null
+            },
+            {
+              "id": "targeted16:empty_parent_headquarters_saskatoon",
+              "before": "declined_expected",
+              "after": "errors",
+              "after_status": null,
+              "after_reason": null
+            }
+          ]
+        },
+        "combined": {
+          "counts": {
+            "retained100:": {
+              "unanswered": 64,
+              "answered_correct": 36
+            },
+            "targeted16:": {
+              "answered_correct": 8,
+              "errors": 3,
+              "declined_expected": 5
+            }
+          },
+          "changes_from_data_only": [
+            {
+              "id": "retained100:3625",
+              "before": "errors",
+              "after": "unanswered",
+              "after_status": "refused",
+              "after_reason": "unsupported_program"
+            },
+            {
+              "id": "targeted16:nested_headquarters_city_website_population_bristol",
+              "before": "answered_correct",
+              "after": "errors",
+              "after_status": null,
+              "after_reason": null
+            },
+            {
+              "id": "targeted16:nested_university_count_cardiff",
+              "before": "answered_correct",
+              "after": "errors",
+              "after_status": null,
+              "after_reason": null
+            },
+            {
+              "id": "targeted16:ambiguous_university_selection_cardiff",
+              "before": "declined_expected",
+              "after": "errors",
+              "after_status": null,
+              "after_reason": null
+            }
+          ]
+        }
+      },
+      "reader-final-cells-quiet": {
+        "code_only": {
+          "counts": {
+            "retained100:": {
+              "unanswered": 64,
+              "answered_correct": 36
+            },
+            "targeted16:": {
+              "unanswered": 8,
+              "answered_correct": 2,
+              "declined_expected": 4,
+              "errors": 2
+            }
+          },
+          "changes_from_baseline": [
+            {
+              "id": "targeted16:ambiguous_university_selection_cardiff",
+              "before": "declined_expected",
+              "after": "errors",
+              "after_status": null,
+              "after_reason": null
+            },
+            {
+              "id": "targeted16:empty_parent_headquarters_saskatoon",
+              "before": "declined_expected",
+              "after": "errors",
+              "after_status": null,
+              "after_reason": null
+            }
+          ]
+        },
+        "combined": {
+          "counts": {
+            "retained100:": {
+              "unanswered": 64,
+              "answered_correct": 35,
+              "errors": 1
+            },
+            "targeted16:": {
+              "answered_correct": 10,
+              "declined_expected": 6
+            }
+          },
+          "changes_from_data_only": [
+            {
+              "id": "retained100:200",
+              "before": "answered_correct",
+              "after": "errors",
+              "after_status": null,
+              "after_reason": null
+            },
+            {
+              "id": "retained100:3625",
+              "before": "errors",
+              "after": "unanswered",
+              "after_status": "refused",
+              "after_reason": "unsupported_program"
+            }
+          ]
+        }
+      }
+    },
+    "final_manifest": {
+      "retained100": {
+        "path": "/tank/lanes/o7-sol-validation-20261031/retained100.json",
+        "sha256": "9089a3c9f5bdee2cb916ad775b41b4631f91d35393e26e9a376eb7bb0a863d15"
+      },
+      "targeted16": {
+        "path": "/tank/lanes/o7-sol-validation-20261031/integrated/native/tests/composition_cases_targeted_20261029.json",
+        "sha256": "388810fd2d99c1f25e2e53b0e906e21669915c7836a8fd1524967d755862b853"
+      },
+      "extensions": {
+        "control": {
+          "path": "/tank/lanes/o7-sol-validation-20261031/foundation/oracle_native.so",
+          "sha256": "ccf89835a39402cc7a24e8acc6eccad2724322e65002dbb6768d7246a4395bce",
+          "coverage": "whole_and_exact_fragment_outer_v1+exact_segment_and_single_nested_v1"
+        },
+        "candidate": {
+          "path": "/tank/lanes/o7-sol-validation-20261031/candidate-final/oracle_native.so",
+          "sha256": "d37a5e4e3c3d892592d2902bc44f5e3d620b94ff39714e825b1a044f1d6f5997",
+          "coverage": "whole_and_exact_fragment_outer_v1+exact_segment_and_single_nested_v1"
+        }
+      },
+      "images": {
+        "control": {
+          "path": "/tank/lanes/o7-native-20261028/data/reader-image-v3.sqlite",
+          "sha256": "8fcb1db9a08e234179f66ea9e032d2633b38cdcb902f4c95d1ba2c2d49c842f4"
+        },
+        "candidate": {
+          "path": "/tank/lanes/o7-sol-validation-20261031/reader-plural.sqlite",
+          "sha256": "0522cdc44f8c485385c6737623916750e3fe6eedc39c9072190d084b5cac86a8"
+        }
+      },
+      "limits": {
+        "workers": 2,
+        "timeout_ms": 1000,
+        "fuel": 10000000
+      },
+      "process_timeout_seconds": 600
+    },
+    "interpretation": {
+      "data_effect": "Original data_only and combined pre-refusal-fix each recover8source-verified targeted answer cases (2\u219210);6expecteddeclines retained. No retained100dataset answer gain (36correct).",
+      "source3625": "Data-only originalextension raises unsupportedfragmentValueError. Finalcandidate returns Refused/UnsupportedProgram, preserving complete-alternative veto. Control error is retained. Source investigation identified generic FilterDate candidate binding49.3percentage toDate slot, exposed by outer Count support1\u21922; no reinterpretation in this fix.",
+      "code_effect": "Original pre-refusal-fix codeonly matched baseline semantically on all116. Finalcandidate has unchanged completed-case semantics except intended structured refusal;1s deadline errors prevent full equivalence/completion claim.",
+      "budget_instability": "Final first candidate rerun: codeonly4targeteddeadlines,combined3targeteddeadlines. One isolated unchanged-limit repeat: codeonly2targeteddeadlines;combined1datasetdeadline(source200),targeted10answers+6declines. All are retained and remain failures under1s policy.",
+      "diagnostic": "One bounded union of5deadlinecases run against bothimages using finalcode at5s:10calls completed without exceptions;several took1.02\u20131.29s. This is diagnostic only, not1s admission or a rerun of116 at relaxed limits.",
+      "wrong_answers_observed": 0,
+      "limits_unchanged_in_admission": true
+    },
+    "five_second_diagnostic": {
+      "cases": 5,
+      "calls": 10,
+      "exceptions": 0,
+      "seconds": [
+        0.919032,
+        1.089272,
+        1.158099,
+        1.288959,
+        1.214961,
+        0.474664,
+        0.458476,
+        0.423376,
+        1.022051,
+        1.154347
+      ],
+      "observations": "var/sol-wave-20261031/validation/reader-5s-diagnostic/observations.json"
+    }
+  },
+  "candidate_artifacts_prior_reader_refusal_fix": {
+    "host": {
+      "path": "/tank/lanes/o7-sol-validation-20261031/candidate/oracle-host",
+      "sha256": "8a7838178fb9a8f636ed347f7988689bb859804354b006cb5f90e7f1b8471de0"
+    },
+    "extension": {
+      "path": "/tank/lanes/o7-sol-validation-20261031/candidate/oracle_native.so",
+      "sha256": "1f62efd2654cad664defa9f36da6bcbb873ce863c56d8f2756abcd471e447bad"
+    }
+  },
+  "limitations": [
+    "New workflows are not installed as six-criterion shipped specialists; scoped shipped statistics control verdict stays NEGATIVE for family-wide lane leakage; head-relative DOMAIN/FALSEYES unmeasured.",
+    "Final1s reader cohort is not stable; all deadline runs retained.5s diagnostic does not establish1s admission.",
+    "All builds DEV/test; release/performance delegated to sole measurement runner after baton.",
+    "No phase2 sources were ingested into checked-source snapshot.",
+    "No new Isabelle run, theorem or admitted extraction. Explicit memory ledger excludes untracked foreign allocations and RSS."
+  ],
+  "owned_process_cleanup": "Owned panel host processes terminated/reaped with exit0; no owned services/learner/build remain.",
+  "artifacts": [
+    {
+      "path": "var/sol-wave-20261031/validation/checked-source.json",
+      "sha256": "6935098ca7b9615f07026e34aa441e396edb37ef5db3535bb8ef0e4594a3d69b",
+      "bytes": 131223
+    },
+    {
+      "path": "var/sol-wave-20261031/validation/checked-source.tar",
+      "sha256": "1cc9257be31ca0279350d4b8f73e36db923797311fb149323ebbfdcabf55674e",
+      "bytes": 8806400
+    },
+    {
+      "path": "var/sol-wave-20261031/validation/reader-four-cell-manifest.json",
+      "sha256": "ed619c384382b9a2fd4bda8cddd2143f0bb3ba9a2d51b704c7c37da348f04cbd",
+      "bytes": 1490
+    },
+    {
+      "path": "var/sol-wave-20261031/validation/reader-final-manifest.json",
+      "sha256": "e3c1dec3fe35297f8ae5757d8718c0e0e11bd222dce584f3f1eec78532729987",
+      "bytes": 1496
+    },
+    {
+      "path": "var/sol-wave-20261031/validation/reader-final-summary.json",
+      "sha256": "dbf0a7dbed75ae2ff765c903087f5d75b09dddd9634fb0b82e715b175bf05df5",
+      "bytes": 3985
+    },
+    {
+      "path": "var/sol-wave-20261031/validation/reader-four-cells/summary.json",
+      "sha256": "d451c51ef12521fd751bf3b52dbbb6d5c63db96f12284150e1c565a08ac5c589",
+      "bytes": 4849
+    },
+    {
+      "path": "var/sol-wave-20261031/validation/reader-four-cells/source-evidence.json",
+      "sha256": "2348dacdfecdb6ac355018f8b9655d7220aa9a6906029fae9afcdb1b689c362e",
+      "bytes": 86916
+    },
+    {
+      "path": "var/sol-wave-20261031/validation/reader-plural-receipt.json",
+      "sha256": "d3f16cdbaf9fea9f70f457c6b8715e6feefbe0a66acd699d9007fc69ddad37d9",
+      "bytes": 385
+    },
+    {
+      "path": "var/sol-wave-20261031/validation/recipe.json",
+      "sha256": "f86852fd01e4fb63986c8aa43969bbd95008576b3d4caff7c6076c6455b0e919",
+      "bytes": 1454
+    },
+    {
+      "path": "var/sol-wave-20261031/validation/plural-support-summary.json",
+      "sha256": "bbdde38f7b45f32489339f6727290bf717b635cf37535350148202647fbc97c6",
+      "bytes": 10210
+    },
+    {
+      "path": "var/sol-wave-20261031/validation/host-panels-final/calibration.json",
+      "sha256": "b6752d01e173a9499d6bca79f5d90b426aa3966c8076659ab6e5736c8d7786ba",
+      "bytes": 79279
+    },
+    {
+      "path": "var/sol-wave-20261031/validation/host-panels-fixed/thermal.stdout",
+      "sha256": "dc99e0703da918600f9d9f436a21ae13450f2bca8262166e7b6d7c5601426c54",
+      "bytes": 1202
+    },
+    {
+      "path": "var/sol-wave-20261031/validation/host-panels-final/sequence.stdout",
+      "sha256": "a44dcbe1ffdcd6d5b32ba8c5df6b6fa9657db8dbf16c3207d2dd8468fc1b1d68",
+      "bytes": 392
+    },
+    {
+      "path": "var/sol-wave-20261031/validation/host-panels-final/blend.stdout",
+      "sha256": "6b232dff05e2aacd41998615137a64215a81cc6ffebad9d6a250d64c10c2c1bd",
+      "bytes": 3647
+    },
+    {
+      "path": "var/sol-wave-20261031/validation/extracted-calibration-panel.json",
+      "sha256": "6a4f19619100c2bf29ebd7e26c217af5841d925ceb87138d61a2dafe024a0548",
+      "bytes": 10434
+    }
+  ]
+}

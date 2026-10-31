@@ -350,6 +350,7 @@ fn evaluate_inner(
                 .collect();
             composition_spans.push(spans);
         }
+        let mut unsupported_fragments = 0usize;
         let composed = crate::composition::match_composed(
             db,
             &normalized,
@@ -361,12 +362,17 @@ fn evaluate_inner(
             budget,
             |fragment| {
                 let Some(compiled) = compilation.compile(fragment, limits, budget)? else {
-                    // A malformed/unsupported fragment must not disappear and
-                    // leave another reading falsely certain.
-                    return Err(Error::Invalid("unsupported composition fragment".into()));
+                    // A demanded unsupported child vetoes certainty, including
+                    // when a learned parent omits its X splice. Keep checking
+                    // other alternatives; unsupported syntax is a semantic
+                    // refusal, while resource/cancellation/source errors still
+                    // propagate through `?` above and below.
+                    unsupported_fragments += 1;
+                    return Ok(false);
                 };
                 if compiled.terminal.contract().output != crate::ProgramType::Entities {
-                    return Err(Error::Format("non-entity composition fragment".into()));
+                    unsupported_fragments += 1;
+                    return Ok(false);
                 }
                 // Viability needs one boolean, so no ids, facts or attributes
                 // are fetched. The guard and stage caching are unchanged; with
@@ -387,6 +393,9 @@ fn evaluate_inner(
                 ))
             },
         )?;
+        // These programs were demanded by complete outer consumers, even if
+        // their unsupported children prevented any flattened outer from running.
+        result.unsupported_programs += unsupported_fragments;
         // Keep the transferred composition guard alive across iteration and
         // every early return. No copied batch and no uncharged handoff interval.
         let (composed, _composed_memory) = composed.into_parts();

@@ -103,3 +103,73 @@ source tests validate alignment, not answers to March or full semantic safety.
 Additional duplicate-name/duplicate-path/qualifier/dead-child counterexamples
 belong to the sharing lane's finite-image checks; these tools do not claim those
 have passed. All original declines remain in the denominator.
+
+## Source 3625: a newly demanded invalid date interpretation
+
+Read-only investigation after the first four-cell run; no new learning, native
+calls or builds. All 100 cases stay in the cohort. The question is “How many
+national cuisines are in the sovereign state country whose inflation rate is
+49.3 percentage?” The original data-only and combined exceptions are retained
+under hbox `/tank/lanes/o7-sol-validation-20261031/reader-four-cells/`;
+`reader-four-cell-manifest.json` pins their artifacts. Control image SHA-256 is
+`8fcb1db9a08e234179f66ea9e032d2633b38cdcb902f4c95d1ba2c2d49c842f4`;
+`reader-plural.sqlite` is
+`0522cdc44f8c485385c6737623916750e3fe6eedc39c9072190d084b5cac86a8`.
+The full explicit exports and `plural-delta.json` are retained beside them.
+Training indices below are zero based in the pinned train JSON (`e9fbe4…`, full
+hash enforced by the preparation driver).
+
+The exact outer key `how many X1 percentage` newly replicates two Count
+skeletons at level 0: length 6, Count depending on step 4, goes from support 1
+to 2; length 4, Count depending on step 2, also goes from 1 to 2. At level 1,
+the length-4 skeleton goes from 1 to 2 and its A-root shape does likewise.
+The relevant source rows are:
+
+- 9466: research universities, unemployment 7.7 percentage; already aligned in
+  full under this outer. 37802: association football clubs, inflation −10
+  percentage; the old alias matches only *football clubs*, leaving
+  *association*, whereas the canonical plural matches the whole concept.
+  These supply the length-6 outer.
+- 19528: states, inflation greater than 210 percentage; already under the outer.
+  68241: constitutional monarchies, inflation 330 percentage; the old alias
+  matches only *monarchies*, leaving *constitutional*. The canonical plural
+  moves it into the length-4 outer, including level 1.
+
+This outer demands X **without** the final word *percentage*. The unchanged
+level-1 fragment key `C1 whose A1 is N1` includes
+`FindAll; FilterDate(A1,N1,=); FilterConcept(C1)` with support 31 in BOTH images.
+It also includes numeric and string variants. Source Reader4 labels any
+number-leading literal N, including dates; that lexical class does not preserve
+its scalar type. Consequently an inflation-rate/49.3 binding can instantiate
+FilterDate with 49.3, which the typed program validator rejects: it is neither
+a calendar year nor a Gregorian date. FilterDate itself is implemented; this is
+an invalid learned literal instantiation, not evidence of an unsupported valid
+operation or a scalar-producing child. The generic date row was not introduced
+by the plural repair. The newly admitted outer exposes it.
+
+Attribution limit: the failed native call archived only the generic
+“unsupported composition fragment” exception, not the first failing callback's
+program. Exact source/template/slot inspection establishes this concrete invalid
+admitted candidate and its new demand route; it does not prove which candidate
+raised first. Do not turn that missing trace into a claim of full runtime
+provenance. The sharing lane's narrow correction retains an UnsupportedProgram
+refusal obligation rather than propagating an exception or accepting a winner.
+
+Independent SQL over the finite candidate image finds one exact quantity row:
+Iceland Q189 has inflation rate 49.3, unit percentage, qualified at 1981-01-01.
+Forward country edges into Q189 have subjects Q189 and Q3740828 (both named
+Iceland). Their intersection with recursive national-cuisine membership rooted
+at Q1968435 is empty. The inspected SQL uses `attributes` with exact key,
+`json_extract(value,'$.value')=49.3` and unit `percentage`, followed by forward
+`edges(predicate='country',object='Q189')` and `parents` concept closure. This
+supports the dataset's 0 on this finite store; it is not world completeness.
+Current child-nonempty admission still prevents delivering that zero.
+
+Backlog owned by root: carry typed scalar domains and unit context through
+learned slots and X boundaries, preserving legitimate type overlaps rather than
+blacklisting a date row or silently dropping an invalid admitted interpretation.
+Separately define checked closed-empty Count semantics with explicit finite
+coverage and retained required-child obligations. That is a language/coverage
+change requiring independent zero/duplicate-path/missing-classification cases;
+do not weaken the current nonempty rule to force this gold answer. No further
+first-wave implementation is proposed here.

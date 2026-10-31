@@ -356,14 +356,11 @@ fn consumed_unsupported_segment_cannot_disappear_behind_empty_sibling() {
         ),
     ));
     let fixture = Fixture::new(rows, vec![]);
-    assert!(matches!(
-        fixture.image.read_whole(
-            "tenant",
-            "How many persons in Paris?",
-            Cancellation::default()
-        ),
-        Err(Error::Invalid(_))
-    ));
+    let answer = fixture.read("How many persons in Paris?");
+    assert_eq!(answer.status, ReaderStatus::Refused);
+    assert_eq!(answer.reason, Some(ReaderReason::UnsupportedProgram));
+    assert!(answer.answer.is_none());
+    assert!(answer.unsupported_programs > 0);
     assert_eq!(fixture.image.active_workers(), 0);
 }
 #[test]
@@ -378,14 +375,11 @@ fn consumed_unsupported_nested_candidate_cannot_disappear() {
         ]),
     ));
     let fixture = Fixture::new(rows, vec![]);
-    assert!(matches!(
-        fixture.image.read_whole(
-            "tenant",
-            "How many organisations employing persons in York?",
-            Cancellation::default()
-        ),
-        Err(Error::Invalid(_))
-    ));
+    let answer = fixture.read("How many organisations employing persons in York?");
+    assert_eq!(answer.status, ReaderStatus::Refused);
+    assert_eq!(answer.reason, Some(ReaderReason::UnsupportedProgram));
+    assert!(answer.answer.is_none());
+    assert!(answer.unsupported_programs > 0);
     assert_eq!(fixture.image.active_workers(), 0);
 }
 #[test]
@@ -720,14 +714,11 @@ fn omitted_nested_x_cannot_hide_unsupported_selected_child() {
         )])),
         vec![],
     );
-    assert!(matches!(
-        fixture.image.read_whole(
-            "tenant",
-            "How many organisations employing persons in York?",
-            Cancellation::default()
-        ),
-        Err(Error::Invalid(_))
-    ));
+    let answer = fixture.read("How many organisations employing persons in York?");
+    assert_eq!(answer.status, ReaderStatus::Refused);
+    assert_eq!(answer.reason, Some(ReaderReason::UnsupportedProgram));
+    assert!(answer.answer.is_none());
+    assert!(answer.unsupported_programs > 0);
     assert_eq!(fixture.image.active_workers(), 0);
 }
 #[test]
@@ -765,14 +756,11 @@ fn omitted_nested_x_empty_child_alternative_cannot_erase_unsupported_sibling() {
     // Both children expand to the same parent program when @X is absent. They
     // must retain distinct admission witnesses until every child is checked.
     let fixture = Fixture::new(rows, vec![]);
-    assert!(matches!(
-        fixture.image.read_whole(
-            "tenant",
-            "How many organisations employing persons in Paris?",
-            Cancellation::default()
-        ),
-        Err(Error::Invalid(_))
-    ));
+    let answer = fixture.read("How many organisations employing persons in Paris?");
+    assert_eq!(answer.status, ReaderStatus::Refused);
+    assert_eq!(answer.reason, Some(ReaderReason::UnsupportedProgram));
+    assert!(answer.answer.is_none());
+    assert!(answer.unsupported_programs > 0);
     assert_eq!(fixture.image.active_workers(), 0);
 }
 #[test]

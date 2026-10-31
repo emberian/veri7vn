@@ -256,7 +256,7 @@ fn unused_unsupported_fragment_does_not_poison_a_whole_answer() {
 }
 
 #[test]
-fn consumed_unsupported_fragment_remains_an_explicit_error() {
+fn consumed_unsupported_fragment_returns_a_structured_refusal() {
     let fixture = Fixture::new(
         vec![
             row(
@@ -272,14 +272,11 @@ fn consumed_unsupported_fragment_remains_an_explicit_error() {
         ],
         vec![],
     );
-    assert!(matches!(
-        fixture.image.read_whole(
-            "tenant",
-            "How many person in York?",
-            Cancellation::default()
-        ),
-        Err(Error::Invalid(_))
-    ));
+    let answer = fixture.read("How many person in York?");
+    assert_eq!(answer.status, ReaderStatus::Refused);
+    assert_eq!(answer.reason, Some(ReaderReason::UnsupportedProgram));
+    assert!(answer.answer.is_none());
+    assert!(answer.unsupported_programs > 0);
     assert_eq!(fixture.image.active_workers(), 0);
 }
 
@@ -507,4 +504,56 @@ fn composition_byte_peaks_on_frozen_cases() {
         rows.push(json!({"id": id, "status": status, "calls": calls}));
     }
     std::fs::write(out, serde_json::to_string_pretty(&rows).unwrap()).unwrap();
+}
+
+#[test]
+fn demanded_unsupported_or_scalar_fragment_vetoes_a_successful_whole_reading() {
+    for fragment_program in [
+        json!([step(
+            "UnsupportedOperation",
+            &[],
+            json!([["@", "E", 1, ""]])
+        )]),
+        json!([
+            step("Find", &[], json!([["@", "E", 1, ""]])),
+            step("Count", &[0], json!([]))
+        ]),
+        // Supported operator, invalid typed literal: a learned Date variant
+        // must not reinterpret an inflation quantity as a date or raise a
+        // transport exception when demanded beside a valid interpretation.
+        json!([
+            step("Find", &[], json!([["@", "E", 1, ""]])),
+            step(
+                "FilterDate",
+                &[0],
+                json!(["inflation rate", "49.3 percentage", "="])
+            )
+        ]),
+    ] {
+        let fixture = Fixture::new(
+            vec![
+                row("fragment", "C1 in E1", fragment_program),
+                row("outer", "how many X1", outer("Count")),
+                row(
+                    "whole",
+                    "how many C1 in E1",
+                    json!([
+                        step("Find", &[], json!([["@", "E", 1, ""]])),
+                        step("Count", &[0], json!([]))
+                    ]),
+                ),
+            ],
+            vec![],
+        );
+        let answer = fixture.read("How many person in York?");
+        assert_eq!(answer.status, ReaderStatus::Refused);
+        assert_eq!(answer.reason, Some(ReaderReason::UnsupportedProgram));
+        assert!(answer.answer.is_none());
+        assert!(answer.unsupported_programs > 0);
+        // Preserve the complete successful reading as a diagnostic; do not
+        // discard its unsupported competitor and elect the displayed answer.
+        assert_eq!(answer.readings.len(), 1);
+        assert_eq!(answer.readings[0].answer, "1");
+        assert_eq!(fixture.image.active_workers(), 0);
+    }
 }
