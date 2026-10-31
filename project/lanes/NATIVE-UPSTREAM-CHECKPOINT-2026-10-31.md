@@ -18,6 +18,12 @@ These results do not replace the earlier expansion's evidence or its limits.
 
 ## What upstream has received
 
+- [Typed service, packed reader and recovery follow-up](https://huggingface.co/psiloceyeben/oracle7-slim/discussions/5#6ae64aca93643fb6c518d305):
+  published `19e64b8` with the three implementation slices, correctness receipt,
+  measured encoded-service gains and unresolved reader latency/memory costs.
+  The posted body was read back exactly; SHA256
+  `ef85de74b1f073428600ef28a5089468fd5bd4569d1265c7f3e81607dddccaa5`.
+  No maintainer acceptance is implied. PR #11 remained open at publication.
 - [Appliance/native discussion #5](https://huggingface.co/psiloceyeben/oracle7-slim/discussions/5#6ae606dd5c92f39cdda2bca0):
   immutable code, architecture, capability and evidence links. The proposed
   review order is execution/host, typed providers, then durable state. Native
