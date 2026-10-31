@@ -1,0 +1,43 @@
+{
+  "acoustics_receipt": "/Users/ember/dev/o7vn/var/linux/receipt-acoustics-persvati-acoustics-1792310396-6959.json",
+  "host_sha256": "f070310dc1788fbc96c11ca333dc43c944aebfd4b41140b574c51c4323e6f29c",
+  "profile": "operator-appliance-v1",
+  "python_sha256": "e50d468e8b0adfb05733f5b87b3cff34829c4a8c1aea50c865aa8bdfe4bb150f",
+  "regular_member_bytes": 1308997522,
+  "signed": false,
+  "stage_sha256": "7dbd22d3cd98480bc9c2567d796b6b9f5302eaccb0f8cb1b752306a1a443c370",
+  "schema": "oracle-mini-rust-stage-evidence-v1",
+  "date": "2026-10-31",
+  "status": "assembled_verified_unsigned",
+  "stage": "var/mini-rust-u8-20261031/assembly/u8-rust",
+  "source_stage": "var/mini-rust-u8-20261031/assembly/u8-base",
+  "host_distribution_manifest_sha256": "69809342edaebe52ae6d1cb9ec9d39febab285a8361caefd7ddf9bbe7c5ed690",
+  "mini_commits": [
+    "3948065881debfacba0dae19366c299f0a8b75d1",
+    "135d3c9e7631cbd16fe172654ca206d344292921"
+  ],
+  "checks": {
+    "base_stage": "passed",
+    "adapted_stage": "passed",
+    "adapter_fixtures": 3,
+    "packer_focused_tests": 5
+  },
+  "providers": [
+    "native reader",
+    "extracted acoustics",
+    "logic.query",
+    "logic.enumerate",
+    "U8 Engine"
+  ],
+  "public_data": {
+    "files": 26,
+    "bytes": 15046949326,
+    "inventory_sha256": "32bb3cf1a6337ee2c7b6ec902bb5bfdff11ba1fd5f1fa3b730dc269431b27d0a"
+  },
+  "remaining": [
+    "Sign and independently inspect exact SPK, then receiving agent/browser/restart journey.",
+    "Select and exercise remaining compiled pure profiles.",
+    "Release-build process-tree memory/fairness measurements and streaming manufacturing."
+  ],
+  "scope": "Local assembly and inventory verification; not signed, deployed, receiving-qualified or a specialist panel score."
+}

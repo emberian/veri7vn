@@ -1,0 +1,240 @@
+{
+  "schema": "oracle-host-validation-v1",
+  "date": "2026-10-31",
+  "status": "complete_for_scoped_validation",
+  "scope": "Focused host contract and actual standalone provider integration; no consolidated specialist panel score, no new theorem statement, no signed Mini qualification.",
+  "build": {
+    "host": "hbox",
+    "jobs": 2,
+    "target": "/tank/lanes/o7-native-20261028/target",
+    "features": [
+      "reasoning",
+      "science",
+      "incremental",
+      "bio",
+      "statistics",
+      "logic"
+    ]
+  },
+  "runs": [
+    {
+      "name": "initial compile",
+      "result": "failed unsafe_code lint in engine.rs; no tests executed; fixed by owner"
+    },
+    {
+      "name": "diagnostic r2",
+      "command": "cargo test --locked -p oracle-host --features reasoning,science,incremental,bio,statistics,logic --test config_identity --test engine_ownership --test recovery --test journey -- --test-threads=1",
+      "exit": 0,
+      "passed": 14,
+      "final_source": false
+    },
+    {
+      "name": "Python engine_worker after SQLite fix",
+      "passed": 4
+    },
+    {
+      "name": "Python package_host stand-ins",
+      "passed": 8
+    },
+    {
+      "name": "Python hosted_reasoning independent truth fixtures",
+      "passed": 5
+    },
+    {
+      "name": "final Rust integration",
+      "command": "cargo test --locked -p oracle-host --features reasoning,science,incremental,bio,statistics,logic --test config_identity --test engine_ownership --test recovery --test journey -- --test-threads=1",
+      "exit": 0,
+      "passed": 17,
+      "source_hashes": "var/host-validation-20261031/rust-source-hashes.json"
+    },
+    {
+      "name": "final production worker",
+      "passed": 5,
+      "includes": "SIGKILL host surrogate stops actual worker and grandchild"
+    },
+    {
+      "name": "final packaging fixtures",
+      "passed": 9
+    },
+    {
+      "name": "Mini packaging fixtures",
+      "passed": 3
+    },
+    {
+      "name": "macOS sibling lock alias regression",
+      "passed": 1,
+      "filtered_out": 9
+    },
+    {
+      "name": "macOS journal lifetime identity regression",
+      "passed": 1,
+      "filtered_out": 9
+    },
+    {
+      "name": "Linux final lock recovery",
+      "passed": 10,
+      "scope": "Same source as prior17 except journal lock and added regression; prior8 nonrecovery unchanged"
+    }
+  ],
+  "logs": {
+    "var/host-validation-20261031/host-tests-final.log": "755c26d779b7e44582714e81b1c98640f5696534954d51b227c1b6f4b40022d3",
+    "var/host-validation-20261031/linux-lock-fixed-recovery.log": "e2a322dc855eabd738b7e71f1d689e455af2d4cc242508e08ee9f7f483c5a4b8",
+    "var/host-validation-20261031/python-package-final.log": "9f3747bb7eae14598af2b9d5e7f2bcc57b1d591ea7211553cde7173aec3b06f8",
+    "var/host-validation-20261031/mac-lock-test.log": "b2a5c35956f2c7c101426f7f33d88021927f3a834b2b2cd33ee9387da810f47f",
+    "var/host-validation-20261031/actual-u8-long.log": "2c78799b599c0c358f031b913eda8323e0ee985301cd2b06de46c5e4429ff22f",
+    "var/host-validation-20261031/python-mini-package.log": "64dcce4db9a60a2e81605d82977e947078cd42830922f751216f2a9cd5735658",
+    "var/host-validation-20261031/python-engine.log": "265e0be96313b1f59412a82887a46490adf59bb687a7f8cc61377bc6abe17847",
+    "var/host-validation-20261031/actual-u8-final.log": "fbd7595a53ec3dfa789cee14e57070acd2a87adee8626def87d9ba9181edacb4",
+    "var/host-validation-20261031/mac-exclusive-test.log": "c46620c03f44d5fa9477010bf7c097a23525aafe6792bc16fe6c856cba1c27b1",
+    "var/host-validation-20261031/local-build.log": "3fc396dac2b6b29af106a29976dfa5e61c8dafc825f94778f3744efbcc731ade",
+    "var/host-validation-20261031/actual-package.log": "47b9b53d2993c7da83e037f503d6ba2b4331309dbbb849a7affdb393dad73d37",
+    "var/host-validation-20261031/mac-optimized-hash-build.log": "8c0713d3dc6a2cc0e50fc1936745ffc7b70bd2e0432d21d0b9c4d0d0c8bdfddb",
+    "var/host-validation-20261031/actual-package-final.log": "c649ab60250014ded7e16b91b1807cf3b2a583ead5c75c04ac93e9b311c61922",
+    "var/host-validation-20261031/python-consumer.log": "9801a40d6ee535dde69ecaf95efbdb046429c60cc0614914991384205f85ca5b",
+    "var/host-validation-20261031/mini-packer-build.log": "2e7888bd2deb69b8aa408636898b7c07902afc6906061b1432de9a878751c3eb",
+    "var/host-validation-20261031/host-tests-initial.log": "55f153388324c3d03eb4a3ec6252132dc7732722b2ad027a84ae089509f1fd1c",
+    "var/host-validation-20261031/linux-ldd.log": "0ff34e81f6dca72ac172192017e72e8ef03a39d4f4dd3078ea767fe1726bdda6",
+    "var/host-validation-20261031/actual-u8.log": "ad74a6b9d25081df498c2fec550f471db57a415f8638b59636e9a4915c93b239",
+    "var/host-validation-20261031/actual-u8-fixed.log": "beb744f9afa24f94d5e51c108e10903b7f57de091689e27e7e102bb05f9f803d",
+    "var/host-validation-20261031/mini-packer-tests.log": "48c6cc839dab84f73443b914519f9b16dbf16d1ee43abf3931351327301bfac5",
+    "var/host-validation-20261031/actual-u8-optimized.log": "2c78799b599c0c358f031b913eda8323e0ee985301cd2b06de46c5e4429ff22f",
+    "var/host-validation-20261031/python-engine-final.log": "ce261164aca28a2e4828f42352cc4fa3e4244b3e1a8c0d3df24855d1fd6d1649",
+    "var/host-validation-20261031/host-tests-r2.log": "46cdbb53f23a7d979ba9a9b72e9a67a64cf121d5b832a2550ec798c6da2446d8",
+    "var/host-validation-20261031/python-package.log": "77b5812e05e098e091783cf4f61dc979c3dcd2c84feb46acda4425e3f5d5d358"
+  },
+  "remaining": [
+    "Signed Mini U8 admission/browser/agent journey is separate root work.",
+    "No specialist panel sweep or sustained resource/fairness result."
+  ],
+  "linux_actual_package": {
+    "launches": [
+      {
+        "launch": 0,
+        "pid": 214805,
+        "ready": {
+          "backend": "oracle_host",
+          "host_sha256": "1e572265cb549e84214b67b0542ea670614aaa02de3b8eadfaa0d6da6ce31a8e",
+          "listening": "http://127.0.0.1:46519",
+          "operations": 2,
+          "routes": []
+        },
+        "revisions": 5
+      },
+      {
+        "launch": 1,
+        "pid": 215521,
+        "ready": {
+          "backend": "oracle_host",
+          "host_sha256": "1e572265cb549e84214b67b0542ea670614aaa02de3b8eadfaa0d6da6ce31a8e",
+          "listening": "http://127.0.0.1:42989",
+          "operations": 2,
+          "routes": []
+        },
+        "revisions": 5
+      }
+    ],
+    "host_sha256": "1e572265cb549e84214b67b0542ea670614aaa02de3b8eadfaa0d6da6ce31a8e",
+    "solver_sha256": "fba811b7b18e9379aa701dd92451880b2ce6537a43c359bd726d5ee5ad7b8753",
+    "scope": "Actual relocated Linux debug host, admitted clingo, five manufactured revisions x query+enumerate, two launches, no Mini/Engine/image/specialist score."
+  },
+  "platform_fix": "Actual macOS launch discovered flock of database inode conflicts SQLite fcntl locking; fixed canonical persistent sibling .owner lock with symlink/hardlink refusal. Narrow regressions pass macOS; recovery10 pass Linux.",
+  "source_hashes": "var/host-validation-20261031/final-source-hashes.json",
+  "linux_actual_package_final": {
+    "launches": [
+      {
+        "launch": 0,
+        "pid": 301428,
+        "ready": {
+          "backend": "oracle_host",
+          "host_sha256": "f070310dc1788fbc96c11ca333dc43c944aebfd4b41140b574c51c4323e6f29c",
+          "listening": "http://127.0.0.1:35549",
+          "operations": 2,
+          "routes": []
+        },
+        "revisions": 5
+      },
+      {
+        "launch": 1,
+        "pid": 308245,
+        "ready": {
+          "backend": "oracle_host",
+          "host_sha256": "f070310dc1788fbc96c11ca333dc43c944aebfd4b41140b574c51c4323e6f29c",
+          "listening": "http://127.0.0.1:36509",
+          "operations": 2,
+          "routes": []
+        },
+        "revisions": 5
+      }
+    ],
+    "host_sha256": "f070310dc1788fbc96c11ca333dc43c944aebfd4b41140b574c51c4323e6f29c",
+    "solver_sha256": "fba811b7b18e9379aa701dd92451880b2ce6537a43c359bd726d5ee5ad7b8753",
+    "scope": "Actual relocated Linux debug host, admitted clingo, five manufactured revisions x query+enumerate, two launches, no Mini/Engine/image/specialist score."
+  },
+  "linux_dynamic_requirements": {
+    "log": "var/host-validation-20261031/linux-ldd.log",
+    "host": [
+      "libgcc_s.so.1",
+      "libm.so.6",
+      "libc.so.6",
+      "ld-linux-x86-64.so.2"
+    ],
+    "clingo_additional": [
+      "libstdc++.so.6"
+    ],
+    "build_tree_library_dependency": false
+  },
+  "macos_build": {
+    "profile": "dev with per-command package opt-level3 overrides for sha2,digest,block-buffer",
+    "command": "CARGO_BUILD_JOBS=2 cargo --config 'profile.dev.package.sha2.opt-level=3' --config 'profile.dev.package.digest.opt-level=3' --config 'profile.dev.package.block-buffer.opt-level=3' build --locked --manifest-path native/Cargo.toml -p oracle-host --features reasoning,science,incremental,bio,statistics,logic",
+    "sha256": "4c0bf9c4c07fb778a8158005fd503d606277bec94603f69b8ef0883c69b55061",
+    "source_changes_for_optimization": false
+  },
+  "mini_packer": {
+    "tests": 5,
+    "build": "passed",
+    "path": "/Users/ember/dev/minidregg/deploy/oracle/pack/target/debug/minidregg-oracle-pack",
+    "sha256": "36855d02718c4b2d30feecbd673a6da31e0de921794d0a9ef5a25ea4c50bd6d9",
+    "scope": "Tiny importer/profile fixtures and compilation; no signed U8 Mini qualification in this receipt."
+  },
+  "final_worker": {
+    "tests": 7,
+    "sha256": "6efd9b60df9958e0d542782fdbe842303a3c29473ccb1e97f352d116c6cd6fb9",
+    "scope": "Manufactured worker fixtures including declared symlink store SQLite immutability and host-death guardian; real U8 in progress."
+  },
+  "macos_actual_combined": {
+    "checks": {
+      "status": "passed",
+      "native": {
+        "answer": "genre",
+        "route": "native:reader"
+      },
+      "extracted_acoustics": {
+        "answer": "2 Hz",
+        "route": "organ:acoustics",
+        "scope": "One known shipped panel item, not panel score"
+      },
+      "u8_engine": {
+        "answer": "Walt Whitman",
+        "route": "engine",
+        "tip": "oracle_release_runtime_w574"
+      },
+      "same_tenant_second_turn": "answered from same worker generation",
+      "cross_tenant_same_request_id": "independently answered, distinct private generation",
+      "restart_exact_replay": "byte-identical200",
+      "restart_next_turn": "409 conversation_reset_required",
+      "launches": 2,
+      "probe_requests": 7,
+      "same_launch_exact_retry": true,
+      "mini": false
+    },
+    "receipt": "var/host-validation-20261031/actual-u8-receipt.json",
+    "receipt_sha256": "6143cacb78c82936ad6518d0da6a0c5eecfa4eb5b909c7dc2cf28a6dfcc9461b",
+    "config": "var/host-validation-20261031/u8-config.json",
+    "config_sha256": "ffe626594daf2777f6762628bd788b90a0735479d3e9483eb3af872b841d6393",
+    "image_sha256": "8fcb1db9a08e234179f66ea9e032d2633b38cdcb902f4c95d1ba2c2d49c842f4",
+    "materialization_receipt_sha256": "97286fb824bb102a24ac9e7458fc8d8426212ad0bff2b585bd00d6e0462d00a5",
+    "extracted_binary_sha256": "804b6488d6c193e5a2cd7edad0501e90adb0726c1b4a2499bf0a6e92f11be2b4",
+    "cleanup": "Both full launches exited0, exact-owned host PIDs reaped. Earlier preworker hashing attempts terminated by exact PID; no worker existed then."
+  },
+  "source_hashes_sha256": "b22b400830caa0f5b41027bd773b2d2c751652e6dbce4035819b1ae23d889a00"
+}

@@ -3,8 +3,9 @@
 The native runtime serves shared KQA data, complete structured programs and
 bounded learned language turns. Durable HTTP serving and a relocatable package
 are implemented. The [capability catalog](CAPABILITIES.md) distinguishes these
-paths from library-only code and prototypes; [runtime hosting](RUNTIME-HOST.md)
-and [distribution](DISTRIBUTION.md) document operator setup.
+paths from library-only code and prototypes. The [Rust appliance host](HOST.md)
+is the deployment target; [runtime hosting](RUNTIME-HOST.md) and
+[distribution](DISTRIBUTION.md) describe the earlier standalone native adapter.
 
 The remaining migration is the complete Oracle turn: other data stores, route
 order and guards, dialogue state owners, specialists and external effects.

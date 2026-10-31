@@ -104,6 +104,13 @@ impl Service {
                 .map_or(0, |d| d.as_nanos())
         );
         let limits = config.limits.clone();
+        let journal = Journal::open(
+            &config.journal,
+            limits.retained_requests,
+            limits.conversations,
+            &config::deployment_identity(config, &host_sha256)?,
+        )
+        .map_err(|e| config::err(format!("journal: {e}")))?;
         let mut registry = Registry::new(limits.request_bytes, limits.reply_bytes);
         let mut providers = Vec::new();
         let host_identity = format!("{host_sha256}:host");
@@ -157,12 +164,6 @@ impl Service {
             }
             None => None,
         };
-        let journal = Journal::open(
-            &config.journal,
-            limits.retained_requests,
-            limits.conversations,
-        )
-        .map_err(|e| config::err(format!("journal: {e}")))?;
         Ok(Arc::new(Self {
             limits,
             native,
@@ -225,7 +226,7 @@ impl Service {
         let ready = !self.stopping.load(Ordering::Acquire);
         let body = json!({"ready": ready, "backend": "oracle_host", "capacity": self.limits.capacity,
             "busy": self.active.load(Ordering::Acquire), "query_queue": 0,
-            "durable_replay": !self.stateful_operations().is_empty(),
+            "durable_replay": true, "query_journal": "exact retained request replay; Engine context is not persisted",
             "engine": self.engine.as_ref().map(EnginePool::health)});
         (if ready { 200 } else { 503 }, body)
     }
@@ -241,7 +242,9 @@ impl Service {
                 "rule": "first depth group whose routes take the question decides; agreement or refusal, never a pick",
                 "agreement": {"text": "trimmed lowercase equality", "number": "within 0.5 percent with an identical explicit unit"}},
             "scope": "operator-admitted native operations, resident organs and a contained Engine; host-assigned tenant admission",
-            "durable_conversations": !stateful.is_empty(), "durable_replay": !stateful.is_empty(),
+            "durable_conversations": !stateful.is_empty(), "durable_replay": true,
+            "query_journal": {"durable_replay": true, "engine_context_persisted": false,
+                "engine_conversation_recovery": "fresh conversation required after worker loss, eviction, uncertainty or host restart; exact retained requests replay"},
             "durable_operations": stateful,
             "request_id_semantics": "/query: exact retry from the host journal; stateful native turns: exact core reply replay; pure calls: correlation only",
             "tenant_header_authentication": false, "mini_qualified": false, "query_queue": 0,
@@ -370,9 +373,6 @@ impl Service {
             Ok(r) => r,
             Err(f) => return (f.status, f.body),
         };
-        let Some(_permit) = self.acquire() else {
-            return (429, failure("busy", json!({"retryable": true})));
-        };
         let request_id = request["request_id"].as_str().unwrap_or("");
         match self
             .journal
@@ -382,14 +382,43 @@ impl Service {
             Ok(Lookup::Fresh) => {}
             Err(f) => return (f.status, f.body),
         }
+        let conversation = request["conversation_id"].as_str().unwrap_or("");
+        let _lease = match self.journal.lease(tenant, conversation) {
+            Ok(lease) => lease,
+            Err(f) => {
+                if let Err(e) = self.journal.forget(tenant, request_id, conversation) {
+                    return (e.status, e.body);
+                }
+                return (f.status, f.body);
+            }
+        };
+        let Some(_permit) = self.acquire() else {
+            if let Err(e) = self.journal.forget(tenant, request_id, conversation) {
+                return (e.status, e.body);
+            }
+            return (429, failure("busy", json!({"retryable": true})));
+        };
         if self.stopping.load(Ordering::Acquire) {
-            self.journal.forget(tenant, request_id);
+            if let Err(e) = self.journal.forget(tenant, request_id, conversation) {
+                return (e.status, e.body);
+            }
             return (
                 503,
                 failure("backend_unavailable", json!({"retryable": false})),
             );
         }
-        match self.turn(tenant, &request) {
+        // A panic after dispatch must not make the request eligible for another
+        // opaque execution. This boundary is separate from native core commits.
+        let turn =
+            std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| self.turn(tenant, &request)))
+                .unwrap_or_else(|_| {
+                    Err(Failure::new(
+                        502,
+                        "runtime_error",
+                        json!({"state_may_have_changed": true, "exact_retry_required": true}),
+                    ))
+                });
+        match turn {
             Ok(result) => {
                 let result = if wire::encode(&result).len() > self.limits.reply_bytes {
                     failure(
@@ -399,23 +428,48 @@ impl Service {
                 } else {
                     result
                 };
-                if let Err(f) = self.journal.finish(tenant, request_id, &result) {
+                if let Err(f) = self
+                    .journal
+                    .finish(tenant, request_id, conversation, &result)
+                {
                     return (f.status, f.body);
                 }
                 (crate::journal::status_of(&result), result)
             }
-            Err(f) => {
-                // Refused before any work: no journal record, so a retry runs.
-                self.journal.forget(tenant, request_id);
+            Err(mut f) => {
+                if f.body["state_may_have_changed"] == true {
+                    f.body["http_status"] = json!(f.status);
+                    // Opaque effects cannot be rolled back. Retain their uncertainty.
+                    // A failed journal is latched; its pending record survives restart.
+                    let _ = self
+                        .journal
+                        .finish(tenant, request_id, conversation, &f.body);
+                } else if let Err(e) = self.journal.forget(tenant, request_id, conversation) {
+                    return (e.status, e.body);
+                }
                 (f.status, f.body)
             }
         }
     }
 
-    /// One front-door turn. `Err` means nothing ran that could change state.
+    /// One front-door turn. Failures explicitly carry opaque-effect uncertainty.
     fn turn(&self, tenant: &str, request: &Value) -> Result<Value, Failure> {
         let text = request["text"].as_str().unwrap_or("");
         let conversation = request["conversation_id"].as_str().unwrap_or("");
+        let prefer = match self.journal.conversation(tenant, conversation)? {
+            Some((worker, generation)) => {
+                let parsed = generation
+                    .split_once(':')
+                    .filter(|(boot, _)| *boot == self.boot)
+                    .and_then(|(_, n)| n.parse::<u64>().ok());
+                match parsed {
+                    Some(n) => Some((worker, n)),
+                    None => return Err(reset_required()),
+                }
+            }
+            None => None,
+        };
+        self.validate_conversation_binding(tenant, prefer)?;
         let cancellation = Cancellation::default();
         let mut first: Vec<Candidate> = Vec::new();
         std::thread::scope(|scope| {
@@ -460,25 +514,17 @@ impl Service {
             )
         })?;
         if !matches!(decision, Decision::NoReading) || self.engine.is_none() {
+            // Group zero reads no Engine context. Revalidate at its reply
+            // linearization point: eviction observed during pure evaluation
+            // refuses this turn. This is not atomic mixed native/Engine state
+            // projection; full context projection is not implemented.
+            self.validate_conversation_binding(tenant, prefer)?;
             let decided = (!matches!(decision, Decision::NoReading)).then_some(0);
             return Ok(
                 json!({"outcome": "completed", "reply": front::reply(&decision, &group0, &first, decided)}),
             );
         }
         let engine = self.engine.as_ref().expect("engine");
-        let prefer = match self.journal.conversation(tenant, conversation)? {
-            Some((worker, generation)) => {
-                let parsed = generation
-                    .split_once(':')
-                    .filter(|(boot, _)| *boot == self.boot)
-                    .and_then(|(_, n)| n.parse::<u64>().ok());
-                match parsed {
-                    Some(n) => Some((worker, n)),
-                    None => return Err(reset_required()),
-                }
-            }
-            None => None,
-        };
         let session = format!(
             "h{}",
             &config::sha256_bytes(
@@ -486,7 +532,12 @@ impl Service {
             )[..40]
         );
         let started = Instant::now();
-        match engine.ask(text, &session, prefer) {
+        self.journal.dispatch(
+            tenant,
+            request["request_id"].as_str().unwrap_or(""),
+            conversation,
+        )?;
+        match engine.ask(tenant, text, &session, prefer) {
             Ok((reply, worker, generation)) => {
                 self.journal.bind(
                     tenant,
@@ -535,6 +586,23 @@ impl Service {
                 Ok(failure(code, json!({"state_may_have_changed": true})))
             }
         }
+    }
+
+    fn validate_conversation_binding(
+        &self,
+        tenant: &str,
+        prefer: Option<(usize, u64)>,
+    ) -> Result<(), Failure> {
+        if let (Some(engine), Some((worker, generation))) = (&self.engine, prefer) {
+            match engine.validate_binding(tenant, worker, generation) {
+                Ok(()) => {}
+                Err(EngineError::Busy) => {
+                    return Err(Failure::new(429, "busy", json!({"retryable":true})))
+                }
+                Err(_) => return Err(reset_required()),
+            }
+        }
+        Ok(())
     }
 
     pub fn close(&self) {

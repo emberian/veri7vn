@@ -54,10 +54,11 @@ Earlier signed-package tests answered through Mini in two
 independent grains. The newer agent lifecycle and complete restart/recovery
 journey remain unfinished; this is not a public Dreggnet deployment.
 
-The next shared runtime has a [Rust and PyO3 implementation](native/README.md)
-and a [relocatable Linux appliance](native/docs/DISTRIBUTION.md). Its
-[standalone service](native/docs/STANDALONE.md) offers discovery and direct calls
-through shared bounded workers, independently of minidregg. Graph optimization,
+The shared runtime has a [Rust and PyO3 implementation](native/README.md).
+The [Rust appliance host](native/docs/HOST.md) serves questions, discovery and
+direct calls through one endpoint, independently of minidregg. Its relocatable
+package connects the native reader, extracted kernels, supplied-input providers
+and a contained Python fallback. Graph optimization,
 symbolic calculations, exact charge/isotope-conserving
 [reaction balancing](native/docs/CHEMISTRY.md), scientific models, dependencies,
 DNA alignment and statistical regression operate on supplied inputs.
@@ -67,12 +68,17 @@ indexed data, complete KQA programs, learned language composition, atomic turns
 and release-bound retry journals. Actual HTTP checks cover restart, lost-response
 retry and tenant separation. The full Engine cascade, authenticated public
 hosting and fresh signed Mini integration remain unfinished. Stable-model
-reasoning now has optional `logic.query` and `logic.enumerate` operations with
-an operator-admitted solver; hosted qualification is currently macOS-only.
+reasoning has optional `logic.query` and `logic.enumerate` operations with
+an operator-admitted solver. A [hosted evidence-revision workflow](native/oracle-logic/DEMOS.md)
+now runs through the relocated Linux Rust package, changing candidate plans as
+evidence arrives, conflicts and is withdrawn.
 
-The [Rust host](native/docs/HOST.md) combines native reading, extracted specialists
-and a Python fallback behind one question endpoint. Tenant-private Engine state,
-cross-provider conversations and provider containment remain incomplete.
+Engine workers belong to one tenant per process generation. Request recovery
+retains uncertain outcomes and refuses to continue lost conversations. Full
+Engine state restoration, cross-provider context transfer and signed Mini
+receiving qualification remain unfinished. The older
+[Python service package](native/docs/DISTRIBUTION.md) remains a reference
+implementation, not a second deployment destination.
 
 The [migration map](native/docs/MIGRATION.md) separates native capabilities from
 remaining Python providers. The [current native checkpoint and backlog](project/NATIVE-EXPANSION-2026-10-29.md)

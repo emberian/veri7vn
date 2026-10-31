@@ -135,3 +135,60 @@ A useful next experiment is richer time-indexed replanning or explicit
 minimal-repair suggestions over these same provenance tokens. Neither needs a
 web endpoint. The implementation sprint can continue in this laboratory until
 its interfaces and limitations are worth admitting to the host.
+
+## Try evidence revision through the Rust host
+
+`tools/usage/hosted_reasoning.py` is a Python standard-library consumer of the
+[Rust appliance host](../docs/HOST.md). Start the packaged Rust host with
+its optional `logic` profile and operator-admitted solver, then run from the
+repository root (replace the address with the host's configured listener):
+
+```sh
+python3 tools/usage/hosted_reasoning.py --url http://127.0.0.1:8765 --tenant reasoning-demo
+```
+
+It discovers both live operations under `/operations/{id}`, then calls
+`/invoke` for both querying and enumeration at each of five revisions. The
+finite local policy concerns a build dependency: a ready dependency normally
+permits two alternative candidates, reusing a cache or rebuilding. Neither
+candidate is selected or executed. A scanner's compromise report defeats the
+default; an auditor's clean report then conflicts with it under an explicit
+local integrity constraint. Withdrawing the mistaken scanner token restores
+the candidates. Withdrawing the dependency observation removes both again.
+Every output line includes the evidence ledger, scope, conclusions and both
+host replies. All observations are manufactured examples.
+
+The client checks the exact returned scope and content identities, independently
+rechecks every returned stable-model witness, and rejects malformed replies
+instead of substituting expected answers. It compares the two operations when
+enumeration completes. Skeptical means present in every stable model;
+credulous means present in at least one. Inconsistent means the complete local
+policy and observations admit no stable model. Unknown means a search did not
+settle a question, or (separately, in `external_approval`) neither an approval
+nor a denial was observed. Absence of those observation atoms in this supplied
+program does not establish anything about real approval. False in the local
+program is printed separately from unknown.
+
+Each revision sends the whole program. Evidence tokens cannot be reused;
+withdrawn observations remain visible. Snapshot labels cover policy, provenance
+and revision history; the host additionally supplies its own program/request
+hashes. Witness checks are handwritten Python/Rust, not Isabelle proofs.
+Absence and enumeration completeness still trust the admitted solver, without
+a certificate. This client is untrusted and creates no deployment authority.
+
+Calls have no automatic retry. `--retries 1` explicitly allows repeating a
+pure call after transport failure or HTTP 429/503; request IDs correlate calls
+and make no promise of durable replay. No Mini application is required.
+
+Focused client checks:
+
+```sh
+python3 -m unittest discover -s tests/usage -p test_hosted_reasoning.py
+```
+
+Those tests use an independent small subset-minimal-reduct oracle and
+hand-derived model fixtures. They test the client contract and revision logic;
+The [31 October receipt](../evidence/2026-10-31-host-validation.json) records
+two launches of a relocated Linux Rust package, each running both operations
+through all five revisions. No specialist panel numbers are claimed for this
+workflow.

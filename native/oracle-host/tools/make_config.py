@@ -49,9 +49,9 @@ def main():
     ap.add_argument("--no-reader", action="store_true")
     ap.add_argument("--organ", action="append", default=[])
     ap.add_argument("--engine-python")
-    ap.add_argument("--engine-answerer", default=str(REPO / "tools/parity/answerers/oracle7.py"))
+    ap.add_argument("--engine-answerer", default=str(REPO / "tools/appliance/engine_worker.py"))
     ap.add_argument("--engine-checkout")
-    ap.add_argument("--engine-revision")
+    ap.add_argument("--engine-revision", help="source revision; inferred from materialization APPLIANCE.json when present")
     ap.add_argument("--engine-state")
     ap.add_argument("--engine-specialist")
     ap.add_argument("--engine-compose")
@@ -88,10 +88,26 @@ def main():
                            "accept": runtime_contract.acceptance(REPO, REPO / "upstream", specialist)})
         config["kernels"] = {"organs": organs}
     if a.engine_python:
-        engine = {"python": {"path": a.engine_python, "sha256": sha256(a.engine_python)},
+        if not a.engine_checkout or not a.engine_state:
+            ap.error("--engine-python requires --engine-checkout and --engine-state")
+        receipt_path = Path(a.engine_checkout).resolve() / "APPLIANCE.json"
+        materialization = None
+        revision = a.engine_revision
+        if receipt_path.is_file():
+            receipt = json.loads(receipt_path.read_text())
+            measured_revision = receipt["source_revision"]
+            if revision and revision != measured_revision:
+                ap.error("--engine-revision differs from materialization source_revision")
+            revision = measured_revision
+            materialization = {"path": str(receipt_path), "sha256": sha256(receipt_path)}
+        if not revision:
+            ap.error("--engine-revision required without a materialization APPLIANCE.json")
+        engine = {"python": {"path": str(Path(a.engine_python).absolute()), "sha256": sha256(a.engine_python)},
                   "answerer": {"path": str(Path(a.engine_answerer).resolve()), "sha256": sha256(a.engine_answerer)},
-                  "checkout": str(Path(a.engine_checkout).resolve()), "revision": a.engine_revision,
+                  "checkout": str(Path(a.engine_checkout).resolve()), "revision": revision,
                   "state": str(Path(a.engine_state).resolve()), "workers": 1, "turn_ms": a.engine_turn_ms}
+        if materialization:
+            engine["materialization"] = materialization
         for key in ("specialist", "compose", "tip"):
             value = getattr(a, "engine_" + key)
             if value:

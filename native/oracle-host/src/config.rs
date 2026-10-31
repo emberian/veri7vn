@@ -2,8 +2,8 @@
 //! SHA-256 of its bytes; nothing here can come from a request. Unknown fields
 //! fail startup rather than being ignored.
 
-use serde::Deserialize;
-use serde_json::Value;
+use serde::{Deserialize, Serialize};
+use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
 use std::io::Read;
 use std::path::{Path, PathBuf};
@@ -11,7 +11,7 @@ use std::path::{Path, PathBuf};
 pub const SCHEMA: &str = "oracle-host-v1";
 const MAX_CONFIG_BYTES: u64 = 8 * 1024 * 1024;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Config {
     pub schema: String,
@@ -28,7 +28,7 @@ pub struct Config {
 }
 
 /// Pure supplied-argument profiles linked into the host, each a cargo feature.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct PureConfig {
     pub profiles: Vec<String>,
@@ -40,7 +40,7 @@ fn default_port() -> u16 {
     7071
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(default, deny_unknown_fields)]
 pub struct HostLimits {
     /// One global cap on requests doing work, across every route and tenant.
@@ -75,14 +75,14 @@ impl Default for HostLimits {
     }
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct Artifact {
     pub path: PathBuf,
     pub sha256: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct NativeConfig {
     pub image: PathBuf,
@@ -102,7 +102,7 @@ fn yes() -> bool {
     true
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ReleaseConfig {
     /// Exact JSON text; numbers are never re-rendered.
@@ -110,7 +110,7 @@ pub struct ReleaseConfig {
     pub identity: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct KernelsConfig {
     #[serde(default)]
@@ -118,7 +118,7 @@ pub struct KernelsConfig {
     pub organs: Vec<OrganConfig>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct OrganConfig {
     pub id: String,
@@ -131,7 +131,7 @@ pub struct OrganConfig {
     pub accept: Acceptance,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct Acceptance {
     pub kinds: Vec<String>,
@@ -140,13 +140,16 @@ pub struct Acceptance {
     pub context_regex: Option<String>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct EngineConfig {
     pub python: Artifact,
-    /// `tools/parity/answerers/oracle7.py` (the answerer contract driver).
+    /// Production JSON-lines Engine worker, admitted independently of its checkout.
     pub answerer: Artifact,
-    /// The upstream checkout and the git revision its HEAD must name.
+    /// A pinned provisioner receipt admits the materialized tree without Git.
+    #[serde(default)]
+    pub materialization: Option<Artifact>,
+    /// The upstream checkout and source revision (Git alone is development mode).
     pub checkout: PathBuf,
     pub revision: String,
     /// Parent of each worker's private `--state` directory.
@@ -268,6 +271,198 @@ pub fn git_head(checkout: &Path) -> Result<String, ConfigError> {
             (name == reference).then(|| hash.to_owned())
         })
         .ok_or_else(|| err("engine checkout: HEAD reference not found"))
+}
+
+/// Bind serving semantics, not filesystem locators. Moving a complete deployment
+/// and its state does not change its identity. Changing code, data, routing,
+/// budgets or a worker policy does. Protected artifact custody remains required.
+pub fn deployment_identity(config: &Config, host_sha256: &str) -> Result<String, ConfigError> {
+    let mut value = serde_json::to_value(config).map_err(|e| err(e.to_string()))?;
+    let object = value.as_object_mut().expect("configuration object");
+    object.remove("port");
+    object.remove("journal");
+    if let Some(native) = object.get_mut("native").and_then(Value::as_object_mut) {
+        native.remove("image");
+        native.remove("state");
+        let supplied = native.get("core_limits").cloned().unwrap_or(Value::Null);
+        let limits: oracle_runtime_core::Limits = if supplied.is_null() {
+            Default::default()
+        } else {
+            serde_json::from_value(supplied).map_err(|e| err(format!("native.core_limits: {e}")))?
+        };
+        native.insert(
+            "core_limits".into(),
+            serde_json::to_value(limits).map_err(|e| err(e.to_string()))?,
+        );
+    }
+    if let Some(kernels) = object.get_mut("kernels").and_then(Value::as_object_mut) {
+        let supplied = kernels.get("limits").cloned().unwrap_or(Value::Null);
+        let limits: oracle_runtime_core::KernelLimits = if supplied.is_null() {
+            Default::default()
+        } else {
+            serde_json::from_value(supplied).map_err(|e| err(format!("kernels.limits: {e}")))?
+        };
+        kernels.insert(
+            "limits".into(),
+            serde_json::to_value(limits).map_err(|e| err(e.to_string()))?,
+        );
+        if let Some(organs) = kernels.get_mut("organs").and_then(Value::as_array_mut) {
+            for organ in organs {
+                organ
+                    .as_object_mut()
+                    .expect("organ object")
+                    .remove("executable");
+            }
+        }
+    }
+    if let Some(engine) = object.get_mut("engine").and_then(Value::as_object_mut) {
+        engine.remove("state");
+        // A specialist's relative path is part of the routing contract.
+        if let Some(settings) = &config.engine {
+            if let Some(specialist) = &settings.specialist {
+                let name = specialist
+                    .strip_prefix(&settings.checkout)
+                    .unwrap_or(specialist);
+                engine.insert("specialist".into(), json!(name));
+            }
+        }
+        engine.remove("checkout");
+        for field in ["python", "answerer", "materialization"] {
+            if let Some(artifact) = engine.get_mut(field).and_then(Value::as_object_mut) {
+                artifact.remove("path");
+            }
+        }
+    }
+    if let Some(solver) = object
+        .get_mut("pure")
+        .and_then(|p| p.get_mut("solver"))
+        .and_then(Value::as_object_mut)
+    {
+        solver.remove("path");
+    }
+    Ok(sha256_bytes(&crate::wire::encode(&json!({
+        "schema": "oracle-host-deployment-v1", "host_sha256": host_sha256,
+        "config": value
+    }))))
+}
+
+/// Admit a provisioner's complete file inventory once, before any worker starts.
+/// Receipt hashes pin patched contents; a Git commit alone cannot do that.
+pub fn admit_engine_checkout(settings: &EngineConfig) -> Result<Value, ConfigError> {
+    use std::collections::BTreeSet;
+    use std::os::unix::fs::PermissionsExt;
+    absolute("engine.checkout", &settings.checkout)?;
+    let Some(artifact) = &settings.materialization else {
+        let head = git_head(&settings.checkout)?;
+        if head != settings.revision {
+            return Err(err("engine.checkout revision mismatch"));
+        }
+        return Ok(
+            json!({"mode": "development_git", "revision": head, "contents_verified": false}),
+        );
+    };
+    if artifact.path != settings.checkout.join("APPLIANCE.json") {
+        return Err(err(
+            "engine.materialization must name checkout/APPLIANCE.json",
+        ));
+    }
+    admit("engine.materialization", artifact)?;
+    let mut bytes = Vec::new();
+    std::fs::File::open(&artifact.path)
+        .map_err(|e| err(e.to_string()))?
+        .take(64 * 1024 * 1024 + 1)
+        .read_to_end(&mut bytes)
+        .map_err(|e| err(e.to_string()))?;
+    if bytes.len() > 64 * 1024 * 1024 {
+        return Err(err("materialization receipt exceeds 64 MiB"));
+    }
+    let receipt = crate::wire::parse(&bytes).map_err(|e| err(e.0))?;
+    if receipt["schema"] != json!(1) || receipt["source_revision"] != settings.revision {
+        return Err(err("materialization schema or source revision mismatch"));
+    }
+    let files = receipt["files"]
+        .as_object()
+        .ok_or_else(|| err("materialization files missing"))?;
+    if files.is_empty() || files.len() > 200_000 || !files.contains_key("oracle7.py") {
+        return Err(err("materialization file inventory invalid"));
+    }
+    let stores: BTreeSet<&str> = receipt["stores"]
+        .as_array()
+        .ok_or_else(|| err("materialization stores missing"))?
+        .iter()
+        .filter_map(|s| s["path"].as_str())
+        .collect();
+    let mut seen = BTreeSet::new();
+    let mut dirs = vec![settings.checkout.clone()];
+    let mut entries = 0usize;
+    while let Some(dir) = dirs.pop() {
+        for entry in
+            std::fs::read_dir(&dir).map_err(|e| err(format!("materialization directory: {e}")))?
+        {
+            let entry = entry.map_err(|e| err(e.to_string()))?;
+            entries += 1;
+            if entries > 400_000 {
+                return Err(err("materialization directory entry limit"));
+            }
+            let path = entry.path();
+            let relative = path
+                .strip_prefix(&settings.checkout)
+                .map_err(|e| err(e.to_string()))?
+                .to_str()
+                .ok_or_else(|| err("materialization non-UTF8 path"))?
+                .to_owned();
+            let kind = entry.file_type().map_err(|e| err(e.to_string()))?;
+            if kind.is_dir() {
+                dirs.push(path);
+                continue;
+            }
+            if relative == "APPLIANCE.json" && kind.is_file() {
+                continue;
+            }
+            let record = files
+                .get(&relative)
+                .ok_or_else(|| err(format!("materialization unlisted file: {relative}")))?;
+            if !kind.is_file() && !(kind.is_symlink() && stores.contains(relative.as_str())) {
+                return Err(err(format!(
+                    "materialization unsupported file type: {relative}"
+                )));
+            }
+            let metadata = std::fs::metadata(&path).map_err(|e| err(e.to_string()))?;
+            let hash = record["sha256"]
+                .as_str()
+                .filter(|s| is_hash(s))
+                .ok_or_else(|| err("invalid materialization file hash"))?;
+            if !metadata.is_file()
+                || record["size"].as_u64() != Some(metadata.len())
+                || record["executable"].as_bool()
+                    != Some(metadata.permissions().mode() & 0o111 != 0)
+                || sha256_file(&path).map_err(|e| err(e.to_string()))? != hash
+            {
+                return Err(err(format!("materialization file mismatch: {relative}")));
+            }
+            seen.insert(relative);
+        }
+    }
+    if seen.len() != files.len() || !files.keys().all(|name| seen.contains(name)) {
+        return Err(err(
+            "materialization inventory has missing or invalid paths",
+        ));
+    }
+    if let Some(specialist) = &settings.specialist {
+        let relative = specialist
+            .strip_prefix(&settings.checkout)
+            .map_err(|_| err("materialized specialist must be inside checkout"))?;
+        if relative
+            .components()
+            .any(|c| !matches!(c, std::path::Component::Normal(_)))
+        {
+            return Err(err("invalid materialized specialist path"));
+        }
+    }
+    Ok(
+        json!({"mode": "materialized", "revision": settings.revision,
+        "receipt_sha256": artifact.sha256, "contents_verified": true, "files": files.len()}),
+    )
 }
 
 pub fn read(path: &Path) -> Result<Config, ConfigError> {

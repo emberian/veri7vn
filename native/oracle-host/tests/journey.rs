@@ -57,7 +57,7 @@ done
 }
 
 const ENGINE: &str = r#"import json, os, sys, time
-print("[oracle7 answerer] head fake-head", file=sys.stderr, flush=True)
+print(json.dumps({"protocol": "oracle-engine-v1", "ready": True}), flush=True)
 n = 0
 for line in sys.stdin:
     request = json.loads(line)

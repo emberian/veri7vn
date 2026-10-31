@@ -1,17 +1,37 @@
 # Native Oracle work: current plan
 
-Updated 30 October 2026 after reading Claude's changes, the actual host paths and
-upstream 10.2. This is a plan, not a claim that the work below has run. The broad
+Updated 31 October 2026. Implementation is active again after source and
+conversation-history review. The validation receipt distinguishes authored
+changes from actual execution. The broad
 goal remains useful domain coverage, lower serving cost and a complete shared
 agent service, with scoped assurance where it helps.
 
 ## Current state
 
+The 31 October implementation batch connects recovery and packaging to the same
+Rust host. It adds durable dispatch/uncertainty phases, conversation ownership,
+tenant-owned legacy workers, host-death cleanup, materialized-release admission,
+and a relocatable distribution. Mini has a staging adapter for that distribution
+and an explicit signed native-image resource. A supplied-evidence planning
+workflow consumes the hosted logic operations. The
+[batch receipt](../native/evidence/2026-10-31-host-validation.json) records the
+actual validation and limitations; no new fleet score follows from these checks.
+
+The combined actual native/kernel/U8 host passed the scoped route, tenant and
+restart checks. A fresh Linux Mini stage was assembled and verified; the staging
+adapter and explicit operator-profile packer are on Mini main. Signing, receiving
+and the fresh agent/browser/restart journey remain. The stage currently enables
+native reading, acoustics, logic and U8; other compiled pure profiles need to be
+selected and exercised in the deployment configuration. Full Engine state export and context transfer across providers
+are still required for cheap tenant switching with durable conversation state.
+The legacy worker pool is containment during that migration, not its completion.
+
 The Rust `oracle-host` owns a private HTTP entry point and routes to native
 reading, extracted specialists and a contained Python fallback. It is not yet a
 signed or qualified Mini deployment. The separately materialized U8 appliance
-uses 10.1. Its 57-task usage check preserves U7's results; the new host was
-qualified against the older w540 Engine, not U8 or 10.2.
+uses 10.1. Its 57-task usage check preserves U7's results. The original host
+panel qualification used w540; the 31 October U8 run checks integration and
+recovery, not panel coverage. No host qualification against 10.2 is claimed.
 
 The composition arena removed four storage failures. Linux/macOS retain 36
 correct / 4 refused / 60 unknown on the original 100 questions; the new 16 give
@@ -55,6 +75,9 @@ parallel discovery format; retain distinct authority and evidence semantics.
 
 ## Source orientation: ownership and useful connections
 
+The following records the 30 October baseline. The 31 October recovery, ownership
+and worker-package repairs above supersede those findings where noted.
+
 The 30 October source reading traced both host entry points, the Engine worker
 lifecycle, the older Python pools, core transactions and representative domain
 implementations. These are source findings, not new execution receipts.
@@ -65,15 +88,13 @@ implementations. These are source findings, not new execution receipts.
   cost memory. [Core turns](../native/oracle-core/src/runtime.rs) look up completed
   retries before acquiring an execution slot, evaluate against a session revision,
   then atomically commit the new session and reply. Preserve this boundary.
-- The [host query path](../native/oracle-host/src/service.rs) adds a separate
-  journal and Engine-worker conversation binding. It acquires capacity before
-  replay and binds a conversation after running the Engine. A binding failure
-  reaches the path that deletes the pending request. Two first turns in one
-  conversation also have no conversation lease before worker selection; with
-  multiple workers they can acquire different homes. Reserve ownership before
-  execution. Pure core evaluation can roll back; a Python turn requires a durable
-  uncertainty record when its mutations cannot be atomically committed with the
-  host result. Do not disguise that difference behind a generic error return.
+- The [host query path](../native/oracle-host/src/service.rs) has a separate
+  journal and Engine-worker conversation binding. The baseline bound after
+  execution and could forget a changed request on storage failure. The current
+  implementation reserves conversation ownership and persists dispatch before
+  Python execution, retains uncertain outcomes, and replays completed requests
+  before acquiring execution capacity. Pure core evaluation can roll back; an
+  opaque Python turn cannot. Keep that distinction in the public result.
 - Native `/query` calls `read_whole`, without a conversation, whereas native
   stateful `/invoke` uses core sessions. Engine fallback has its own memory.
   Routing alone therefore does not transfer context between providers. Define
@@ -100,17 +121,19 @@ consumer before adding that lifecycle. Likewise, rational rewriting already
 replays an egg explanation in a separate checker; extend its domain consumers
 without folding search and checking into one trusted implementation.
 
-Packaging also needs an explicit worker entry point. The current Engine adapter
-is the parity answerer, whose `--state` path must be inside the source repository's
-`var` directory. A standalone appliance should configure private state directly,
-without inheriting this test-harness directory assumption.
+The production worker now has an explicit entry point,
+`tools/appliance/engine_worker.py`, with independent checkout and private-state
+paths. The parity answerer remains a comparison tool. Packaging no longer
+inherits its repository-relative state-directory requirement.
 
 ## Proposed batches and completion conditions
 
 ### 1. Make the host safe to compose and recover
 
-Keep the Rust coordinator. Specify request phases and state ownership, then fix
-these concrete gaps before signing it:
+The dispatch, deployment binding and tenant ownership repairs are implemented in
+the current batch. The following original requirements remain the acceptance
+criteria; the receipt records which have run. Cross-provider context transfer
+and mixed-load measurements remain open:
 
 - `Service::turn` asks the Engine before `journal.bind`; a later bind error
   propagates to `query`'s before-work error path, which forgets the pending
@@ -133,6 +156,11 @@ Completion: focused fault-injection tests prove no duplicate execution, no priva
 state crossing tenants, and truthful reset/uncertainty on restart, saturation and
 cancellation. Then Linux mixed-load tests measure whole-process-tree PSS, tail
 latency and fairness. Astra reviews the combined state machine before deployment.
+
+The current Mini packer constructs the archive in memory. The assembled debug
+payload has about 1.31 GB of regular members; its explicit operator profile
+changes admission ceilings, not manufacturing memory cost. Streaming manufacture
+and release-build serving measurements remain performance work.
 
 ### 2. Integrate upstream interfaces and choose a release deliberately
 
@@ -190,8 +218,11 @@ batches; reader export and one domain consumer can proceed alongside them. Keep
 one coordinated expensive build/integration runner. Use Sol for implementation,
 Terra for bounded cheaper work, and Astra for the final cross-cutting review.
 Commit each reviewed batch with its actual result; aggregate expensive release
-checks only when the components are ready. This planning turn starts no swarm,
-changes no runtime, and leaves the prior autonomous goal paused.
+checks only when the components are ready. The active batch uses Sol lanes for host recovery, Engine ownership, relocatable
+packaging, a hosted evidence-revision consumer, Mini staging, and one central
+validator. Astra reviews the combined recovery contract. The target remains one
+Rust appliance with useful domain coverage; standalone qualification is a path
+to hosted integration, not a separate product destination.
 
 ## Measurements and source records
 

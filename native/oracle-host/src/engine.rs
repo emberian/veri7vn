@@ -1,17 +1,22 @@
 //! The Python Engine as contained child processes.
 //!
-//! Each worker runs `tools/parity/answerers/oracle7.py` (JSON lines in and out,
+//! Each worker runs `tools/appliance/engine_worker.py` (JSON lines in and out,
 //! `docs/contracts/answerer.md`) in its own process group, with a cleared
 //! environment, `PYTHONDONTWRITEBYTECODE=1`, a private `--state` directory and
 //! `PARITY_UPSTREAM` naming the operator's checkout. One question per line.
+//! A slot belongs to one tenant for its entire generation. Eviction destroys
+//! all process memory; old state files remain but are never imported.
 //! A turn that misses its deadline kills the worker's whole process group by
-//! the PID the host recorded at spawn, reaps it, and starts a replacement.
+//! the PID the host recorded at spawn and reaps it. A fresh conversation starts
+//! its replacement lazily.
 //! There is no queue: a request that finds every worker busy is told so.
 
 use crate::config::{self, err, ConfigError, EngineConfig};
 use crate::front::{Candidate, Offer};
 use serde_json::{json, Value};
 use std::io::{BufRead, BufReader, Read, Write};
+use std::os::fd::AsRawFd;
+use std::os::unix::net::UnixStream;
 use std::path::PathBuf;
 use std::process::{Child, ChildStdin, Command, Stdio};
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
@@ -19,7 +24,6 @@ use std::sync::mpsc::{self, Receiver, RecvTimeoutError};
 use std::sync::{Mutex, TryLockError};
 use std::time::{Duration, Instant};
 
-const READY_MARKER: &str = "[oracle7 answerer] head ";
 const STDERR_LOG_BYTES: u64 = 16 * 1024 * 1024;
 
 pub struct EnginePool {
@@ -34,6 +38,7 @@ pub struct EnginePool {
 
 struct Slot {
     index: usize,
+    tenant: Option<String>,
     generation: u64,
     worker: Option<Worker>,
     starts: u64,
@@ -42,11 +47,12 @@ struct Slot {
 
 struct Worker {
     child: Child,
+    _liveness: UnixStream,
     pid: i32,
     stdin: ChildStdin,
     lines: Receiver<String>,
-    ready: Receiver<()>,
     is_ready: bool,
+    runtime_readiness: Value,
     pid_file: PathBuf,
 }
 
@@ -73,12 +79,13 @@ impl EnginePool {
         if settings.workers == 0 || settings.workers > 16 {
             return Err(err("engine.workers must be between 1 and 16"));
         }
-        let head = config::git_head(&settings.checkout)?;
-        if head != settings.revision {
-            return Err(err(format!(
-                "engine.checkout HEAD is {head}, configured revision is {}",
-                settings.revision
-            )));
+        let checkout_identity = config::admit_engine_checkout(settings)?;
+        let checkout = std::fs::canonicalize(&settings.checkout)
+            .map_err(|e| err(format!("engine.checkout: {e}")))?;
+        let state =
+            resolve_location(&settings.state).map_err(|e| err(format!("engine.state: {e}")))?;
+        if state.starts_with(&checkout) {
+            return Err(err("engine.state must be outside engine.checkout"));
         }
         let mut argv = vec![
             "-B".to_owned(),
@@ -102,17 +109,18 @@ impl EnginePool {
         }
         std::fs::create_dir_all(&settings.state).map_err(|e| err(format!("engine.state: {e}")))?;
         let admission = json!({"python_sha256": settings.python.sha256,
-            "answerer_sha256": settings.answerer.sha256, "checkout_revision": head,
+            "answerer_sha256": settings.answerer.sha256, "checkout_revision": settings.revision, "checkout": checkout_identity,
             "release": release_receipt(&settings.checkout),
             "workers": settings.workers, "specialist": settings.specialist.as_ref().map(|p| p.file_name()
                 .map(|n| n.to_string_lossy().into_owned())), "compose": settings.compose, "tip": settings.tip,
             "containment": {"process_group": true, "environment": "cleared", "bytecode_writes": false,
-                            "memory_limit": false, "filesystem_sandbox": false}});
+                            "memory_limit": false, "filesystem_sandbox": false, "tenant_ownership": "whole_process_generation", "state_export": false, "lazy_start": true, "host_death_guardian": "one_process_per_active_worker"}});
         Ok(Self {
             slots: (0..settings.workers)
                 .map(|index| {
                     Mutex::new(Slot {
                         index,
+                        tenant: None,
                         generation: 0,
                         worker: None,
                         starts: 0,
@@ -133,15 +141,9 @@ impl EnginePool {
         self.slots.len()
     }
 
-    /// Start every worker and wait for each Engine to finish construction.
+    /// Reserve bounded capacity without constructing tenantless full Engines.
+    /// Readiness of a specific generation is established on its first turn.
     pub fn start_all(&self) -> Result<(), String> {
-        for slot in &self.slots {
-            let mut slot = slot.lock().unwrap_or_else(|e| e.into_inner());
-            self.spawn(&mut slot)?;
-            let deadline = Instant::now() + Duration::from_millis(self.config.startup_ms);
-            wait_ready(&mut slot, deadline)
-                .map_err(|e| format!("engine worker {}: {e:?}", slot.index))?;
-        }
         Ok(())
     }
 
@@ -153,13 +155,30 @@ impl EnginePool {
         let state = self.config.state.join(&tag);
         let log = std::fs::File::create(self.config.state.join(format!("{tag}.stderr.log")))
             .map_err(|e| format!("engine stderr log: {e}"))?;
+        // The host endpoint stays CLOEXEC. Only the guardian's read endpoint
+        // crosses exec; EOF therefore means this host is gone, even on SIGKILL.
+        let (liveness, guardian_endpoint) =
+            UnixStream::pair().map_err(|e| format!("engine liveness: {e}"))?;
+        use nix::fcntl::{fcntl, FcntlArg, FdFlag};
+        let flags = fcntl(&guardian_endpoint, FcntlArg::F_GETFD).map_err(|e| e.to_string())?;
+        fcntl(
+            &guardian_endpoint,
+            FcntlArg::F_SETFD(FdFlag::from_bits_truncate(flags) & !FdFlag::FD_CLOEXEC),
+        )
+        .map_err(|e| e.to_string())?;
         let mut command = Command::new(&self.config.python.path);
         command
             .args(&self.argv)
+            .arg("--checkout")
+            .arg(&self.config.checkout)
             .arg("--state")
             .arg(&state)
             .env_clear()
             .env("PATH", "/usr/bin:/bin")
+            .env(
+                "ORACLE_HOST_LIVENESS_FD",
+                guardian_endpoint.as_raw_fd().to_string(),
+            )
             .env("HOME", &self.config.state)
             .env("LANG", "C.UTF-8")
             .env("PARITY_UPSTREAM", &self.config.checkout)
@@ -172,37 +191,65 @@ impl EnginePool {
             .stdout(Stdio::piped())
             .stderr(Stdio::piped());
         let mut child = command.spawn().map_err(|e| format!("engine spawn: {e}"))?;
+        drop(guardian_endpoint);
         let pid = child.id() as i32;
         let pid_file = self.config.state.join(format!("worker-{}.pid", slot.index));
         let _ = std::fs::write(&pid_file, format!("{pid}\n"));
         let stdin = child.stdin.take().expect("piped");
+        // Pipe writes must obey the same wall deadline as the reply.
+        use nix::fcntl::OFlag;
+        let nonblocking = fcntl(&stdin, FcntlArg::F_GETFL).and_then(|flags| {
+            fcntl(
+                &stdin,
+                FcntlArg::F_SETFL(OFlag::from_bits_truncate(flags) | OFlag::O_NONBLOCK),
+            )
+        });
+        if nonblocking.is_err() {
+            let _ = nix::sys::signal::killpg(
+                nix::unistd::Pid::from_raw(pid),
+                nix::sys::signal::Signal::SIGKILL,
+            );
+            let _ = child.wait();
+            return Err("cannot bound engine pipe writes".into());
+        }
         let stdout = child.stdout.take().expect("piped");
         let stderr = child.stderr.take().expect("piped");
-        let (line_tx, lines) = mpsc::channel();
+        let (line_tx, lines) = mpsc::sync_channel(2);
+        let frame_limit = self.config.reply_bytes;
         std::thread::spawn(move || {
-            for line in BufReader::new(stdout).lines() {
-                let Ok(line) = line else { break };
-                if line_tx.send(line).is_err() {
-                    break;
+            let mut reader = BufReader::new(stdout);
+            loop {
+                let mut bytes = Vec::new();
+                match reader
+                    .by_ref()
+                    .take(frame_limit as u64 + 1)
+                    .read_until(b'\n', &mut bytes)
+                {
+                    Ok(0) | Err(_) => break,
+                    Ok(_) if bytes.len() > frame_limit || !bytes.ends_with(b"\n") => break,
+                    Ok(_) => {
+                        let Ok(line) = String::from_utf8(bytes) else {
+                            break;
+                        };
+                        // A full channel is a protocol violation: do not allow
+                        // unbounded output or leave a producer blocked forever.
+                        if line_tx.try_send(line).is_err() {
+                            break;
+                        }
+                    }
                 }
             }
         });
-        let (ready_tx, ready) = mpsc::channel();
         std::thread::spawn(move || {
             let mut log = log;
             let mut written = 0u64;
             let mut reader = BufReader::new(stderr);
             let mut line = Vec::new();
-            let mut signalled = false;
             loop {
                 line.clear();
                 match reader.by_ref().take(1 << 20).read_until(b'\n', &mut line) {
                     Ok(0) | Err(_) => break,
                     Ok(n) => {
-                        if !signalled && line.starts_with(READY_MARKER.as_bytes()) {
-                            signalled = true;
-                            let _ = ready_tx.send(());
-                        }
                         if written < STDERR_LOG_BYTES {
                             let _ = log.write_all(&line);
                             written += n as u64;
@@ -213,11 +260,12 @@ impl EnginePool {
         });
         slot.worker = Some(Worker {
             child,
+            _liveness: liveness,
             pid,
             stdin,
             lines,
-            ready,
             is_ready: false,
+            runtime_readiness: Value::Null,
             pid_file,
         });
         Ok(())
@@ -236,39 +284,93 @@ impl EnginePool {
         }
     }
 
+    /// Check a conversation generation without dispatching or starting work.
+    /// The caller must repeat immediately before returning an early answer.
+    pub fn validate_binding(
+        &self,
+        tenant: &str,
+        index: usize,
+        generation: u64,
+    ) -> Result<(), EngineError> {
+        if self.stopping.load(Ordering::Acquire) {
+            return Err(EngineError::Stopping);
+        }
+        let mutex = self
+            .slots
+            .get(index)
+            .ok_or(EngineError::Lost("conversation_reset_required"))?;
+        let slot = match mutex.try_lock() {
+            Ok(slot) => slot,
+            Err(TryLockError::Poisoned(p)) => p.into_inner(),
+            Err(TryLockError::WouldBlock) => return Err(EngineError::Busy),
+        };
+        if slot.tenant.as_deref() != Some(tenant)
+            || slot.generation != generation
+            || slot.worker.is_none()
+        {
+            return Err(EngineError::Lost("conversation_reset_required"));
+        }
+        Ok(())
+    }
+
     /// Ask one question. `prefer` keeps a conversation on its worker.
-    pub fn ask(&self, question: &str, session: &str, prefer: Option<(usize, u64)>) -> Turn {
+    pub fn ask(
+        &self,
+        tenant: &str,
+        question: &str,
+        session: &str,
+        prefer: Option<(usize, u64)>,
+    ) -> Turn {
         if self.stopping.load(Ordering::Acquire) {
             return Err((EngineError::Stopping, None));
+        }
+        if prefer.is_some_and(|(index, _)| index >= self.slots.len()) {
+            return Err((EngineError::Lost("conversation_reset_required"), None));
         }
         let mut chosen = None;
         let candidates: Vec<usize> = match prefer {
             Some((index, _)) if index < self.slots.len() => vec![index],
             _ => (0..self.slots.len()).collect(),
         };
-        for index in candidates {
-            match self.slots[index].try_lock() {
-                Ok(guard) => {
+        // Prefer an existing owner, then unused capacity, then evict an idle
+        // owner. Never reuse a live Engine for a different tenant.
+        for pass in 0..3 {
+            for &index in &candidates {
+                let guard = match self.slots[index].try_lock() {
+                    Ok(g) => g,
+                    Err(TryLockError::Poisoned(p)) => p.into_inner(),
+                    Err(TryLockError::WouldBlock) => continue,
+                };
+                if prefer.is_some()
+                    || (pass == 0 && guard.tenant.as_deref() == Some(tenant))
+                    || (pass == 1 && guard.worker.is_none())
+                    || pass == 2
+                {
                     chosen = Some(guard);
                     break;
                 }
-                Err(TryLockError::Poisoned(p)) => {
-                    chosen = Some(p.into_inner());
-                    break;
-                }
-                Err(TryLockError::WouldBlock) => continue,
+            }
+            if chosen.is_some() {
+                break;
             }
         }
         let Some(mut slot) = chosen else {
             return Err((EngineError::Busy, None));
         };
         if let Some((_, generation)) = prefer {
-            if generation != slot.generation || slot.worker.is_none() {
+            if generation != slot.generation
+                || slot.worker.is_none()
+                || slot.tenant.as_deref() != Some(tenant)
+            {
                 return Err((
                     EngineError::Lost("conversation_reset_required"),
                     Some((slot.index, slot.generation)),
                 ));
             }
+        }
+        if slot.tenant.as_deref() != Some(tenant) {
+            Self::retire(&mut slot);
+            slot.tenant = Some(tenant.to_owned());
         }
         if slot.worker.is_none() {
             self.spawn(&mut slot)
@@ -285,17 +387,18 @@ impl EnginePool {
         let worker = slot.worker.as_mut().expect("started");
         let mut line = crate::wire::encode(&request);
         line.push(b'\n');
-        if worker
-            .stdin
-            .write_all(&line)
-            .and_then(|_| worker.stdin.flush())
-            .is_err()
-        {
-            Self::retire(&mut slot);
-            let _ = self.spawn(&mut slot);
-            return Err((EngineError::Lost("worker_lost"), Some(place)));
-        }
         let deadline = Instant::now() + Duration::from_millis(self.config.turn_ms);
+        if let Err(timed_out) = write_deadline(&mut worker.stdin, &line, deadline) {
+            Self::retire(&mut slot);
+            return Err((
+                if timed_out {
+                    EngineError::Timeout
+                } else {
+                    EngineError::Lost("worker_lost")
+                },
+                Some(place),
+            ));
+        }
         loop {
             let left = deadline.saturating_duration_since(Instant::now());
             let worker = slot.worker.as_mut().expect("started");
@@ -303,25 +406,32 @@ impl EnginePool {
                 Ok(text) => {
                     if text.len() > self.config.reply_bytes {
                         Self::retire(&mut slot);
-                        let _ = self.spawn(&mut slot);
                         return Err((EngineError::Lost("reply_too_large"), Some(place)));
                     }
                     let Ok(reply) = crate::wire::parse(text.as_bytes()) else {
-                        continue;
+                        Self::retire(&mut slot);
+                        return Err((EngineError::Lost("worker_protocol"), Some(place)));
                     };
                     if reply.get("id") != Some(&json!(id)) {
-                        continue;
+                        Self::retire(&mut slot);
+                        return Err((EngineError::Lost("worker_protocol"), Some(place)));
                     }
+                    if reply.get("error").is_some() {
+                        Self::retire(&mut slot);
+                        return Err((EngineError::Lost("worker_error"), Some(place)));
+                    }
+                    worker.runtime_readiness = reply
+                        .get("runtime_readiness")
+                        .cloned()
+                        .unwrap_or(Value::Null);
                     return Ok((reply, place.0, place.1));
                 }
                 Err(RecvTimeoutError::Timeout) => {
                     Self::retire(&mut slot);
-                    let _ = self.spawn(&mut slot);
                     return Err((EngineError::Timeout, Some(place)));
                 }
                 Err(RecvTimeoutError::Disconnected) => {
                     Self::retire(&mut slot);
-                    let _ = self.spawn(&mut slot);
                     return Err((EngineError::Lost("worker_lost"), Some(place)));
                 }
             }
@@ -333,15 +443,14 @@ impl EnginePool {
         let mut ready = 0;
         let mut starts = 0;
         let mut deaths = 0;
+        let mut readiness = Vec::new();
         for slot in &self.slots {
             match slot.try_lock() {
                 Ok(mut slot) => {
                     if let Some(worker) = slot.worker.as_mut() {
-                        if !worker.is_ready && worker.ready.try_recv().is_ok() {
-                            worker.is_ready = true;
-                        }
                         if worker.is_ready {
                             ready += 1;
+                            readiness.push(worker.runtime_readiness.clone());
                         }
                     }
                     starts += slot.starts;
@@ -350,33 +459,16 @@ impl EnginePool {
                 Err(_) => busy += 1,
             }
         }
-        json!({"workers": self.slots.len(), "busy": busy, "ready_idle": ready, "starts": starts, "retired": deaths})
+        json!({"workers": self.slots.len(), "busy": busy, "ready_idle": ready, "ready_idle_scope": "constructor_handshake_not_liveness_probe", "runtime_readiness": readiness, "starts": starts, "retired": deaths, "lazy_start": true, "tenant_isolation": "whole_process_generation", "state_export": false, "conversation_survives_eviction": false})
     }
 
     pub fn close(&self) {
         self.stopping.store(true, Ordering::Release);
         for slot in &self.slots {
             let mut slot = slot.lock().unwrap_or_else(|e| e.into_inner());
-            if let Some(worker) = slot.worker.as_mut() {
-                // EOF asks the answerer to exit cleanly; then the group is reaped.
-                let _ = worker.stdin.flush();
-            }
-            if let Some(mut worker) = slot.worker.take() {
-                drop(worker.stdin);
-                let deadline = Instant::now() + Duration::from_secs(5);
-                while Instant::now() < deadline {
-                    if let Ok(Some(_)) = worker.child.try_wait() {
-                        break;
-                    }
-                    std::thread::sleep(Duration::from_millis(50));
-                }
-                let _ = nix::sys::signal::killpg(
-                    nix::unistd::Pid::from_raw(worker.pid),
-                    nix::sys::signal::Signal::SIGKILL,
-                );
-                let _ = worker.child.wait();
-                let _ = std::fs::remove_file(&worker.pid_file);
-            }
+            // Signal the owned group before reaping its leader. Reaping first
+            // permits PID reuse and would make a later killpg unsafe.
+            Self::retire(&mut slot);
         }
     }
 
@@ -404,8 +496,19 @@ fn wait_ready(slot: &mut Slot, deadline: Instant) -> Result<(), EngineError> {
         return Ok(());
     }
     let left = deadline.saturating_duration_since(Instant::now());
-    match worker.ready.recv_timeout(left) {
-        Ok(()) => {
+    match worker.lines.recv_timeout(left) {
+        Ok(text) => {
+            let value = crate::wire::parse(text.as_bytes())
+                .map_err(|_| EngineError::Lost("engine_start_failed"))?;
+            if value.get("ready") != Some(&json!(true))
+                || value.get("protocol") != Some(&json!("oracle-engine-v1"))
+            {
+                return Err(EngineError::Lost("engine_start_failed"));
+            }
+            worker.runtime_readiness = value
+                .get("runtime_readiness")
+                .cloned()
+                .unwrap_or(Value::Null);
             worker.is_ready = true;
             Ok(())
         }
@@ -440,4 +543,44 @@ fn release_receipt(checkout: &std::path::Path) -> Value {
         }
     }
     receipt
+}
+
+impl Drop for EnginePool {
+    fn drop(&mut self) {
+        self.close();
+    }
+}
+
+fn write_deadline(pipe: &mut ChildStdin, bytes: &[u8], deadline: Instant) -> Result<(), bool> {
+    let mut sent = 0;
+    while sent < bytes.len() {
+        if Instant::now() >= deadline {
+            return Err(true);
+        }
+        match pipe.write(&bytes[sent..]) {
+            Ok(0) => return Err(false),
+            Ok(n) => sent += n,
+            Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {
+                std::thread::sleep(Duration::from_millis(2))
+            }
+            Err(e) if e.kind() == std::io::ErrorKind::Interrupted => {}
+            Err(_) => return Err(false),
+        }
+    }
+    Ok(())
+}
+
+// Resolve symlinks in existing ancestors before creating any state or log.
+fn resolve_location(path: &std::path::Path) -> std::io::Result<PathBuf> {
+    if path.exists() {
+        return std::fs::canonicalize(path);
+    }
+    let parent = path
+        .parent()
+        .ok_or_else(|| std::io::Error::other("no state parent"))?;
+    let base = resolve_location(parent)?;
+    let name = path
+        .file_name()
+        .ok_or_else(|| std::io::Error::other("invalid state name"))?;
+    Ok(base.join(name))
 }

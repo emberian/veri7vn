@@ -7,14 +7,14 @@ Engine as a contained child process for everything the native side does not
 read. Every question goes through one written rule: the routes that take a
 question must agree, or the host refuses. It never picks between answers.
 
-Until now the appliance was the Python Engine with native pieces inside it.
-This host inverts that, as [the shared runtime design](../../docs/design/shared-oracle-runtime.md)
+The earlier appliance ran the Python Engine with native pieces inside it.
+The Rust host reverses that ownership, as [the shared runtime design](../../docs/design/shared-oracle-runtime.md)
 and [the 29 October direction](../../project/DIRECTION-2026-10-29.md) ask: the
 native runtime hosts, and the Engine is one contained worker.
 
 ## What it serves
 
-The routes, headers and refusals are those of the Python reference services
+The routes, headers and basic reply envelopes follow the Python reference services
 (`tools/appliance/serve.py` and `native_service.py`), which stay untouched.
 
 | Route | What it does |
@@ -93,13 +93,74 @@ and its own provenance, so a reader can see who answered and who declined.
 
 | Property | How |
 | --- | --- |
-| Hash admission | Every artifact is an absolute path with its SHA-256. The image is hashed whole on open; organ binaries are copied and re-hashed by `KernelExecutor`; the clingo solver is copied to a private directory and re-hashed; the Engine's Python and answerer are hashed; the Engine checkout's git HEAD must equal the configured revision. A mismatch stops startup. |
+| Hash admission | Every artifact is an absolute path with its SHA-256. The image is hashed whole on open; organ binaries are copied and re-hashed by `KernelExecutor`; the clingo solver is copied to a private directory and re-hashed; the Engine's Python and answerer are hashed; the Engine materialization receipt binds the actual patched file inventory (Git-only admission is development mode). A mismatch stops startup. |
 | Release binding | The native runtime opens through `Runtime::open_release` with a release declaration that binds this host binary's own digest, the image and the core resource profile. `oracle-host manifest` prints that declaration for the operator to review. Without one, the runtime runs in development mode and says so in `/capabilities`. |
 | One global capacity | `limits.capacity` requests may do work at once, across all routes and tenants. One more gets an immediate `429` (`busy` on `/query`, `pool_busy` on `/invoke`). There is no queue. A request whose deadline passes keeps its slot until its work really stops. |
 | Bounded ingress | At most `limits.connections` open connections (more are closed at once), and one absolute deadline (`ingress_ms`) for headers plus body, as the reference server. |
-| Engine kill-and-reap | Each Engine worker runs in its own process group with a cleared environment, `PYTHONDONTWRITEBYTECODE=1`, a private `--state` directory and a PID file. A turn that misses `turn_ms` kills that process group by the recorded PID, reaps it and starts a replacement. Shutdown closes its input, waits, then kills and reaps the group. |
+| Engine kill-and-reap | Each Engine worker runs in its own process group with a cleared environment, `PYTHONDONTWRITEBYTECODE=1`, a private `--state` directory and a PID file. A turn that misses `turn_ms` kills that process group by the recorded PID and reaps it; a replacement starts lazily for subsequent admitted work. Shutdown closes its input, waits, then kills and reaps the group. |
 | Exact retry | `/query` results are journalled by (tenant, request_id). The same bytes replay the stored reply, across restarts; different bytes under the same id get `409 request_id_conflict`. A turn refused before work (busy) leaves no record. |
 | Conversations | A conversation that reached the Engine is pinned to that worker generation. If the worker was replaced or the host restarted, the next turn gets `409 conversation_reset_required`, as the Python tenant pool does, instead of silently losing context. |
+
+## Recovery and tenant ownership
+
+The host journal has one exclusive owner, held through a persistent sibling
+`.owner` file. Canonical parent paths share that lock; database symlink and
+hardlink aliases are refused. The sidecar is never removed during normal use.
+A request moves from admission to
+opaque dispatch to a retained result; dispatch and conversation reservation are
+stored before sending a question to Python. An uncertain outcome poisons that
+conversation. A successful reply commit clears the poison. Completed exact
+retries do not consume an execution slot, including after restart or saturation.
+A new request against lost Engine context requires a fresh conversation ID.
+
+Journals bind the host binary, admitted data and worker artifacts, routing rules
+and resource settings. Paths and listening port are locators and can change on
+relocation. Changing a deployment with retained history is refused; this release
+does not silently migrate that history. An empty journal can accept corrected
+configuration after a failed first startup. Nonempty older journals without an
+identity are preserved and require an explicit migration.
+
+An Engine process belongs to one tenant for its entire generation. Another tenant
+can use an idle slot only after its old process group is retired; old state files
+are retained. Worker count is bounded independently of registered tenants. Each
+active production worker has a small guardian process watching a host-owned
+socket. Host death closes that socket; the guardian kills its own worker process
+group, even when Engine native code holds Python's interpreter lock.
+This is interim isolation for legacy code: switching tenants can still reconstruct an
+Engine, and worker eviction does not restore its conversational state. Native
+operations continue to share the indexed image and bounded worker resources.
+
+Native front-door reads are currently pure reads. They do not import or update
+Engine dialogue context. Full context transfer between providers remains work;
+validating an Engine generation does not establish that transfer.
+
+For a materialized Engine, configure `engine.materialization` with the absolute
+`APPLIANCE.json` path and its admitted digest. Startup checks every declared file,
+its size and executable flag, rejects unlisted files, and checks source revision.
+Only declared store files may be symlinked. Keep the admitted tree and its side
+mounts under protected, read-only custody throughout serving. Git-only admission
+remains a development mode and does not verify working-tree contents.
+
+## Relocatable host package
+
+Build the Rust binary for the receiving OS, then create a directory distribution:
+
+```sh
+python3 tools/appliance/package_host.py --host /absolute/oracle-host \
+  --sha256 HOST_SHA256 --config /absolute/host.json --output /absolute/new-package
+python3 -I -B -S /absolute/new-package/bin/oracle-host \
+  --state-root /absolute/private-state --verify
+python3 -I -B -S /absolute/new-package/bin/oracle-host \
+  --state-root /absolute/private-state
+```
+
+The payload contains the host, worker, configured organs and optional solver.
+Images, Engine materialization and interpreter remain external; state is always
+outside the payload. Verification checks named bytes, not the complete Python
+installation or operating-system libraries. The Rust host performs the full
+Engine file-inventory admission at startup. The package is independently usable
+without Mini; Mini remains responsible for authenticating callers and signing
+its installed payload and shared resources.
 
 ## Configuration
 
@@ -125,9 +186,10 @@ and its own provenance, so a reader can see who answered and who declined.
   "kernels": {"organs": [{"id": "acoustics", "executable": "/operator/kernels/acoustics", "sha256": "ACTUAL_SHA256",
                           "family": "acoustics", "accept": {"kinds": ["..."], "declines_in_domain": ["..."], "context_regex": "..."}}]},
   "engine": {"python": {"path": "/operator/venv/bin/python", "sha256": "ACTUAL_SHA256"},
-             "answerer": {"path": "/operator/veri7vn/tools/parity/answerers/oracle7.py", "sha256": "ACTUAL_SHA256"},
+             "answerer": {"path": "/operator/engine_worker.py", "sha256": "ACTUAL_SHA256"},
              "checkout": "/operator/oracle7", "revision": "FULL_GIT_COMMIT",
-             "state": "/operator/veri7vn/var/engine-state", "workers": 1,
+             "materialization": {"path": "/operator/oracle7/APPLIANCE.json", "sha256": "ACTUAL_RECEIPT_SHA256"},
+             "state": "/operator/state/engine", "workers": 1,
              "startup_ms": 600000, "turn_ms": 300000}
 }
 ```
@@ -137,21 +199,21 @@ artifacts (it hashes them, asks the binary for its release declaration and
 reads each organ's acceptance with `tools/runtime_contract.py`). Optional Engine
 fields `specialist`, `compose` and `tip` pass the answerer's own flags.
 
-The Engine checkout and revision have no default. Tonight's runs used the
+The Engine checkout and revision have no default. The 29 October qualification used the
 existing `upstream/` checkout: git commit `c5d6a29d5bc5e2525078e5a53afa1abf659e4d69`,
 whose `BUILD_REPORT.json` and `RELEASE_HASHES.json` name head
 `oracle_release_runtime_w540`, release merkle root
 `04daf3ae439e55b7fea5f73e944b52d75f2535536bcf6a077a23d7a28802476f`. That is not
-the 10.1 tip (`c473d28914e480425adb29b4f7f42485b8cfb4e3`). Switching to a 10.1
-materialization is a change of `engine.checkout` and `engine.revision` only;
+the 10.1 tip (`c473d28914e480425adb29b4f7f42485b8cfb4e3`). A 10.1
+materialization additionally uses its pinned `engine.materialization` receipt;
 `/capabilities` reports the checkout's receipt digests and head, so a reader
 can see which Engine answered.
 
-The Engine worker is `tools/parity/answerers/oracle7.py` as it is. It already
-redirects the head's self-loop writes out of the checkout, writes no bytecode,
-and keeps engine state in the directory it is given; its only harness baggage
-is the optional specialist composition, which the host uses for the
-Python-only specialist runs below.
+The production worker is `tools/appliance/engine_worker.py`. It accepts explicit
+checkout and private state paths, uses an explicit readiness record, and keeps
+the optional specialist composition used by the parity comparisons. Constructor
+completion does not establish that upstream background organs have finished
+loading; readiness reports that distinction.
 
 ## Build and run
 
@@ -164,22 +226,34 @@ target/release/oracle-host --config "$PWD/host.json"
 ```
 
 It prints one line, `{"listening": "http://127.0.0.1:PORT", ...}`, once the
-image is open, the organs admitted and every Engine worker has finished
-building. SIGTERM or SIGINT stops it: new connections stop, in-flight turns
+image is open, the organs admitted and provider admission has completed. Legacy Engine workers start lazily on
+their first admitted question; the health report distinguishes that state. SIGTERM or SIGINT stops it: new connections stop, in-flight turns
 finish and journal, then the Engine children are reaped.
 
 Deploy shape: the host binary; the data image (260 MB for the KQA reader
 image); a state directory for the session store and journal; the organ
 binaries; the clingo binary if `logic` is served; and an Engine checkout with
-its stores, a Python with its requirements, and this repository's
-`tools/parity/answerers/oracle7.py`. No PyO3 extension and no Python adapter
+its stores, a Python with its requirements, and the self-contained
+`tools/appliance/engine_worker.py`. No PyO3 extension and no Python adapter
 code is needed by the host itself.
 
 ## Qualification
 
+The [31 October receipt](../evidence/2026-10-31-host-validation.json) records
+focused recovery, ownership, packaging and actual-provider checks. A relocated
+Linux package completed 20 logic calls across two launches. On macOS, the real
+native reader, extracted acoustics and U8 Engine answered through their expected
+routes; separate tenants used separate Engine generations; exact replay survived
+restart; a new turn against lost Engine context required reset. These are bounded
+integration probes, not new specialist-panel scores or serving benchmarks.
+
+The [Mini staging receipt](../evidence/2026-10-31-mini-rust-stage.json) records a
+fresh verified Linux stage. Its adapter and operator-profile packer are integrated
+on Mini main. The stage is not yet signed or receiving-qualified.
+
 See `native/evidence/2026-10-29-host.json` and
 `project/lanes/I2-HOST-2026-10-29.md` for every count, command and
-disagreement. In short, on macOS under heavy load (counts only; timings are
+disagreement. Those runs used macOS under heavy load (counts only; timings are
 noise):
 
 - 116 reader questions, scored by the S3 control's own rules: the host answers
