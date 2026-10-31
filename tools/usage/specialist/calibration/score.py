@@ -76,6 +76,7 @@ def main():
         request={**base,**case['overrides']}
         expected=case['expect']
         result=None
+        host_refusal=None
         failed=False
         try:
             if exact:
@@ -96,7 +97,11 @@ def main():
                 reply=hosted(args.base,args.tenant,request)
                 result=reply.get('result')
                 if result is None:
-                    raise RuntimeError('host did not retain calibration result')
+                    if reply.get('status')=='withheld' and reply.get('reason')=='native_request_refused':
+                        failed=True
+                        host_refusal=reply
+                    else:
+                        raise RuntimeError('host did not retain calibration result for '+case['id']+': '+json.dumps(reply))
         except (ExactInputError, urllib.error.HTTPError) as error:
             if isinstance(error,urllib.error.HTTPError) and error.code not in (400,422):
                 raise
@@ -106,7 +111,7 @@ def main():
             else all(e.get('value') is None for e in result.get('estimates',[]))))
         expect_refusal=expected.get('error') or expected.get('withheld') or expected.get('values')==[None]
         rows.append({'id':case['id'],'right':bool(correct),'withheld':bool(refused),'false_yes':bool(expect_refusal and not refused),
-                     'result':result})
+                     'result':result,'host_refusal':host_refusal})
     report={'scope':panel['scope'],'mode':'extracted_rounded_comparison' if exact else 'native' if args.native else 'hosted',
         'total':len(rows),'right':sum(r['right'] for r in rows),'wrong':sum(not r['right'] and not r['withheld'] for r in rows),
         'withheld':sum(r['withheld'] for r in rows),'false_yes':sum(r['false_yes'] for r in rows),'cases':rows}

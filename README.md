@@ -63,6 +63,18 @@ symbolic calculations, exact charge/isotope-conserving
 [reaction balancing](native/docs/CHEMISTRY.md), scientific models, dependencies,
 DNA alignment and statistical regression operate on supplied inputs.
 
+The latest native additions cover calibration, reusable thermal scenarios and
+sensitivities, paged DNA fragment searches, and exact rational feasibility for
+mixtures and reaction balancing. Their new hosted workflow panels pass 46 cases
+with no wrong answers or false acceptance; these are separate from the shipped
+Oracle specialist exams. Shared reader results, retained-memory accounting and
+reusable invocation workers accompany them. The
+[performance report](native/docs/PERFORMANCE.md) separates measured allocation
+savings from unresolved latency and memory questions. The
+[next integration batch](project/lanes/NATIVE-SOL-EXPANSION-2026-10-31.md) covers
+optimization, statistical modeling, thermal dynamics, translation, query batches
+and explicit revisable state.
+
 An optional [durable runtime profile](native/docs/RUNTIME-HOST.md) adds shared
 indexed data, complete KQA programs, learned language composition, atomic turns
 and release-bound retry journals. Actual HTTP checks cover restart, lost-response

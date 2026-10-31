@@ -21,6 +21,25 @@ def compact(value):
     return json.dumps(value, ensure_ascii=False, separators=(',', ':'))
 
 
+def normalize_tenant(label):
+    """Map a local label to host routing metadata; preserve an admitted ID.
+
+    This is deterministic naming, not authentication or tenant authorization.
+    """
+    if not isinstance(label, str) or not label:
+        raise ContractError('nonempty tenant label required')
+    if len(label) == 64 and all(c in '0123456789abcdef' for c in label):
+        return label
+    return hashlib.sha256(label.encode('utf-8')).hexdigest()
+
+
+def invoke_envelope(operation, arguments, conversation):
+    """Required host fields for a pure call; IDs promise no durable replay."""
+    return {'operation_id': operation, 'arguments': arguments,
+            'request_id': 'supplied-' + digest(compact([operation, arguments]))[:32],
+            'conversation_id': conversation}
+
+
 def program_text(arguments):
     lines = []
     for rule in arguments['rules']:
@@ -118,7 +137,7 @@ def invalid_constant(value):
 
 class Client:
     def __init__(self, base, tenant, timeout=15, retries=0):
-        self.base, self.tenant, self.timeout, self.retries = base.rstrip('/'), tenant, timeout, retries
+        self.base, self.tenant, self.timeout, self.retries = base.rstrip('/'), normalize_tenant(tenant), timeout, retries
 
     def transport(self, path, body=None):
         request = urllib.request.Request(self.base + path, data=None if body is None else compact(body).encode(),
@@ -137,9 +156,7 @@ class Client:
                 raise ContractError('required operation absent: ' + operation)
 
     def invoke(self, operation, arguments):
-        body = {'operation_id': operation, 'arguments': arguments,
-                'request_id': 'reasoning-' + digest(compact([operation, arguments]))[:32],
-                'conversation_id': 'hosted-reasoning'}
+        body = invoke_envelope(operation, arguments, 'hosted-reasoning')
         # Pure computation only. Request IDs correlate; they do not promise durable
         # replay. Explicit retries repeat the full immutable snapshot from scratch.
         for attempt in range(self.retries + 1):

@@ -15,6 +15,8 @@ from pathlib import Path
 import subprocess
 import sys
 import urllib.request
+# Support both direct CLI use and path-based importlib loading by panel tools.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 from hosted_reasoning import normalize_tenant, invoke_envelope
 
 OPERATION = 'statistics.calibration'

@@ -9,6 +9,9 @@ import hashlib
 import json
 import math
 from pathlib import Path
+import sys
+# Support both direct CLI use and path-based importlib loading by panel tools.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 from hosted_reasoning import Client as Transport, ContractError, compact, invoke_envelope
 
 OPERATION = 'science.thermal_scenarios'

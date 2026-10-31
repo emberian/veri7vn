@@ -59,8 +59,12 @@ comparison remain in progress under the central validation lane.
 
 Real HTTP use exposed excessive thermal scratch reservation, now computed from
 actual matrix dimensions. It also exposed invalid tenant/envelope defaults in the
-example clients; the surface lane is repairing their shared transport helper.
-Neither failed transport attempts nor library fixtures count as panel results.
+example clients; their shared transport helper and path-based imports are now
+repaired. The actual hosted workflow panels pass: calibration 16/16, thermal
+9/9, sequence search 7/7 dev and 10/10 held-out, exact blend 4/4. No wrong
+answers or false acceptance occurred in those 46 cases. Seven calibration cases
+withhold results, including intended refusals. These are new workflow panels,
+not the shipped specialist exam. Failed transport attempts remain in the receipt.
 
 The completed pre-foundation/foundation performance comparison is in
 `native/docs/PERFORMANCE.md`. All 28 HTTP semantic pairs agree; typed science

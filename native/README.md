@@ -32,7 +32,11 @@ errors. Details and evidence are in the catalog.
 
 This does not replace the complete Oracle Engine or install it in signed v7.
 The full route cascade, dialogue adapters, remaining language families and real
-external effect executors remain. No new specialist-panel scores are available.
+external effect executors remain. New hosted supplied-data workflow panels pass
+16 calibration, nine thermal-scenario, 17 sequence-search and four exact-blend
+cases, with no wrong answers or false acceptance. They are manufactured workflow
+cases, not results on the shipped specialist exams. Their source and limitations
+are linked from the [first Sol checkpoint](../project/lanes/NATIVE-SOL-WAVE-2026-10-31.md).
 The [migration map](docs/MIGRATION.md) describes these gaps; the
 [roadmap](docs/ROADMAP.md) names the next work. Handwritten Rust contracts do not
 inherit Isabelle proofs. [Resident connected-MST checking](../src/extract/discrete-certificate/README.md)
@@ -110,10 +114,13 @@ The core `Budget` API wraps the same context. Existing cancellation-only provide
 callers remain supported, but gain no fuel limit merely by using that interface.
 
 The reader converts admitted grammar programs directly into checked typed plans.
-A request can reuse compiled plans while keeping each derivation and its evidence
-separate. Its cache has a retention cap; that cap is not an aggregate limit on
-charts, live results and allocator overhead. This changes representation, not
-language coverage or the agreement rule.
+A request can reuse compiled plans and identical result/evidence payloads while
+keeping every derivation's checks. Retained results carry shared memory
+reservations through selection and durable encoding. This accounting covers
+explicitly tracked native allocations; it does not bound process RSS, SQLite,
+foreign allocations or all allocator overhead. Representation changes preserve
+the language agreement rule. See the [measured comparison](docs/PERFORMANCE.md)
+for what the foundation saves and what remains unmeasured.
 
 Each Image owns a fixed pool of SQLite handles. A lease is exclusive to one
 request, and a tenant can occupy at most one slot at a time. Busy work is refused
