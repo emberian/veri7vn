@@ -16,7 +16,7 @@ contradiction. Unboundedness needs both a feasible base and an improving ray.
 Arithmetic, tableau and pivot exhaustion are unknown, never an optimum or proof
 of impossibility. The separate feasibility-only operation keeps its old behavior.
 
-After root integrates and enables `reasoning.optimize_linear` in the host:
+With the host configured to admit `reasoning.optimize_linear`:
 
 ```
 python3 tools/usage/specialist/resource-allocation/examine.py --url http://127.0.0.1:8765
@@ -31,6 +31,8 @@ dual certificate, not an unconditional prediction of a future market price.
 Six hand-derived cases cover a two-resource corner, fractional production,
 inconsistent stock/minimum demand, an unbounded model, zero profit and losses.
 Rust tests also compare bounded small polygons against independent intersection
-enumeration and cover a classic degenerate cycling instance. No test execution
-or panel numbers yet. No Isabelle theorem is claimed. This panel is separate
-from the shipped specialist panels and does not replace their scores.
+enumeration and cover a classic degenerate cycling instance. The
+[expansion receipt](../../../../native/evidence/2026-10-31-native-expansion-validation.json)
+records six passing hosted optimization cases, including intended refusals.
+No Isabelle theorem is claimed. This supplied-data panel is separate from the
+shipped specialist panels and does not replace their scores.

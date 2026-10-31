@@ -16,7 +16,7 @@ intended algorithms are active work.
 Specialist repairs cover dropped signs, lost units, mistaken subjects and
 answers to the wrong requested quantity, including cases absent from the shipped
 tests. See the [specialist record](project/APPLIANCE-2026-10-26.md) and
-[current native work](project/NATIVE-EXPANSION-2026-10-29.md).
+[current native work](native/docs/ROADMAP.md).
 
 A proof establishes a particular statement about a computation. It can show
 that a result satisfies an equation or a decision follows from supplied rows.
@@ -24,94 +24,71 @@ It does not establish that an English question was read correctly, a physical
 model fits the world, or a fetched record is true. Those boundaries matter as
 much as the calculation.
 
-## Minidregg appliance
+## Native runtime and appliance
 
-The appliance packages Oracle7, selected veri7vn kernels, Workbench and companion
-tools for use inside a [minidregg](https://github.com/emberian/minidregg) grain.
-It supports conversational questions and a searchable catalog of direct
-operations: calculations, sourced records, document/table analysis, simulations,
-forecast checks and supplied-image tools. Descriptors declare required inputs,
-units, availability and implementation limits. Mini agents use
-`mini_oracle_discover` and `mini_oracle_call` through their application grants.
+The [Rust host](native/docs/HOST.md) serves questions, operation discovery and
+direct computations independently of minidregg. It shares an immutable indexed
+image, keeps selected extracted kernels resident and contains the Python Oracle7
+Engine in a bounded worker pool. A relocatable package keeps public data and
+private state outside its code payload. [Build and use it](native/README.md).
 
-A signed Linux runtime contains the code, dependencies and bridge. Its signed
-data declaration selects a separately published, immutable public dataset:
-about 15 GB, mounted read-only and shared between grains in the same Store.
-Signed v7 serves separate authenticated source-session workspaces from a bounded
-worker pool; its initial configuration allows one resident worker and 128 tenant
-workspaces. Exact completed requests replay without starting a worker. Conversation
-context does not yet survive worker retirement, so new turns explicitly require
-a fresh conversation after eviction. Large stores need no SPK
-chunking or per-grain copy. Mini controls admission and access; packaging a
-calculator does not grant permission or prove every answer it produces.
+The [capability catalog](native/docs/CAPABILITIES.md) describes callable graph,
+exact optimization, symbolic, scientific, statistical, biological and logic
+operations. Current workflows include calibration, events/exposure models,
+sequential monitoring, thermal scenarios and transients, exact blends, sequence
+search and coordinate-preserving translation. Their manufactured workflow cases
+are separate from the shipped specialist exams. A structured operation does not
+automatically become a natural-language specialist in the complete Oracle cascade.
 
-As of 27 October 2026, the catalog exposes 351 direct operations.
-A focused 57-request Engine run completed 37 tasks, appropriately refused or clarified
-13, and left seven valid tasks incomplete, with no wrong answers observed in
-those 57 records. The latest package adds tenant isolation and deferred catalog
-loading, checked separately through lifecycle and real Engine tests.
-Earlier signed-package tests answered through Mini in two
-independent grains. The newer agent lifecycle and complete restart/recovery
-journey remain unfinished; this is not a public Dreggnet deployment.
+The native reader supports the pinned KQA program vocabulary, learned templates
+and bounded composition. It retains 36 correct answers on the original
+100-question control. A repaired plural-first export improves the targeted
+16-question cohort from two to ten correct, with six expected declines and no
+wrong answers or execution errors in those release runs. The latest representation
+changes preserve both cohorts' answers and evidence. Coverage and performance
+limits are in the catalog and [performance report](native/docs/PERFORMANCE.md).
 
-The shared runtime has a [Rust and PyO3 implementation](native/README.md).
-The [Rust appliance host](native/docs/HOST.md) serves questions, discovery and
-direct calls through one endpoint, independently of minidregg. Its relocatable
-package connects the native reader, extracted kernels, supplied-input providers
-and a contained Python fallback. Graph optimization,
-symbolic calculations, exact charge/isotope-conserving
-[reaction balancing](native/docs/CHEMISTRY.md), scientific models, dependencies,
-DNA alignment and statistical regression operate on supplied inputs.
+Native sessions persist selections, explicit scalar state and revisable evidence;
+retries survive lost replies and restart. Front-door native reads and Python
+fallback do not yet share a complete conversation. Each Engine worker belongs to
+one tenant per generation; eviction requires reset unless its state has an
+explicit supported restoration path. Full Engine restoration, wider reader
+coverage, sustained mixed-tenant qualification and release-history migration remain.
+The [roadmap](native/docs/ROADMAP.md) is the live plan; the
+[migration map](native/docs/MIGRATION.md) identifies remaining source consumers.
 
-The latest native additions cover calibration, reusable thermal scenarios and
-sensitivities, paged DNA fragment searches, and exact rational feasibility for
-mixtures and reaction balancing. Their new hosted workflow panels pass 46 cases
-with no wrong answers or false acceptance; these are separate from the shipped
-Oracle specialist exams. Shared reader results, retained-memory accounting and
-reusable invocation workers accompany them. The
-[performance report](native/docs/PERFORMANCE.md) separates measured allocation
-savings from unresolved latency and memory questions. The
-[wider native batch](project/lanes/NATIVE-SOL-EXPANSION-2026-10-31.md) covers
-optimization, statistical modeling, thermal dynamics, translation, query batches
-and explicit revisable state. Its new hosted workflow panels pass 99 cases;
-a separate 256-request journey checks 64 tenants sharing one host.
+The [latest completed native cycle](project/lanes/NATIVE-NEXT-CYCLES-2026-10-31.md)
+records typed host calls, packed reader programs, contiguous graph checking and
+resumable evidence clients. Its code and evidence are pushed and
+[shared upstream](project/lanes/NATIVE-UPSTREAM-CHECKPOINT-2026-10-31.md).
+Separate [design experiments](native/experiments/README.md) explore streaming
+queries, maintained views and conditional formulas. Those experiments remain
+outside service registration; their fixtures are not deployed capability claims.
 
-An optional [durable runtime profile](native/docs/RUNTIME-HOST.md) adds shared
-indexed data, complete KQA programs, learned language composition, atomic turns
-and release-bound retry journals. Actual HTTP checks cover restart, lost-response
-retry and tenant separation. The full Engine cascade, authenticated public
-hosting and fresh signed Mini integration remain unfinished. Stable-model
-reasoning has optional `logic.query` and `logic.enumerate` operations with
-an operator-admitted solver. A [hosted evidence-revision workflow](native/oracle-logic/DEMOS.md)
-now runs through the relocated Linux Rust package, changing candidate plans as
-evidence arrives, conflicts and is withdrawn.
+## Minidregg integration
 
-Engine workers belong to one tenant per process generation. Request recovery
-retains uncertain outcomes and refuses to continue lost conversations. Full
-Engine state restoration, cross-provider context transfer and signed Mini
-receiving qualification remain unfinished. The older
-[Python service package](native/docs/DISTRIBUTION.md) remains a reference
-implementation, not a second deployment destination.
+The appliance is intended for agents inside a
+[minidregg](https://github.com/emberian/minidregg) grain. Mini supplies authenticated
+principals and application grants; agents discover and call admitted operations
+through `mini_oracle_discover` and `mini_oracle_call`. Its
+[appliance overview](https://github.com/emberian/minidregg/blob/main/docs/oracle-appliance.md)
+describes the receiving system. Mini admission and the fresh agent/browser/restart
+journey belong to that team; this repository supplies the runtime and its contracts.
 
-The [migration map](native/docs/MIGRATION.md) separates native capabilities from
-remaining Python providers. The [current native checkpoint and backlog](project/NATIVE-EXPANSION-2026-10-29.md)
-records delivered work and failures. The arena preserves the original 100-question
-reader result and removes the storage errors in the new 16-question challenge:
-two correct answers, six expected declines, eight unanswered, zero wrong/errors.
-These samples are not a specialist-fleet score.
+Public stores are published separately and mounted read-only, shared between
+grains in a Store. The retained signed data inventory is about 15 GB; it does not
+need per-grain copies or SPK chunking. Private state remains separate. The
+[31 October signing receipt](native/evidence/2026-10-31-mini-rust-stage.json)
+records a Linux Rust/U8 candidate, its signature and independently checked package
+inventory. Native development has advanced beyond that exact candidate; it does
+not contain every later provider or prove receiving qualification of current code.
 
-Separate [Rust design experiments](native/experiments/README.md) explore
-streaming queries, maintained views, conditional formulas and nonmonotonic
-reasoning scenarios. They compile and their authored fixtures and tests pass on
-macOS ([receipt](native/evidence/2026-10-29-experiments-execution.json)); they have
-no performance results, no panel numbers and no service registration.
-
-Start with the [shared-hosting checkpoint](project/HOSTED-2026-10-27.md),
-the [Mini appliance overview](https://github.com/emberian/minidregg/blob/main/docs/oracle-appliance.md),
-the [materialization tools](deploy/appliance/README.md), and the
-[API and operation catalog](tools/appliance/README.md). The
-[current checkpoint](project/CONTINUE-2026-10-27.md) links exact candidates,
-measured results and remaining integration work.
+Earlier signed packages answered through Mini in two independent grains. A
+separate 57-request Engine usage check completed 37 tasks, appropriately refused
+or clarified 13, and left seven valid tasks incomplete, with no wrong answers
+observed in those records. These historical checks do not establish a current
+public Dreggnet deployment. [Materialization tools](deploy/appliance/README.md)
+and the [operation interface](tools/appliance/README.md) retain their exact scope.
 
 ## Measurements
 

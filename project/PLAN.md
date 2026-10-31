@@ -1,20 +1,19 @@
-> Current, 31 October: [next native work cycles](lanes/NATIVE-NEXT-CYCLES-2026-10-31.md) and [upstream checkpoint](lanes/NATIVE-UPSTREAM-CHECKPOINT-2026-10-31.md). The [foundation](lanes/NATIVE-FOUNDATION-2026-10-31.md) and [wider expansion](lanes/NATIVE-SOL-EXPANSION-2026-10-31.md) are integrated and validated. Oracle/veri7vn scope; Mini integration belongs to its team.
+# Project navigation
 
-> Current, 29 October evening: [root direction review](DIRECTION-2026-10-29.md) and the [evening checkpoint](NATIVE-EXPANSION-2026-10-29.md): one Rust host, appliance on slim 10.1, native work scored as specialist folders.
-> Current, 29 October: [native capabilities, performance and extracted integration](NATIVE-EXPANSION-2026-10-29.md).
-> Current, 27 October: [Mars, source-precise dates and Mini shared data](CONTINUE-2026-10-27.md).
-> Active again, 26 October: [appliance and correctness batch](APPLIANCE-2026-10-26.md).
-> Ember authorized appliance packaging, more specialists, upstream repairs and
-> broad Terra review. The October 18 wrap-up below is historical.
+Current work is described in the [native roadmap](../native/docs/ROADMAP.md).
+The [capability catalog](../native/docs/CAPABILITIES.md) says what is callable;
+the [migration map](../native/docs/MIGRATION.md) names remaining Engine behavior.
+The [latest completed cycle](lanes/NATIVE-NEXT-CYCLES-2026-10-31.md) and
+[upstream publication record](lanes/NATIVE-UPSTREAM-CHECKPOINT-2026-10-31.md)
+retain the implementation and execution evidence. Mini receiving belongs to its team.
 
-> Latest terminal state and resume map: [DRAIN-2026-10-18.md](DRAIN-2026-10-18.md).
-> The usage-aware drain is complete; the broader project remains unfinished.
+The specialist scoreboard remains [BOARD.md](../docs/parity/BOARD.md), with
+scoped correctness repairs in [the appliance record](APPLIANCE-2026-10-26.md).
+There is no consolidated current fleet score. Historical plans below are evidence
+of earlier decisions, not active lane assignments or current completion claims.
+The frozen revision-2 areas described below remain historical/read-only.
 
-> Current work and corrections: `project/CODEX-2026-10-18.md`.
-> `project/HANDOFF-2026-10-18.md` records the preceding handoff; some of its
-> completion claims were stronger than the receipts support.
-
-# veri7vn plan (revision 3, 2026-10-16)
+# Historical plan: revision 3, 16 October 2026
 
 veri7vn is Oracle7's sibling with an Isabelle spine. Oracle7 answers from
 sourced records and 267 specialists, says "I can't verify that" otherwise, and

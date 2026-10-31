@@ -1,6 +1,14 @@
-# Native Oracle work: current plan
+# Native Oracle expansion: 29–31 October checkpoint
 
-Updated 31 October 2026. Implementation is active again after source and
+Historical checkpoint, superseded for active priorities by the
+[native roadmap](../native/docs/ROADMAP.md) and for delivered capabilities by
+[the catalog](../native/docs/CAPABILITIES.md). The
+[completed cycle](lanes/NATIVE-NEXT-CYCLES-2026-10-31.md) and
+[upstream record](lanes/NATIVE-UPSTREAM-CHECKPOINT-2026-10-31.md) carry later results.
+Statements below about pending implementation, upstream status and selected
+artifacts describe this checkpoint; they are not a live status feed.
+
+Original update, 31 October 2026: implementation resumed after source and
 conversation-history review. The validation receipt distinguishes authored
 changes from actual execution. The broad
 goal remains useful domain coverage, lower serving cost and a complete shared

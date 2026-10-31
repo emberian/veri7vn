@@ -1,8 +1,9 @@
 # Native capabilities
 
-The standalone service advertises operations from the admitted extension's actual
-catalog. Optional features must be compiled in and selected by the operator.
-A listed Rust library is not automatically an HTTP operation.
+The Rust host advertises operations admitted by its runtime configuration and
+compiled provider catalogs. Optional features must be compiled in and selected
+by the operator. The older Python service discovers its admitted extension's
+catalog separately. A listed Rust library is not automatically an HTTP operation.
 
 | Profile | Operation IDs | What it does and where it stops |
 | --- | --- | --- |

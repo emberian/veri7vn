@@ -23,7 +23,7 @@ recover a selected population's mean.
 
 ## Actual hosted consumer
 
-After root integrates the new statistics operation into the ordinary native host:
+With the statistics profile enabled in the native host:
 
 ```sh
 python3 -B tools/usage/sequential_monitor.py \
@@ -33,8 +33,9 @@ python3 -B tools/usage/sequential_monitor.py \
 
 Use `sequential-benchmark.json` for bounded scores and two-metric allocation.
 The command requires the real hosted operation; it has no Python numerical
-fallback. Until root's integration and validation, these are candidate workflows,
-not evidence of a live deployment or scored specialist.
+fallback. The [expansion receipt](../../../../native/evidence/2026-10-31-native-expansion-validation.json)
+records all 26 supplied consumer cases passing through the host, including
+intended refusals. This is not a shipped-specialist admission or live deployment.
 
 The Rust API is `sequential::replay(&SequentialInput, &Limits, &dyn WorkControl)`.
 `step(&SequentialState, expected_position, next_observation, ...)` imports and
@@ -112,8 +113,8 @@ it is not an alternative valid population model for these intervals.
 
 Central validation should report replay/append latency at 16, 128 and 512 rows,
 request/result sizes, host cancellation, and memory on the designated host.
-No tests/builds were run by the implementation lane. No specialist-panel numbers
-yet. The shipped descriptive statistics panels do not measure this consumer.
+Those performance questions remain separate from the passing consumer checks.
+The shipped descriptive statistics panels do not measure this consumer.
 
 Source read: Waudby-Smith and Ramdas, *Estimating means of bounded random variables
 by betting* (2024), §3.1 equations (8)--(12), and §2 conditional-mean setup:
@@ -125,7 +126,7 @@ compares every interval with an independent exact-rational inversion and checks
 outward enclosure, useful width, ordered-state binding, and deliberate admission
 failures. Run against `--native /absolute/path/to/oracle-statistics` or `--base`
 with the real host. It reports right/wrong/withheld/false-yes counts for these
-manufactured cases only. This panel has not yet been executed by this lane.
+manufactured cases only. Its retained hosted result is linked above.
 
 The exact-rational edge regressions include ordinary decimal-looking f64 bounds,
 negative bounds and cancellation, a large same-sign offset over a narrow range,

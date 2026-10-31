@@ -40,7 +40,7 @@ history and record count; the host must additionally enforce owner payload bytes
 program limits and per-tenant quotas. There is no automatic compaction because
 forgetting old IDs or retry tokens changes the mutation contract.
 
-After root registers the module, the coordinated runner can export and evaluate:
+The registered module can export and evaluate this supplied history:
 
 ```sh
 cargo run --manifest-path native/Cargo.toml -p oracle-logic --example revisions_lab > var/revisions-export.json
@@ -145,8 +145,10 @@ completed it; it never restarts a process itself. Use a fresh conversation/state
 for this supplied fixture. Focused tests cover interrupted restore, stale scope
 and identity, lost replies, invalid acknowledgements, changed pending requests,
 concurrent advance, failed solving and independent support/coverage withdrawal.
-No execution, performance improvement or new specialist-panel score is claimed
-by these authored cases.
+The [cycle receipt](../../../../native/evidence/2026-10-31-native-cycle-validation.json)
+records actual lost-reply recovery, host restart, exact replay and continuation
+through the six revisions, plus eight Python recovery cases. This is functional
+recovery evidence, not a performance gain or shipped specialist-panel score.
 
 The first hosted owner admits at most 128 revisions and 128 historical record
 IDs, additionally bounded by the existing 256 KiB owner payload cap. This keeps

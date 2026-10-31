@@ -313,23 +313,26 @@ noise):
 
 ## What it does not do yet
 
-- No Mini signing or qualification, and no authentication: the tenant header
-  is routing only, and the outer host must keep untrusted local processes away
-  from the loopback port. No public gateway.
+- A prior Linux candidate was signed and inventory-verified; current native
+  development has advanced beyond that artifact. Mini receiving qualification
+  belongs to its hosting team. The tenant header is routing only, and the outer
+  host must keep untrusted local processes away from the loopback port. There
+  is no public authenticated gateway in this host.
 - No effect executors (teaching, growth, files, network). The core's effect
   outbox is not exposed.
-- The Engine is shared by every tenant that reaches it, separated only by a
-  per-(tenant, conversation) session name. Its own learned and global state is
-  shared, as in the reference single-workspace service; per-tenant Engine
-  processes (the Python tenant pool) are not ported.
+- Each bounded Engine worker belongs to one tenant per generation. Reassigning
+  a slot retires the old process; it does not restore the evicted conversation.
+  Cheap switching requires explicit state/resource migration beyond isolation.
 - Conversations do not cross providers: a turn the reader answered is not part
   of the Engine's conversation memory, and the `/query` reader route reads
   each question alone (`reader.whole`, not `reader.execute`).
-- Pure computations run inside the host process. They are bounded by their own
-  native limits and a cooperative cancel flag, not by a killable process or a
-  memory limit as in the Python pool. macOS has no memory limit for any child.
+- Linked computations run inside the host process under shared work, deadline
+  and tracked-memory budgets. These are cooperative controls, not hard CPU/RSS
+  isolation. Opaque library calls keep capacity until they return; deployment
+  must supply any required process-level limits.
 - Organ answers are compared as text: the current organ replies carry a value
   but no unit field, so the 0.5 percent numeric rule is used only when a
   producer states a unit.
-- The checkout revision is the git HEAD; uncommitted changes in that checkout
-  are not hashed.
+- Git-only Engine admission remains development mode. Production materialization
+  admission checks the declared file inventory; the operator must preserve its
+  read-only custody, including external stores and the Python environment.

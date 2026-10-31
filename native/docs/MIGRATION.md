@@ -10,8 +10,9 @@ is the deployment target; [runtime hosting](RUNTIME-HOST.md) and
 The remaining migration is the complete Oracle turn: other data stores, route
 order and guards, dialogue state owners, specialists and external effects.
 The [architecture](../../docs/design/shared-oracle-runtime.md) explains the
-shared-resource design. The [root tracker](../../project/lanes/NATIVE-FOUNDATION-2026-10-28.md)
-records integration work. There are no new specialist-panel numbers.
+shared-resource design. The [roadmap](ROADMAP.md) records active integration priorities; the
+[completed cycle](../../project/lanes/NATIVE-NEXT-CYCLES-2026-10-31.md) records
+recent implementation and checks. There are no new specialist-panel numbers.
 
 ## Source and implementation map
 
@@ -116,4 +117,6 @@ journey. Measure sustained serving, fairness and process-tree memory rather than
 extrapolating from handles or small sequential samples. Score the affected shipped
 specialist panels with their own scorers, alongside independent truth cases.
 The current retained reader and program results are in the capability catalog;
-the failed new segment/nested cohort remains outstanding.
+the plural-first export now answers ten of the targeted 16 questions, with six
+expected declines. The original 100-question set still has 36 correct answers;
+Date/unit and empty-count semantics remain unfinished.
