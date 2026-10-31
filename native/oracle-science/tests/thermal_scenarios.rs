@@ -243,3 +243,119 @@ fn prepared_solve_respects_stricter_local_dimensions() {
         .solve(&scenario("strict", 10.0, 300.0), &limits, &control)
         .is_err());
 }
+
+#[test]
+fn typed_batch_preflight_precedes_serialization_and_reservation() {
+    use oracle_execution::{Cancellation, ExecutionContext};
+    use std::time::Duration;
+    let context =
+        ExecutionContext::new(1_000_000, Duration::from_secs(60), Cancellation::default())
+            .unwrap()
+            .restricted_memory(1);
+    let mut oversized = input();
+    oversized.network.description = " ".repeat(2048);
+    let error = thermal_scenarios_with_context(&oversized, &Limits::default(), &context)
+        .err()
+        .unwrap();
+    assert!(error.to_string().contains("typed text bounds"));
+    assert_eq!(context.memory().snapshot().peak, 0);
+    let mut oversized = input();
+    oversized.scenarios[0].applied_heat_w = vec![0.0; 1024];
+    let error = thermal_scenarios_with_context(&oversized, &Limits::default(), &context)
+        .err()
+        .unwrap();
+    assert!(error.to_string().contains("typed scenario vectors"));
+    assert_eq!(context.memory().snapshot().peak, 0);
+    let mut oversized = input();
+    oversized.network.nodes =
+        vec![oversized.network.nodes[0].clone(); oracle_science::thermal::MAX_NODES + 1];
+    let error = thermal_scenarios_with_context(&oversized, &Limits::default(), &context)
+        .err()
+        .unwrap();
+    assert!(error.to_string().contains("typed topology bounds"));
+    assert_eq!(context.memory().snapshot().peak, 0);
+}
+
+#[test]
+fn prepared_typed_preflight_and_serialization_have_live_guards() {
+    use oracle_execution::MemoryBudget;
+    let control = AtomicBool::new(false);
+    let tiny = MemoryBudget::new(1);
+    let mut oversized = network();
+    oversized.description = " ".repeat(2048);
+    let error =
+        PreparedThermalNetwork::prepare(&oversized, &Limits::default(), &control, Some(&tiny))
+            .err()
+            .unwrap();
+    assert!(error.to_string().contains("typed text bounds"));
+    assert_eq!(tiny.snapshot().peak, 0);
+    let error =
+        PreparedThermalNetwork::prepare(&network(), &Limits::default(), &control, Some(&tiny))
+            .err()
+            .unwrap();
+    assert!(error.to_string().contains("shared thermal memory"));
+    assert_eq!(tiny.snapshot().peak, 0);
+    let budget = MemoryBudget::new(8 * 1024 * 1024);
+    let mut limits = Limits::default();
+    limits.request_bytes = 64;
+    let error = PreparedThermalNetwork::prepare(&network(), &limits, &control, Some(&budget))
+        .err()
+        .unwrap();
+    assert!(error.to_string().contains("bounded serialization bytes"));
+    // Capped counting can refuse an oversized encoding without allocating it.
+    assert_eq!(budget.snapshot().peak, 0);
+    assert_eq!(budget.snapshot().live, 0);
+}
+
+#[test]
+fn escaped_text_obeys_original_byte_cap_without_new_cutoff() {
+    let control = AtomicBool::new(false);
+    let mut n = network();
+    n.description = "\u{0001}".repeat(1024);
+    assert!(PreparedThermalNetwork::prepare(&n, &Limits::default(), &control, None).is_ok());
+    let mut limits = Limits::default();
+    limits.request_bytes = 1024;
+    let error = PreparedThermalNetwork::prepare(&n, &limits, &control, None)
+        .err()
+        .unwrap();
+    assert!(error.to_string().contains("bounded serialization bytes"));
+    let mut batch = input();
+    batch.network = n;
+    let error = thermal_scenarios(&batch, &limits, &control).err().unwrap();
+    assert!(error.to_string().contains("bounded serialization bytes"));
+}
+
+#[test]
+fn repeated_scenario_declarations_stay_charged_after_preparation_drops() {
+    use oracle_execution::{Cancellation, ExecutionContext};
+    use std::time::Duration;
+    let mut batch = input();
+    batch.network.description = "d".repeat(1024);
+    batch.network.assumptions = vec!["a".repeat(1024); 32];
+    batch.sensitivities.clear();
+    batch.scenarios = (0..64)
+        .map(|i| scenario(&format!("scenario-{i}"), 10.0, 300.0))
+        .collect();
+    let context =
+        ExecutionContext::new(1_000_000, Duration::from_secs(60), Cancellation::default())
+            .unwrap()
+            .restricted_memory(32 * 1024 * 1024);
+    let result = thermal_scenarios_with_context(&batch, &Limits::default(), &context).unwrap();
+    let declaration_payload = (1024 + 32 * 1024) * 64;
+    assert!(context.memory().snapshot().live >= declaration_payload);
+    drop(result);
+    assert_eq!(context.memory().snapshot().live, 0);
+}
+#[test]
+fn actual_small_encoding_does_not_require_a_full_request_cap_reservation() {
+    use oracle_execution::{Cancellation, ExecutionContext};
+    use std::time::Duration;
+    let context =
+        ExecutionContext::new(1_000_000, Duration::from_secs(60), Cancellation::default())
+            .unwrap()
+            .restricted_memory(1024 * 1024);
+    let result = thermal_scenarios_with_context(&input(), &Limits::default(), &context).unwrap();
+    assert!(context.memory().snapshot().live < 1024 * 1024);
+    drop(result);
+    assert_eq!(context.memory().snapshot().live, 0);
+}

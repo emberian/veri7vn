@@ -82,13 +82,20 @@ and `reader.whole` / `reader.execute` when real reader tables are admitted.
 It does not enable extracted kernels or external effect executors.
 
 Exact retry binds release, session, request, expected version and raw input bytes.
+New typed owner turns instead derive canonical retry identity from the actual
+typed command; they do not accept a separate claimed command identity or parse
+that serialization back into domain data.
 Language turns share the graph/program journal: agreed answers can update the
 selection, while unknown, ambiguous and semantic refusals preserve it and retain
 their exact reply. Operational failures before commit do not advance state.
 See [runtime hosting](RUNTIME-HOST.md) for the actual HTTP boundary.
 
-[Retirement](RETENTION.md) upgrades state-store schemas 1/2 to 3 while preserving
-old reply bytes and session envelope version 2. Bounded permanent tombstones
+[Retirement](RETENTION.md) upgrades SQLite state-store schemas 1/2 to 3 while
+preserving old reply bytes. Session envelopes have their own version: the current
+schema is 3, with explicit migrations from selection-only schema 1 and envelope
+schema 2. Native owners live in a separate bounded, host-registered map; missing
+Oracle state remains unavailable. Exact completed retries preserve their retained
+reply before migration or new evaluation. Bounded permanent tombstones
 close retired namespaces. Pending, leased or uncertain effects prevent retirement.
 This changes measured resource identity; it does not migrate release-bound history.
 Selection-only state cannot recover missing upstream conversation state.

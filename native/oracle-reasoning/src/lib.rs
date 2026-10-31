@@ -8,6 +8,7 @@ pub mod exact_lp;
 pub mod formula;
 pub mod formula_search;
 pub mod graph;
+pub mod lp_optimize;
 pub mod shortest_path;
 pub mod stoichiometry;
 use serde::{Deserialize, Serialize};
@@ -94,6 +95,8 @@ impl Default for Limits {
 #[derive(Deserialize)]
 #[serde(tag = "operation", content = "arguments", deny_unknown_fields)]
 pub enum Request {
+    #[serde(rename = "reasoning.optimize_linear")]
+    OptimizeLinear(exact_lp::Problem),
     #[serde(rename = "reasoning.exact_linear_feasibility")]
     ExactLinear(exact_lp::Problem),
     #[serde(rename = "graph.minimum_spanning_forest")]
@@ -113,6 +116,7 @@ pub enum Request {
 #[derive(Serialize)]
 #[serde(untagged)]
 pub enum Response {
+    OptimizeLinear(exact_lp::Output),
     ExactLinear(exact_lp::Output),
     Forest(graph::Forest),
     ShortestPath(shortest_path::Certificate),
@@ -140,6 +144,9 @@ fn execute_inner(
         context.map_or(&legacy as &dyn oracle_execution::WorkControl, |c| c);
     checkpoint(control, 1)?;
     let reply = match request {
+        Request::OptimizeLinear(input) => Response::OptimizeLinear(lp_optimize::optimize_controlled(
+            input, &lp_optimize::Limits::default(), control,
+        )?),
         Request::ExactLinear(input) => Response::ExactLinear(exact_lp::solve_controlled(
             input,
             &exact_lp::Limits::default(),
@@ -215,6 +222,7 @@ pub fn catalog() -> serde_json::Value {
         "hosting": "pure library/CLI; no Mini registration or hard containment",
         "limits": Limits::default(),
         "operations": [
+            {"id": "reasoning.optimize_linear", "domain": "minimize an exact rational objective over original supplied rows a*x<=b and unrestricted variables; optimum requires primal/dual equality, infeasibility a Farkas contradiction, unboundedness a feasible base and improving ray; exhausted work is unknown", "optimization_limits": lp_optimize::Limits::default(), "assurance": "two-phase rational simplex proposer with Bland anti-cycling; separate original-row Rust certificate replay; no Isabelle theorem", "arguments": {"variables": "unique nonempty variable labels", "rows": "list of {id, coefficients: exact rational strings, bound: exact rational string}", "objective": "required minimization coefficients as exact rational strings"}},
             {"id": "reasoning.exact_linear_feasibility", "domain": "exact rational feasibility over caller-supplied rows a*x<=b with unrestricted variables; unknown is not infeasible; an optional minimization objective does not turn a feasible witness into an optimality claim", "exact_limits": exact_lp::Limits::default(), "assurance": "separate exact rational certificate replay; not Isabelle-verified", "arguments": {"variables": "unique nonempty variable labels", "rows": "list of {id, coefficients: exact rational strings, bound: exact rational string}", "objective": "optional minimization coefficients as exact rational strings"}},
             {"id": "graph.shortest_path", "domain": "exact directed minimum walk weight in the complete supplied multigraph only; finite, unreachable or unbounded below; missing world edges are not established", "path_limits": shortest_path_limits(&Limits::default()), "assurance": "independent Rust path/feasible-label, closed-set or anchored-negative-cycle check; not Isabelle-verified", "arguments": {"vertices": "positive integer; vertex IDs are 0..vertices-1", "edges": "list of [source, target, exact i64 weight]; stable edge ID is list position", "source": "vertex ID", "target": "vertex ID"}},
             {"id": "chemistry.balance_reaction", "domain": "exact element/isotope and charge conservation for supplied species; not reaction feasibility", "chemistry_limits": stoichiometry::ChemistryLimits::default(), "arguments": {"species": "list of {name, side: reactant|product, composition: {element_or_isotope: positive_u64}, charge: i64}; empty composition with charge -1 represents an explicit electron"}},

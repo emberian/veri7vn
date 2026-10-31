@@ -1,0 +1,8 @@
+[
+ {"id":"two-resources","expected":"optimal","profit":"9","input":{"money_unit":"USD","products":[{"id":"a","unit":"batch","profit_per_unit":"3","minimum":"0","maximum":null},{"id":"b","unit":"batch","profit_per_unit":"2","minimum":"0","maximum":null}],"resources":[{"id":"labor","unit":"hour","capacity":"4","per_product":{"a":"1","b":"1"}},{"id":"material","unit":"kg","capacity":"5","per_product":{"a":"2","b":"1"}}]}},
+ {"id":"fractional-batch","expected":"optimal","profit":"3/2","input":{"money_unit":"USD","products":[{"id":"a","unit":"batch","profit_per_unit":"3","minimum":"0","maximum":null}],"resources":[{"id":"material","unit":"kg","capacity":"1","per_product":{"a":"2"}}]}},
+ {"id":"minimum-exceeds-stock","expected":"infeasible","input":{"money_unit":"USD","products":[{"id":"a","unit":"batch","profit_per_unit":"3","minimum":"2","maximum":null}],"resources":[{"id":"material","unit":"kg","capacity":"1","per_product":{"a":"1"}}]}},
+ {"id":"no-resource-cap","expected":"unbounded","input":{"money_unit":"USD","products":[{"id":"a","unit":"batch","profit_per_unit":"1","minimum":"0","maximum":null}],"resources":[]}},
+ {"id":"zero-return-can-stay-idle","expected":"optimal","profit":"0","input":{"money_unit":"USD","products":[{"id":"a","unit":"batch","profit_per_unit":"0","minimum":"0","maximum":null}],"resources":[]}},
+ {"id":"loss-making-product-idle","expected":"optimal","profit":"0","input":{"money_unit":"USD","products":[{"id":"a","unit":"batch","profit_per_unit":"-1","minimum":"0","maximum":"7"}],"resources":[]}}
+]

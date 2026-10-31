@@ -11,3 +11,5 @@ serde_json = { workspace = true, features = ["raw_value"] }
 thiserror.workspace = true
 faer = { version = "=0.24.4", default-features = false, features = ["std", "linalg"] }
 statrs = { version = "=0.18.0", default-features = false }
+num-rational.workspace = true
+num-traits.workspace = true

@@ -410,7 +410,9 @@ fn image_capabilities(db: &Connection, schema: i64) -> Result<ImageCapabilities>
 }
 
 pub struct Image {
+    /// Legacy display identity. New coverage authority uses verified_identity().
     pub identity: String,
+    verified_identity: String,
     pub limits: Limits,
     pub capabilities: ImageCapabilities,
     connections: Mutex<Pool>,
@@ -468,6 +470,7 @@ impl Image {
             connections.push(db);
         }
         Ok(Arc::new(Self {
+            verified_identity: identity.clone(),
             identity,
             limits,
             capabilities: capabilities.expect("validated nonzero worker count"),
@@ -500,6 +503,13 @@ impl Image {
             tenant: tenant.to_owned(),
         })
     }
+    /// Immutable identity calculated from the opened image bytes, rather than
+    /// the legacy publicly mutable display field. Artifact custody remains the
+    /// host premise: this does not protect against modifying the file in place.
+    pub fn verified_identity(&self) -> &str {
+        &self.verified_identity
+    }
+
     pub fn active_workers(&self) -> usize {
         self.active.load(Ordering::Acquire)
     }

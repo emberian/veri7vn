@@ -78,7 +78,7 @@ class LanguageContract(unittest.TestCase):
                 'data_image_sha256': self.image.sha256,
                 'resource_profile_sha256': self.image.resource_profile_sha256,
                 'appliance_receipt_sha256': None,
-                'schemas': [{'id': 'session', 'version': 2}, {'id': 'graph', 'version': 1},
+                'schemas': [{'id': 'session', 'version': 3}, {'id': 'graph', 'version': 1},
                             {'id': 'kqa_program', 'version': 1}],
                 'resources': [], 'operations': operations}
 

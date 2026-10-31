@@ -71,9 +71,10 @@ Oracle specialist exams. Shared reader results, retained-memory accounting and
 reusable invocation workers accompany them. The
 [performance report](native/docs/PERFORMANCE.md) separates measured allocation
 savings from unresolved latency and memory questions. The
-[next integration batch](project/lanes/NATIVE-SOL-EXPANSION-2026-10-31.md) covers
+[wider native batch](project/lanes/NATIVE-SOL-EXPANSION-2026-10-31.md) covers
 optimization, statistical modeling, thermal dynamics, translation, query batches
-and explicit revisable state.
+and explicit revisable state. Its new hosted workflow panels pass 99 cases;
+a separate 256-request journey checks 64 tenants sharing one host.
 
 An optional [durable runtime profile](native/docs/RUNTIME-HOST.md) adds shared
 indexed data, complete KQA programs, learned language composition, atomic turns

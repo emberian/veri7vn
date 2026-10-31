@@ -728,7 +728,7 @@ fn admitted_query_release_does_not_grant_any_host_effect_operation() {
         "data_image_sha256":fixture.image.identity,
         "resource_profile_sha256":runtime_profile_sha256(&fixture.image.limits).unwrap(),
         "appliance_receipt_sha256":null,
-        "schemas":[{"id":"session","version":2},{"id":"graph","version":1},{"id":"kqa_program","version":1}],
+        "schemas":[{"id":"session","version":3},{"id":"graph","version":1},{"id":"kqa_program","version":1}],
         "resources":[],"operations":[{"id":"graph.execute","version":1,"summary":"Synthetic graph execution",
             "availability":"implemented","input_schema":{},"output_schema":{},"resources":[],"limitations":[]}]
     })).unwrap()).unwrap();
@@ -852,7 +852,7 @@ fn effect_release(
         "data_image_sha256":fixture.image.identity,
         "resource_profile_sha256":runtime_profile_sha256(&fixture.image.limits).unwrap(),
         "appliance_receipt_sha256":null,
-        "schemas":[{"id":"session","version":2},{"id":"graph","version":1},{"id":"kqa_program","version":1}],
+        "schemas":[{"id":"session","version":3},{"id":"graph","version":1},{"id":"kqa_program","version":1}],
         "resources":[],"operations":operations
     })).unwrap()).unwrap();
     let expected = manifest.identity().unwrap();

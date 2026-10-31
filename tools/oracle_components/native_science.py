@@ -150,7 +150,41 @@ class NativeScienceOperations(NativeStructuredOperations):
                     ["Every connected component must have a prescribed temperature. Complete node-order vectors keep the boundary mask fixed.",
                      "Sampled scenarios are not uncertainty bounds. Local derivatives hold every other parameter and boundary temperature fixed; no transient, advection, nonlinear model or inverse-design claim."])
 
+            if "science.thermal_transient" in catalog["operations"]:
+                transient = catalog.get("thermal_transient", {})
+                caps = {"nodes": 64, "links": 512, "attempted_steps": 8192, "load_segments": 64,
+                        "requested_samples": 128, "events": 32, "event_hits": 256, "factor_cache": 8}
+                if any(type(transient.get(key)) is not int or transient[key] != value for key, value in caps.items()):
+                    raise ValueError("unsupported transient limits")
+                transient_network = copy.deepcopy(schema)
+                transient_network["properties"]["nodes"]["maxItems"] = 64
+                transient_network["properties"]["links"]["maxItems"] = 512
+                integration = obj({"initial_step_s": NUMBER, "min_step_s": NUMBER, "max_step_s": NUMBER,
+                    "absolute_tolerance_k": NUMBER, "relative_tolerance": {"type": "number", "minimum": 0, "maximum": 0.01},
+                    "max_steps": {"type": "integer", "minimum": 1, "maximum": 8192}})
+                event = obj({"id": string(128), "node_id": string(128), "temperature_k": {"type": "number", "minimum": 0},
+                    "direction": {"enum": ["rising", "falling", "either"]}})
+                transient_schema = obj({"network": transient_network, "capacities_j_per_k": array(NUMBER, 64, 1),
+                    "initial_temperature_k": array({"type": "number", "minimum": 0}, 64, 1), "duration_s": NUMBER,
+                    "loads": array(obj({"start_time_s": NUMBER, "applied_heat_w": array(NUMBER, 64, 1)}), 64, 1),
+                    "sample_times_s": array(NUMBER, 128), "events": array(event, 32), "integration": integration},
+                    ["network", "capacities_j_per_k", "initial_temperature_k", "duration_s", "loads", "integration"])
+                transient_example = {"network": example, "capacities_j_per_k": [10, 1],
+                    "initial_temperature_k": [300, 300], "duration_s": 2,
+                    "loads": [{"start_time_s": 0, "applied_heat_w": [100, 0]},
+                              {"start_time_s": 1, "applied_heat_w": [0, 0]}],
+                    "sample_times_s": [1], "events": [{"id": "warm", "node_id": "room", "temperature_k": 305, "direction": "rising"}],
+                    "integration": {"initial_step_s": 0.01, "min_step_s": 0.000001, "max_step_s": 0.01,
+                        "absolute_tolerance_k": 0.00001, "relative_tolerance": 0, "max_steps": 8192}}
+                self.add("science.thermal_transient", transient_schema,
+                    "Evolve supplied positive-capacity passive thermal storage under piecewise heat loads, retaining energy accounting and numerical threshold crossings.", transient_example,
+                    ["Fixed reservoirs keep constant prescribed temperatures; initial conditions must match. Their computed heat closes the boundary energy balance, not measured cooling capacity.",
+                     "Backward Euler step doubling controls an estimated local difference, not rigorous global temperature or event-time error. Endpoint crossings can miss grazing or rapid recrossings; empty hits are not certified absence.",
+                     "No fluid advection, nonlinear radiation, inferred materials, thermostat switching or boundary-temperature jumps. All-node positive finite capacities and complete piecewise loads are required."])
+
     def interpret(self, operation, result):
+        if operation == "science.thermal_transient":
+            return self.interpret_transient(operation, result)
         if operation == "science.thermal_scenarios":
             required = {"schema", "operation", "network_identity", "factorization_count", "scenario_rhs_solves",
                         "sensitivity_rhs_solves", "node_order", "scenarios", "sensitivities", "warnings"}
@@ -202,3 +236,64 @@ class NativeScienceOperations(NativeStructuredOperations):
             return self.withheld(operation, outcome, result)
         classification = "numerical_underdetermined" if "underdetermined" in outcome else "numerical"
         return self.answered(operation, result, classification)
+
+    def interpret_transient(self, operation, result):
+        def number(value):
+            return type(value) in (int, float) and math.isfinite(value)
+        def count(value, maximum):
+            return type(value) is int and 0 <= value <= maximum
+        required = {"schema", "operation", "outcome", "model_identity", "node_order", "samples", "events", "energy", "diagnostics", "warnings"}
+        if (not required <= result.keys() or result.get("schema") != self.native_catalog["schema"]
+            or result.get("operation") != operation or result.get("outcome") != "completed_with_local_error_control"
+            or not isinstance(result.get("model_identity"), str) or not result["model_identity"].startswith("sha256:")
+            or result.get("identity_encoding") != "thermal-canonical-binary64-v1"
+            or not isinstance(result.get("node_order"), list) or not 1 <= len(result["node_order"]) <= 64
+            or any(not isinstance(node, str) or not node for node in result["node_order"])
+            or len(set(result["node_order"])) != len(result["node_order"])
+            or not isinstance(result.get("samples"), list) or not 2 <= len(result["samples"]) <= 130
+            or not isinstance(result.get("events"), list) or len(result["events"]) > 256
+            or not isinstance(result.get("warnings"), list)):
+            return self.withheld(operation, "native_reply_invalid")
+        last = -1
+        width = len(result["node_order"])
+        for sample in result["samples"]:
+            if (not isinstance(sample, dict) or not number(sample.get("time_s")) or sample["time_s"] <= last
+                or not isinstance(sample.get("temperature_k"), list) or len(sample["temperature_k"]) != width
+                or any(not number(value) or value < 0 for value in sample["temperature_k"])):
+                return self.withheld(operation, "native_reply_invalid")
+            last = sample["time_s"]
+        if result["samples"][0]["time_s"] != 0:
+            return self.withheld(operation, "native_reply_invalid")
+        diagnostics = result.get("diagnostics")
+        if (not isinstance(diagnostics, dict)
+            or any(not count(diagnostics.get(key), 8192) for key in ("attempted_steps", "accepted_steps", "rejected_steps"))
+            or diagnostics["accepted_steps"] == 0
+            or diagnostics["accepted_steps"] + diagnostics["rejected_steps"] != diagnostics["attempted_steps"]
+            or not number(diagnostics.get("maximum_accepted_local_error_ratio"))
+            or not 0 <= diagnostics["maximum_accepted_local_error_ratio"] <= 1
+            or not count(diagnostics.get("implicit_substeps"), 3*8192)
+            or diagnostics["implicit_substeps"] != 3*diagnostics["attempted_steps"]
+            or any(not count(diagnostics.get(key), 3*8192) for key in ("factorizations", "factor_cache_hits"))):
+            return self.withheld(operation, "native_reply_invalid")
+        energy = result.get("energy")
+        totals = ("storage_change_j", "applied_heat_j", "reservoir_heat_j", "global_balance_residual_j", "internal_link_cancellation_j")
+        if (not isinstance(energy, dict) or any(not number(energy.get(key)) for key in totals)
+            or not isinstance(energy.get("nodes"), list) or len(energy["nodes"]) != width):
+            return self.withheld(operation, "native_reply_invalid")
+        node_fields = ("storage_change_j", "applied_heat_j", "outgoing_link_heat_j", "integrated_balance_residual_j", "maximum_step_balance_residual_j")
+        for name, node in zip(result["node_order"], energy["nodes"]):
+            if (not isinstance(node, dict) or node.get("id") != name
+                or any(not number(node.get(key)) for key in node_fields)
+                or "reservoir_heat_j" not in node or (node["reservoir_heat_j"] is not None and not number(node["reservoir_heat_j"]))):
+                return self.withheld(operation, "native_reply_invalid")
+        for event in result["events"]:
+            if (not isinstance(event, dict) or not isinstance(event.get("id"), str)
+                or event.get("node_id") not in result["node_order"] or event.get("direction") not in ("rising", "falling")
+                or not isinstance(event.get("bracket_s"), list) or len(event["bracket_s"]) != 2
+                or any(not number(value) for value in event["bracket_s"])
+                or not number(event.get("linear_estimate_s"))
+                or not 0 <= event["bracket_s"][0] <= event["linear_estimate_s"] <= event["bracket_s"][1] <= last
+                or not isinstance(event.get("endpoint_temperature_k"), list) or len(event["endpoint_temperature_k"]) != 2
+                or any(not number(value) or value < 0 for value in event["endpoint_temperature_k"])):
+                return self.withheld(operation, "native_reply_invalid")
+        return self.answered(operation, result, "numerical_transient_local_error_control")

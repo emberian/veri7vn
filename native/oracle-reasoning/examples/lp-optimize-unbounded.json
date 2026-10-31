@@ -1,0 +1,1 @@
+{"variables":["amount"],"objective":["-1"],"rows":[{"id":"nonnegative","coefficients":["-1"],"bound":"0"}]}

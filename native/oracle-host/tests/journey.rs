@@ -523,6 +523,11 @@ fn sol_consumers_discover_and_invoke_through_http() {
         "science.thermal_scenarios",
         "bio.search_collection",
         "statistics.calibration",
+        "reasoning.optimize_linear",
+        "science.thermal_transient",
+        "bio.translate_coding_intervals",
+        "statistics.events_exposure",
+        "statistics.sequential_monitor",
     ] {
         let (status, descriptor) = host.get(&format!("/operations/{id}"));
         assert_eq!(status, 200, "{id}: {descriptor}");

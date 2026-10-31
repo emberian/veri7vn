@@ -3,6 +3,10 @@
 #![forbid(unsafe_code)]
 
 pub mod admission;
+pub mod batch;
+pub mod binding_proposal;
+pub mod context_delta;
+pub mod coverage;
 pub mod composition;
 mod budget;
 pub mod effects;

@@ -37,7 +37,7 @@ def operation(name):
 def manifest(image=IMAGE, code=CODE, profile='e' * 64):
     return {'schema': 'oracle-native-release-v1', 'runtime_artifact_sha256': code,
             'data_image_sha256': image, 'resource_profile_sha256': profile,
-            'appliance_receipt_sha256': None, 'schemas': [{'id': 'session', 'version': 2},
+            'appliance_receipt_sha256': None, 'schemas': [{'id': 'session', 'version': 3},
             {'id': 'graph', 'version': 1}, {'id': 'kqa_program', 'version': 1}],
             'resources': [], 'operations': [operation(op) for op in OPS]}
 

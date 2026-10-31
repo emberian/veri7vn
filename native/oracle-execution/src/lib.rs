@@ -127,10 +127,9 @@ impl Cancellation {
 /// original absolute deadline. Checks do not preempt foreign or uncooperative
 /// code: a worker remains occupied until that code actually returns.
 #[derive(Clone)]
-pub struct ExecutionContext(Arc<ExecutionInner>);
+pub struct ExecutionContext(Arc<ExecutionInner>, MemoryBudget);
 struct ExecutionInner {
-    parent: Option<ExecutionContext>,
-    memory: MemoryBudget,
+    parent: Option<Arc<ExecutionInner>>,
     cancellation: Cancellation,
     deadline: Instant,
     remaining: AtomicU64,
@@ -148,14 +147,16 @@ impl ExecutionContext {
     /// Begin an operation with an already established absolute deadline.
     /// This creates a fresh fuel allowance; use `clone` for nested work.
     pub fn with_deadline(fuel: u64, deadline: Instant, cancellation: Cancellation) -> Self {
-        Self(Arc::new(ExecutionInner {
-            parent: None,
-            memory: MemoryBudget::new(usize::MAX),
-            cancellation,
-            deadline,
-            remaining: AtomicU64::new(fuel),
-            exhausted: AtomicBool::new(false),
-        }))
+        Self(
+            Arc::new(ExecutionInner {
+                parent: None,
+                cancellation,
+                deadline,
+                remaining: AtomicU64::new(fuel),
+                exhausted: AtomicBool::new(false),
+            }),
+            MemoryBudget::new(usize::MAX),
+        )
     }
     /// Add stricter local bounds while retaining the parent's aggregate charge.
     /// Clones share both allowances. A failed local charge can consume parent
@@ -164,30 +165,25 @@ impl ExecutionContext {
         let local_deadline = Instant::now()
             .checked_add(timeout)
             .ok_or(ExecutionError::DeadlineOverflow)?;
-        Ok(Self(Arc::new(ExecutionInner {
-            parent: Some(self.clone()),
-            memory: self.0.memory.clone(),
-            cancellation: self.0.cancellation.clone(),
-            deadline: self.deadline().min(local_deadline),
-            remaining: AtomicU64::new(fuel),
-            exhausted: AtomicBool::new(false),
-        })))
+        Ok(Self(
+            Arc::new(ExecutionInner {
+                parent: Some(self.0.clone()),
+                cancellation: self.0.cancellation.clone(),
+                deadline: self.deadline().min(local_deadline),
+                remaining: AtomicU64::new(fuel),
+                exhausted: AtomicBool::new(false),
+            }),
+            self.1.clone(),
+        ))
     }
     /// Shared explicit retained-byte ledger. Legacy constructors start without a
     /// finite memory ceiling; request admission installs one via restriction.
     pub fn memory(&self) -> &MemoryBudget {
-        &self.0.memory
+        &self.1
     }
     /// Add a local retained-byte ceiling without changing fuel/deadline identity.
     pub fn restricted_memory(&self, limit: usize) -> Self {
-        Self(Arc::new(ExecutionInner {
-            parent: Some(self.clone()),
-            memory: self.0.memory.restricted(limit),
-            cancellation: self.0.cancellation.clone(),
-            deadline: self.deadline(),
-            remaining: AtomicU64::new(u64::MAX),
-            exhausted: AtomicBool::new(false),
-        }))
+        Self(self.0.clone(), self.1.restricted(limit))
     }
     pub fn deadline(&self) -> Instant {
         self.0.deadline
@@ -196,19 +192,7 @@ impl ExecutionContext {
         &self.0.cancellation
     }
     pub fn check(&self) -> Result<()> {
-        if let Some(parent) = &self.0.parent {
-            parent.check()?;
-        }
-        if self.0.cancellation.is_cancelled() {
-            return Err(ExecutionError::Cancelled);
-        }
-        if Instant::now() >= self.0.deadline {
-            return Err(ExecutionError::Deadline);
-        }
-        if self.0.exhausted.load(Ordering::Relaxed) {
-            return Err(ExecutionError::FuelExhausted);
-        }
-        Ok(())
+        self.0.check()
     }
     /// See [`Cancellation::register`] for the required wait-predicate protocol.
     pub fn wake_on_cancel(
@@ -222,17 +206,37 @@ impl ExecutionContext {
         Ok(self.0.deadline.saturating_duration_since(Instant::now()))
     }
     pub fn spend(&self, amount: u64) -> Result<()> {
+        self.0.spend(amount)
+    }
+}
+impl ExecutionInner {
+    pub fn check(&self) -> Result<()> {
+        if let Some(parent) = &self.parent {
+            parent.check()?;
+        }
+        if self.cancellation.is_cancelled() {
+            return Err(ExecutionError::Cancelled);
+        }
+        if Instant::now() >= self.deadline {
+            return Err(ExecutionError::Deadline);
+        }
+        if self.exhausted.load(Ordering::Relaxed) {
+            return Err(ExecutionError::FuelExhausted);
+        }
+        Ok(())
+    }
+    pub fn spend(&self, amount: u64) -> Result<()> {
         self.check()?;
-        if let Some(parent) = &self.0.parent {
+        if let Some(parent) = &self.parent {
             parent.spend(amount)?;
         }
-        let mut remaining = self.0.remaining.load(Ordering::Relaxed);
+        let mut remaining = self.remaining.load(Ordering::Relaxed);
         loop {
             let Some(next) = remaining.checked_sub(amount) else {
-                self.0.exhausted.store(true, Ordering::Relaxed);
+                self.exhausted.store(true, Ordering::Relaxed);
                 return Err(ExecutionError::FuelExhausted);
             };
-            match self.0.remaining.compare_exchange_weak(
+            match self.remaining.compare_exchange_weak(
                 remaining,
                 next,
                 Ordering::Relaxed,
@@ -528,5 +532,85 @@ mod shared_control_tests {
         let shared: Arc<dyn WorkControl> = cancellation;
         let control: &dyn WorkControl = &shared;
         assert_eq!(control.checkpoint(0), Err(ExecutionError::Cancelled));
+    }
+}
+
+#[cfg(test)]
+mod memory_work_identity_tests {
+    use super::*;
+
+    fn context(fuel: u64) -> ExecutionContext {
+        ExecutionContext::new(fuel, Duration::from_secs(60), Cancellation::default()).unwrap()
+    }
+
+    #[test]
+    fn repeated_memory_restrictions_preserve_exact_work_identity() {
+        let root = context(10);
+        let mut view = root.clone();
+        for _ in 0..64 {
+            view = view.restricted_memory(10);
+            assert!(Arc::ptr_eq(&root.0, &view.0));
+            assert!(view.0.parent.is_none());
+            assert_eq!(view.deadline(), root.deadline());
+        }
+        view.spend(4).unwrap();
+        assert_eq!(root.0.remaining.load(Ordering::Relaxed), 6);
+        root.spend(6).unwrap();
+        assert_eq!(view.spend(1), Err(ExecutionError::FuelExhausted));
+        assert_eq!(root.check(), Err(ExecutionError::FuelExhausted));
+    }
+
+    #[test]
+    fn memory_limits_survive_genuine_work_restriction_and_cancellation() {
+        let root = context(20).restricted_memory(10);
+        let memory_child = root.restricted_memory(3);
+        let work_child = memory_child.restricted(2, Duration::from_secs(60)).unwrap();
+        assert!(Arc::ptr_eq(work_child.0.parent.as_ref().unwrap(), &root.0));
+        let retained = work_child.memory().reserve(3).unwrap();
+        let sibling = root.memory().reserve(7).unwrap();
+        assert!(matches!(
+            work_child.memory().reserve(1),
+            Err(MemoryError::Limit)
+        ));
+        assert!(matches!(root.memory().reserve(1), Err(MemoryError::Limit)));
+        work_child.spend(2).unwrap();
+        assert_eq!(root.0.remaining.load(Ordering::Relaxed), 18);
+        assert_eq!(work_child.spend(1), Err(ExecutionError::FuelExhausted));
+        assert_eq!(root.0.remaining.load(Ordering::Relaxed), 17);
+        root.check().unwrap();
+        root.cancellation().cancel();
+        assert_eq!(work_child.check(), Err(ExecutionError::Cancelled));
+        assert_eq!(root.memory().snapshot().live, 10);
+        drop(sibling);
+        drop(root);
+        drop(work_child);
+        assert_eq!(memory_child.memory().snapshot().live, 3);
+        drop(retained);
+        assert_eq!(memory_child.memory().snapshot().live, 0);
+    }
+
+    #[test]
+    fn memory_view_of_work_child_cannot_bypass_local_fuel_or_deadline() {
+        let root = context(10);
+        let work_child = root.restricted(2, Duration::from_secs(60)).unwrap();
+        let view = work_child.restricted_memory(1).restricted_memory(100);
+        assert!(Arc::ptr_eq(&work_child.0, &view.0));
+        let retained = view.memory().reserve(1).unwrap();
+        assert!(matches!(view.memory().reserve(1), Err(MemoryError::Limit)));
+        view.spend(2).unwrap();
+        assert_eq!(view.spend(1), Err(ExecutionError::FuelExhausted));
+        assert_eq!(work_child.check(), Err(ExecutionError::FuelExhausted));
+        assert_eq!(root.0.remaining.load(Ordering::Relaxed), 7);
+        drop(view);
+        drop(work_child);
+        assert_eq!(root.memory().snapshot().live, 1);
+        drop(retained);
+        assert_eq!(root.memory().snapshot().live, 0);
+        let expired = root.restricted(1, Duration::ZERO).unwrap();
+        assert_eq!(
+            expired.restricted_memory(1).check(),
+            Err(ExecutionError::Deadline)
+        );
+        root.check().unwrap();
     }
 }

@@ -1,0 +1,32 @@
+{
+  "scope":"Manufactured supplied grouped-binomial/Poisson GLM cases; independent algebraic truth and exact replay, not shipped Oracle7 admission or a coverage experiment",
+  "cases":[
+    {"id":"grouped-logit-saturated","base":"binomial","truth":"binomial_saturated"},
+    {"id":"expanded-bernoulli-equivalence","base":"binomial","expand_bernoulli":true,"truth":"binomial_saturated"},
+    {"id":"binomial-intercept-half","base":"binomial","overrides":{"features":[[],[]],"successes":[3,7],"model":{"predictor_names":[],"predictor_units":[]},"predictions":[{"features":[],"trials":20}]},"truth":"binomial_half"},
+    {"id":"binomial-intercept-two-fifths","base":"binomial","overrides":{"features":[[],[]],"successes":[1,3],"trials":[4,6],"model":{"predictor_names":[],"predictor_units":[]},"predictions":[{"features":[],"trials":20}]},"truth":"binomial_two_fifths"},
+    {"id":"bernoulli-overlap-without-duplicates","base":"binomial","overrides":{"features":[[-2],[-1],[1],[2]],"successes":[0,1,0,1],"trials":[1,1,1,1]},"truth":"binomial_cubic"},
+    {"id":"complete-separation","base":"binomial","overrides":{"successes":[0,2],"trials":[2,2]},"status":"separation_certified"},
+    {"id":"quasi-separation","base":"binomial","overrides":{"features":[[-1],[0],[1]],"successes":[0,1,2],"trials":[2,2,2]},"status":"separation_certified"},
+    {"id":"aliased-logit-design","base":"binomial","overrides":{"features":[[1],[1]]},"status":"rank_deficient"},
+    {"id":"iteration-limit-is-not-mle","base":"binomial","overrides":{"successes":[1,6],"solver":{"max_iterations":1}},"not_success":true},
+    {"id":"no-implicit-firth","base":"binomial","overrides":{"method":"firth"},"error":true},
+    {"id":"binomial-count-is-not-precision","base":"binomial","overrides":{"precision_weights":[1,1]},"error":true},
+    {"id":"invalid-binomial-support","base":"binomial","overrides":{"successes":[11,8]},"error":true},
+    {"id":"zero-trials-invalid","base":"binomial","overrides":{"trials":[0,10]},"error":true},
+    {"id":"fractional-trial-count-invalid","base":"binomial","overrides":{"trials":[10.5,10]},"error":true},
+    {"id":"poisson-exposure-rate","base":"poisson","truth":"poisson_rate_one"},
+    {"id":"poisson-exposure-unit-rescale","base":"poisson","overrides":{"exposures":[1000,3000],"exposure_unit":"milli-device-hour","predictions":[{"features":[],"exposure":2000}]},"truth":"poisson_rescaled"},
+    {"id":"poisson-log-rate-slope","base":"poisson","overrides":{"features":[[-1],[1]],"counts":[1,9],"exposures":[1,1],"model":{"predictor_names":["stress"],"predictor_units":["1"]},"predictions":[{"features":[0],"exposure":2}]},"truth":"poisson_saturated"},
+    {"id":"poisson-zero-row-finite","base":"poisson","overrides":{"counts":[0,4],"exposures":[1,1]},"truth":"poisson_rate_two"},
+    {"id":"poisson-positive-subset-not-full-rank","base":"poisson","overrides":{"features":[[-1],[0],[1]],"counts":[0,1,0],"exposures":[1,1,1],"model":{"predictor_names":["stress"],"predictor_units":["1"]},"predictions":[{"features":[0],"exposure":2}]},"truth":"poisson_overlap"},
+    {"id":"poisson-zero-counts-intercept-recession","base":"poisson","overrides":{"counts":[0,0]},"status":"separation_certified"},
+    {"id":"poisson-zero-counts-no-intercept-finite","base":"poisson","overrides":{"intercept":false,"features":[[-1],[1]],"counts":[0,0],"exposures":[1,1],"model":{"predictor_names":["stress"],"predictor_units":["1"]},"predictions":[{"features":[0],"exposure":2}]},"truth":"poisson_zero_no_intercept"},
+    {"id":"poisson-nonintercept-recession","base":"poisson","overrides":{"features":[[0],[1]],"counts":[1,0],"exposures":[1,1],"model":{"predictor_names":["stress"],"predictor_units":["1"]},"predictions":[{"features":[0],"exposure":2}]},"status":"separation_certified"},
+    {"id":"poisson-extreme-exposure-log-domain","base":"poisson","overrides":{"counts":[1,1],"exposures":[1e-200,1e200],"predictions":[{"features":[],"exposure":1e-200}]},"truth":"poisson_extreme"},
+    {"id":"negative-count-invalid","base":"poisson","overrides":{"counts":[-1,3]},"error":true},
+    {"id":"zero-exposure-invalid","base":"poisson","overrides":{"exposures":[0,3]},"error":true},
+    {"id":"missing-new-exposure","base":"poisson","overrides":{"predictions":[{"features":[]}]},"error":true},
+    {"id":"no-exposure-trials-substitution","base":"poisson","overrides":{"trials":[1,3]},"error":true}
+  ]
+}

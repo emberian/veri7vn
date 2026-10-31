@@ -432,6 +432,22 @@ impl ReleaseManifest {
 }
 
 impl AdmittedRelease {
+    /// Compiled native owner schemas must be admitted independently of session
+    /// envelope format. Snapshot bytes cannot register their own decoders.
+    pub fn require_schema(&self, id: &str, version: u32) -> Result<()> {
+        if self
+            .manifest
+            .schemas
+            .iter()
+            .any(|schema| schema.id == id && schema.version == version)
+        {
+            Ok(())
+        } else {
+            Err(Error::Format(format!(
+                "unadmitted native owner schema: {id}/{version}"
+            )))
+        }
+    }
     pub fn identity(&self) -> &str {
         &self.identity
     }

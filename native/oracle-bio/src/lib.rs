@@ -4,6 +4,7 @@
 #![forbid(unsafe_code)]
 
 pub mod collection;
+pub mod translation;
 
 use bio::alignment::{pairwise::Aligner, AlignmentOperation};
 use oracle_execution::{ExecutionError, WorkControl};
@@ -494,6 +495,8 @@ pub enum Request {
     Align(AlignmentInput),
     #[serde(rename = "bio.search_collection")]
     SearchCollection(collection::SearchInput),
+    #[serde(rename = "bio.translate_coding_intervals")]
+    TranslateCodingIntervals(translation::TranslationInput),
 }
 pub fn call(request: &str, limits: &Limits, cancel: &dyn WorkControl) -> Result<String> {
     checkpoint(cancel)?;
@@ -507,6 +510,9 @@ pub fn call(request: &str, limits: &Limits, cancel: &dyn WorkControl) -> Result<
         Request::SearchCollection(input) => Ok(serde_json::to_string(
             &collection::search_collection(&input, cancel)?,
         )?),
+        Request::TranslateCodingIntervals(input) => Ok(serde_json::to_string(
+            &translation::translate_intervals(&input, cancel)?,
+        )?),
     }
 }
 pub fn catalog() -> serde_json::Value {
@@ -516,7 +522,10 @@ pub fn catalog() -> serde_json::Value {
             "query": "nonempty DNA string", "reference": "nonempty DNA string",
             "mode": "global|local|query_global", "scoring": "{match_score,mismatch_score,gap_open,gap_extend}; all explicit",
             "ambiguity": "optional reject (default) or always_mismatch"
-        }}, {"id":"bio.search_collection", "arguments": {"collection":"{schema:oracle-sequence-collection-v1,records:[{label,sequence}]}","patterns":"[{label,sequence}]", "page_size":"1..1024", "cursor":"optional {request_sha256,record,start,offset}"}}],
+        }}, {"id":"bio.search_collection", "arguments": {"collection":"{schema:oracle-sequence-collection-v1,records:[{label,sequence}]}","patterns":"[{label,sequence}]", "page_size":"1..1024", "cursor":"optional {request_sha256,record,start,offset}"}},
+        {"id":"bio.translate_coding_intervals", "arguments": {"source":"{schema:oracle-translation-source-v1,records:[{label,sequence}]}",
+            "features":"[{label,record_index,start,end,strand,frame}]", "genetic_code":translation::CODE_ID,
+            "initiation":"literal_codon", "remainder":"reject|drop", "stops":"include|terminate|reject", "ambiguity":"reject|unknown"}}],
         "limits": Limits::default(),
         "sequence_collection": {"schema": collection::COLLECTION_SCHEMA, "result_schema": collection::SEARCH_SCHEMA,
             "bases":collection::MAX_BASES,"records":collection::MAX_RECORDS,"patterns":collection::MAX_PATTERNS,
@@ -524,6 +533,12 @@ pub fn catalog() -> serde_json::Value {
             "ambiguity":"reject", "palindrome":"one hit with strand both", "ordering":"record index,start,pattern index,strand",
             "memory":"bounded trie <= 2*4096+1 nodes; <=1024 hits; <=131072 normalized collection bases; excludes allocator metadata and caller-owned inputs",
             "paging":"cursor binds original ordered content and patterns; complete exhausts suffix only; concatenate pages from no cursor for full coverage"},
+        "coding_translation": {"schema":translation::SCHEMA,"source_schema":translation::SOURCE_SCHEMA,"genetic_code":translation::CODE_ID,
+            "source":translation::CODE_SOURCE,"source_bases":translation::MAX_SOURCE_BASES,"records":translation::MAX_RECORDS,
+            "features":translation::MAX_FEATURES,"potential_codons":translation::MAX_CODONS,"label_bytes":256,
+            "initiation":"literal codon assignment; no start recoding or gene/ORF inference",
+            "ambiguity":"reject all source ambiguity, or any ambiguous codon becomes X; no expansion-based inference",
+            "completion":"all features processed under explicit policies; termination stops deliberately leave mapped untranslated suffixes"},
         "assurance": "independently replayed integer score and independent affine optimal-score DP; not formally verified",
         "gap_convention": "gap_open + (length-1)*gap_extend",
         "coordinates": "zero-based half-open in supplied orientation",

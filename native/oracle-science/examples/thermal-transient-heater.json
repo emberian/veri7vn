@@ -1,0 +1,17 @@
+{
+  "operation":"science.thermal_transient",
+  "arguments":{
+    "network":{
+      "description":"Supplied component heated then switched off beside an ideal fixed cooling reservoir",
+      "assumptions":["Steady positive linear conductance; lumped constant positive heat capacities; piecewise constant supplied power; no advection, radiation or thermostat inference"],
+      "reference_temperature_k":300,
+      "nodes":[{"id":"body","applied_heat_w":0},{"id":"sink","applied_heat_w":0,"fixed_temperature_k":300}],
+      "links":[{"from":"body","to":"sink","conductance_w_per_k":2}]
+    },
+    "capacities_j_per_k":[10,1],"initial_temperature_k":[300,300],"duration_s":20,
+    "loads":[{"start_time_s":0,"applied_heat_w":[20,0]},{"start_time_s":10,"applied_heat_w":[0,0]}],
+    "sample_times_s":[5,10,15],
+    "events":[{"id":"warm","node_id":"body","temperature_k":305,"direction":"either"}],
+    "integration":{"initial_step_s":0.1,"min_step_s":0.000001,"max_step_s":0.1,"absolute_tolerance_k":0.00001,"relative_tolerance":0,"max_steps":8192}
+  }
+}

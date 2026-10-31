@@ -218,7 +218,7 @@ fn release(
         "data_image_sha256":image.identity,
         "resource_profile_sha256":runtime_profile_sha256(&image.limits).unwrap(),
         "appliance_receipt_sha256":null,
-        "schemas":[{"id":"session","version":2},{"id":"graph","version":1},{"id":"kqa_program","version":1}],
+        "schemas":[{"id":"session","version":3},{"id":"graph","version":1},{"id":"kqa_program","version":1}],
         "resources":[], "operations":[{"id":operation,"version":version,"summary":operation,
             "availability":"implemented","input_schema":{"type":"object"},"output_schema":{"type":"object"},
             "resources":[],"limitations":[]}]
@@ -319,4 +319,164 @@ fn guarded_selection_survives_language_reply_and_durable_state_encoding() {
     assert_eq!(previous_reply["result"]["entities"], json!(["A"]));
     assert_eq!(budget.memory().snapshot().live, 0);
     assert_eq!(fixture.image.active_workers(), 0);
+}
+
+#[test]
+fn delivered_scalar_and_actual_reader_preserve_each_others_state() {
+    use oracle_runtime_core::{context_delta::ScalarOwner, Budget};
+    let fixture = Fixture::new(tables(vec![entity()]));
+    let path = fixture._directory.path().join("scalar-reader.sqlite");
+    let runtime = Runtime::open(fixture.image.clone(), &path).unwrap();
+    let budget = Budget::new(&Limits::default(), Cancellation::default()).unwrap();
+    runtime
+        .execute_language_with_budget("t", "s", "reader_first", 0, "who is Alice", &budget)
+        .unwrap();
+    let scalar = r#"{"op":"observe","value":{"number":"7.5","origin":"exact_decimal"}}"#;
+    runtime
+        .execute_context_with_budget("t", "s", "scalar", 1, scalar, &budget)
+        .unwrap();
+    let unknown: Value = serde_json::from_str(
+        &runtime
+            .execute_language_with_budget(
+                "t",
+                "s",
+                "reader_unknown",
+                2,
+                "nonsense unsupported surface",
+                &budget,
+            )
+            .unwrap(),
+    )
+    .unwrap();
+    assert_ne!(unknown["language"]["status"], "answered");
+    let snapshot = runtime
+        .read_native_owner_with_budget::<ScalarOwner>("t", "s", 3, &budget)
+        .unwrap();
+    assert_eq!(
+        snapshot
+            .state()
+            .unwrap()
+            .scalar
+            .as_ref()
+            .unwrap()
+            .value
+            .number,
+        "7.5"
+    );
+    let previous_reply: Value = serde_json::from_str(
+        &runtime
+            .execute_with_budget("t", "s", "previous", 3, &previous(), &budget)
+            .unwrap(),
+    )
+    .unwrap();
+    assert_eq!(previous_reply["result"]["entities"], json!(["A"]));
+    drop(snapshot);
+    assert_eq!(budget.memory().snapshot().live, 0);
+}
+
+#[test]
+fn concurrent_delivered_scalar_and_language_reader_require_one_version_winner() {
+    use oracle_runtime_core::{context_delta::ScalarOwner, Budget};
+    use std::sync::Barrier;
+    let fixture = Fixture::new(tables(vec![entity()]));
+    let path = fixture
+        ._directory
+        .path()
+        .join("concurrent-scalar-reader.sqlite");
+    let runtime = Arc::new(Runtime::open(fixture.image.clone(), &path).unwrap());
+    runtime
+        .execute_context(
+            "t",
+            "s",
+            "initial",
+            0,
+            r#"{"op":"observe","value":{"number":"11","origin":"exact_decimal"}}"#,
+            Cancellation::default(),
+        )
+        .unwrap();
+    let barrier = Arc::new(Barrier::new(3));
+    let owner = {
+        let runtime = runtime.clone();
+        let barrier = barrier.clone();
+        std::thread::spawn(move || {
+            barrier.wait();
+            runtime.execute_context(
+                "t",
+                "s",
+                "owner",
+                1,
+                r#"{"op":"scale","factor":"2"}"#,
+                Cancellation::default(),
+            )
+        })
+    };
+    let reader = {
+        let runtime = runtime.clone();
+        let barrier = barrier.clone();
+        std::thread::spawn(move || {
+            barrier.wait();
+            runtime.execute_language(
+                "t",
+                "s",
+                "reader",
+                1,
+                "who is Alice",
+                Cancellation::default(),
+            )
+        })
+    };
+    barrier.wait();
+    let owner = owner.join().unwrap();
+    let reader = reader.join().unwrap();
+    assert!(owner.is_ok() ^ reader.is_ok());
+    for result in [&owner, &reader] {
+        if let Err(error) = result {
+            assert!(matches!(error, Error::Busy | Error::Conflict(_)));
+        }
+    }
+    if owner.is_ok() {
+        runtime
+            .execute_language(
+                "t",
+                "s",
+                "reader_after",
+                2,
+                "who is Alice",
+                Cancellation::default(),
+            )
+            .unwrap();
+    } else {
+        runtime
+            .execute_context(
+                "t",
+                "s",
+                "owner_after",
+                2,
+                r#"{"op":"scale","factor":"2"}"#,
+                Cancellation::default(),
+            )
+            .unwrap();
+    }
+    let budget = Budget::new(&Limits::default(), Cancellation::default()).unwrap();
+    let snapshot = runtime
+        .read_native_owner_with_budget::<ScalarOwner>("t", "s", 3, &budget)
+        .unwrap();
+    assert_eq!(
+        snapshot
+            .state()
+            .unwrap()
+            .scalar
+            .as_ref()
+            .unwrap()
+            .value
+            .number,
+        "22/1"
+    );
+    let previous_reply: Value = serde_json::from_str(
+        &runtime
+            .execute_with_budget("t", "s", "previous_after", 3, &previous(), &budget)
+            .unwrap(),
+    )
+    .unwrap();
+    assert_eq!(previous_reply["result"]["entities"], json!(["A"]));
 }

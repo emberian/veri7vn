@@ -36,7 +36,9 @@ class ActualSolPythonSurface(unittest.TestCase):
                                    "fixture:" + profile)
         for profile, operation in (("reasoning", "reasoning.exact_linear_feasibility"),
                 ("science", "science.thermal_scenarios"), ("bio", "bio.search_collection"),
-                ("statistics", "statistics.calibration")):
+                ("statistics", "statistics.calibration"), ("reasoning", "reasoning.optimize_linear"),
+                ("science", "science.thermal_transient"), ("bio", "bio.translate_coding_intervals"),
+                ("statistics", "statistics.events_exposure"), ("statistics", "statistics.sequential_monitor")):
             with self.subTest(operation=operation):
                 adapter = adapters[profile]
                 declaration = next(d for d in adapter.catalog() if d["id"] == operation)

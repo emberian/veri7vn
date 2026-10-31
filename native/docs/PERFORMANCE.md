@@ -148,3 +148,22 @@ The [Sol harness guide](../../tools/bench/sol/README.md) records commands and
 scope. Raw replies, source bindings, CPU/load observations, binary hashes and
 build logs remain beside the earlier measurements. The runner was released
 before phase-two execution; no phase-two fix is included above.
+
+## Memory-scope repair in the expansion batch
+
+Memory-only restrictions now share the same execution state instead of adding an
+unlimited fuel ancestor. Genuine fuel/deadline restrictions still charge their
+parents. Source review and focused tests cover these separate lifetimes.
+
+One fixed-CPU comparison of retained first-wave and expansion release binaries
+measured 1,000 calls per workload. Large-graph p50 changed from 3.934 to 3.485 ms
+(11.4% lower), while p95 changed from 4.319 to 5.330 ms (23.4% higher). Small-graph
+p50 changed from 72.5 to 76.9 microseconds. This does not establish that the
+regression is closed; the earlier foundation observation was faster. The
+[expansion receipt](../evidence/2026-10-31-native-expansion-validation.json) retains
+the actual pair and its limits. No repeated sweep selected a favorable result.
+
+The next target is time close to the underlying computation, with measured costs
+for validation, dispatch, allocation and encoding. A timeout is containment, not
+a performance objective. Reader interpretation/compilation counts and symmetric
+prepared-consumer benchmarks are concrete next targets.

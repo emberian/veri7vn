@@ -1,0 +1,9 @@
+{
+  "id": "sequence-translation-explicit",
+  "name": "Literal translation of supplied coding intervals",
+  "sources": [{"name": "Caller-supplied DNA and explicit coding intervals; NCBI standard code table 1, Sep 23 2024 snapshot", "licence": "caller supplied / NCBI", "url": "https://www.ncbi.nlm.nih.gov/Taxonomy/Utils/wprintgc.cgi#SG1"}],
+  "organ": {"module": "organ_translation", "class": "Organ", "init": {}},
+  "accept": {"kinds": ["sequence_translation"], "declines_in_domain": ["sequence_translation_input"], "context_regex": "^Translate supplied coding intervals:"},
+  "panel": {"path": "panel.json", "scorer_module": "scorer", "scorer_fn": "ok"},
+  "budgets": {"latency_p50_ms": 1000}
+}

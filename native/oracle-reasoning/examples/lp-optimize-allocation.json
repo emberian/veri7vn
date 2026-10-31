@@ -1,0 +1,1 @@
+{"variables":["product_a","product_b"],"objective":["-3","-2"],"rows":[{"id":"a_nonnegative","coefficients":["-1","0"],"bound":"0"},{"id":"b_nonnegative","coefficients":["0","-1"],"bound":"0"},{"id":"labor","coefficients":["1","1"],"bound":"4"},{"id":"material","coefficients":["2","1"],"bound":"5"}]}

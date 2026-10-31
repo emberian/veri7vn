@@ -1,0 +1,528 @@
+{
+  "date": "2026-10-31",
+  "status": "bounded_pipeline_smoke_negative_at_predeclared_threshold",
+  "authorization": "root granted bounded macOS CPU experiment; no Rust execution",
+  "python": "3.11.16 (main, Aug 12 2026, 23:03:19) [Clang 21.0.0 (clang-2100.1.1.101)]",
+  "executable": "/Users/ember/dev/chetgpt/.venv/bin/python",
+  "platform": "macOS-27.0.1-arm64-arm-64bit",
+  "packages": {
+    "numpy": "2.2.6",
+    "torch": "2.12.0",
+    "transformers": "4.57.3"
+  },
+  "limits": {
+    "threads": 2,
+    "groups_per_split": 2,
+    "documents": 20,
+    "layer": 3,
+    "max_tokens_per_document": 512,
+    "token_forward_ceiling": 10240,
+    "threshold": 0.5,
+    "penalty": 10,
+    "base_updates": 0,
+    "downloads": 0,
+    "gpu": false
+  },
+  "checks": {
+    "python_fixture_tests": {
+      "passed": 6,
+      "failed": 0,
+      "test_seconds": 1.004
+    },
+    "controls": {
+      "exit": 0,
+      "wall_seconds": 0.24,
+      "max_rss_bytes": 36356096
+    },
+    "activation": {
+      "exit": 0,
+      "wall_seconds": 15.29,
+      "max_rss_bytes": 700973056,
+      "peak_memory_footprint_bytes": 579437768
+    },
+    "export_bridge": {
+      "exit": 0,
+      "source_id": "test_names-0-0",
+      "accepted_bindings": 0
+    },
+    "rust": "not_executed_central_runner_required"
+  },
+  "results": {
+    "position": {
+      "dev": {
+        "readout": {
+          "values": 36,
+          "tuple_accuracy": 0.1388888888888889,
+          "complete_table_accuracy": 0.0,
+          "answered": 0,
+          "coverage": 0.0,
+          "tuple_precision": null,
+          "tuple_recall": 0.0,
+          "wrong_binding_rate": null,
+          "selective_accuracy_wilson_descriptive": null,
+          "brier": 0.8863497944659824,
+          "threshold": 0.5,
+          "interval_limit": "Rows share passages; Wilson interval ignores clustering."
+        },
+        "shuffled_labels": {
+          "values": 36,
+          "tuple_accuracy": 0.08333333333333333,
+          "complete_table_accuracy": 0.0,
+          "answered": 0,
+          "coverage": 0.0,
+          "tuple_precision": null,
+          "tuple_recall": 0.0,
+          "wrong_binding_rate": null,
+          "selective_accuracy_wilson_descriptive": null,
+          "brier": 0.8923224176379452,
+          "threshold": 0.5,
+          "interval_limit": "Rows share passages; Wilson interval ignores clustering."
+        }
+      },
+      "test_names": {
+        "readout": {
+          "values": 36,
+          "tuple_accuracy": 0.08333333333333333,
+          "complete_table_accuracy": 0.0,
+          "answered": 0,
+          "coverage": 0.0,
+          "tuple_precision": null,
+          "tuple_recall": 0.0,
+          "wrong_binding_rate": null,
+          "selective_accuracy_wilson_descriptive": null,
+          "brier": 0.8910953389222613,
+          "threshold": 0.5,
+          "interval_limit": "Rows share passages; Wilson interval ignores clustering."
+        },
+        "shuffled_labels": {
+          "values": 36,
+          "tuple_accuracy": 0.16666666666666666,
+          "complete_table_accuracy": 0.0,
+          "answered": 0,
+          "coverage": 0.0,
+          "tuple_precision": null,
+          "tuple_recall": 0.0,
+          "wrong_binding_rate": null,
+          "selective_accuracy_wilson_descriptive": null,
+          "brier": 0.8838420388524112,
+          "threshold": 0.5,
+          "interval_limit": "Rows share passages; Wilson interval ignores clustering."
+        }
+      },
+      "test_roles": {
+        "readout": {
+          "values": 36,
+          "tuple_accuracy": 0.08333333333333333,
+          "complete_table_accuracy": 0.0,
+          "answered": 0,
+          "coverage": 0.0,
+          "tuple_precision": null,
+          "tuple_recall": 0.0,
+          "wrong_binding_rate": null,
+          "selective_accuracy_wilson_descriptive": null,
+          "brier": 0.8845689922652534,
+          "threshold": 0.5,
+          "interval_limit": "Rows share passages; Wilson interval ignores clustering."
+        },
+        "shuffled_labels": {
+          "values": 36,
+          "tuple_accuracy": 0.1388888888888889,
+          "complete_table_accuracy": 0.0,
+          "answered": 0,
+          "coverage": 0.0,
+          "tuple_precision": null,
+          "tuple_recall": 0.0,
+          "wrong_binding_rate": null,
+          "selective_accuracy_wilson_descriptive": null,
+          "brier": 0.8871686406431907,
+          "threshold": 0.5,
+          "interval_limit": "Rows share passages; Wilson interval ignores clustering."
+        }
+      },
+      "test_template": {
+        "readout": {
+          "values": 36,
+          "tuple_accuracy": 0.1111111111111111,
+          "complete_table_accuracy": 0.0,
+          "answered": 0,
+          "coverage": 0.0,
+          "tuple_precision": null,
+          "tuple_recall": 0.0,
+          "wrong_binding_rate": null,
+          "selective_accuracy_wilson_descriptive": null,
+          "brier": 0.8868276075971423,
+          "threshold": 0.5,
+          "interval_limit": "Rows share passages; Wilson interval ignores clustering."
+        },
+        "shuffled_labels": {
+          "values": 36,
+          "tuple_accuracy": 0.05555555555555555,
+          "complete_table_accuracy": 0.0,
+          "answered": 0,
+          "coverage": 0.0,
+          "tuple_precision": null,
+          "tuple_recall": 0.0,
+          "wrong_binding_rate": null,
+          "selective_accuracy_wilson_descriptive": null,
+          "brier": 0.8893598011591783,
+          "threshold": 0.5,
+          "interval_limit": "Rows share passages; Wilson interval ignores clustering."
+        }
+      },
+      "train": {
+        "readout": {
+          "values": 36,
+          "tuple_accuracy": 0.25,
+          "complete_table_accuracy": 0.0,
+          "answered": 0,
+          "coverage": 0.0,
+          "tuple_precision": null,
+          "tuple_recall": 0.0,
+          "wrong_binding_rate": null,
+          "selective_accuracy_wilson_descriptive": null,
+          "brier": 0.8801956625303415,
+          "threshold": 0.5,
+          "interval_limit": "Rows share passages; Wilson interval ignores clustering."
+        },
+        "shuffled_labels": {
+          "values": 36,
+          "tuple_accuracy": 0.08333333333333333,
+          "complete_table_accuracy": 0.0,
+          "answered": 0,
+          "coverage": 0.0,
+          "tuple_precision": null,
+          "tuple_recall": 0.0,
+          "wrong_binding_rate": null,
+          "selective_accuracy_wilson_descriptive": null,
+          "brier": 0.8879715202295557,
+          "threshold": 0.5,
+          "interval_limit": "Rows share passages; Wilson interval ignores clustering."
+        }
+      }
+    },
+    "bow": {
+      "dev": {
+        "readout": {
+          "values": 36,
+          "tuple_accuracy": 0.1111111111111111,
+          "complete_table_accuracy": 0.0,
+          "answered": 0,
+          "coverage": 0.0,
+          "tuple_precision": null,
+          "tuple_recall": 0.0,
+          "wrong_binding_rate": null,
+          "selective_accuracy_wilson_descriptive": null,
+          "brier": 0.8888888888888888,
+          "threshold": 0.5,
+          "interval_limit": "Rows share passages; Wilson interval ignores clustering."
+        },
+        "shuffled_labels": {
+          "values": 36,
+          "tuple_accuracy": 0.1111111111111111,
+          "complete_table_accuracy": 0.0,
+          "answered": 0,
+          "coverage": 0.0,
+          "tuple_precision": null,
+          "tuple_recall": 0.0,
+          "wrong_binding_rate": null,
+          "selective_accuracy_wilson_descriptive": null,
+          "brier": 0.8899992445995615,
+          "threshold": 0.5,
+          "interval_limit": "Rows share passages; Wilson interval ignores clustering."
+        }
+      },
+      "test_names": {
+        "readout": {
+          "values": 36,
+          "tuple_accuracy": 0.1111111111111111,
+          "complete_table_accuracy": 0.0,
+          "answered": 0,
+          "coverage": 0.0,
+          "tuple_precision": null,
+          "tuple_recall": 0.0,
+          "wrong_binding_rate": null,
+          "selective_accuracy_wilson_descriptive": null,
+          "brier": 0.8888888888888888,
+          "threshold": 0.5,
+          "interval_limit": "Rows share passages; Wilson interval ignores clustering."
+        },
+        "shuffled_labels": {
+          "values": 36,
+          "tuple_accuracy": 0.1111111111111111,
+          "complete_table_accuracy": 0.0,
+          "answered": 0,
+          "coverage": 0.0,
+          "tuple_precision": null,
+          "tuple_recall": 0.0,
+          "wrong_binding_rate": null,
+          "selective_accuracy_wilson_descriptive": null,
+          "brier": 0.8895891730731391,
+          "threshold": 0.5,
+          "interval_limit": "Rows share passages; Wilson interval ignores clustering."
+        }
+      },
+      "test_roles": {
+        "readout": {
+          "values": 36,
+          "tuple_accuracy": 0.1111111111111111,
+          "complete_table_accuracy": 0.0,
+          "answered": 0,
+          "coverage": 0.0,
+          "tuple_precision": null,
+          "tuple_recall": 0.0,
+          "wrong_binding_rate": null,
+          "selective_accuracy_wilson_descriptive": null,
+          "brier": 0.8888888888888888,
+          "threshold": 0.5,
+          "interval_limit": "Rows share passages; Wilson interval ignores clustering."
+        },
+        "shuffled_labels": {
+          "values": 36,
+          "tuple_accuracy": 0.1111111111111111,
+          "complete_table_accuracy": 0.0,
+          "answered": 0,
+          "coverage": 0.0,
+          "tuple_precision": null,
+          "tuple_recall": 0.0,
+          "wrong_binding_rate": null,
+          "selective_accuracy_wilson_descriptive": null,
+          "brier": 0.8894056834252674,
+          "threshold": 0.5,
+          "interval_limit": "Rows share passages; Wilson interval ignores clustering."
+        }
+      },
+      "test_template": {
+        "readout": {
+          "values": 36,
+          "tuple_accuracy": 0.1111111111111111,
+          "complete_table_accuracy": 0.0,
+          "answered": 0,
+          "coverage": 0.0,
+          "tuple_precision": null,
+          "tuple_recall": 0.0,
+          "wrong_binding_rate": null,
+          "selective_accuracy_wilson_descriptive": null,
+          "brier": 0.8888888888888888,
+          "threshold": 0.5,
+          "interval_limit": "Rows share passages; Wilson interval ignores clustering."
+        },
+        "shuffled_labels": {
+          "values": 36,
+          "tuple_accuracy": 0.1111111111111111,
+          "complete_table_accuracy": 0.0,
+          "answered": 0,
+          "coverage": 0.0,
+          "tuple_precision": null,
+          "tuple_recall": 0.0,
+          "wrong_binding_rate": null,
+          "selective_accuracy_wilson_descriptive": null,
+          "brier": 0.8891871810232682,
+          "threshold": 0.5,
+          "interval_limit": "Rows share passages; Wilson interval ignores clustering."
+        }
+      },
+      "train": {
+        "readout": {
+          "values": 36,
+          "tuple_accuracy": 0.1111111111111111,
+          "complete_table_accuracy": 0.0,
+          "answered": 0,
+          "coverage": 0.0,
+          "tuple_precision": null,
+          "tuple_recall": 0.0,
+          "wrong_binding_rate": null,
+          "selective_accuracy_wilson_descriptive": null,
+          "brier": 0.8888888888888888,
+          "threshold": 0.5,
+          "interval_limit": "Rows share passages; Wilson interval ignores clustering."
+        },
+        "shuffled_labels": {
+          "values": 36,
+          "tuple_accuracy": 0.1111111111111111,
+          "complete_table_accuracy": 0.0,
+          "answered": 0,
+          "coverage": 0.0,
+          "tuple_precision": null,
+          "tuple_recall": 0.0,
+          "wrong_binding_rate": null,
+          "selective_accuracy_wilson_descriptive": null,
+          "brier": 0.8895379355849471,
+          "threshold": 0.5,
+          "interval_limit": "Rows share passages; Wilson interval ignores clustering."
+        }
+      }
+    },
+    "activation": {
+      "dev": {
+        "readout": {
+          "values": 36,
+          "tuple_accuracy": 0.2222222222222222,
+          "complete_table_accuracy": 0.0,
+          "answered": 0,
+          "coverage": 0.0,
+          "tuple_precision": null,
+          "tuple_recall": 0.0,
+          "wrong_binding_rate": null,
+          "selective_accuracy_wilson_descriptive": null,
+          "brier": 0.8700018215146077,
+          "threshold": 0.5,
+          "interval_limit": "Rows share passages; Wilson interval ignores clustering."
+        },
+        "shuffled_labels": {
+          "values": 36,
+          "tuple_accuracy": 0.1388888888888889,
+          "complete_table_accuracy": 0.0,
+          "answered": 0,
+          "coverage": 0.0,
+          "tuple_precision": null,
+          "tuple_recall": 0.0,
+          "wrong_binding_rate": null,
+          "selective_accuracy_wilson_descriptive": null,
+          "brier": 0.8799134602238667,
+          "threshold": 0.5,
+          "interval_limit": "Rows share passages; Wilson interval ignores clustering."
+        }
+      },
+      "test_names": {
+        "readout": {
+          "values": 36,
+          "tuple_accuracy": 0.1388888888888889,
+          "complete_table_accuracy": 0.0,
+          "answered": 0,
+          "coverage": 0.0,
+          "tuple_precision": null,
+          "tuple_recall": 0.0,
+          "wrong_binding_rate": null,
+          "selective_accuracy_wilson_descriptive": null,
+          "brier": 0.8886043101806904,
+          "threshold": 0.5,
+          "interval_limit": "Rows share passages; Wilson interval ignores clustering."
+        },
+        "shuffled_labels": {
+          "values": 36,
+          "tuple_accuracy": 0.25,
+          "complete_table_accuracy": 0.0,
+          "answered": 0,
+          "coverage": 0.0,
+          "tuple_precision": null,
+          "tuple_recall": 0.0,
+          "wrong_binding_rate": null,
+          "selective_accuracy_wilson_descriptive": null,
+          "brier": 0.8749056886116237,
+          "threshold": 0.5,
+          "interval_limit": "Rows share passages; Wilson interval ignores clustering."
+        }
+      },
+      "test_roles": {
+        "readout": {
+          "values": 36,
+          "tuple_accuracy": 0.3055555555555556,
+          "complete_table_accuracy": 0.0,
+          "answered": 0,
+          "coverage": 0.0,
+          "tuple_precision": null,
+          "tuple_recall": 0.0,
+          "wrong_binding_rate": null,
+          "selective_accuracy_wilson_descriptive": null,
+          "brier": 0.8721896528928019,
+          "threshold": 0.5,
+          "interval_limit": "Rows share passages; Wilson interval ignores clustering."
+        },
+        "shuffled_labels": {
+          "values": 36,
+          "tuple_accuracy": 0.1111111111111111,
+          "complete_table_accuracy": 0.0,
+          "answered": 0,
+          "coverage": 0.0,
+          "tuple_precision": null,
+          "tuple_recall": 0.0,
+          "wrong_binding_rate": null,
+          "selective_accuracy_wilson_descriptive": null,
+          "brier": 0.9013052236700221,
+          "threshold": 0.5,
+          "interval_limit": "Rows share passages; Wilson interval ignores clustering."
+        }
+      },
+      "test_template": {
+        "readout": {
+          "values": 36,
+          "tuple_accuracy": 0.16666666666666666,
+          "complete_table_accuracy": 0.0,
+          "answered": 0,
+          "coverage": 0.0,
+          "tuple_precision": null,
+          "tuple_recall": 0.0,
+          "wrong_binding_rate": null,
+          "selective_accuracy_wilson_descriptive": null,
+          "brier": 0.8900765698684217,
+          "threshold": 0.5,
+          "interval_limit": "Rows share passages; Wilson interval ignores clustering."
+        },
+        "shuffled_labels": {
+          "values": 36,
+          "tuple_accuracy": 0.1111111111111111,
+          "complete_table_accuracy": 0.0,
+          "answered": 0,
+          "coverage": 0.0,
+          "tuple_precision": null,
+          "tuple_recall": 0.0,
+          "wrong_binding_rate": null,
+          "selective_accuracy_wilson_descriptive": null,
+          "brier": 0.9248041445477388,
+          "threshold": 0.5,
+          "interval_limit": "Rows share passages; Wilson interval ignores clustering."
+        }
+      },
+      "train": {
+        "readout": {
+          "values": 36,
+          "tuple_accuracy": 1.0,
+          "complete_table_accuracy": 1.0,
+          "answered": 0,
+          "coverage": 0.0,
+          "tuple_precision": null,
+          "tuple_recall": 0.0,
+          "wrong_binding_rate": null,
+          "selective_accuracy_wilson_descriptive": null,
+          "brier": 0.6352563337358648,
+          "threshold": 0.5,
+          "interval_limit": "Rows share passages; Wilson interval ignores clustering."
+        },
+        "shuffled_labels": {
+          "values": 36,
+          "tuple_accuracy": 0.16666666666666666,
+          "complete_table_accuracy": 0.0,
+          "answered": 0,
+          "coverage": 0.0,
+          "tuple_precision": null,
+          "tuple_recall": 0.0,
+          "wrong_binding_rate": null,
+          "selective_accuracy_wilson_descriptive": null,
+          "brier": 0.8869971434696717,
+          "threshold": 0.5,
+          "interval_limit": "Rows share passages; Wilson interval ignores clustering."
+        }
+      }
+    }
+  },
+  "missing_evidence": [
+    "independent human prose absent"
+  ],
+  "interpretation": "Training accuracy36/36 does not transfer: heldout names5/36 versus shuffled9/36; every method abstains at .5 and all heldout complete tables fail. No usable coverage or human/general usefulness evidence.",
+  "specialist_panel_numbers": null,
+  "hashes_sha256": {
+    "/Users/ember/dev/o7vn/tools/research/binding_readout/pipeline.py": "6434f55a01688c5f3f26023ea7edbca03994788ab842e0dbf4494121f5fe5f34",
+    "/Users/ember/dev/o7vn/tests/research/test_binding_readout.py": "d51fd453485baa3435a24302498ed435a4d87a12520b99b88c72ad369000e887",
+    "/Users/ember/dev/o7vn/var/binding-readout/smoke.jsonl": "bff64f8429be52728c21b1ca1d559fbc83c00ed6263b873a79b308e36f6fb207",
+    "/Users/ember/dev/o7vn/var/binding-readout/smoke-report.json": "56214aea2641635b83f79d54f2825a38632c4f06d6e9da5c5d70f8c87aa9abc2",
+    "/Users/ember/dev/o7vn/var/binding-readout/controls-report.json": "001ee01598c272c6c101fe6482343232eac9227f4a3d9717b2c446a651b7e921",
+    "/Users/ember/dev/o7vn/var/binding-readout/proposal.json": "2a47f1fdcb76c5106d710304664f16bb0368a240e25142c30b1d88b17c8b454e",
+    "/Users/ember/.cache/huggingface/hub/models--EleutherAI--pythia-70m/blobs/d7a9196e329eaf06d6e2802fed376e7459834236": "002050231a9b1ec3ac77aa6b9b3bbdc4d923f4068a7dd33b8da72a9bd6ad9a43",
+    "/Users/ember/.cache/huggingface/hub/models--EleutherAI--pythia-70m/blobs/ebfa4e2f18696ebd83716a0d39fe2c025f2ff8483f72a83ca59c475692fc9d15": "ebfa4e2f18696ebd83716a0d39fe2c025f2ff8483f72a83ca59c475692fc9d15",
+    "/Users/ember/.cache/huggingface/hub/models--EleutherAI--pythia-70m/blobs/f74dfbfab8f97770a87769c739fb080c21c8bacc": "c24618a1b3e6a38167beff1c72cffd126c3a66254347304b50547d12c5f25624",
+    "/Users/ember/.cache/huggingface/hub/models--EleutherAI--pythia-70m/blobs/f1860edb10f80bcaf7b023fce47c68a23b724c23": "70e38394e494931c6f773ba41e19460dd4436526b852207367f04341b4066d3f",
+    "/Users/ember/dev/chetgpt/.venv/lib/python3.11/site-packages/numpy-2.2.6.dist-info/METADATA": "91d66d0d60ad467c679555c0e12ac739bb395940dc22bc5a39d45780aba129ad",
+    "/Users/ember/dev/chetgpt/.venv/lib/python3.11/site-packages/torch-2.12.0.dist-info/METADATA": "b6d383be28bad9be3ba58d2057c59b33e2e0eb4901da8fad0852c161e35dda05",
+    "/Users/ember/dev/chetgpt/.venv/lib/python3.11/site-packages/transformers-4.57.3.dist-info/METADATA": "ab7bf54a8650a611b6e045af2b681993f261302f7ee4dca8857712de0737c577"
+  }
+}

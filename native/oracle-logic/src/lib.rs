@@ -4,6 +4,8 @@
 #![forbid(unsafe_code)]
 pub mod hosted;
 pub mod process;
+pub mod revisions;
+pub mod revisions_owner;
 use oracle_execution::{ExecutionError, WorkControl};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;

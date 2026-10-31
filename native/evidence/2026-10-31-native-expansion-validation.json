@@ -1,0 +1,606 @@
+{
+  "schema": "native-expansion-validation-v1",
+  "date": "2026-10-31",
+  "status": "complete-with-performance-limit",
+  "owner": "sol_expansion_validation",
+  "plan": "var/native-expansion-20261031/validation/plan.md",
+  "source_snapshot": {
+    "archive": "var/native-expansion-20261031/validation/frozen/source.tar",
+    "archive_sha256": "588b4c187fdc9b69397079f403025e195dd6ced25db0990296d040004980e51b",
+    "members": 607,
+    "manifest": "var/native-expansion-20261031/validation/frozen/source.json",
+    "author_hash_checks": 7,
+    "author_hash_mismatches": 0
+  },
+  "execution": [
+    {
+      "name": "reader-release-two-cells",
+      "command": "ssh hbox 'python3 -B /tank/lanes/o7-expansion-validation-20261031/validation/reader_two_cells.py'",
+      "exit": 1,
+      "elapsed_seconds": 1.408,
+      "finished_utc": "2026-10-31T15:06:36.951450+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-expansion-20261031/validation/reader-release-two-cells.log",
+      "log_sha256": "5b747e953444fe40677580682f8a3dba7ada6c8e45e1f1d242bd30bbe5b1a30f"
+    },
+    {
+      "name": "direct-phase2-cpu0",
+      "command": [
+        "/usr/bin/taskset",
+        "-c",
+        "0",
+        "/tank/lanes/o7-expansion-validation-20261031/artifacts-release/sol-direct-bin",
+        "/tank/lanes/o7-expansion-validation-20261031/direct-phase2-run"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 6.765,
+      "finished_utc": "2026-10-31T15:10:40.435904+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-expansion-20261031/validation/direct-phase2-cpu0.log",
+      "log_sha256": "b69c1e569f2fd16ea798aed80dbd6cc82497d8b0814163973c9303c8ea3c0924",
+      "observer_report": "var/native-expansion-20261031/validation/direct-phase2-cpu0.observer.json"
+    },
+    {
+      "name": "python-sol-surface-final",
+      "command": "ssh hbox 'ORACLE_NATIVE_TEST_EXTENSION=/tank/lanes/o7-expansion-validation-20261031/artifacts-release/oracle_native.so python3 -B /tank/lanes/o7-expansion-validation-20261031/source/tests/appliance/test_sol_surface.py'",
+      "exit": 0,
+      "elapsed_seconds": 1.57,
+      "finished_utc": "2026-10-31T15:15:54.796522+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-expansion-20261031/validation/python-sol-surface-final.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "core-context",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-expansion-validation-20261031/source/native/Cargo.toml -p oracle-runtime-core --test context_delta_contract --test runtime_context_contract --test session_contract --test runtime_session_contract --test runtime_language_contract -- --test-threads=1'",
+      "exit": 0,
+      "elapsed_seconds": 4.229,
+      "finished_utc": "2026-10-31T14:56:39.318210+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-expansion-20261031/validation/core-context.log",
+      "log_sha256": "2a736b190e05ff15794d32eca2c277b7991ddf18523e0784f7d24bc71c1efb60"
+    },
+    {
+      "name": "core-release-fixtures",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-expansion-validation-20261031/source/native/Cargo.toml -p oracle-runtime-core --test runtime_effects_contract --test runtime_release_contract --test runtime_retention_contract -- --test-threads=1'",
+      "exit": 0,
+      "elapsed_seconds": 3.758,
+      "finished_utc": "2026-10-31T14:56:43.180013+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-expansion-20261031/validation/core-release-fixtures.log",
+      "log_sha256": "a7b26a7e7f1cf1cf72edbb5957ec5947a7f9e0ffa91a6d1700fe05b777709795"
+    },
+    {
+      "name": "statistics-glm-sequential",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-expansion-validation-20261031/source/native/Cargo.toml -p oracle-statistics --test glm_contract --test sequential_contract -- --test-threads=1'",
+      "exit": 0,
+      "elapsed_seconds": 30.093,
+      "finished_utc": "2026-10-31T14:57:19.685535+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-expansion-20261031/validation/statistics-glm-sequential.log",
+      "log_sha256": "489b8d9a855fcfc3ebcf099a348d1ab5c0cdd51766cc5d926c0195863e0939e0"
+    },
+    {
+      "name": "python-sol-surface-discovery",
+      "command": "ssh hbox 'cd /tank/lanes/o7-expansion-validation-20261031/source && ORACLE_NATIVE_TEST_EXTENSION=/tank/lanes/o7-expansion-validation-20261031/artifacts-release/oracle_native.so python3 -B -m unittest discover -v -s tests/appliance -p test_sol_surface.py'",
+      "exit": 0,
+      "elapsed_seconds": 1.762,
+      "finished_utc": "2026-10-31T15:16:01.093231+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-expansion-20261031/validation/python-sol-surface-discovery.log",
+      "log_sha256": "763b1cfc8578010439cc8d17cb97fbab07207a89893539c27c1d916ec257317b"
+    },
+    {
+      "name": "final-source-freeze",
+      "command": "ssh hbox 'python3 -B /tank/lanes/o7-expansion-validation-20261031/validation/final_snapshot.py'",
+      "exit": 0,
+      "elapsed_seconds": 8.259,
+      "finished_utc": "2026-10-31T15:11:45.781613+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-expansion-20261031/validation/final-source-freeze.log",
+      "log_sha256": "92772313306fd55a68fb1dc8e57feff2abfae6bf786351729368f1ba57323c06"
+    },
+    {
+      "name": "execution-memory-work",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-expansion-validation-20261031/source/native/Cargo.toml -p oracle-execution --lib memory_work_identity_tests -- --test-threads=1'",
+      "exit": 0,
+      "elapsed_seconds": 2.486,
+      "finished_utc": "2026-10-31T14:56:03.913164+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-expansion-20261031/validation/execution-memory-work.log",
+      "log_sha256": "c08575d8d1c939c7b9acbd3fb506a1cbfca48d12ee79064d08db1b31e9b3384e"
+    },
+    {
+      "name": "hosted-workflows",
+      "command": "ssh hbox 'python3 -B /tank/lanes/o7-expansion-validation-20261031/validation/host_workflows.py'",
+      "exit": 1,
+      "elapsed_seconds": 20.234,
+      "finished_utc": "2026-10-31T15:00:00.110549+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-expansion-20261031/validation/hosted-workflows.log",
+      "log_sha256": "741dc4ba9dfdb20de873f628158b291defc150781468e45e6d5b902454c58d20"
+    },
+    {
+      "name": "binding-doc",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-expansion-validation-20261031/source/native/Cargo.toml -p oracle-runtime-core --doc binding_proposal -- --test-threads=1'",
+      "exit": 0,
+      "elapsed_seconds": 3.957,
+      "finished_utc": "2026-10-31T14:56:35.020730+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-expansion-20261031/validation/binding-doc.log",
+      "log_sha256": "2a8152f51f69d062f7b3c7e2c39bd53e7401dc8255f63ad23a21e676888b98b9"
+    },
+    {
+      "name": "direct-original-cpu0",
+      "command": [
+        "/usr/bin/taskset",
+        "-c",
+        "0",
+        "/tank/lanes/o7-sol-measurement-20261031/sol-direct-bin",
+        "/tank/lanes/o7-expansion-validation-20261031/direct-original-run"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 6.908,
+      "finished_utc": "2026-10-31T15:10:33.622405+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-expansion-20261031/validation/direct-original-cpu0.log",
+      "log_sha256": "282051ac6c73f407c6463b0aa6772908da71a6e901338d686d557dd1c777c003",
+      "observer_report": "var/native-expansion-20261031/validation/direct-original-cpu0.observer.json"
+    },
+    {
+      "name": "descriptor-host-rebuild",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo build --locked --offline --manifest-path /tank/lanes/o7-expansion-validation-20261031/source/native/Cargo.toml -p oracle-host --all-features'",
+      "exit": 0,
+      "elapsed_seconds": 33.018,
+      "finished_utc": "2026-10-31T14:55:33.781553+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-expansion-20261031/validation/descriptor-host-rebuild.log",
+      "log_sha256": "abfcd4e2a8d1a2987dcbd4b64fc93afec6c30d8e4c442aa7145b3ed632553e78"
+    },
+    {
+      "name": "retain-release",
+      "command": "ssh hbox 'python3 -B /tank/lanes/o7-expansion-validation-20261031/validation/retain_release.py'",
+      "exit": 0,
+      "elapsed_seconds": 1.529,
+      "finished_utc": "2026-10-31T15:06:16.200008+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-expansion-20261031/validation/retain-release.log",
+      "log_sha256": "fa01e986f34d1ca861bb1f1b33ffe2aa066e739ef6adfefa5271e463f7c5163c"
+    },
+    {
+      "name": "python-release-fixed",
+      "command": "ssh hbox 'python3 -B /tank/lanes/o7-expansion-validation-20261031/source/native/tests/test_python_release.py --extension /tank/lanes/o7-expansion-validation-20261031/artifacts-release/oracle_native.so'",
+      "exit": 0,
+      "elapsed_seconds": 1.817,
+      "finished_utc": "2026-10-31T15:06:18.104735+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-expansion-20261031/validation/python-release-fixed.log",
+      "log_sha256": "1f45d3ee01d7633fc7f3932792ce6d267204918bb4958039903edc72060eb182"
+    },
+    {
+      "name": "direct-release-build",
+      "command": "ssh hbox 'python3 /tank/lanes/o7-sol-measurement-20261031/prepare.py --snapshot /tank/lanes/o7-expansion-validation-20261031/source --out /tank/lanes/o7-expansion-validation-20261031/direct --kind direct && CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo build --offline --release --manifest-path /tank/lanes/o7-expansion-validation-20261031/direct/Cargo.toml && cp /tank/lanes/o7-native-20261028/target/release/sol-measure-direct /tank/lanes/o7-expansion-validation-20261031/artifacts-release/sol-direct-bin'",
+      "exit": 0,
+      "elapsed_seconds": 160.311,
+      "finished_utc": "2026-10-31T15:10:22.614142+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-expansion-20261031/validation/direct-release-build.log",
+      "log_sha256": "4d2ad571a23c0fbf2b6661056e9688739a38663727526489bf1efaafe555e71e"
+    },
+    {
+      "name": "descriptors",
+      "command": "ssh hbox 'cd /tank/lanes/o7-expansion-validation-20261031/source && python3 -B native/oracle-host/tools/snapshot_descriptors.py --host /tank/lanes/o7-native-20261028/target/debug/oracle-host --out native/oracle-host/descriptors/pure.json'",
+      "exit": 0,
+      "elapsed_seconds": 1.951,
+      "finished_utc": "2026-10-31T14:54:49.744293+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-expansion-20261031/validation/descriptors.log",
+      "log_sha256": "cd4b7a8a828e8f3cb549ff0dae414da287f5b50b9f14834142dcf5e4e9d5bb4d"
+    },
+    {
+      "name": "core-batch-fixed",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-expansion-validation-20261031/source/native/Cargo.toml -p oracle-runtime-core --test batch_contract --test coverage_contract --test binding_proposal_contract -- --test-threads=1'",
+      "exit": 101,
+      "elapsed_seconds": 4.029,
+      "finished_utc": "2026-10-31T14:58:54.358143+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-expansion-20261031/validation/core-batch-fixed.log",
+      "log_sha256": "55fba52a8328934f904f816de82cbbcbef2809b837f8054daefb130a6c668861"
+    },
+    {
+      "name": "release-build",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo build --locked --offline --release --manifest-path /tank/lanes/o7-expansion-validation-20261031/source/native/Cargo.toml -p oracle-runtime-python -p oracle-host -p oracle-statistics --all-features'",
+      "exit": 0,
+      "elapsed_seconds": 283.919,
+      "finished_utc": "2026-10-31T15:05:50.034832+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-expansion-20261031/validation/release-build.log",
+      "log_sha256": "f2df6675b51245063865fc65d93ae33f4e83653bfa9169f027495f64b4e725a9"
+    },
+    {
+      "name": "python-checks",
+      "command": "ssh hbox 'python3 -B /tank/lanes/o7-expansion-validation-20261031/validation/python_checks.py'",
+      "exit": 1,
+      "elapsed_seconds": 12.641,
+      "finished_utc": "2026-10-31T14:59:07.057647+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-expansion-20261031/validation/python-checks.log",
+      "log_sha256": "9b96ec7ef91b7fed47bd376bf380021ba9e005fb6bb5075b289ebf60a0ea3c43"
+    },
+    {
+      "name": "bio-translation",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-expansion-validation-20261031/source/native/Cargo.toml -p oracle-bio --test translation_contract -- --test-threads=1'",
+      "exit": 0,
+      "elapsed_seconds": 16.805,
+      "finished_utc": "2026-10-31T14:58:07.682276+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-expansion-20261031/validation/bio-translation.log",
+      "log_sha256": "8fb09ab59ea26bd6c9e9f94fccfb4818a4b8038fe7642b19dbaa0202e7d311b6"
+    },
+    {
+      "name": "examples-check",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo check --locked --offline --manifest-path /tank/lanes/o7-expansion-validation-20261031/source/native/Cargo.toml -p oracle-runtime-core --example binding_proposal'",
+      "exit": 0,
+      "elapsed_seconds": 13.445,
+      "finished_utc": "2026-10-31T15:11:35.725766+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-expansion-20261031/validation/examples-check.log",
+      "log_sha256": "ef35efec166589bde3ea9efba2c82a6591c4b205adab98d9c91a8c6c7e811bc1"
+    },
+    {
+      "name": "logic-revisions",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-expansion-validation-20261031/source/native/Cargo.toml -p oracle-logic --test revisions_contract -- --test-threads=1'",
+      "exit": 0,
+      "elapsed_seconds": 6.208,
+      "finished_utc": "2026-10-31T14:56:49.468037+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-expansion-20261031/validation/logic-revisions.log",
+      "log_sha256": "ca02eddcb68bbedcf6c2d7d2af0edef93b29fe0077cd67ce7cc1b46594942591"
+    },
+    {
+      "name": "reader-release-two-cells-fixed",
+      "command": "ssh hbox 'python3 -B /tank/lanes/o7-expansion-validation-20261031/validation/reader_two_cells.py'",
+      "exit": 0,
+      "elapsed_seconds": 45.739,
+      "finished_utc": "2026-10-31T15:07:36.425211+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-expansion-20261031/validation/reader-release-two-cells-fixed.log",
+      "log_sha256": "cff4754f68e8d6fe49dfe679000a6049246242cc3049594806b9fe9a1d95d854"
+    },
+    {
+      "name": "host-workflows-release-fixed",
+      "command": "ssh hbox 'python3 -B /tank/lanes/o7-expansion-validation-20261031/validation/host_workflows_fixed.py'",
+      "exit": 0,
+      "elapsed_seconds": 14.823,
+      "finished_utc": "2026-10-31T15:06:35.474052+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-expansion-20261031/validation/host-workflows-release-fixed.log",
+      "log_sha256": "0276ee3fe710536a2109b7aaad493f7efcce10f34bbb719dc52297fcbdf4f46e"
+    },
+    {
+      "name": "binding-coverage-repaired",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-expansion-validation-20261031/source/native/Cargo.toml -p oracle-runtime-core --test binding_proposal_contract --test coverage_contract -- --test-threads=1'",
+      "exit": 0,
+      "elapsed_seconds": 7.179,
+      "finished_utc": "2026-10-31T15:00:37.521759+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-expansion-20261031/validation/binding-coverage-repaired.log",
+      "log_sha256": "bacb3b71bbbfd5c915e53467c3862c15e3fe616aeb49a4cd1b2eb78035a73f31"
+    },
+    {
+      "name": "host-native-state",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-expansion-validation-20261031/source/native/Cargo.toml -p oracle-host --all-features --test native_extensions --test revisions_owner_contract -- --test-threads=1'",
+      "exit": 101,
+      "elapsed_seconds": 29.506,
+      "finished_utc": "2026-10-31T14:58:37.276809+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-expansion-20261031/validation/host-native-state.log",
+      "log_sha256": "1ab85c0e66a207e37e785d7d6aa80b947cd856d68488bb403befa0486779ffc8"
+    },
+    {
+      "name": "python-logic-release",
+      "command": "ssh hbox 'PYTHONPATH=/tank/lanes/o7-expansion-validation-20261031/artifacts-release ORACLE_LOGIC_CLINGO=/tank/lanes/o7-sol-measurement-20261031/clingo python3 -B /tank/lanes/o7-expansion-validation-20261031/source/native/tests/test_python_logic.py'",
+      "exit": 0,
+      "elapsed_seconds": 2.4,
+      "finished_utc": "2026-10-31T15:06:20.584994+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-expansion-20261031/validation/python-logic-release.log",
+      "log_sha256": "550728f613cde0138e4a6cc29daf0590686e788e1f8577e5dd5cca7f89438d90"
+    },
+    {
+      "name": "science-transient-scenarios",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-expansion-validation-20261031/source/native/Cargo.toml -p oracle-science --test thermal_transient --test thermal_scenarios -- --test-threads=1'",
+      "exit": 0,
+      "elapsed_seconds": 20.105,
+      "finished_utc": "2026-10-31T14:57:50.809060+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-expansion-20261031/validation/science-transient-scenarios.log",
+      "log_sha256": "7bd59dfc1ef8003408da36be2b28df3bdc20785ef6d0f645c6e6865be7c2992b"
+    },
+    {
+      "name": "reasoning-optimization",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-expansion-validation-20261031/source/native/Cargo.toml -p oracle-reasoning --test lp_optimize_contract -- --test-threads=1'",
+      "exit": 0,
+      "elapsed_seconds": 10.795,
+      "finished_utc": "2026-10-31T14:57:30.568819+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-expansion-20261031/validation/reasoning-optimization.log",
+      "log_sha256": "eb2ab0cc0a9e04848260af846625c32e230b9ec472af28f23c613c41c821d5e4"
+    },
+    {
+      "name": "bridge-final",
+      "command": "ssh hbox 'python3 -B /tank/lanes/o7-expansion-validation-20261031/source/tools/usage/specialist/context-handoff/test_bridge.py'",
+      "exit": 0,
+      "elapsed_seconds": 1.675,
+      "finished_utc": "2026-10-31T15:11:37.466930+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-expansion-20261031/validation/bridge-final.log",
+      "log_sha256": "feabb4add9e2ca3374e538560634d1ec97dc4f4ce89aab12f3d726e36ea9b2f6"
+    },
+    {
+      "name": "revisions-owner-repaired",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-expansion-validation-20261031/source/native/Cargo.toml -p oracle-host --all-features --test revisions_owner_contract -- --test-threads=1'",
+      "exit": 0,
+      "elapsed_seconds": 22.659,
+      "finished_utc": "2026-10-31T15:01:00.234806+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-expansion-20261031/validation/revisions-owner-repaired.log",
+      "log_sha256": "38e442cff8de59b397528dd8b7bfac9310c7bab9a162fa447b4a9ff67e06f543"
+    },
+    {
+      "name": "execution-restriction",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-expansion-validation-20261031/source/native/Cargo.toml -p oracle-execution --lib restricted_context_tests -- --test-threads=1'",
+      "exit": 0,
+      "elapsed_seconds": 1.464,
+      "finished_utc": "2026-10-31T14:56:07.078040+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-expansion-20261031/validation/execution-restriction.log",
+      "log_sha256": "2e6b20249a90e46caee6becf31d074ae4e3bff0ff842f4e56bcd5e3103ee636b"
+    },
+    {
+      "name": "initial-build",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo build --offline --manifest-path /tank/lanes/o7-expansion-validation-20261031/source/native/Cargo.toml -p oracle-runtime-python -p oracle-host -p oracle-statistics --all-features'",
+      "exit": 0,
+      "elapsed_seconds": 82.537,
+      "finished_utc": "2026-10-31T14:54:35.588434+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-expansion-20261031/validation/initial-build.log",
+      "log_sha256": "aa1b6f1298fc8095199646efc57e9b636a26ba5cd5aa8fd11287c34f844ac451"
+    },
+    {
+      "name": "core-batch-coverage-binding",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-expansion-validation-20261031/source/native/Cargo.toml -p oracle-runtime-core --test batch_contract --test coverage_contract --test binding_proposal_contract -- --test-threads=1'",
+      "exit": 101,
+      "elapsed_seconds": 23.761,
+      "finished_utc": "2026-10-31T14:56:30.932118+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-expansion-20261031/validation/core-batch-coverage-binding.log",
+      "log_sha256": "74213362aaca69e38f0931b08e6d19b76c97c637fe1f0fb60d488f14448faf36"
+    },
+    {
+      "name": "execution-contract",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-expansion-validation-20261031/source/native/Cargo.toml -p oracle-execution --lib execution_contract_tests -- --test-threads=1'",
+      "exit": 0,
+      "elapsed_seconds": 1.583,
+      "finished_utc": "2026-10-31T14:56:05.558845+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-expansion-20261031/validation/execution-contract.log",
+      "log_sha256": "d2853c19ed45c742afa36d16b97a19514e7832e4075fbf6e952fe7c75c02e976"
+    }
+  ],
+  "shipped_specialist_panel_numbers": null,
+  "custom_workflow_panels": [
+    {
+      "operation": "statistics.events_exposure",
+      "right": 27,
+      "items": 27,
+      "wrong": 0,
+      "false_yes": 0,
+      "expected_refusals_in_right": 15
+    },
+    {
+      "operation": "bio.translate_coding_intervals",
+      "dev": {
+        "right": 8,
+        "items": 8
+      },
+      "heldout": {
+        "right": 12,
+        "items": 12
+      },
+      "wrong": 0,
+      "false_yes": 0,
+      "execution_errors": 0
+    },
+    {
+      "operation": "science.thermal_transient",
+      "right": 12,
+      "items": 12,
+      "wrong": 0,
+      "false_yes": 0,
+      "execution_errors": 0
+    },
+    {
+      "operation": "reasoning.optimize_linear",
+      "right": 6,
+      "items": 6,
+      "wrong": 0
+    },
+    {
+      "operation": "logic.workspace",
+      "durable_mutations": 6,
+      "exact_replays": 6,
+      "fresh_solves": 6,
+      "status": "passed incident gold"
+    },
+    {
+      "operation": "context.execute",
+      "right": 8,
+      "items": 8,
+      "wrong": 0,
+      "false_yes": 0,
+      "execution_errors": 0
+    },
+    {
+      "operation": "statistics.sequential_monitor",
+      "right": 26,
+      "items": 26,
+      "wrong": 0,
+      "false_yes": 0,
+      "expected_refusals_in_right": 9
+    }
+  ],
+  "theorem_claims": [],
+  "limits": [
+    "Custom workflow panels are separate from upstream shipped specialist scorers; no new shipped-panel scores.",
+    "Handwritten native implementations/adapters are untrusted; no new Isabelle theorem claim.",
+    "64-tenant RSS is observed pre/post journey after earlier panels; no peak/cold-start/hard ceiling or fairness/throughput claim.",
+    "Original compile/test/client failures are retained together with targeted repairs."
+  ],
+  "named_source_overlays": "var/native-expansion-20261031/validation/overlays/manifest.json",
+  "tenant_journey": {
+    "tenants": 64,
+    "requests": 256,
+    "failures": 0,
+    "process_count_before": 1,
+    "process_count_after": 1,
+    "threads_before": 4,
+    "threads_after": 4,
+    "rss_kib_before": 11408,
+    "rss_kib_after": 11408,
+    "rss_limits": "observed pre/post journey after prior panels, not cold startup or peak or memory ceiling",
+    "report": "var/native-expansion-20261031/validation/host-workflows-fixed/tenants64/summary.json",
+    "build": "release"
+  },
+  "focused_rust_unique_passed": 171,
+  "reader_two_cells": {
+    "build": "release",
+    "limits": {
+      "workers": 2,
+      "timeout_ms": 1000,
+      "fuel": 10000000
+    },
+    "old_image": {
+      "retained100": {
+        "answered_correct": 36,
+        "unanswered": 64
+      },
+      "targeted16": {
+        "answered_correct": 2,
+        "unanswered": 8,
+        "declined_expected": 6
+      }
+    },
+    "repaired_image": {
+      "retained100": {
+        "answered_correct": 36,
+        "unanswered": 64
+      },
+      "targeted16": {
+        "answered_correct": 10,
+        "declined_expected": 6
+      }
+    },
+    "wrong": 0,
+    "errors": 0,
+    "scope": "retained100 dataset text controls; targeted16 additionally source-verified; no shipped panel score",
+    "report": "var/native-expansion-20261031/validation/reader-release-two-cells-fixed/summary.json"
+  },
+  "failures_and_repairs": [
+    {
+      "failure": "binding test E0616 private BatchReport.items",
+      "repair": "test-only accessor items(); original failing compile retained"
+    },
+    {
+      "failure": "binding proposals empty in three fixtures",
+      "repair": "resolver now explicitly asks CandidateOptions.level2=true for admitted attribute/relation lexicon roles; binding10+coverage7 passed"
+    },
+    {
+      "failure": "revisions missing solver test expected Err",
+      "repair": "test now asserts structured inconclusive with no models/truths/completeness and unchanged complete state; owner2 passed"
+    },
+    {
+      "failure": "Python negative schema fixture matched new schema3",
+      "repair": "negative fixture uses unsupported999; release7 passed"
+    },
+    {
+      "failure": "Python hosted logic rejected295MiB debug extension under standard byte cap",
+      "repair": "actual all-provider release extension15,658,208 bytes; logic10 passed with unchanged caps"
+    },
+    {
+      "failure": "context default human tenant400",
+      "repair": "client uses existing normalize_tenant helper; context8 and64tenant journey pass"
+    },
+    {
+      "failure": "sequential scorer raised on explicit structured invalid-input refusals",
+      "repair": "recognizes only reject:true intended errorcode/detail;26cases pass; generic outages remain failures"
+    },
+    {
+      "failure": "reader wrapper missing compare_frozen due scoped prefix snapshot",
+      "repair": "wrapper reuses retained original firstwave driver/source checks; two116case cells pass with0errors/0wrong"
+    }
+  ],
+  "python_scoped": {
+    "unique_tests": 142,
+    "modules": 16,
+    "actual_extension_skipped": 0,
+    "release_schema_tests": 7,
+    "release_logic_tests": 10,
+    "updated_bridge_tests": 4,
+    "actual_catalog_example_calls": 9
+  },
+  "generated_changes": {
+    "lock_patch": "var/native-expansion-20261031/validation/Cargo.lock.patch",
+    "lock_scope": "only oracle-statistics adds existing num-rational and num-traits edges; package versions unchanged",
+    "descriptor_patch": "var/native-expansion-20261031/validation/pure.patch",
+    "declarations": {
+      "bio": 3,
+      "incremental": 2,
+      "logic": 2,
+      "reasoning": 8,
+      "science": 5,
+      "statistics": 4
+    },
+    "integrated_by_root": true
+  },
+  "release_artifacts": {
+    "oracle-host": {
+      "path": "/tank/lanes/o7-expansion-validation-20261031/artifacts-release/oracle-host",
+      "sha256": "b60218021fd65285500ec224d63031428b0e285593beaa22503cf2d170f08db6",
+      "bytes": 19332608
+    },
+    "oracle_native.so": {
+      "path": "/tank/lanes/o7-expansion-validation-20261031/artifacts-release/oracle_native.so",
+      "sha256": "956bd1bc58f22814f265814799105f8fc59e12307e6b41b4b8a0bc6197fba804",
+      "bytes": 15658208
+    },
+    "oracle-statistics": {
+      "path": "/tank/lanes/o7-expansion-validation-20261031/artifacts-release/oracle-statistics",
+      "sha256": "459259fa4920c1e8124405b52cde461c0a8e1f08b42e15e93d916e3a39c73f4f",
+      "bytes": 4244824
+    }
+  },
+  "final_workflow_report": "var/native-expansion-20261031/validation/host-workflows-fixed",
+  "external_harnesses": {
+    "var/native-expansion-20261031/validation/retain_release.py": "245d594d4604c08890541187428b05f375c2d2fe2ae662da0975c82c5cdf0c4d",
+    "var/native-expansion-20261031/validation/run.py": "1dc113cb9c55696b3aba5cee9611bed42d39bb3ecaa9ae07245c0e5141ee1e5f",
+    "var/native-expansion-20261031/validation/host_workflows.py": "56e35c79d9d64fb8205d425231a3156a696573855b7b71cc1804a283efbf1c58",
+    "var/native-expansion-20261031/validation/final_snapshot.py": "e8b8128702cf67bb404fad5df57803feda165898d680789180c351b8d8fc2821",
+    "var/native-expansion-20261031/validation/reader_two_cells.py": "b51b672b731db25999827ac8a4ebfcede040fc2fcf5fb668463f9f6862788554",
+    "var/native-expansion-20261031/validation/python_checks.py": "3183609b00476cdf6732d4c494698ef62f50187f1720d501ee365318bf80af80",
+    "var/native-expansion-20261031/validation/scoped.py": "510eb52683b042aad4f08293189bc022fd1ab9fbf17ce38d5de15e524dbee160",
+    "var/native-expansion-20261031/validation/host_workflows_fixed.py": "b8b1aa0c5fbd934c29290b702bcc5b6ebb15a9922fdc86b72f201dd2d75fb314",
+    "var/native-expansion-20261031/validation/tenants64.py": "e0c65e285120273206126e0f9f63aad8598a0f091343864ac14d58b46b95d329",
+    "var/native-expansion-20261031/validation/snapshot.py": "f08e3b00403fb881de5c65464c961b41e646fc538fe86acbb26dbe00e0ef48c1"
+  },
+  "validated_source": {
+    "manifest": "var/native-expansion-20261031/validation/validated-source.json",
+    "archive": "var/native-expansion-20261031/validation/validated-source.tar",
+    "archive_sha256": "1b23eb0de91cc3ac4adf69474968e6794f94b2dca46542269c149a1b67efb822",
+    "members": 608,
+    "supplement": "var/native-expansion-20261031/validation/validated-source-supplement.json",
+    "union_members_with_supplement": 609
+  },
+  "performance_followup": {
+    "scope": "Single same-CPU0 fixed 3-vertex/1000-vertex MSF comparison: 1000 measured invokes after 20 warmups. Not isolated proof of cause or broad performance qualification.",
+    "retained_firstwave_binary_sha256": "d704dbb7406a953606845e948c7926ecbf494782276e15a4e7b5102e13aaaa40",
+    "phase2_binary_sha256": "df3ba97134d252fc48bfd57dfdae4625cbca33155cdbfed83fc90bb8fa6e6fef",
+    "retained_firstwave": {
+      "small_p50_us": 72.501,
+      "small_p95_us": 80.319,
+      "large_p50_us": 3933.664,
+      "large_p95_us": 4319.356
+    },
+    "phase2": {
+      "small_p50_us": 76.942,
+      "small_p95_us": 146.536,
+      "large_p50_us": 3485.415,
+      "large_p95_us": 5330.484
+    },
+    "conclusion": "Large median 11.4% lower, but large p95 23.4% higher; small case worse. Does not establish original regression closed. Original firstwave results remain separate.",
+    "observer_reports": [
+      "var/native-expansion-20261031/validation/direct-original-cpu0.observer.json",
+      "var/native-expansion-20261031/validation/direct-phase2-cpu0.observer.json"
+    ]
+  },
+  "cleanup": {
+    "owned_hosts_stopped": true,
+    "owned_builds_finished": true,
+    "runner_baton_returned_to_root": true
+  },
+  "supplemental_surface_test": {
+    "source": "tests/appliance/test_sol_surface.py",
+    "source_sha256": "df37959932cded7f796beb8532716af4f90b04478bb124994624a9f704bb3dce",
+    "tests": 1,
+    "passed": 1,
+    "skipped": 0,
+    "catalog_examples_invoked": 9,
+    "extension_sha256": "956bd1bc58f22814f265814799105f8fc59e12307e6b41b4b8a0bc6197fba804",
+    "report": "var/native-expansion-20261031/validation/python-sol-surface-discovery.json",
+    "note": "Direct script invocation has no unittest.main and discovers zero tests; retained empty run excluded from counts. Explicit scoped unittest discovery executed the one test and all nine subtests."
+  }
+}

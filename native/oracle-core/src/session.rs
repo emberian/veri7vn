@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Number, Value};
 use std::collections::{BTreeMap, BTreeSet};
 
-pub const SESSION_SCHEMA: u32 = 2;
+pub const SESSION_SCHEMA: u32 = 3;
 pub const PYTHON_ADAPTER_SCHEMA: u32 = 1;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -167,6 +167,48 @@ pub struct SessionEnvelope {
     pub coverage: StateCoverage,
     pub selection: SessionSelection,
     pub oracle: Option<OracleSessionState>,
+    /// Native owners are independent of unknown/unexported Python owners.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub native_extensions: BTreeMap<String, ExtensionState>,
+}
+
+/// Compiled host-selected state machine. JSON exists only at the durable/input
+/// boundary; domain transitions receive typed state. No external effects here.
+pub trait NativeSessionOwner {
+    const OWNER: &'static str;
+    const VERSION: u32;
+    const OPERATION: &'static str;
+    type State: Serialize + serde::de::DeserializeOwned;
+    type Command: Serialize + serde::de::DeserializeOwned;
+    type Reply: Serialize;
+    fn validate(state: &Self::State, binding: &SessionBinding, revision: i64) -> Result<()>;
+    fn transition(
+        binding: &SessionBinding,
+        revision: i64,
+        request: &str,
+        state: Option<Self::State>,
+        command: Self::Command,
+        budget: &crate::Budget,
+    ) -> Result<(Self::State, Self::Reply)>;
+}
+
+/// Immutable checked read; the reservation lives as long as the typed snapshot.
+pub struct NativeOwnerSnapshot<T: NativeSessionOwner> {
+    pub(crate) binding: SessionBinding,
+    pub(crate) revision: i64,
+    pub(crate) state: Option<T::State>,
+    pub(crate) _memory: crate::budget::MemoryReservation,
+}
+impl<T: NativeSessionOwner> NativeOwnerSnapshot<T> {
+    pub fn binding(&self) -> &SessionBinding {
+        &self.binding
+    }
+    pub fn revision(&self) -> i64 {
+        self.revision
+    }
+    pub fn state(&self) -> Option<&T::State> {
+        self.state.as_ref()
+    }
 }
 
 /// Host policy. Version manifests come from the adapter release, never the snapshot.
@@ -178,6 +220,8 @@ pub struct SessionLimits {
     pub max_extension_bytes: usize,
     pub max_json_depth: usize,
     pub extension_versions: BTreeMap<String, u32>,
+    /// Host manifest, never recovered from snapshot bytes.
+    pub native_extension_versions: BTreeMap<String, u32>,
 }
 
 impl Default for SessionLimits {
@@ -189,6 +233,7 @@ impl Default for SessionLimits {
             max_extension_bytes: 256 * 1024,
             max_json_depth: 32,
             extension_versions: BTreeMap::new(),
+            native_extension_versions: BTreeMap::new(),
         }
     }
 }
@@ -250,7 +295,7 @@ fn bounded_json(v: &Value, depth: usize, count: &mut usize, limits: &SessionLimi
 }
 
 fn extension(v: &ExtensionState, limits: &SessionLimits) -> Result<()> {
-    identifier(&v.owner)?;
+    owner_identifier(&v.owner)?;
     if limits.extension_versions.get(&v.owner) != Some(&v.version) {
         return Err(Error::Format(format!(
             "unsupported session state owner/version: {}/{}",
@@ -262,6 +307,18 @@ fn extension(v: &ExtensionState, limits: &SessionLimits) -> Result<()> {
         return Err(Error::Format("session extension byte count".into()));
     }
     bounded_json(&v.payload, 0, &mut 0, limits)
+}
+
+pub(crate) fn owner_identifier(s: &str) -> Result<()> {
+    if s.is_empty()
+        || s.len() > 128
+        || !s
+            .bytes()
+            .all(|b| b.is_ascii_alphanumeric() || b"_.-".contains(&b))
+    {
+        return Err(Error::Invalid("invalid state owner identity".into()));
+    }
+    Ok(())
 }
 
 fn answer(v: &AnswerLineage, revision: i64, limits: &SessionLimits) -> Result<()> {
@@ -282,6 +339,7 @@ impl SessionEnvelope {
             coverage: StateCoverage::NativeSelectionOnly,
             selection: SessionSelection::default(),
             oracle: None,
+            native_extensions: BTreeMap::new(),
         };
         envelope.validate(&SessionLimits::default())?;
         Ok(envelope)
@@ -366,6 +424,14 @@ impl SessionEnvelope {
                 extension(value, limits)?;
             }
         }
+        for (owner, value) in &self.native_extensions {
+            if owner != &value.owner {
+                return Err(Error::Format("native owner key mismatch".into()));
+            }
+            let mut native_limits = limits.clone();
+            native_limits.extension_versions = limits.native_extension_versions.clone();
+            extension(value, &native_limits)?;
+        }
         crate::query::encode(self, limits.max_bytes)?;
         Ok(())
     }
@@ -431,6 +497,46 @@ impl SessionEnvelope {
         state.selection = old.selection;
         state.validate(limits)?;
         Ok(state)
+    }
+
+    /// Explicit additive migration. A missing Python snapshot stays unknown;
+    /// neither native scalar nor any Oracle owner is manufactured from absence.
+    pub fn migrate_v2(
+        text: &str,
+        binding: &SessionBinding,
+        revision: i64,
+        limits: &SessionLimits,
+    ) -> Result<Self> {
+        #[derive(Deserialize)]
+        #[serde(deny_unknown_fields)]
+        struct V2 {
+            schema: u32,
+            binding: SessionBinding,
+            revision: i64,
+            coverage: StateCoverage,
+            selection: SessionSelection,
+            oracle: Option<OracleSessionState>,
+        }
+        if text.len() > limits.max_bytes {
+            return Err(Error::Limit("legacy session bytes"));
+        }
+        let old: V2 = serde_json::from_str(text)?;
+        if old.schema != 2 || &old.binding != binding || old.revision != revision {
+            return Err(Error::Conflict(
+                "legacy session identity or revision changed",
+            ));
+        }
+        let next = Self {
+            schema: SESSION_SCHEMA,
+            binding: old.binding,
+            revision,
+            coverage: old.coverage,
+            selection: old.selection,
+            oracle: old.oracle,
+            native_extensions: BTreeMap::new(),
+        };
+        next.validate(limits)?;
+        Ok(next)
     }
 
     /// Host-authorized adapter installation, after capturing all declared owners.

@@ -92,6 +92,108 @@ pub struct ThermalScenariosResult {
     #[serde(skip_serializing)]
     _result_reservation: Option<MemoryReservation>,
 }
+fn bounded_text(value: &str, cap: usize) -> bool {
+    value.len() <= cap && !value.trim().is_empty()
+}
+fn preflight_network(network: &ThermalInput) -> Result<()> {
+    if network.nodes.is_empty() {
+        return Err(Error::Invalid("thermal network needs nodes".into()));
+    }
+    if network.nodes.len() > super::thermal::MAX_NODES
+        || network.links.len() > super::thermal::MAX_LINKS
+    {
+        return Err(Error::Limit("thermal typed topology bounds"));
+    }
+    if !bounded_text(&network.description, 1024)
+        || network.assumptions.is_empty()
+        || network.assumptions.len() > 32
+        || network
+            .assumptions
+            .iter()
+            .any(|text| !bounded_text(text, 1024))
+        || network
+            .nodes
+            .iter()
+            .any(|node| !bounded_text(&node.id, 128))
+        || network
+            .links
+            .iter()
+            .any(|link| !bounded_text(&link.from, 128) || !bounded_text(&link.to, 128))
+    {
+        return Err(Error::Invalid("thermal typed text bounds".into()));
+    }
+    Ok(())
+}
+fn preflight(input: &ThermalScenariosInput) -> Result<()> {
+    preflight_network(&input.network)?;
+    if input.scenarios.is_empty()
+        || input.scenarios.len() > MAX_SCENARIOS
+        || input.sensitivities.len() > MAX_SENSITIVITIES
+    {
+        return Err(Error::Limit("thermal scenarios or sensitivities"));
+    }
+    let n = input.network.nodes.len();
+    if input.scenarios.iter().any(|scenario| !bounded_text(&scenario.id, 128)
+        || scenario.applied_heat_w.len() != n || scenario.fixed_temperature_k.len() != n)
+        || input.sensitivities.iter().any(|request| !bounded_text(&request.scenario_id, 128)
+            || matches!(&request.parameter, Parameter::Load { node_id } if !bounded_text(node_id, 128))) {
+        return Err(Error::Invalid("thermal typed scenario vectors or text bounds".into()));
+    }
+    Ok(())
+}
+fn bounded_json_len<T: Serialize>(value: &T, limit: usize) -> Result<usize> {
+    struct Counter {
+        count: usize,
+        limit: usize,
+    }
+    impl std::io::Write for Counter {
+        fn write(&mut self, bytes: &[u8]) -> std::io::Result<usize> {
+            if bytes.len() > self.limit.saturating_sub(self.count) {
+                return Err(std::io::Error::new(
+                    std::io::ErrorKind::Other,
+                    "thermal request byte limit",
+                ));
+            }
+            self.count += bytes.len();
+            Ok(bytes.len())
+        }
+        fn flush(&mut self) -> std::io::Result<()> {
+            Ok(())
+        }
+    }
+    let mut counter = Counter { count: 0, limit };
+    serde_json::to_writer(&mut counter, value)
+        .map_err(|_| Error::Limit("thermal bounded serialization bytes"))?;
+    Ok(counter.count)
+}
+fn bounded_json<T: Serialize>(value: &T, limit: usize) -> Result<Vec<u8>> {
+    struct Writer {
+        bytes: Vec<u8>,
+        limit: usize,
+    }
+    impl std::io::Write for Writer {
+        fn write(&mut self, bytes: &[u8]) -> std::io::Result<usize> {
+            if bytes.len() > self.limit.saturating_sub(self.bytes.len()) {
+                return Err(std::io::Error::new(
+                    std::io::ErrorKind::Other,
+                    "thermal request byte limit",
+                ));
+            }
+            self.bytes.extend_from_slice(bytes);
+            Ok(bytes.len())
+        }
+        fn flush(&mut self) -> std::io::Result<()> {
+            Ok(())
+        }
+    }
+    let mut writer = Writer {
+        bytes: Vec::new(),
+        limit,
+    };
+    serde_json::to_writer(&mut writer, value)
+        .map_err(|_| Error::Limit("thermal bounded serialization bytes"))?;
+    Ok(writer.bytes)
+}
 struct Factors {
     u: Mat<f64>,
     v: Mat<f64>,
@@ -228,15 +330,9 @@ impl PreparedThermalNetwork {
         memory: Option<&MemoryBudget>,
     ) -> Result<Self> {
         checkpoint(control)?;
-        if network.nodes.len() > super::thermal::MAX_NODES
-            || network.links.len() > super::thermal::MAX_LINKS
-        {
-            return Err(Error::Limit("thermal topology"));
-        }
-        let bytes = serde_json::to_vec(network)?;
-        if bytes.len() > limits.request_bytes.min(super::MAX_REQUEST_BYTES) {
-            return Err(Error::Limit("prepared network bytes"));
-        }
+        preflight_network(network)?;
+        let byte_limit = limits.request_bytes.min(super::MAX_REQUEST_BYTES);
+        let encoded_length = bounded_json_len(network, byte_limit)?;
         let n = network.nodes.len();
         let free = network
             .nodes
@@ -259,17 +355,17 @@ impl PreparedThermalNetwork {
         if scratch_bytes > limits.scratch_bytes.min(super::MAX_SCRATCH_BYTES) {
             return Err(Error::Limit("thermal SVD scratch"));
         }
-        // Actual-dimensional SVD scratch plus retained/construction matrices,
-        // cloned declarations and traversal vectors. The global scratch cap is
-        // an admission ceiling, not memory allocated by every tiny network.
-        let allowance =
-            scratch_bytes + 8 * n * n * 8 + bytes.len() * 4 + 64 * (n + network.links.len());
+        // Count through a capped nonallocating writer, then reserve actual
+        // serialization growth before any encoded copy or retained factors.
+        let matrix_allowance = scratch_bytes + 8 * n * n * 8 + 64 * (n + network.links.len());
         let reservation = memory
-            .map(|m| {
-                m.reserve(allowance)
+            .map(|budget| {
+                budget
+                    .reserve(matrix_allowance + 4 * encoded_length)
                     .map_err(|_| Error::Limit("shared thermal memory"))
             })
             .transpose()?;
+        let bytes = bounded_json(network, byte_limit)?;
         let mut factors = None;
         // Existing domain admission/topology/evidence path constructs the block.
         let baseline = thermal_with_solver(network, limits, control, &mut |input| {
@@ -308,7 +404,7 @@ impl PreparedThermalNetwork {
         limits: &Limits,
         control: &dyn WorkControl,
     ) -> Result<ThermalResult> {
-        if scenario.id.trim().is_empty() || scenario.id.len() > 128 {
+        if !bounded_text(&scenario.id, 128) {
             return Err(Error::Invalid("scenario id length".into()));
         }
         let n = self.network.nodes.len();
@@ -469,33 +565,44 @@ fn run(
     memory: Option<&MemoryBudget>,
 ) -> Result<ThermalScenariosResult> {
     checkpoint(control)?;
-    if input.scenarios.is_empty()
-        || input.scenarios.len() > MAX_SCENARIOS
-        || input.sensitivities.len() > MAX_SENSITIVITIES
-    {
-        return Err(Error::Limit("thermal scenarios or sensitivities"));
-    }
-    let input_bytes = serde_json::to_vec(input)?.len();
-    if input_bytes > limits.request_bytes.min(super::MAX_REQUEST_BYTES) {
-        return Err(Error::Limit("thermal scenario request bytes"));
-    }
+    preflight(input)?;
     let n = input.network.nodes.len();
-    if n > super::thermal::MAX_NODES {
-        return Err(Error::Limit("thermal scenario nodes"));
-    }
+    let byte_limit = limits.request_bytes.min(super::MAX_REQUEST_BYTES);
     let work =
         n * n * n + (input.scenarios.len() + input.sensitivities.len() + 1) * (2 * n * n + n);
     if work > limits.work.min(super::MAX_WORK) {
         return Err(Error::Limit("aggregate thermal work estimate"));
     }
-    let output_allowance =
-        input_bytes * 4 + n * (input.scenarios.len() * 2048 + input.sensitivities.len() * 128);
+    let encoded_length = bounded_json_len(input, byte_limit)?;
+    // Each accepted scenario owns its declarations and link evidence; counting
+    // only node vectors misses repeated long assumptions even in a one-node graph.
+    let declaration_bytes = input.network.description.len()
+        + input
+            .network
+            .assumptions
+            .iter()
+            .map(|text| text.len() + std::mem::size_of::<String>())
+            .sum::<usize>()
+        + 1024;
+    let link_evidence_bytes = input
+        .network
+        .links
+        .iter()
+        .map(|link| {
+            link.from.len() + link.to.len() + std::mem::size_of::<super::thermal::LinkEvidence>()
+        })
+        .sum::<usize>();
+    let output_allowance = encoded_length * 4
+        + input.scenarios.len() * (n * 2048 + declaration_bytes + link_evidence_bytes)
+        + input.sensitivities.len() * (n * 128 + 1024);
     let result_reservation = memory
-        .map(|m| {
-            m.reserve(output_allowance)
+        .map(|budget| {
+            budget
+                .reserve(output_allowance)
                 .map_err(|_| Error::Limit("shared thermal result memory"))
         })
         .transpose()?;
+    let _encoded = bounded_json(input, byte_limit)?;
     let mut ids = BTreeSet::new();
     if input.scenarios.iter().any(|s| !ids.insert(s.id.as_str())) {
         return Err(Error::Invalid("duplicate scenario id".into()));

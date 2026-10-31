@@ -24,6 +24,8 @@ DIMENSIONAL = "algebra.optimize_dimensional_polynomial"
 CHEMISTRY = "chemistry.balance_reaction"
 RATIONAL = "algebra.simplify_rational"
 EXACT = "reasoning.exact_linear_feasibility"
+OPTIMIZE = "reasoning.optimize_linear"
+OPTIMIZATION_LIMIT_NAMES = ("variables", "rows", "tableau_cells", "bits", "work", "pivots")
 RATIONAL_LIMIT_NAMES = ("rational_bits", "rational_work", "formula_depth", "proof_steps",
                         "formula_reply_bytes")
 RATIONAL_PATTERN = r"^-?(0|[1-9][0-9]*)(/[1-9][0-9]*)?$"
@@ -100,22 +102,26 @@ def _chemistry_result(limits):
     })
 
 
-def _exact_input():
-    rational = _string(8195, pattern=RATIONAL_PATTERN)
-    vector = {"type": "array", "maxItems": 32, "items": rational}
-    return _object({"variables": {"type": "array", "minItems": 1, "maxItems": 32, "items": _string(128)},
-                    "rows": {"type": "array", "maxItems": 256, "items": _object({
+def _exact_input(limits=None, optimize=False):
+    count = {"variables": 32, "rows": 256, "bits": 4096} if limits is None else limits
+    rational = _string(min(MAX_REPLY_BYTES, 2 * count["bits"] + 3), pattern=RATIONAL_PATTERN)
+    vector = {"type": "array", "maxItems": count["variables"], "items": rational}
+    return _object({"variables": {"type": "array", "minItems": 1, "maxItems": count["variables"], "items": _string(128)},
+                    "rows": {"type": "array", "maxItems": count["rows"], "items": _object({
                         "id": _string(128), "coefficients": vector, "bound": rational})},
-                    "objective": {"anyOf": [vector, {"type": "null"}]}}, required=["variables", "rows"])
+                    "objective": vector if optimize else {"anyOf": [vector, {"type": "null"}]}},
+                   required=["variables", "rows", "objective"] if optimize else ["variables", "rows"])
 
 
-def _exact_result():
-    vector = {"type": "array", "maxItems": 256, "items": _string(8195, pattern=RATIONAL_PATTERN)}
+def _exact_result(limits=None, optimize=False):
+    count = {"variables": 32, "rows": 256, "bits": 4096} if limits is None else limits
+    vector = {"type": "array", "maxItems": max(count["rows"], count["variables"]),
+              "items": _string(min(MAX_REPLY_BYTES, 2 * count["bits"] + 3), pattern=RATIONAL_PATTERN)}
     certs = []
     for kind, fields in (("feasible", ("point",)), ("infeasible", ("multipliers",)),
                          ("optimal", ("point", "multipliers")), ("unbounded", ("point", "direction"))):
         certs.append(_object(dict({"kind": {"const": kind}}, **{key: vector for key in fields})))
-    return _object({"status": _string(32, enum=["feasible", "infeasible", "optimal", "unbounded", "unknown"]),
+    return _object({"status": _string(32, enum=["infeasible", "optimal", "unbounded", "unknown"] if optimize else ["feasible", "infeasible", "optimal", "unbounded", "unknown"]),
                     "certificate": {"anyOf": certs + [{"type": "null"}]},
                     "reason": {"anyOf": [_string(512), {"type": "null"}]}, "assurance": _string(1024)})
 
@@ -186,7 +192,7 @@ def _rational_result(limits, max_exponent, rational_limits):
     return result
 
 
-def _inputs(limits, max_exponent=None, chemistry_limits=None, rational_limits=None):
+def _inputs(limits, max_exponent=None, chemistry_limits=None, rational_limits=None, optimization_limits=None):
     endpoint = {"type": "integer", "minimum": 0}
     vertices = {"type": "integer", "minimum": 0}
     if limits is not None:
@@ -216,7 +222,7 @@ def _inputs(limits, max_exponent=None, chemistry_limits=None, rational_limits=No
     directed_edges = copy.deepcopy(edges)
     directed_edges["description"] = "Complete supplied directed multigraph only. Stable edge IDs are list positions; loops and parallel edges are allowed."
     positive_vertices = dict(vertices, minimum=1)
-    return {EXACT: _exact_input(), GRAPH: _object({"vertices": vertices, "edges": edges}),
+    return {OPTIMIZE: _exact_input(optimization_limits, optimize=True), EXACT: _exact_input(), GRAPH: _object({"vertices": vertices, "edges": edges}),
             SHORTEST: _object({"vertices": positive_vertices, "edges": directed_edges,
                                "source": endpoint, "target": endpoint}),
             ALGEBRA: _object({"expression": expression}),
@@ -227,7 +233,7 @@ def _inputs(limits, max_exponent=None, chemistry_limits=None, rational_limits=No
             RATIONAL: _rational_input(limits, max_exponent, rational_limits, annotations)}
 
 
-def _results(limits, max_exponent=None, chemistry_limits=None, rational_limits=None):
+def _results(limits, max_exponent=None, chemistry_limits=None, rational_limits=None, optimization_limits=None):
     # Output schemas also describe unavailable operations, whose actual native
     # ceilings are not known. Bounds then state only the stable u64 contract.
     count = lambda name: limits[name] if limits is not None else 2**64 - 1
@@ -257,6 +263,7 @@ def _results(limits, max_exponent=None, chemistry_limits=None, rational_limits=N
                         "selection_fallback": {"anyOf": [_string(MAX_REPLY_BYTES), {"type": "null"}]}})
     results[DIMENSIONAL] = _object(dimensional)
     results[EXACT] = _exact_result()
+    results[OPTIMIZE] = _exact_result(optimization_limits, optimize=True)
     results[CHEMISTRY] = _chemistry_result(chemistry_limits)
     results[RATIONAL] = _rational_result(limits, max_exponent, rational_limits)
     decimal = _string(40, pattern=r"^(0|-[1-9][0-9]*|[1-9][0-9]*)$")
@@ -281,7 +288,7 @@ def _results(limits, max_exponent=None, chemistry_limits=None, rational_limits=N
     return results
 
 
-OPERATION_IDS = (GRAPH, ALGEBRA, DIMENSIONAL, CHEMISTRY, SHORTEST, RATIONAL, EXACT)
+OPERATION_IDS = (GRAPH, ALGEBRA, DIMENSIONAL, CHEMISTRY, SHORTEST, RATIONAL, EXACT, OPTIMIZE)
 LIMITATIONS = [
     "Experimental computation only. No specialist panel numbers, release admission, Isabelle proof or Mini capability authority.",
     "The host must enable this provider explicitly and supply its runtime identity. Identity is a host assertion, not an independent attestation.",
@@ -352,6 +359,7 @@ class ReasoningOperations:
         self._chemistry_limits = None
         self._path_limits = None
         self._rational_limits = None
+        self._optimization_limits = None
         self._available_ids = set()
         self._operation_unavailable = {}
         self._inputs, self._results = _inputs(None), _results(None)
@@ -392,6 +400,15 @@ class ReasoningOperations:
         self._limits = {key: limits[key] for key in LIMIT_NAMES}
         self._available_ids = set(OPERATION_IDS).intersection(row["id"] for row in rows)
         max_exponent = None
+        if OPTIMIZE in self._available_ids:
+            optimization = next(row for row in rows if row["id"] == OPTIMIZE).get("optimization_limits")
+            if (not isinstance(optimization, dict) or not set(OPTIMIZATION_LIMIT_NAMES) <= set(optimization)
+                    or any(type(optimization[k]) is not int or not 1 <= optimization[k] <= 2**64 - 1
+                           for k in OPTIMIZATION_LIMIT_NAMES)):
+                self._available_ids.remove(OPTIMIZE)
+                self._operation_unavailable[OPTIMIZE] = "native_operation_schema_unsupported"
+            else:
+                self._optimization_limits = {k: optimization[k] for k in OPTIMIZATION_LIMIT_NAMES}
         if DIMENSIONAL in self._available_ids:
             dimensions = next(row for row in rows if row["id"] == DIMENSIONAL)
             maximum = dimensions.get("max_exponent")
@@ -442,14 +459,17 @@ class ReasoningOperations:
             else:
                 self._path_limits = {key: path[key] for key in keys}
                 self._limits.update(graph_work=path["work"], graph_reply_bytes=path["reply_bytes"])
-        self._inputs = _inputs(self._limits, max_exponent, self._chemistry_limits, self._rational_limits)
-        self._results = _results(self._limits, max_exponent, self._chemistry_limits, self._rational_limits)
+        self._inputs = _inputs(self._limits, max_exponent, self._chemistry_limits, self._rational_limits, self._optimization_limits)
+        self._results = _results(self._limits, max_exponent, self._chemistry_limits, self._rational_limits, self._optimization_limits)
         self._call = call
         self.unavailable_reason = None
 
     def catalog(self):
         rows = []
         for op_id, name, description, example, limitation in (
+            (OPTIMIZE, "Optimize a supplied exact linear model", "Minimize the supplied rational objective under original rows a*x<=b and unrestricted variables. Return independently replayed primal/dual optimality, Farkas infeasibility or base/ray unboundedness certificates.",
+             {"variables": ["x"], "rows": [{"id": "lower", "coefficients": ["-1"], "bound": "-1"}], "objective": ["1"]},
+             "Divisible rational quantities only, no integer optimization. Caller owns coherent row units and model completeness. Two-phase simplex uses Bland anti-cycling and arithmetic/tableau/pivot caps. Exhaustion is unknown and withheld. Original-row Rust replay is not an Isabelle theorem."),
             (EXACT, "Exact supplied linear feasibility", "Find and independently replay rational feasibility or Farkas certificates over supplied rows a*x<=b and unrestricted variables.",
              {"variables": ["x"], "rows": [{"id": "lower", "coefficients": ["-1"], "bound": "-1"}]},
              "Exact Rust replay, no Isabelle claim. Variables are unrestricted; add explicit nonnegativity rows. Objective is minimization metadata; this proposer searches feasibility only. Resource exhaustion means unknown. Caller owns row units and model completeness."),
@@ -494,7 +514,7 @@ class ReasoningOperations:
                     "input_schema": copy.deepcopy(self._inputs[op_id]),
                     "output_schema": self._output_schema(op_id),
                     "units": ({"input": "caller-defined consistent units per row; all a*x<=b", "output": "same variable units or dimensionless row multipliers"}
-                              if op_id == EXACT else {"input": "caller-defined consistent edge weight units", "output": "same weight units"}
+                              if op_id in (EXACT, OPTIMIZE) else {"input": "caller-defined consistent edge weight units", "output": "same weight units"}
                               if op_id in (GRAPH, SHORTEST) else {"input": "coherent linear SI quantities", "output": "declared SI exponents; tree cost is an abstract count"}
                               if op_id in (DIMENSIONAL, RATIONAL) else {"input": "exact atom/isotope counts and signed elementary-charge counts", "output": "dimensionless stoichiometric coefficients; exact inventory totals"}
                               if op_id == CHEMISTRY else {"input": "dimensionless", "output": "dimensionless; tree cost is an abstract count"}),
@@ -506,6 +526,8 @@ class ReasoningOperations:
                     "native_limits": copy.deepcopy(self._limits),
                     "adapter_limits": {"native_reply_bytes": MAX_REPLY_BYTES},
                     "limitations": LIMITATIONS + [limitation]}
+            if op_id == OPTIMIZE:
+                item["optimization_limits"] = copy.deepcopy(self._optimization_limits)
             if op_id == CHEMISTRY:
                 item["chemistry_limits"] = copy.deepcopy(self._chemistry_limits)
             if op_id == SHORTEST:
@@ -534,9 +556,9 @@ class ReasoningOperations:
                                 answer_kind={"const": "search_inconclusive"},
                                 reason={"const": "positive_balance_search_inconclusive"})
             branches.append(_object(inconclusive))
-        if op_id == EXACT:
+        if op_id in (EXACT, OPTIMIZE):
             branches.append(_object(dict(answered, status={"const": "withheld"},
-                reason={"const": "exact_feasibility_inconclusive"})))
+                reason={"const": "linear_optimization_inconclusive" if op_id == OPTIMIZE else "exact_feasibility_inconclusive"})))
         return {"anyOf": branches}
 
     def invoke(self, operation_id, arguments):
@@ -566,11 +588,16 @@ class ReasoningOperations:
             result = _json(raw, maximum)
             if not _valid(result, self._results[operation_id]):
                 raise ValueError("native result schema differs")
-            if operation_id == EXACT:
+            if operation_id in (EXACT, OPTIMIZE):
                 cert = result["certificate"]
                 if ((result["status"] == "unknown") != (cert is None)
                         or cert is not None and cert["kind"] != result["status"]):
                     raise ValueError("linear certificate status differs")
+                if cert is not None:
+                    n, m = len(arguments["variables"]), len(arguments["rows"])
+                    for key in ("point", "direction", "multipliers"):
+                        if key in cert and len(cert[key]) != (m if key == "multipliers" else n):
+                            raise ValueError("linear certificate vector dimensions differ")
             if operation_id == SHORTEST:
                 self._check_path_reply(arguments, result)
             if operation_id == CHEMISTRY:
@@ -581,8 +608,8 @@ class ReasoningOperations:
             return self._withheld(operation_id, "native_reply_invalid")
         reply = {"status": "answered", "operation_id": operation_id, "result": result,
                  "runtime_identity": self._identity, "authority": "computation_only"}
-        if operation_id == EXACT and result["status"] == "unknown":
-            reply.update(status="withheld", reason="exact_feasibility_inconclusive")
+        if operation_id in (EXACT, OPTIMIZE) and result["status"] == "unknown":
+            reply.update(status="withheld", reason="linear_optimization_inconclusive" if operation_id == OPTIMIZE else "exact_feasibility_inconclusive")
         if operation_id == CHEMISTRY:
             reply["scope"] = CHEMISTRY_SCOPE
             if result["status"] == "multiple_search_inconclusive":
@@ -680,7 +707,7 @@ class ReasoningOperations:
         if (not isinstance(arguments, dict) or not set(schema["required"]) <= set(arguments)
                 or not set(arguments) <= set(schema["properties"])):
             raise ValueError("unexpected or missing argument fields")
-        if op_id == EXACT:
+        if op_id in (EXACT, OPTIMIZE):
             if not _valid(arguments, schema):
                 raise ValueError("invalid exact linear request")
             n = len(arguments["variables"])

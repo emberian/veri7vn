@@ -78,7 +78,7 @@ class PythonReleaseContract(unittest.TestCase):
                 'data_image_sha256': image.sha256,
                 'resource_profile_sha256': image.resource_profile_sha256,
                 'appliance_receipt_sha256': None,
-                'schemas': [{'id': 'session', 'version': 2},
+                'schemas': [{'id': 'session', 'version': 3},
                             {'id': 'graph', 'version': 1},
                             {'id': 'kqa_program', 'version': 1}],
                 'resources': [], 'operations': [operation(name) for name in OPERATION_IDS]}
@@ -142,7 +142,7 @@ class PythonReleaseContract(unittest.TestCase):
             elif part == 'profile':
                 declaration['resource_profile_sha256'] = 'f' * 64
             else:
-                declaration['schemas'][0]['version'] = 3
+                declaration['schemas'][0]['version'] = 999
             with self.assertRaises(native.ConflictError, msg=part):
                 self.open(declaration, **kwargs)
             self.assertFalse((self.root / (kwargs['store'] + '.sqlite')).exists())

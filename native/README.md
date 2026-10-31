@@ -7,7 +7,8 @@ IDs, current limits and retained results.
 The [Rust appliance host](docs/HOST.md) shares the native image and extracted
 workers across tenants. Its optional Python Oracle7 Engine handles fallback.
 It runs independently of Mini; supplied-model computations need no Oracle dataset.
-The [durable runtime](docs/RUNTIME-HOST.md) serves an admitted data image, KQA
+The [data/state guide](docs/DATA-AND-STATE.md) explains typed batches, source
+coverage and durable native owners. The [durable runtime](docs/RUNTIME-HOST.md) serves an admitted data image, KQA
 programs and learned language turns, with exact reply replay after restart.
 The [distribution builder](docs/DISTRIBUTION.md) packages the service into a
 relocatable directory; images, journals and private configuration stay external.
@@ -25,13 +26,14 @@ The reader uses offline-exported lexical and learned grammar tables bound to the
 KB digest. It executes whole templates, exact fragment/outer composition,
 2–4-segment chains and one nested fragment pass under one worker budget.
 Consumed children must run and be nonempty; successful interpretations must
-agree. Serving neither learns nor unpickles. The retained 100-question control has 36 correct answers. A repaired plural-first
-grammar export raises a separate 16-question cohort from two correct answers
-to ten, with six expected declines. Repeated one-second-budget runs have
-variable deadline failures under shared-host load; this is not stable latency
-qualification. A newly exposed ill-typed fragment now refuses instead of
-raising an execution error. Details and all runs are in the
-[reader receipt](evidence/2026-10-31-sol-wave-validation.json).
+agree. Serving neither learns nor unpickles. The release comparison retains 36 correct answers on the 100-question control.
+A repaired plural-first grammar export raises the targeted 16-question cohort
+from two correct answers to ten, with six expected declines. Both release runs
+have zero wrong answers and execution errors at the same one-second limit.
+Earlier debug runs had variable deadline failures; all results remain in the
+[validation receipts](evidence/2026-10-31-native-expansion-validation.json).
+The limit contains failed work; it is not a latency target.
+
 
 This does not replace the complete Oracle Engine or install it in signed v7.
 The full route cascade, dialogue adapters, remaining language families and real

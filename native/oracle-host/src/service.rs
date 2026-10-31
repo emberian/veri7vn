@@ -111,7 +111,11 @@ impl Service {
         let host_identity = format!("{host_sha256}:host");
         let native = match &config.native {
             Some(settings) => {
-                let runtime = NativeRuntime::open(settings, &host_sha256)?;
+                let runtime = NativeRuntime::open_with_solver(
+                    settings,
+                    &host_sha256,
+                    config.pure.as_ref().is_some_and(|p| p.solver.is_some()),
+                )?;
                 for declaration in runtime.declarations(&host_identity) {
                     registry
                         .add(&declaration, Route::Runtime)
@@ -327,6 +331,8 @@ impl Service {
                         request["request_id"].as_str().unwrap_or(""),
                         request["conversation_id"].as_str().unwrap_or(""),
                         context,
+                        pure.as_ref().and_then(|p| p.solver_path()),
+                        pure.as_ref().and_then(|p| p.solver_sha256()),
                     ),
                     Route::Pure(profile) => pure
                         .as_ref()

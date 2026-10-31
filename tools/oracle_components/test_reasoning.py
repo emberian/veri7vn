@@ -36,6 +36,9 @@ def native_catalog():
                                                       "coefficient_bits": 96, "work": 700,
                                                       "free_coefficient_bound": 3, "search_candidates": 11}}
                                if op_id == ADAPTER.CHEMISTRY else {}),
+                            **({"optimization_limits": {"variables": 3, "rows": 8, "tableau_cells": 256,
+                                                          "bits": 96, "work": 5000, "pivots": 20}}
+                               if op_id == ADAPTER.OPTIMIZE else {}),
                             **({"path_limits": {"vertices": 7, "edges": 9, "work": 3000,
                                                 "milliseconds": 5, "reply_bytes": 4096}}
                                if op_id == ADAPTER.SHORTEST else {})}
@@ -506,6 +509,39 @@ class ExactLinearContract(unittest.TestCase):
         provider = self.bind()
         with self.assertRaises(ValueError):
             provider.invoke(ADAPTER.EXACT, {"variables": ["x"], "rows": [{"id": "r", "coefficients": [], "bound": "0"}]})
+
+class OptimizeLinearContract(unittest.TestCase):
+    bind = ReasoningContract.bind
+
+    def test_optimal_and_unknown_transport(self):
+        args = {"variables": ["x"], "rows": [{"id": "low", "coefficients": ["-1"], "bound": "-1"}], "objective": ["1"]}
+        for status, cert in (("optimal", {"kind": "optimal", "point": ["1"], "multipliers": ["1"]}), ("unknown", None)):
+            result = {"status": status, "certificate": cert, "reason": "pivot limit" if cert is None else None,
+                      "assurance": "fake fixture, no mathematical evidence"}
+            provider = self.bind(known_module(reply=result))
+            reply = provider.invoke(ADAPTER.OPTIMIZE, args)
+            self.assertEqual(reply["status"], "withheld" if status == "unknown" else "answered")
+            HOST.validate(reply, operation(provider.catalog(), ADAPTER.OPTIMIZE)["output_schema"])
+            if status == "unknown":
+                self.assertEqual(reply["reason"], "linear_optimization_inconclusive")
+        provider = self.bind(known_module(reply={"status": "feasible", "certificate": {"kind": "feasible", "point": ["1"]},
+                                               "reason": None, "assurance": "fake fixture"}))
+        self.assertEqual(provider.invoke(ADAPTER.OPTIMIZE, args)["reason"], "native_reply_invalid")
+
+    def test_optimizer_requires_objective_and_catalog_ceilings(self):
+        provider = self.bind()
+        row = operation(provider.catalog(), ADAPTER.OPTIMIZE)
+        self.assertEqual(row["input_schema"]["properties"]["variables"]["maxItems"], 3)
+        self.assertEqual(row["optimization_limits"]["pivots"], 20)
+        for args in ({"variables": ["x"], "rows": []}, {"variables": ["x"], "rows": [], "objective": None},
+                     {"variables": ["a", "b", "c", "d"], "rows": [], "objective": ["0"]*4}):
+            with self.assertRaises(ValueError):
+                provider.invoke(ADAPTER.OPTIMIZE, args)
+        declaration = native_catalog()
+        operation(declaration["operations"], ADAPTER.OPTIMIZE)["optimization_limits"]["bits"] = True
+        provider = self.bind(known_module(declaration))
+        self.assertEqual(operation(provider.catalog(), ADAPTER.OPTIMIZE)["availability"], "unavailable")
+        self.assertEqual(operation(provider.catalog(), ADAPTER.EXACT)["availability"], "live_direct")
 
 if __name__ == "__main__":
     unittest.main()

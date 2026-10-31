@@ -1,0 +1,409 @@
+{
+  "dev": [
+    {
+      "q": "Translate supplied coding intervals: {\"source\":{\"schema\":\"oracle-translation-source-v1\",\"records\":[{\"label\":\"supplied\",\"sequence\":\"ATGAAATTT\"}]},\"features\":[{\"label\":\"declared interval\",\"record_index\":0,\"start\":0,\"end\":9,\"strand\":\"forward\",\"frame\":0}],\"genetic_code\":\"ncbi-standard-1-2024-09-23\",\"initiation\":\"literal_codon\",\"remainder\":\"reject\",\"stops\":\"include\",\"ambiguity\":\"reject\"}",
+      "valid": true,
+      "a": [
+        {
+          "protein": "MKF",
+          "codons": [
+            [
+              "ATG",
+              0,
+              3,
+              "forward"
+            ],
+            [
+              "AAA",
+              3,
+              6,
+              "forward"
+            ],
+            [
+              "TTT",
+              6,
+              9,
+              "forward"
+            ]
+          ],
+          "termination": null
+        }
+      ]
+    },
+    {
+      "q": "Translate supplied coding intervals: {\"source\":{\"schema\":\"oracle-translation-source-v1\",\"records\":[{\"label\":\"supplied\",\"sequence\":\"AACATGGGCATCC\"}]},\"features\":[{\"label\":\"declared interval\",\"record_index\":0,\"start\":2,\"end\":11,\"strand\":\"reverse\",\"frame\":0}],\"genetic_code\":\"ncbi-standard-1-2024-09-23\",\"initiation\":\"literal_codon\",\"remainder\":\"reject\",\"stops\":\"include\",\"ambiguity\":\"reject\"}",
+      "valid": true,
+      "a": [
+        {
+          "protein": "MPM",
+          "codons": [
+            [
+              "ATG",
+              8,
+              11,
+              "reverse"
+            ],
+            [
+              "CCC",
+              5,
+              8,
+              "reverse"
+            ],
+            [
+              "ATG",
+              2,
+              5,
+              "reverse"
+            ]
+          ],
+          "termination": null
+        }
+      ]
+    },
+    {
+      "q": "Translate supplied coding intervals: {\"source\":{\"schema\":\"oracle-translation-source-v1\",\"records\":[{\"label\":\"supplied\",\"sequence\":\"AATGAAAT\"}]},\"features\":[{\"label\":\"declared interval\",\"record_index\":0,\"start\":0,\"end\":8,\"strand\":\"forward\",\"frame\":1}],\"genetic_code\":\"ncbi-standard-1-2024-09-23\",\"initiation\":\"literal_codon\",\"remainder\":\"drop\",\"stops\":\"include\",\"ambiguity\":\"reject\"}",
+      "valid": true,
+      "a": [
+        {
+          "protein": "MK",
+          "codons": [
+            [
+              "ATG",
+              1,
+              4,
+              "forward"
+            ],
+            [
+              "AAA",
+              4,
+              7,
+              "forward"
+            ]
+          ],
+          "termination": null
+        }
+      ]
+    },
+    {
+      "q": "Translate supplied coding intervals: {\"source\":{\"schema\":\"oracle-translation-source-v1\",\"records\":[{\"label\":\"supplied\",\"sequence\":\"ATGTAAGGG\"}]},\"features\":[{\"label\":\"declared interval\",\"record_index\":0,\"start\":0,\"end\":9,\"strand\":\"forward\",\"frame\":0}],\"genetic_code\":\"ncbi-standard-1-2024-09-23\",\"initiation\":\"literal_codon\",\"remainder\":\"reject\",\"stops\":\"terminate\",\"ambiguity\":\"reject\"}",
+      "valid": true,
+      "a": [
+        {
+          "protein": "M",
+          "codons": [
+            [
+              "ATG",
+              0,
+              3,
+              "forward"
+            ]
+          ],
+          "termination": [
+            "TAA",
+            3,
+            6,
+            "forward"
+          ]
+        }
+      ]
+    },
+    {
+      "q": "Translate supplied coding intervals: {\"source\":{\"schema\":\"oracle-translation-source-v1\",\"records\":[{\"label\":\"supplied\",\"sequence\":\"GCNTAR\"}]},\"features\":[{\"label\":\"declared interval\",\"record_index\":0,\"start\":0,\"end\":6,\"strand\":\"forward\",\"frame\":0}],\"genetic_code\":\"ncbi-standard-1-2024-09-23\",\"initiation\":\"literal_codon\",\"remainder\":\"reject\",\"stops\":\"include\",\"ambiguity\":\"unknown\"}",
+      "valid": true,
+      "a": [
+        {
+          "protein": "XX",
+          "codons": [
+            [
+              "GCN",
+              0,
+              3,
+              "forward"
+            ],
+            [
+              "TAR",
+              3,
+              6,
+              "forward"
+            ]
+          ],
+          "termination": null
+        }
+      ]
+    },
+    {
+      "q": "Translate supplied coding intervals: {\"source\":{\"schema\":\"oracle-translation-source-v1\",\"records\":[{\"label\":\"supplied\",\"sequence\":\"GCN\"}]},\"features\":[{\"label\":\"declared interval\",\"record_index\":0,\"start\":0,\"end\":3,\"strand\":\"forward\",\"frame\":0}],\"genetic_code\":\"ncbi-standard-1-2024-09-23\",\"initiation\":\"literal_codon\",\"remainder\":\"reject\",\"stops\":\"include\",\"ambiguity\":\"reject\"}",
+      "valid": false,
+      "a": [
+        {
+          "protein": "",
+          "codons": [],
+          "termination": null
+        }
+      ]
+    },
+    {
+      "q": "Translate supplied coding intervals: {\"source\":{\"schema\":\"oracle-translation-source-v1\",\"records\":[{\"label\":\"supplied\",\"sequence\":\"ATGA\"}]},\"features\":[{\"label\":\"declared interval\",\"record_index\":0,\"start\":0,\"end\":4,\"strand\":\"forward\",\"frame\":0}],\"genetic_code\":\"ncbi-standard-1-2024-09-23\",\"initiation\":\"literal_codon\",\"remainder\":\"reject\",\"stops\":\"include\",\"ambiguity\":\"reject\"}",
+      "valid": false,
+      "a": [
+        {
+          "protein": "",
+          "codons": [],
+          "termination": null
+        }
+      ]
+    },
+    {
+      "q": "Translate supplied coding intervals: {\"source\":{\"schema\":\"oracle-translation-source-v1\",\"records\":[{\"label\":\"supplied\",\"sequence\":\"ATG\"}]},\"features\":[{\"label\":\"declared interval\",\"record_index\":0,\"start\":0,\"end\":3,\"strand\":\"forward\",\"frame\":0}],\"genetic_code\":\"ncbi-vertebrate-mitochondrial-2\",\"initiation\":\"literal_codon\",\"remainder\":\"reject\",\"stops\":\"include\",\"ambiguity\":\"reject\"}",
+      "valid": false,
+      "a": [
+        {
+          "protein": "",
+          "codons": [],
+          "termination": null
+        }
+      ]
+    }
+  ],
+  "heldout": [
+    {
+      "q": "Translate supplied coding intervals: {\"source\":{\"schema\":\"oracle-translation-source-v1\",\"records\":[{\"label\":\"supplied\",\"sequence\":\"TTGCTGGTGATG\"}]},\"features\":[{\"label\":\"declared interval\",\"record_index\":0,\"start\":0,\"end\":12,\"strand\":\"forward\",\"frame\":0}],\"genetic_code\":\"ncbi-standard-1-2024-09-23\",\"initiation\":\"literal_codon\",\"remainder\":\"reject\",\"stops\":\"include\",\"ambiguity\":\"reject\"}",
+      "valid": true,
+      "a": [
+        {
+          "protein": "LLVM",
+          "codons": [
+            [
+              "TTG",
+              0,
+              3,
+              "forward"
+            ],
+            [
+              "CTG",
+              3,
+              6,
+              "forward"
+            ],
+            [
+              "GTG",
+              6,
+              9,
+              "forward"
+            ],
+            [
+              "ATG",
+              9,
+              12,
+              "forward"
+            ]
+          ],
+          "termination": null
+        }
+      ]
+    },
+    {
+      "q": "Translate supplied coding intervals: {\"source\":{\"schema\":\"oracle-translation-source-v1\",\"records\":[{\"label\":\"supplied\",\"sequence\":\"AACATGGGCATCC\"}]},\"features\":[{\"label\":\"declared interval\",\"record_index\":0,\"start\":2,\"end\":11,\"strand\":\"reverse\",\"frame\":1}],\"genetic_code\":\"ncbi-standard-1-2024-09-23\",\"initiation\":\"literal_codon\",\"remainder\":\"drop\",\"stops\":\"include\",\"ambiguity\":\"reject\"}",
+      "valid": true,
+      "a": [
+        {
+          "protein": "CP",
+          "codons": [
+            [
+              "TGC",
+              7,
+              10,
+              "reverse"
+            ],
+            [
+              "CCA",
+              4,
+              7,
+              "reverse"
+            ]
+          ],
+          "termination": null
+        }
+      ]
+    },
+    {
+      "q": "Translate supplied coding intervals: {\"source\":{\"schema\":\"oracle-translation-source-v1\",\"records\":[{\"label\":\"supplied\",\"sequence\":\"AAATGAAA\"}]},\"features\":[{\"label\":\"declared interval\",\"record_index\":0,\"start\":0,\"end\":8,\"strand\":\"forward\",\"frame\":2}],\"genetic_code\":\"ncbi-standard-1-2024-09-23\",\"initiation\":\"literal_codon\",\"remainder\":\"reject\",\"stops\":\"include\",\"ambiguity\":\"reject\"}",
+      "valid": true,
+      "a": [
+        {
+          "protein": "MK",
+          "codons": [
+            [
+              "ATG",
+              2,
+              5,
+              "forward"
+            ],
+            [
+              "AAA",
+              5,
+              8,
+              "forward"
+            ]
+          ],
+          "termination": null
+        }
+      ]
+    },
+    {
+      "q": "Translate supplied coding intervals: {\"source\":{\"schema\":\"oracle-translation-source-v1\",\"records\":[{\"label\":\"supplied\",\"sequence\":\"ATGTAGTGA\"}]},\"features\":[{\"label\":\"declared interval\",\"record_index\":0,\"start\":0,\"end\":9,\"strand\":\"forward\",\"frame\":0}],\"genetic_code\":\"ncbi-standard-1-2024-09-23\",\"initiation\":\"literal_codon\",\"remainder\":\"reject\",\"stops\":\"include\",\"ambiguity\":\"reject\"}",
+      "valid": true,
+      "a": [
+        {
+          "protein": "M**",
+          "codons": [
+            [
+              "ATG",
+              0,
+              3,
+              "forward"
+            ],
+            [
+              "TAG",
+              3,
+              6,
+              "forward"
+            ],
+            [
+              "TGA",
+              6,
+              9,
+              "forward"
+            ]
+          ],
+          "termination": null
+        }
+      ]
+    },
+    {
+      "q": "Translate supplied coding intervals: {\"source\":{\"schema\":\"oracle-translation-source-v1\",\"records\":[{\"label\":\"supplied\",\"sequence\":\"TAAATG\"}]},\"features\":[{\"label\":\"declared interval\",\"record_index\":0,\"start\":0,\"end\":6,\"strand\":\"forward\",\"frame\":0}],\"genetic_code\":\"ncbi-standard-1-2024-09-23\",\"initiation\":\"literal_codon\",\"remainder\":\"reject\",\"stops\":\"terminate\",\"ambiguity\":\"reject\"}",
+      "valid": true,
+      "a": [
+        {
+          "protein": "",
+          "codons": [],
+          "termination": [
+            "TAA",
+            0,
+            3,
+            "forward"
+          ]
+        }
+      ]
+    },
+    {
+      "q": "Translate supplied coding intervals: {\"source\":{\"schema\":\"oracle-translation-source-v1\",\"records\":[{\"label\":\"supplied\",\"sequence\":\"ATGTAA\"}]},\"features\":[{\"label\":\"declared interval\",\"record_index\":0,\"start\":0,\"end\":6,\"strand\":\"forward\",\"frame\":0}],\"genetic_code\":\"ncbi-standard-1-2024-09-23\",\"initiation\":\"literal_codon\",\"remainder\":\"reject\",\"stops\":\"reject\",\"ambiguity\":\"reject\"}",
+      "valid": false,
+      "a": [
+        {
+          "protein": "",
+          "codons": [],
+          "termination": null
+        }
+      ]
+    },
+    {
+      "q": "Translate supplied coding intervals: {\"source\":{\"schema\":\"oracle-translation-source-v1\",\"records\":[{\"label\":\"supplied\",\"sequence\":\"CATNNN\"}]},\"features\":[{\"label\":\"declared interval\",\"record_index\":0,\"start\":0,\"end\":6,\"strand\":\"reverse\",\"frame\":0}],\"genetic_code\":\"ncbi-standard-1-2024-09-23\",\"initiation\":\"literal_codon\",\"remainder\":\"reject\",\"stops\":\"include\",\"ambiguity\":\"unknown\"}",
+      "valid": true,
+      "a": [
+        {
+          "protein": "XM",
+          "codons": [
+            [
+              "NNN",
+              3,
+              6,
+              "reverse"
+            ],
+            [
+              "ATG",
+              0,
+              3,
+              "reverse"
+            ]
+          ],
+          "termination": null
+        }
+      ]
+    },
+    {
+      "q": "Translate supplied coding intervals: {\"source\":{\"schema\":\"oracle-translation-source-v1\",\"records\":[{\"label\":\"supplied\",\"sequence\":\"aagccctgg\"}]},\"features\":[{\"label\":\"declared interval\",\"record_index\":0,\"start\":0,\"end\":9,\"strand\":\"forward\",\"frame\":0}],\"genetic_code\":\"ncbi-standard-1-2024-09-23\",\"initiation\":\"literal_codon\",\"remainder\":\"reject\",\"stops\":\"include\",\"ambiguity\":\"reject\"}",
+      "valid": true,
+      "a": [
+        {
+          "protein": "KPW",
+          "codons": [
+            [
+              "AAG",
+              0,
+              3,
+              "forward"
+            ],
+            [
+              "CCC",
+              3,
+              6,
+              "forward"
+            ],
+            [
+              "TGG",
+              6,
+              9,
+              "forward"
+            ]
+          ],
+          "termination": null
+        }
+      ]
+    },
+    {
+      "q": "Translate supplied coding intervals: {\"source\":{\"schema\":\"oracle-translation-source-v1\",\"records\":[{\"label\":\"supplied\",\"sequence\":\"ATU\"}]},\"features\":[{\"label\":\"declared interval\",\"record_index\":0,\"start\":0,\"end\":3,\"strand\":\"forward\",\"frame\":0}],\"genetic_code\":\"ncbi-standard-1-2024-09-23\",\"initiation\":\"literal_codon\",\"remainder\":\"reject\",\"stops\":\"include\",\"ambiguity\":\"reject\"}",
+      "valid": false,
+      "a": [
+        {
+          "protein": "",
+          "codons": [],
+          "termination": null
+        }
+      ]
+    },
+    {
+      "q": "Translate supplied coding intervals: {\"source\":{\"schema\":\"oracle-translation-source-v1\",\"records\":[{\"label\":\"supplied\",\"sequence\":\"ATG\\n\"}]},\"features\":[{\"label\":\"declared interval\",\"record_index\":0,\"start\":0,\"end\":4,\"strand\":\"forward\",\"frame\":0}],\"genetic_code\":\"ncbi-standard-1-2024-09-23\",\"initiation\":\"literal_codon\",\"remainder\":\"drop\",\"stops\":\"include\",\"ambiguity\":\"reject\"}",
+      "valid": false,
+      "a": [
+        {
+          "protein": "",
+          "codons": [],
+          "termination": null
+        }
+      ]
+    },
+    {
+      "q": "Translate supplied coding intervals: {\"source\":{\"schema\":\"oracle-translation-source-v1\",\"records\":[{\"label\":\"supplied\",\"sequence\":\"AT\"}]},\"features\":[{\"label\":\"declared interval\",\"record_index\":0,\"start\":0,\"end\":2,\"strand\":\"forward\",\"frame\":0}],\"genetic_code\":\"ncbi-standard-1-2024-09-23\",\"initiation\":\"literal_codon\",\"remainder\":\"drop\",\"stops\":\"include\",\"ambiguity\":\"reject\"}",
+      "valid": true,
+      "a": [
+        {
+          "protein": "",
+          "codons": [],
+          "termination": null
+        }
+      ]
+    },
+    {
+      "q": "Translate supplied coding intervals: {\"source\":{\"schema\":\"oracle-translation-source-v1\",\"records\":[{\"label\":\"supplied\",\"sequence\":\"ATG\"}]},\"features\":[{\"label\":\"declared interval\",\"record_index\":0,\"start\":0,\"end\":3,\"strand\":\"forward\",\"frame\":3}],\"genetic_code\":\"ncbi-standard-1-2024-09-23\",\"initiation\":\"literal_codon\",\"remainder\":\"reject\",\"stops\":\"include\",\"ambiguity\":\"reject\"}",
+      "valid": false,
+      "a": [
+        {
+          "protein": "",
+          "codons": [],
+          "termination": null
+        }
+      ]
+    }
+  ]
+}

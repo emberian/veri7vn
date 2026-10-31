@@ -1,0 +1,17 @@
+{
+  "scope":"New supplied-data thermal storage workflow; independent analytic truth, not an upstream specialist score",
+  "cases":[
+    {"id":"heater-switch","kind":"heater_switch","expect":{"model":"heater_switch","temperature_tolerance_k":0.015,"event_time_tolerance_s":0.03,"event_count":2}},
+    {"id":"exponential-cooling","kind":"cooling","expect":{"model":"cooling","temperature_tolerance_k":0.015,"event_count":0}},
+    {"id":"disconnected-storage","kind":"disconnected","expect":{"model":"isolated_linear","temperature_tolerance_k":0.000001,"event_count":0}},
+    {"id":"closed-two-node-energy","kind":"closed","expect":{"model":"closed_pair","temperature_tolerance_k":0.015,"event_count":0}},
+    {"id":"ideal-reservoirs","kind":"all_fixed","expect":{"model":"fixed","temperature_tolerance_k":0,"event_count":0}},
+    {"id":"no-sampled-crossing","kind":"no_crossing","expect":{"model":"heater_switch","temperature_tolerance_k":0.015,"event_count":0}},
+    {"id":"zero-capacity","kind":"zero_capacity","expect":{"refused":true}},
+    {"id":"negative-capacity","kind":"negative_capacity","expect":{"refused":true}},
+    {"id":"boundary-initial-mismatch","kind":"boundary_mismatch","expect":{"refused":true}},
+    {"id":"unsorted-loads","kind":"unsorted","expect":{"refused":true}},
+    {"id":"step-exhaustion","kind":"exhausted","expect":{"refused":true}},
+    {"id":"below-absolute-zero","kind":"below_zero","expect":{"refused":true}}
+  ]
+}

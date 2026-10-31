@@ -1,0 +1,22 @@
+{
+  "scope": {"tenant": "incident-demo", "workspace": "supplied-incident"},
+  "history": [
+    {"token":"incident-1","expected_revision":0,"withdraw":[],"insert":[
+      {"kind":"coverage","id":"risk-coverage","source":"supplied risk log","source_revision":"1","domain":"all risk entries in supplied incident"},
+      {"kind":"observation","id":"ready-a","source":"operator A","source_revision":"1","atom":"ready"},
+      {"kind":"observation","id":"ready-b","source":"operator B","source_revision":"1","atom":"ready"},
+      {"kind":"rule","id":"approval-policy","head":"safe","positive":["ready"],"negative":["risk"],"coverage":["risk-coverage"]}
+    ]},
+    {"token":"incident-2","expected_revision":1,"insert":[],"withdraw":["ready-a"]},
+    {"token":"incident-3","expected_revision":2,"withdraw":[],"insert":[
+      {"kind":"observation","id":"risk-1","source":"operator C","source_revision":"1","atom":"risk"},
+      {"kind":"observation","id":"no-risk-1","source":"operator D","source_revision":"1","atom":"no-risk"}
+    ]},
+    {"token":"incident-4","expected_revision":3,"insert":[],"withdraw":["risk-1"]},
+    {"token":"incident-5","expected_revision":4,"insert":[],"withdraw":["risk-coverage"]},
+    {"token":"incident-6","expected_revision":5,"insert":[],"withdraw":["ready-b"]}
+  ],
+  "queries":["safe"],
+  "gold_safe":[true,true,false,true,false,false],
+  "authority":"advice_only_supplied_fixture"
+}

@@ -1,0 +1,7 @@
+{
+  "subjects": ["Q1"],
+  "predicate": "knows",
+  "direction": "forward",
+  "qualifiers": null,
+  "traversal_limit": 10000
+}

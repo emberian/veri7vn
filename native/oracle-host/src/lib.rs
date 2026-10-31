@@ -77,3 +77,5 @@ pub fn compiled_profiles() -> Vec<&'static str> {
     profiles.push("logic");
     profiles
 }
+#[cfg(feature = "logic")]
+pub mod revisions_owner;

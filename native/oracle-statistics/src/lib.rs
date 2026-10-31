@@ -4,6 +4,8 @@
 #![forbid(unsafe_code)]
 
 pub mod calibration;
+pub mod glm;
+pub mod sequential;
 pub use calibration::{calibrate, CalibrationInput, CalibrationResult};
 
 use faer::diag::Diag;
@@ -823,6 +825,14 @@ pub fn call(request: &str, limits: &Limits, cancel: &dyn WorkControl) -> Result<
         return Err(Error::Limit("request bytes"));
     }
     let request: Request = serde_json::from_str(request)?;
+    if request.operation == glm::OPERATION {
+        let input = serde_json::from_str(request.arguments.get())?;
+        return Ok(serde_json::to_string(&glm::fit(&input, limits, cancel)?)?);
+    }
+    if request.operation == "statistics.sequential_monitor" {
+        let input = serde_json::from_str(request.arguments.get())?;
+        return Ok(serde_json::to_string(&sequential::replay(&input, limits, cancel)?)?);
+    }
     if request.operation == "statistics.calibration" {
         let input = serde_json::from_str(request.arguments.get())?;
         return Ok(serde_json::to_string(&calibrate(&input, limits, cancel)?)?);
@@ -838,7 +848,11 @@ pub fn catalog() -> serde_json::Value {
     serde_json::json!({
         "schema": SCHEMA,
         "assurance": "experimental floating-point; conditional statistical inference, no formal verification or causal claim",
-        "operations": ["statistics.linear_regression", "statistics.calibration"],
+        "operations": ["statistics.linear_regression", "statistics.calibration", "statistics.events_exposure", "statistics.sequential_monitor"],
+        "events_exposure": glm::catalog_entry(),
+        "sequential_monitor": {"method":sequential::METHOD,"operation":"statistics.sequential_monitor",
+            "arguments":"config{method,bounds,alpha,metric,unit,sampling_assumptions,multiplicity,hypothesis?},observations",
+            "assurance":"handwritten outward arithmetic, no extracted proof; time-uniform common conditional mean under fixed bounds and caller assumptions; null interval means all common means excluded, not failure"},
         "calibration": "one supplied predictor with intercept; forward_mean, forward_observation or inverse_point (algebraic inversion of y-on-x, never reverse regression); point_only or pointwise_interval; units are caller labels, not conversions; inverse uncertainty is refused",
         "arguments": "features, response, intercept, covariance (classical_normal_errors|hc3_asymptotic), model{description,predictor_names,predictor_units,response_unit,assumptions}; optional relative_precisions,confidence_level,rank_relative,predictions[{features,observation_relative_precision?}]",
         "inference": "full numerical column rank, positive residual df/scale, condition <=1e8, stationarity policy; HC3 additionally requires all leverage <1-1e-10; absent inference has explicit reasons",

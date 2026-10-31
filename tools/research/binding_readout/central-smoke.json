@@ -1,0 +1,74 @@
+{
+  "status": "bounded_macOS_smoke_executed_2026-10-31",
+  "host": "local macOS; CPU only; two torch threads; no downloads",
+  "cwd": "/Users/ember/dev/o7vn",
+  "environment": {
+    "HF_HUB_OFFLINE": "1",
+    "TRANSFORMERS_OFFLINE": "1",
+    "TOKENIZERS_PARALLELISM": "false",
+    "OMP_NUM_THREADS": "2",
+    "OPENBLAS_NUM_THREADS": "2"
+  },
+  "python": "/Users/ember/dev/chetgpt/.venv/bin/python",
+  "observed_packages": {
+    "numpy": "2.2.6",
+    "torch": "2.12.0",
+    "transformers": "4.57.3"
+  },
+  "model": "/Users/ember/.cache/huggingface/hub/models--EleutherAI--pythia-70m/snapshots/a39f36b100fe8a5377810d56c3f4789b9c53ac42",
+  "bounds": {
+    "documents": 20,
+    "max_tokens_each": 512,
+    "token_forwards_ceiling": 10240,
+    "layers_retained": 1,
+    "base_updates": 0,
+    "head_width": 512
+  },
+  "commands_argv": [
+    [
+      "mkdir",
+      "-p",
+      "var/binding-readout"
+    ],
+    [
+      "/Users/ember/dev/chetgpt/.venv/bin/python",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests/research",
+      "-p",
+      "test_binding_readout.py"
+    ],
+    [
+      "/Users/ember/dev/chetgpt/.venv/bin/python",
+      "tools/research/binding_readout/pipeline.py",
+      "generate",
+      "--groups",
+      "2",
+      "--output",
+      "var/binding-readout/smoke.jsonl"
+    ],
+    [
+      "/Users/ember/dev/chetgpt/.venv/bin/python",
+      "tools/research/binding_readout/pipeline.py",
+      "run",
+      "--data",
+      "var/binding-readout/smoke.jsonl",
+      "--model",
+      "/Users/ember/.cache/huggingface/hub/models--EleutherAI--pythia-70m/snapshots/a39f36b100fe8a5377810d56c3f4789b9c53ac42",
+      "--layer",
+      "3",
+      "--output",
+      "var/binding-readout/smoke-report.json"
+    ]
+  ],
+  "acceptance": "plumbing smoke only; retain all splits and controls; no usefulness claim from this size; human annotation missing",
+  "native_checks": [
+    "cargo test -p oracle-runtime-core --test binding_proposal_contract",
+    "cargo check -p oracle-runtime-core --example binding_proposal",
+    "cargo test -p oracle-runtime-core --doc binding_proposal"
+  ],
+  "native_note": "Central runner uses designated build host/lock; these argv descriptions do not allocate execution.",
+  "receipt": "native/evidence/2026-10-31-binding-pilot.json"
+}

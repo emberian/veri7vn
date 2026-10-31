@@ -6,7 +6,7 @@ import unittest
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools"))
 sys.path.insert(0, str(ROOT / "tools/appliance"))
-from oracle_components.native_bio import NativeBioOperations, search_identities
+from oracle_components.native_bio import NativeBioOperations, search_identities, translation_reference, TRANSLATION_CODE_ID, TRANSLATION_CODE_SOURCE
 from operations import validate, OperationError
 
 CATALOG = {"schema": "oracle-bio-experimental-v1", "operations": [{"id": "bio.align_pairwise"}],
@@ -115,6 +115,66 @@ class CollectionAdapter(unittest.TestCase):
             result=self.result(); change(result)
             adapter=NativeBioOperations(self.catalog, lambda _: result, "bio-test")
             self.assertEqual(adapter.invoke("bio.search_collection",self.arguments)["status"], "withheld")
+
+
+
+class TranslationAdapter(unittest.TestCase):
+    def setUp(self):
+        import copy
+        self.catalog=copy.deepcopy(CATALOG)
+        self.catalog["operations"].append({"id":"bio.translate_coding_intervals"})
+        self.catalog["coding_translation"]={"schema":"oracle-coding-translation-v1","source_schema":"oracle-translation-source-v1",
+            "genetic_code":TRANSLATION_CODE_ID,"source_bases":131072,"records":256,"features":256,"potential_codons":16384,"label_bytes":256}
+        self.arguments={"source":{"schema":"oracle-translation-source-v1","records":[{"label":"source","sequence":"AACATGGGCATCC"}]},
+            "features":[{"label":"declared","record_index":0,"start":2,"end":11,"strand":"reverse","frame":0}],
+            "genetic_code":TRANSLATION_CODE_ID,"initiation":"literal_codon","remainder":"reject","stops":"include","ambiguity":"reject"}
+
+    def result(self):
+        source,request,translations,examined=translation_reference(self.arguments)
+        return {"schema":"oracle-coding-translation-v1","source_sha256":source,"request_sha256":request,
+            "genetic_code":TRANSLATION_CODE_ID,"genetic_code_source":TRANSLATION_CODE_SOURCE,
+            **{k:self.arguments[k] for k in ("initiation","remainder","stops","ambiguity")},
+            "translations":translations,"complete":True,"codons_examined":examined}
+
+    def test_descriptor_and_literal_reverse_coordinate_replay(self):
+        adapter=NativeBioOperations(self.catalog,lambda _:self.result(),"bio-translation-test")
+        descriptor=next(row for row in adapter.catalog() if row["id"]=="bio.translate_coding_intervals")
+        validate(self.arguments,descriptor["input_schema"])
+        result=adapter.invoke("bio.translate_coding_intervals",self.arguments)
+        self.assertEqual(result["status"],"answered")
+        feature=result["result"]["translations"][0]
+        self.assertEqual(feature["protein"],"MPM")
+        self.assertEqual([(c["source"]["start"],c["source"]["end"]) for c in feature["codons"]],[(8,11),(5,8),(2,5)])
+        validate(result,descriptor["output_schema"])
+
+    def test_wrong_source_policy_codon_coverage_and_coordinates_withhold(self):
+        for mutate in (lambda r:r.update(source_sha256="0"*64),lambda r:r.update(request_sha256="0"*64),
+                       lambda r:r.update(complete=False),lambda r:r.update(codons_examined=2),lambda r:r.update(stops="terminate"),
+                       lambda r:r["translations"][0]["codons"][0]["source"].update(start=7),
+                       lambda r:r["translations"][0]["codons"][0].update(amino_acid_index=False),
+                       lambda r:r["translations"][0].update(protein="MMM"),lambda r:r["translations"][0].update(frame_skipped={"start":10,"end":11,"strand":"reverse"})):
+            result=self.result();mutate(result)
+            adapter=NativeBioOperations(self.catalog,lambda _:result,"bio-translation-test")
+            self.assertEqual(adapter.invoke("bio.translate_coding_intervals",self.arguments)["status"],"withheld")
+
+    def test_invalid_or_unbounded_input_never_calls_native(self):
+        import copy
+        for mutate in (lambda a:a.update(genetic_code="mitochondrial"),lambda a:a["features"][0].update(frame=3),
+                       lambda a:a["features"][0].update(end=14),lambda a:a["source"]["records"][0].update(sequence="N"*13),
+                       lambda a:a["source"]["records"][0].update(sequence="ACGT\n"),
+                       lambda a:a["source"]["records"][0].update(sequence="ATG"*16385),
+                       lambda a:a["features"][0].update(label="x"*257)):
+            args=copy.deepcopy(self.arguments);mutate(args)
+            if len(args["source"]["records"][0]["sequence"])>131072:
+                self.fail("fixture no longer probes admitted source versus codon cap")
+            if len(args["source"]["records"][0]["sequence"])>16384:
+                args["features"][0].update(start=0,end=len(args["source"]["records"][0]["sequence"]))
+            adapter=NativeBioOperations(self.catalog,lambda _:self.fail("must not call native"),"bio-translation-test")
+            self.assertEqual(adapter.invoke("bio.translate_coding_intervals",args)["reason"],"invalid_arguments")
+
+    def test_metadata_mismatch_never_advertises_translation(self):
+        self.catalog["coding_translation"]["potential_codons"]=100000
+        with self.assertRaises(ValueError):NativeBioOperations(self.catalog,lambda _:{},"bio-translation-test")
 
 
 if __name__ == "__main__":

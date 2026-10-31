@@ -154,6 +154,10 @@ impl Pure {
         })
     }
 
+    pub(crate) fn solver_path(&self) -> Option<&std::path::Path> {
+        self.solver.as_ref().map(|s| s.1.as_path())
+    }
+
     pub fn solver_sha256(&self) -> Option<&str> {
         self.solver.as_ref().map(|s| s.2.as_str())
     }
@@ -206,7 +210,15 @@ impl Pure {
             "science" => structured.science(&result),
             "incremental" => structured.incremental(&result),
             "bio" => structured.bio(arguments, &result, context),
-            "statistics" => structured.statistics(&result),
+            "statistics" => match id {
+                "statistics.events_exposure" => {
+                    structured.events_exposure(arguments, &result, context)
+                }
+                "statistics.sequential_monitor" => {
+                    structured.sequential_monitor(arguments, &result)
+                }
+                _ => structured.statistics(&result),
+            },
             "logic" => structured.logic(
                 arguments,
                 result,
@@ -262,6 +274,7 @@ impl Pure {
                         "reasoning.exact_linear_feasibility" => {
                             Request::ExactLinear(decode(arguments)?)
                         }
+                        "reasoning.optimize_linear" => Request::OptimizeLinear(decode(arguments)?),
                         _ => return Err("invalid input: unknown reasoning operation".into()),
                     })
                 })()
@@ -284,6 +297,17 @@ impl Pure {
                 let limits = oracle_science::Limits::default();
                 if bytes > limits.request_bytes.min(oracle_science::MAX_REQUEST_BYTES) {
                     return Err("resource limit: request bytes".into());
+                }
+                if id == "science.thermal_transient" {
+                    return encode_result(
+                        oracle_science::thermal_transient::thermal_transient_with_context(
+                            &decode(arguments)
+                                .map_err(|e| format!("invalid input: request arguments: {e}"))?,
+                            &limits,
+                            context,
+                        )
+                        .map_err(|e| detail(&e))?,
+                    );
                 }
                 if id == "science.thermal_scenarios" {
                     return encode_result(
@@ -362,6 +386,12 @@ impl Pure {
                 if bytes > limits.request_bytes.min(oracle_bio::MAX_REQUEST_BYTES) {
                     return Err("resource limit: request bytes".into());
                 }
+                if id == "bio.translate_coding_intervals" {
+                    return encode_result(
+                        oracle_bio::translation::translate_intervals(&decode(arguments)?, context)
+                            .map_err(|e| detail(&e))?,
+                    );
+                }
                 if id == "bio.search_collection" {
                     return encode_result(
                         oracle_bio::collection::search_collection(&decode(arguments)?, context)
@@ -397,6 +427,18 @@ impl Pure {
                     "statistics.linear_regression" => encode_result(
                         oracle_statistics::regress(&decode(arguments)?, &limits, context)
                             .map_err(|e| detail(&e))?,
+                    ),
+                    "statistics.events_exposure" => encode_result(
+                        oracle_statistics::glm::fit(&decode(arguments)?, &limits, context)
+                            .map_err(|e| detail(&e))?,
+                    ),
+                    "statistics.sequential_monitor" => encode_result(
+                        oracle_statistics::sequential::replay(
+                            &decode(arguments)?,
+                            &limits,
+                            context,
+                        )
+                        .map_err(|e| detail(&e))?,
                     ),
                     "statistics.calibration" => encode_result(
                         oracle_statistics::calibrate(&decode(arguments)?, &limits, context)
@@ -501,7 +543,7 @@ impl Pure {
             match id {
                 "graph.shortest_path" => check_path(arguments, &result)?,
                 "chemistry.balance_reaction" => check_chemistry(arguments, &result)?,
-                "reasoning.exact_linear_feasibility" => {
+                "reasoning.exact_linear_feasibility" | "reasoning.optimize_linear" => {
                     let status = result["status"].as_str()?;
                     let certificate = &result["certificate"];
                     if (status == "unknown") != certificate.is_null()
@@ -540,9 +582,19 @@ impl Pure {
         };
         let mut reply = json!({"status": "answered", "operation_id": id, "result": result,
                                "runtime_identity": identity, "authority": "computation_only"});
-        if id == "reasoning.exact_linear_feasibility" && reply["result"]["status"] == "unknown" {
+        if [
+            "reasoning.exact_linear_feasibility",
+            "reasoning.optimize_linear",
+        ]
+        .contains(&id)
+            && reply["result"]["status"] == "unknown"
+        {
             reply["status"] = json!("withheld");
-            reply["reason"] = json!("exact_feasibility_inconclusive");
+            reply["reason"] = json!(if id == "reasoning.optimize_linear" {
+                "linear_optimization_inconclusive"
+            } else {
+                "exact_feasibility_inconclusive"
+            });
         }
         if id == "chemistry.balance_reaction" {
             reply["scope"] = json!("Exact conservation of caller-supplied species inventories and charge only; no reaction feasibility, chemical identity, kinetics or thermodynamics claim.");
@@ -661,6 +713,9 @@ impl Structured<'_> {
     }
 
     fn science(&self, result: &Value) -> Value {
+        if self.id == "science.thermal_transient" {
+            return self.thermal_transient(result);
+        }
         if self.id == "science.thermal_scenarios" {
             return self.thermal_scenarios(result);
         }
@@ -739,6 +794,126 @@ impl Structured<'_> {
             "numerical"
         };
         self.answered(result.clone(), classification)
+    }
+
+    fn thermal_transient(&self, result: &Value) -> Value {
+        let checked = (|| -> Option<()> {
+            let nodes = result["node_order"].as_array()?;
+            let samples = result["samples"].as_array()?;
+            let events = result["events"].as_array()?;
+            let names: BTreeSet<_> = nodes.iter().filter_map(Value::as_str).collect();
+            if result.get("schema") != self.catalog.get("schema")
+                || result["operation"] != self.id
+                || result["outcome"] != "completed_with_local_error_control"
+                || result["identity_encoding"] != "thermal-canonical-binary64-v1"
+                || !result["model_identity"].as_str()?.starts_with("sha256:")
+                || !(1..=64).contains(&nodes.len())
+                || names.len() != nodes.len()
+                || names.contains("")
+                || !(2..=130).contains(&samples.len())
+                || events.len() > 256
+                || !result["warnings"].is_array()
+            {
+                return None;
+            }
+            let mut last = -1.0;
+            for sample in samples {
+                let time = sample["time_s"].as_f64()?;
+                let temperatures = sample["temperature_k"].as_array()?;
+                if !time.is_finite()
+                    || time <= last
+                    || temperatures.len() != nodes.len()
+                    || temperatures
+                        .iter()
+                        .any(|v| !v.as_f64().is_some_and(|t| t.is_finite() && t >= 0.0))
+                {
+                    return None;
+                }
+                last = time;
+            }
+            if samples[0]["time_s"].as_f64()? != 0.0 {
+                return None;
+            }
+            let d = &result["diagnostics"];
+            let count = |key: &str, cap| d[key].as_u64().filter(|n| *n <= cap);
+            let attempted = count("attempted_steps", 8192)?;
+            let accepted = count("accepted_steps", 8192)?;
+            let rejected = count("rejected_steps", 8192)?;
+            let ratio = d["maximum_accepted_local_error_ratio"].as_f64()?;
+            if accepted == 0
+                || accepted + rejected != attempted
+                || !(0.0..=1.0).contains(&ratio)
+                || count("implicit_substeps", 3 * 8192)? != 3 * attempted
+                || count("factorizations", 3 * 8192).is_none()
+                || count("factor_cache_hits", 3 * 8192).is_none()
+            {
+                return None;
+            }
+            let energy = &result["energy"];
+            if [
+                "storage_change_j",
+                "applied_heat_j",
+                "reservoir_heat_j",
+                "global_balance_residual_j",
+                "internal_link_cancellation_j",
+            ]
+            .iter()
+            .any(|k| !is_finite_number(&energy[*k]))
+            {
+                return None;
+            }
+            let energy_nodes = energy["nodes"].as_array()?;
+            if energy_nodes.len() != nodes.len() {
+                return None;
+            }
+            for (name, node) in nodes.iter().zip(energy_nodes) {
+                if &node["id"] != name
+                    || [
+                        "storage_change_j",
+                        "applied_heat_j",
+                        "outgoing_link_heat_j",
+                        "integrated_balance_residual_j",
+                        "maximum_step_balance_residual_j",
+                    ]
+                    .iter()
+                    .any(|k| !is_finite_number(&node[*k]))
+                    || node.get("reservoir_heat_j").is_none()
+                    || (!node["reservoir_heat_j"].is_null()
+                        && !is_finite_number(&node["reservoir_heat_j"]))
+                {
+                    return None;
+                }
+            }
+            for event in events {
+                let bracket = event["bracket_s"].as_array()?;
+                let endpoint = event["endpoint_temperature_k"].as_array()?;
+                if !event["id"].is_string()
+                    || !nodes.contains(&event["node_id"])
+                    || !["rising", "falling"].contains(&event["direction"].as_str()?)
+                    || bracket.len() != 2
+                    || endpoint.len() != 2
+                {
+                    return None;
+                }
+                let (lo, at, hi) = (
+                    bracket[0].as_f64()?,
+                    event["linear_estimate_s"].as_f64()?,
+                    bracket[1].as_f64()?,
+                );
+                if !(0.0 <= lo && lo <= at && at <= hi && hi <= last)
+                    || endpoint
+                        .iter()
+                        .any(|v| !v.as_f64().is_some_and(|t| t.is_finite() && t >= 0.0))
+                {
+                    return None;
+                }
+            }
+            Some(())
+        })();
+        if checked.is_none() {
+            return self.invalid();
+        }
+        self.answered(result.clone(), "numerical_transient_local_error_control")
     }
 
     fn thermal_scenarios(&self, result: &Value) -> Value {
@@ -827,6 +1002,15 @@ impl Structured<'_> {
     }
 
     fn bio(&self, arguments: &Value, result: &Value, context: &ExecutionContext) -> Value {
+        if self.id == "bio.translate_coding_intervals" {
+            return match check_translation(arguments, result, context) {
+                Ok(Some(())) => {
+                    self.answered(result.clone(), "literal_supplied_coding_translation")
+                }
+                Ok(None) => self.invalid(),
+                Err(_) => self.withheld("native_reply_check_budget_exhausted", None),
+            };
+        }
         if self.id == "bio.search_collection" {
             return match check_collection(arguments, result, context) {
                 Ok(Some(())) => self.answered(result.clone(), "exact_supplied_dna_page"),
@@ -955,6 +1139,281 @@ impl Structured<'_> {
             }
         };
         self.answered(result.clone(), classification)
+    }
+
+    fn sequential_monitor(&self, arguments: &Value, result: &Value) -> Value {
+        #[cfg(feature = "statistics")]
+        {
+            use oracle_statistics::sequential::{SequentialInput, SequentialResult};
+            let checked = (|| -> Option<()> {
+                let input: SequentialInput = decode(arguments).ok()?;
+                let reply: SequentialResult = decode(result).ok()?;
+                let cap = self.catalog.pointer("/limits/observations")?.as_u64()? as usize;
+                let [lo, hi] = reply.state.config.bounds;
+                if reply.operation != self.id
+                    || reply.contract.is_empty()
+                    || reply.numerical_status.is_empty()
+                    || reply.state.config != input.config
+                    || reply.state.observations != input.observations
+                    || reply.state.position != input.observations.len()
+                    || reply.state.position > cap
+                    || reply.history.len() != reply.state.position
+                    || reply.state.config.method != "hoeffding-dyadic-v1"
+                    || !lo.is_finite()
+                    || !hi.is_finite()
+                    || lo >= hi
+                    || !(1e-12..1.0).contains(&reply.state.config.alpha)
+                    || !reply.log_rejection_boundary_upper.is_finite()
+                    || reply.log_rejection_boundary_upper <= 0.0
+                    || reply
+                        .state
+                        .observations
+                        .iter()
+                        .any(|v| !v.is_finite() || *v < lo || *v > hi)
+                {
+                    return None;
+                }
+                let mut previous = Some([lo, hi]);
+                for (i, point) in reply.history.iter().enumerate() {
+                    if point.position != i + 1 {
+                        return None;
+                    }
+                    if let Some([a, b]) = point.interval {
+                        let [before, after] = previous?;
+                        if !a.is_finite()
+                            || !b.is_finite()
+                            || !(before <= a && a <= b && b <= after)
+                        {
+                            return None;
+                        }
+                    }
+                    if point
+                        .log_capital_lower
+                        .is_some_and(|v| v.iter().any(|x| !x.is_finite()))
+                    {
+                        return None;
+                    }
+                    previous = point.interval;
+                }
+                (reply.interval == previous).then_some(())
+            })();
+            if checked.is_none() {
+                return self.invalid();
+            }
+            return self.answered(result.clone(), "conditional_time_uniform_mean_sequence");
+        }
+        #[cfg(not(feature = "statistics"))]
+        {
+            let _ = (arguments, result);
+            self.invalid()
+        }
+    }
+
+    fn events_exposure(
+        &self,
+        arguments: &Value,
+        result: &Value,
+        context: &ExecutionContext,
+    ) -> Value {
+        #[cfg(feature = "statistics")]
+        {
+            use oracle_statistics::glm::{self, Family, GlmInput, GlmResult, Status};
+            let checked = (|| -> Option<()> {
+                let input: GlmInput = decode(arguments).ok()?;
+                let reply: GlmResult = decode(result).ok()?;
+                let canonical = serde_json::to_value(&input).ok()?;
+                if result["supplied"] != canonical
+                    || reply.schema != self.catalog["schema"].as_str()?
+                    || reply.operation != self.id
+                {
+                    return None;
+                }
+                let n = input.features.len();
+                let width = input.features.first()?.len();
+                let p = width + usize::from(input.intercept);
+                if !(1..=256).contains(&n)
+                    || !(1..=16).contains(&p)
+                    || input
+                        .features
+                        .iter()
+                        .any(|r| r.len() != width || r.iter().any(|x| !x.is_finite()))
+                    || reply.coefficient_candidate.len() != p
+                    || reply.coefficient_candidate.iter().any(|x| !x.is_finite())
+                    || reply.observations.len() != n
+                    || reply.diagnostics.observations != n
+                    || reply.diagnostics.parameters != p
+                    || reply.diagnostics.numerical_design_rank > p.min(n)
+                    || reply.predictions.len() != input.predictions.len()
+                    || reply
+                        .inference_unavailable_reasons
+                        .iter()
+                        .any(String::is_empty)
+                {
+                    return None;
+                }
+                let counts_ok = |v: &Option<Vec<u64>>, positive: bool| {
+                    v.as_ref().is_some_and(|v| {
+                        v.len() == n
+                            && v.iter()
+                                .all(|x| *x <= 1_000_000_000 && (!positive || *x > 0))
+                    })
+                };
+                match input.family {
+                    Family::GroupedBinomialLogit => {
+                        if !counts_ok(&input.successes, false)
+                            || !counts_ok(&input.trials, true)
+                            || input
+                                .successes
+                                .as_ref()?
+                                .iter()
+                                .zip(input.trials.as_ref()?)
+                                .any(|(s, t)| s > t)
+                            || input.counts.is_some()
+                            || input.exposures.is_some()
+                            || input.exposure_unit.is_some()
+                        {
+                            return None;
+                        }
+                    }
+                    Family::PoissonLog => {
+                        if !counts_ok(&input.counts, false)
+                            || !input.exposures.as_ref().is_some_and(|v| {
+                                v.len() == n
+                                    && v.iter()
+                                        .all(|e| e.is_finite() && *e > 0.0 && e.ln().abs() <= 500.0)
+                            })
+                            || !input.exposure_unit.as_ref().is_some_and(|u| !u.is_empty())
+                            || input.successes.is_some()
+                            || input.trials.is_some()
+                        {
+                            return None;
+                        }
+                    }
+                }
+                if reply.finite_mle_certificate.is_some() && reply.separation_certificate.is_some()
+                {
+                    return None;
+                }
+                if let Some(cert) = &reply.finite_mle_certificate {
+                    if !glm::verify_finiteness_certificate(
+                        &input,
+                        cert,
+                        &Default::default(),
+                        context,
+                    )
+                    .ok()?
+                    {
+                        return None;
+                    }
+                }
+                if let Some(cert) = &reply.separation_certificate {
+                    if !glm::verify_separation_certificate(
+                        &input,
+                        cert,
+                        &Default::default(),
+                        context,
+                    )
+                    .ok()?
+                    {
+                        return None;
+                    }
+                }
+                let accepted = reply.status == Status::FiniteMleConverged;
+                if accepted
+                    && (reply.finite_mle_certificate.is_none()
+                        || reply.diagnostics.numerical_design_rank != p
+                        || !reply
+                            .diagnostics
+                            .score_scaled_infinity_norm
+                            .is_some_and(|x| x.is_finite() && (0.0..=1e-8).contains(&x))
+                        || !reply
+                            .diagnostics
+                            .newton_decrement_squared
+                            .is_some_and(|x| x.is_finite() && (0.0..=1e-16).contains(&x)))
+                {
+                    return None;
+                }
+                if (reply.status == Status::SeparationCertified
+                    && reply.separation_certificate.is_none())
+                    || (reply.status == Status::NoFiniteMleEstablished
+                        && reply.finite_mle_certificate.is_some())
+                {
+                    return None;
+                }
+                if !accepted
+                    && (reply.inference.is_some() || reply.inference_unavailable_reasons.is_empty())
+                {
+                    return None;
+                }
+                if let Some(inference) = &reply.inference {
+                    if inference.coefficients.len() != p
+                        || !reply.inference_unavailable_reasons.is_empty()
+                    {
+                        return None;
+                    }
+                } else if accepted && reply.inference_unavailable_reasons.is_empty() {
+                    return None;
+                }
+                for (prediction, request) in reply.predictions.iter().zip(&input.predictions) {
+                    if prediction.features != request.features
+                        || prediction.exposure != request.exposure
+                        || prediction.trials != request.trials
+                    {
+                        return None;
+                    }
+                    for (value, probability) in [
+                        (prediction.probability, true),
+                        (prediction.rate_per_exposure_unit, false),
+                        (prediction.expected_count, false),
+                    ] {
+                        if value.is_some_and(|x| {
+                            !accepted || !x.is_finite() || x < 0.0 || (probability && x > 1.0)
+                        }) {
+                            return None;
+                        }
+                    }
+                    for (interval, probability) in [
+                        (prediction.pointwise_probability_interval, true),
+                        (prediction.pointwise_rate_interval, false),
+                        (prediction.pointwise_expected_count_interval, false),
+                    ] {
+                        if interval.is_some_and(|[a, b]| {
+                            !accepted
+                                || reply.inference.is_none()
+                                || !a.is_finite()
+                                || !b.is_finite()
+                                || a < 0.0
+                                || a > b
+                                || (probability && b > 1.0)
+                        }) {
+                            return None;
+                        }
+                    }
+                }
+                Some(())
+            })();
+            if checked.is_none() {
+                if context.check().is_err() {
+                    return self.withheld("native_reply_check_budget_exhausted", None);
+                }
+                return self.invalid();
+            }
+            if result["status"] != "finite_mle_converged" {
+                return self.withheld(
+                    result["status"].as_str().unwrap_or("native_reply_invalid"),
+                    Some(result.clone()),
+                );
+            }
+            return self.answered(
+                result.clone(),
+                "numerical_glm_with_exact_finite_existence_certificate",
+            );
+        }
+        #[cfg(not(feature = "statistics"))]
+        {
+            let _ = (arguments, result, context);
+            self.invalid()
+        }
     }
 
     fn calibration(&self, result: &Value) -> Value {
@@ -1166,7 +1625,12 @@ fn reasoning_arguments(
     let limit = |k: &str| limits[k].as_u64().unwrap_or(0) as i128;
     let label = regex::Regex::new(r"^[A-Z][a-z]?(?:-[1-9][0-9]{0,2})?$").expect("constant");
     let name_re = regex::Regex::new(r"^[A-Za-z_][A-Za-z0-9_]*$").expect("constant");
-    if id == "reasoning.exact_linear_feasibility" {
+    if [
+        "reasoning.exact_linear_feasibility",
+        "reasoning.optimize_linear",
+    ]
+    .contains(&id)
+    {
         if !strict_valid(arguments, schema) {
             return Err(());
         }
@@ -1543,6 +2007,243 @@ fn check_collection(
     }
 }
 
+/// Rebuild literal codons and omission intervals from original source slices.
+fn check_translation(
+    arguments: &Value,
+    result: &Value,
+    control: &dyn oracle_execution::WorkControl,
+) -> Result<Option<()>, oracle_execution::ExecutionError> {
+    use sha2::{Digest, Sha256};
+    let mut failure = None;
+    let checked = (|| -> Option<()> {
+        macro_rules! charge {
+            ($n:expr) => {
+                if let Err(e) = control.checkpoint($n as u64) {
+                    failure = Some(e);
+                    return None;
+                }
+            };
+        }
+        fn field(h: &mut Sha256, s: &[u8]) {
+            h.update((s.len() as u64).to_le_bytes());
+            h.update(s);
+        }
+        fn complement(b: u8) -> u8 {
+            match b {
+                b'A' => b'T',
+                b'C' => b'G',
+                b'G' => b'C',
+                b'T' => b'A',
+                b'R' => b'Y',
+                b'Y' => b'R',
+                b'S' => b'S',
+                b'W' => b'W',
+                b'K' => b'M',
+                b'M' => b'K',
+                b'B' => b'V',
+                b'D' => b'H',
+                b'H' => b'D',
+                b'V' => b'B',
+                _ => b'N',
+            }
+        }
+        fn amino(c: &str) -> &'static str {
+            match c {
+                "TTT" | "TTC" => "F",
+                "TTA" | "TTG" | "CTT" | "CTC" | "CTA" | "CTG" => "L",
+                "TCT" | "TCC" | "TCA" | "TCG" | "AGT" | "AGC" => "S",
+                "TAT" | "TAC" => "Y",
+                "TAA" | "TAG" | "TGA" => "*",
+                "TGT" | "TGC" => "C",
+                "TGG" => "W",
+                "CCT" | "CCC" | "CCA" | "CCG" => "P",
+                "CAT" | "CAC" => "H",
+                "CAA" | "CAG" => "Q",
+                "CGT" | "CGC" | "CGA" | "CGG" | "AGA" | "AGG" => "R",
+                "ATT" | "ATC" | "ATA" => "I",
+                "ATG" => "M",
+                "ACT" | "ACC" | "ACA" | "ACG" => "T",
+                "AAT" | "AAC" => "N",
+                "AAA" | "AAG" => "K",
+                "GTT" | "GTC" | "GTA" | "GTG" => "V",
+                "GCT" | "GCC" | "GCA" | "GCG" => "A",
+                "GAT" | "GAC" => "D",
+                "GAA" | "GAG" => "E",
+                "GGT" | "GGC" | "GGA" | "GGG" => "G",
+                _ => "X",
+            }
+        }
+        #[derive(Serialize)]
+        struct Feature<'a> {
+            label: &'a str,
+            record_index: u64,
+            start: u64,
+            end: u64,
+            strand: &'a str,
+            frame: u64,
+        }
+        charge!(1);
+        let records = arguments["source"]["records"].as_array()?;
+        let features = arguments["features"].as_array()?;
+        if features.is_empty() || features.len() > 256 || records.len() > 256 {
+            return None;
+        }
+        if arguments["source"]["schema"] != "oracle-translation-source-v1"
+            || arguments["genetic_code"] != "ncbi-standard-1-2024-09-23"
+            || arguments["initiation"] != "literal_codon"
+            || !["reject", "drop"].contains(&arguments["remainder"].as_str()?)
+            || !["include", "terminate", "reject"].contains(&arguments["stops"].as_str()?)
+            || !["reject", "unknown"].contains(&arguments["ambiguity"].as_str()?)
+        {
+            return None;
+        }
+        let mut source_bases = 0usize;
+        let mut h = Sha256::new();
+        field(&mut h, b"oracle-translation-source-v1");
+        h.update((records.len() as u64).to_le_bytes());
+        for r in records {
+            let (label, sequence) = (r["label"].as_str()?, r["sequence"].as_str()?);
+            source_bases = source_bases.checked_add(sequence.len())?;
+            if source_bases > 131072 {
+                return None;
+            }
+            charge!(label
+                .len()
+                .saturating_add(sequence.len())
+                .saturating_add(16));
+            if !sequence.bytes().all(|b| {
+                if arguments["ambiguity"] == "reject" {
+                    b"ACGT".contains(&b.to_ascii_uppercase())
+                } else {
+                    b"ACGTRYSWKMBDHVN".contains(&b.to_ascii_uppercase())
+                }
+            }) {
+                return None;
+            }
+            field(&mut h, label.as_bytes());
+            field(&mut h, sequence.as_bytes());
+        }
+        let source_id = format!("{:x}", h.finalize());
+        let mut h = Sha256::new();
+        field(&mut h, b"oracle-coding-translation-v1");
+        field(&mut h, source_id.as_bytes());
+        field(&mut h, arguments["genetic_code"].as_str()?.as_bytes());
+        field(
+            &mut h,
+            &serde_json::to_vec(&[
+                &arguments["initiation"],
+                &arguments["remainder"],
+                &arguments["stops"],
+                &arguments["ambiguity"],
+            ])
+            .ok()?,
+        );
+        h.update((features.len() as u64).to_le_bytes());
+        let mut expected = Vec::with_capacity(features.len());
+        let mut examined = 0usize;
+        let mut potential = 0usize;
+        for (fi, f) in features.iter().enumerate() {
+            let feature = Feature {
+                label: f["label"].as_str()?,
+                record_index: f["record_index"].as_u64()?,
+                start: f["start"].as_u64()?,
+                end: f["end"].as_u64()?,
+                strand: f["strand"].as_str()?,
+                frame: f["frame"].as_u64()?,
+            };
+            charge!(feature.label.len().saturating_add(1));
+            field(&mut h, &serde_json::to_vec(&feature).ok()?);
+            let record = records.get(usize::try_from(feature.record_index).ok()?)?;
+            let text = record["sequence"].as_str()?.as_bytes();
+            let start = usize::try_from(feature.start).ok()?;
+            let end = usize::try_from(feature.end).ok()?;
+            let frame = usize::try_from(feature.frame).ok()?;
+            let span = end.checked_sub(start)?;
+            let length = span.checked_sub(frame)?;
+            let full = length / 3;
+            potential = potential.checked_add(full)?;
+            if potential > 16384 || (arguments["remainder"] == "reject" && length % 3 != 0) {
+                return None;
+            }
+            if start >= end
+                || end > text.len()
+                || frame > 2
+                || !["forward", "reverse"].contains(&feature.strand)
+            {
+                return None;
+            }
+            let interval = |lo: usize, hi: usize| -> Value {
+                if lo == hi {
+                    Value::Null
+                } else {
+                    let (a, z) = if feature.strand == "forward" {
+                        (start + lo, start + hi)
+                    } else {
+                        (end - hi, end - lo)
+                    };
+                    json!({"start":a,"end":z,"strand":feature.strand})
+                }
+            };
+            let mut protein = String::new();
+            let mut codons = Vec::new();
+            let mut termination = Value::Null;
+            let mut after = Value::Null;
+            for ci in 0..full {
+                charge!(4);
+                examined = examined.checked_add(1)?;
+                if examined > 16384 {
+                    return None;
+                }
+                let lo = frame + 3 * ci;
+                let bases: Vec<u8> = (lo..lo + 3)
+                    .map(|i| {
+                        if feature.strand == "forward" {
+                            text[start + i].to_ascii_uppercase()
+                        } else {
+                            complement(text[end - i - 1].to_ascii_uppercase())
+                        }
+                    })
+                    .collect();
+                let codon = std::str::from_utf8(&bases).ok()?;
+                let aa = amino(codon);
+                let mapping = json!({"amino_acid_index":ci,"amino_acid":aa,"codon":codon,"source":interval(lo,lo+3)});
+                if aa == "*" && arguments["stops"] == "reject" {
+                    return None;
+                }
+                if aa == "*" && arguments["stops"] == "terminate" {
+                    termination = mapping;
+                    after = interval(lo + 3, span);
+                    break;
+                }
+                protein.push_str(aa);
+                codons.push(mapping);
+            }
+            expected.push(json!({"feature_index":fi,"feature":f,"record_label":record["label"],"protein":protein,"codons":codons,"frame_skipped":interval(0,frame),"trailing_bases":interval(frame+full*3,span),"termination_stop":termination,"untranslated_after_stop":after}));
+        }
+        let request_id = format!("{:x}", h.finalize());
+        if result["schema"] != "oracle-coding-translation-v1"
+            || result["complete"] != true
+            || result["source_sha256"] != source_id
+            || result["request_sha256"] != request_id
+            || result["genetic_code"] != "ncbi-standard-1-2024-09-23"
+            || result["genetic_code_source"]
+                != "https://www.ncbi.nlm.nih.gov/Taxonomy/Utils/wprintgc.cgi#SG1"
+            || ["initiation", "remainder", "stops", "ambiguity"]
+                .iter()
+                .any(|k| result[*k] != arguments[*k])
+            || result["translations"] != Value::Array(expected)
+            || result["codons_examined"].as_u64()? != examined as u64
+        {
+            return None;
+        }
+        Some(())
+    })();
+    match failure {
+        Some(error) => Err(error),
+        None => Ok(checked),
+    }
+}
+
 /// `_check_rational_reply`: transport consistency only.
 fn check_rational(arguments: &Value, result: &Value) -> Option<()> {
     if let Some(requested) = arguments.get("output_dimension").filter(|v| !v.is_null()) {
@@ -1771,6 +2472,11 @@ mod typed_parity {
             ("science", "science.thermal_scenarios"),
             ("bio", "bio.search_collection"),
             ("statistics", "statistics.calibration"),
+            ("reasoning", "reasoning.optimize_linear"),
+            ("science", "science.thermal_transient"),
+            ("bio", "bio.translate_coding_intervals"),
+            ("statistics", "statistics.events_exposure"),
+            ("statistics", "statistics.sequential_monitor"),
         ] {
             let declaration = pure
                 .declarations()
@@ -1816,6 +2522,20 @@ mod typed_parity {
                     .unwrap();
                 assert_eq!(reply["status"], "withheld");
                 assert_eq!(reply["reason"], "calibration_unavailable");
+            }
+            if id == "bio.translate_coding_intervals" {
+                let mut result = pure
+                    .call(profile, id, &arguments, &context(u64::MAX))
+                    .unwrap();
+                assert_eq!(
+                    check_translation(&arguments, &result, &context(u64::MAX)).unwrap(),
+                    Some(())
+                );
+                result["translations"][0]["protein"] = json!("wrong");
+                assert!(check_translation(&arguments, &result, &context(u64::MAX))
+                    .unwrap()
+                    .is_none());
+                assert!(check_translation(&arguments, &result, &context(1)).is_err());
             }
             if id == "bio.search_collection" {
                 let mut result = pure

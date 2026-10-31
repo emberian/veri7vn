@@ -1,4 +1,5 @@
 mod host_effects;
+mod native_owners;
 use crate::query::{encode, evaluate, Selection};
 use crate::release::{AdmittedRelease, SchemaVersion};
 use crate::session::{SessionBinding, SessionEnvelope, SessionLimits, SessionSelection};
@@ -101,13 +102,16 @@ pub enum RequestDialect {
     Graph,
     KqaProgram,
     Language,
+    NativeOwner,
 }
 impl RequestDialect {
     fn compile(self, input: &str, limits: &crate::Limits) -> Result<Plan> {
         match self {
             Self::Graph => Plan::parse(input, limits),
             Self::KqaProgram => Program::parse(input, limits)?.compile(limits),
-            Self::Language => Err(Error::Invalid("language is not a query plan".into())),
+            Self::Language | Self::NativeOwner => {
+                Err(Error::Invalid("dialect is not a query plan".into()))
+            }
         }
     }
     fn operation(self, transactional: bool) -> &'static str {
@@ -117,6 +121,7 @@ impl RequestDialect {
             (Self::KqaProgram, false) => "kqa.query",
             (Self::KqaProgram, true) => "kqa.execute",
             (Self::Language, _) => "reader.execute",
+            (Self::NativeOwner, _) => "session.owner.execute",
         }
     }
 }
@@ -273,6 +278,7 @@ pub struct Runtime {
     pub image: Arc<Image>,
     state: StateStore,
     release: Option<AdmittedRelease>,
+    native_owners: std::collections::BTreeMap<String, native_owners::OwnerPolicy>,
 }
 
 pub(crate) fn identifier(s: &str) -> Result<()> {
@@ -376,7 +382,7 @@ impl Runtime {
             &[
                 SchemaVersion {
                     id: "session".into(),
-                    version: 2,
+                    version: crate::session::SESSION_SCHEMA,
                 },
                 SchemaVersion {
                     id: "graph".into(),
@@ -430,11 +436,13 @@ impl Runtime {
             "PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL; PRAGMA trusted_schema=OFF;",
         )?;
         db.pragma_update(None, "cache_size", -(image.limits.sqlite_cache_kib as i64))?;
-        Ok(Self {
+        let runtime = Self {
             image,
             state: StateStore::new(db),
             release,
-        })
+            native_owners: std::collections::BTreeMap::new(),
+        };
+        runtime.register_native_owner::<crate::context_delta::ScalarOwner>()
     }
 
     fn require_active_namespace(db: &Connection, tenant: &str) -> Result<()> {
@@ -731,7 +739,38 @@ impl Runtime {
         effects: Option<HostEffects<'_>>,
         inherited_budget: Option<&Budget>,
     ) -> Result<String> {
-        self.require_operation(dialect.operation(true))?;
+        self.execute_dialect_budget_owner(
+            tenant,
+            session,
+            request,
+            expected_version,
+            plan_json,
+            cancellation,
+            dialect,
+            effects,
+            inherited_budget,
+            None,
+        )
+    }
+    #[allow(clippy::too_many_arguments)]
+    fn execute_dialect_budget_owner(
+        &self,
+        tenant: &str,
+        session: &str,
+        request: &str,
+        expected_version: i64,
+        plan_json: &str,
+        cancellation: Cancellation,
+        dialect: RequestDialect,
+        effects: Option<HostEffects<'_>>,
+        inherited_budget: Option<&Budget>,
+        owner: Option<native_owners::OwnerEvaluation<'_>>,
+    ) -> Result<String> {
+        if let Some(owner) = &owner {
+            self.require_operation(owner.operation)?;
+        } else {
+            self.require_operation(dialect.operation(true))?;
+        }
         if matches!(dialect, RequestDialect::Language) && self.image.capabilities.reader.is_none() {
             return Err(Error::Format("image has no learned reader tables".into()));
         }
@@ -764,6 +803,21 @@ impl Runtime {
                 expected_version,
                 plan_json,
             ))?,
+            RequestDialect::NativeOwner => {
+                let owner = owner
+                    .as_ref()
+                    .ok_or_else(|| Error::Invalid("missing native owner".into()))?;
+                serde_json::to_vec(&(
+                    "oracle_native_owner_turn_v1",
+                    owner.operation,
+                    owner.owner,
+                    owner.version,
+                    self.identity(),
+                    session,
+                    expected_version,
+                    plan_json,
+                ))?
+            }
         };
         if let Some(batch) = &effects {
             self.require_operation("host.effects.enqueue")?;
@@ -804,7 +858,10 @@ impl Runtime {
             }
         };
         budget.check()?;
-        let plan = if matches!(dialect, RequestDialect::Language) {
+        let plan = if matches!(
+            dialect,
+            RequestDialect::Language | RequestDialect::NativeOwner
+        ) {
             None
         } else {
             Some(dialect.compile(plan_json, limits)?)
@@ -812,6 +869,7 @@ impl Runtime {
         let worker = self.image.acquire(tenant, &budget)?;
         let session_policy = SessionLimits {
             max_bytes: limits.state_bytes,
+            native_extension_versions: self.native_owner_versions(),
             ..Default::default()
         };
         let session_binding = SessionBinding {
@@ -848,7 +906,13 @@ impl Runtime {
                             expected_version,
                             &session_policy,
                         )?,
-                        Some(2) => SessionEnvelope::recover(
+                        Some(2) => SessionEnvelope::migrate_v2(
+                            &text,
+                            &session_binding,
+                            expected_version,
+                            &session_policy,
+                        )?,
+                        Some(3) => SessionEnvelope::recover(
                             Some(&text),
                             &session_binding,
                             expected_version,
@@ -862,12 +926,19 @@ impl Runtime {
                 None => (SessionEnvelope::new(session_binding)?, None),
             }
         };
+        self.validate_native_owners(&envelope, budget)?;
         let previous = Selection {
             ids: envelope.selection.ids.clone(),
             facts: envelope.selection.facts.clone(),
             attributes: envelope.selection.attributes.clone(),
         };
-        let (reply, selection) = if let Some(plan) = plan {
+        let (reply, selection) = if let Some(owner) = &owner {
+            let (extension, reply) = (owner.evaluate)(&envelope, budget)?;
+            envelope
+                .native_extensions
+                .insert(extension.owner.clone(), extension);
+            (reply, None)
+        } else if let Some(plan) = plan {
             let evaluation = evaluate(
                 &worker,
                 &self.image.identity,

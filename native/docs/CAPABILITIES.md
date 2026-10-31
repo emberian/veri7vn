@@ -19,15 +19,25 @@ A listed Rust library is not automatically an HTTP operation.
 | `statistics` | `statistics.calibration` | Supplied paired data and a y-on-x line: forward mean, new observation or algebraic inverse point. Units are labels. Conditional pointwise intervals require stated model/noise assumptions; inverse intervals withhold a value. No measurement-error correction or causal claim. |
 | `statistics` | `statistics.linear_regression` | Conditional inference over a supplied linear model and noise assumptions. See [DNA and statistics](BIO-STATISTICS.md). |
 | `logic` | `logic.query`, `logic.enumerate` | Stable models of one supplied, complete, finite, grounded normal logic program (no variables, disjunction or aggregates), using an operator-admitted clingo executable. `query` answers skeptical and credulous truth per atom; `enumerate` lists all models up to 256. Every returned model is independently checked; "no model", "true in all models" and inconsistency trust the solver without a certificate. Timeouts, caps and solver failures give `inconclusive`, never `inconsistent`. `scope.tenant` must be the host tenant; `scope.complete_program` is the caller's unverified claim. Replies carry a content hash of the program. Nothing is stored; results authorize no action. See its [README](../oracle-logic/README.md). |
+| `reasoning` | `reasoning.optimize_linear` | Minimizes a supplied rational linear objective under explicit inequalities. Separate exact replay checks original-row primal/dual optimality, infeasibility or unbounded-ray certificates. Exhaustion withholds a conclusion; no integer optimization or source completeness claim. |
+| `science` | `science.thermal_transient` | Supplied passive heat capacities, piecewise constant loads and fixed reservoirs. Adaptive implicit integration retains local error estimates, original-node integrated energy balances and sampled threshold brackets. These are numerical estimates, not rigorous global error bounds or a real building forecast. |
+| `bio` | `bio.translate_coding_intervals` | Literal standard-code translation of explicit supplied forward/reverse intervals, with codon-to-original-source coordinates and explicit frame, remainder, stop and ambiguity policies. Does not find genes, infer initiation, call ORFs or infer protein function. |
+| `statistics` | `statistics.events_exposure` | Grouped-binomial logistic and exposure-aware Poisson models on supplied rows. A reported finite fit requires an exact existence/identifiability certificate and numerical convergence. Separation, unsupported inference and unresolved optimization remain explicit; caller assumptions do not establish sampling or causality. |
+| `statistics` | `statistics.sequential_monitor` | Replays a bounded ordered stream with a prespecified confidence-sequence contract, error allocation, bounds and sampling assumptions. No retained monitor or automatic stopping; an empty interval remains an answered mathematical result. Caller-supplied history is not authenticated provenance. |
 | `runtime` | `graph.query`, `graph.execute` | Query DAGs over an admitted KQA-shaped image. These IDs refer to data queries, not the supplied-graph optimizer above. `execute` journals a versioned session turn. |
 | `runtime` | `kqa.query`, `kqa.execute` | The pinned 27-operation KQA program vocabulary. Typed values retain exact decimals, unit and date distinctions; ambiguous cases can refuse. |
 | `runtime` | `reader.whole`, `reader.execute` | Learned whole templates, exact fragment/outer composition, 2–4-segment chains and one nested fragment pass. Successful readings must agree. `execute` journals the language turn; `whole` is pure. Requires admitted in-image reader tables. |
+| `runtime` | `graph.batch` | Typed graph/KQA plans share one image lease and bounded stage/column caches. Previous selection is empty. Every item retains its result or explicit failure; later unattempted items are marked. |
+| `runtime` | `graph.coverage` | Traverses a declared canonical relation domain to actual EOF. Count, absence and uniqueness require complete traversal and matching snapshot/domain. Does not establish alias, class or world completeness. |
+| `runtime` | `context.execute` | Atomically observes, scales, clears or inspects a delivered dimensionless scalar. Preserves exact versus imported Python-float origin. Uses native session ownership; no automatic Engine conversation takeover. |
+| `runtime` + `logic` | `logic.workspace`, `logic.workspace.solve` | Persists identified supplied evidence and withdrawals in the session journal, then freshly solves a checked immutable revision. Solving needs the operator-admitted solver. Local coverage declarations remain supplied premises; negative conclusions retain solver trust. |
 
-The four Sol consumer operations above require the matching compiled catalogs and regenerated host descriptor snapshot. Their authored consumer panels have no scores recorded here yet.
+New operations require matching compiled catalogs and host descriptors. The
+first and expansion batches have passed their hosted workflow panels. See the results below and the [data/state guide](DATA-AND-STATE.md).
 
-Pure supplied-argument operations recompute on retry. The runtime's three
-`execute` operations persist exact replies and selection together; their paired
-pure operations do not. See [runtime hosting](RUNTIME-HOST.md) for release
+Pure supplied-argument operations recompute on retry. Stateful runtime operations
+persist exact replies with their session changes; pure operations do not.
+See [runtime hosting](RUNTIME-HOST.md) for release
 admission and retry identity, and [standalone serving](STANDALONE.md) for HTTP.
 
 ## Extracted code and library-only paths
@@ -45,9 +55,9 @@ Rust hosts can atomically commit authorized effect intents with state and reply,
 then claim and settle them through `HostEffects`. No teaching, filesystem,
 network or other external executor is supplied by that outbox.
 
-`oracle-logic` is now hosted as the optional `logic` profile above; it is not
-yet in the release package. Its model checks and solver-trusted absence claims
-are distinct; see its [README](../oracle-logic/README.md), the core
+`oracle-logic` is hosted as the optional `logic` profile and has been exercised
+through the relocated Linux package. Its model checks and solver-trusted absence
+claims are distinct; see its [README](../oracle-logic/README.md), the core
 [receipt](../evidence/2026-10-29-logic-validation.json) and the macOS
 [hosting receipt](../evidence/2026-10-29-logic-hosted.json).
 
@@ -68,6 +78,9 @@ real-data samples describe narrower results:
 | [100 retained reader questions](../evidence/2026-10-29-segment-reader-validation.json); [re-run with the arena and scalar-query changes](../evidence/2026-10-29-combined-qualification.json) | 36 correct, 4 refused, 60 unknown, 0 wrong or execution errors. Segment/nested composition adds interpretations, with no answer gain on this set. The combined re-run (Linux release, plus a macOS debug check) gives the same counts and the same outcome on all 100 questions. |
 | [New 16-question segment/nested acceptance cohort](../evidence/2026-10-29-targeted-composition.json); [re-run with the arena and scalar-query changes](../evidence/2026-10-29-combined-qualification.json) | First run failed acceptance: 1 correct, 7 unanswered, 4 expected declines, 4 byte-limit errors. After the arena and scalar-query changes, Linux release and macOS debug both give 2 correct, 8 unanswered, 6 expected declines, 0 wrong, 0 errors; the 8 unanswered are still misses (`answer_form`), so acceptance is not met. |
 | [Hosted/relocated appliance](../evidence/2026-10-29-stable-appliance-validation.json) | Durable HTTP and relocated package journeys passed on manufactured data. This does not qualify the full Oracle Engine or signed Mini integration. |
+| [31 October hosted consumer workflows](../evidence/2026-10-31-sol-wave-validation.json) | Calibration 16/16, thermal scenarios 9/9, sequence search 7/7 dev and 10/10 held-out, exact blends 4/4. No wrong answers or false acceptance in these manufactured supplied-data cases; separate from shipped specialist exams. |
+| [Plural-first reader experiment](../evidence/2026-10-31-native-expansion-validation.json) | Release targeted cohort improves from two correct/eight unanswered/six expected declines to ten correct/six expected declines; original 100 has 36 correct with no coverage gain. Both release cells have zero wrong/errors at the same one-second limit. Earlier debug deadline failures remain in the first-wave receipt. |
+| [Expansion workflows](../evidence/2026-10-31-native-expansion-validation.json) | GLM 27/27, sequential monitoring 26/26, thermal transients 12/12, translation 8/8 dev and 12/12 held-out, exact optimization 6/6, scalar context 8/8. These include intended refusals. Durable evidence and the 64-tenant journey are checked separately. |
 
 Language coverage still excludes content-key fallback, deeper nesting, analogy,
 clause/date wrappers and the complete upstream routing/dialogue system. Reader

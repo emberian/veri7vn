@@ -1,0 +1,15 @@
+{
+  "source": {"schema": "oracle-translation-source-v1", "records": [
+    {"label": "supplied sequence", "sequence": "AACATGGGCATCC"}
+  ]},
+  "features": [
+    {"label": "declared forward interval", "record_index": 0, "start": 2, "end": 11, "strand": "forward", "frame": 0},
+    {"label": "declared reverse interval", "record_index": 0, "start": 2, "end": 11, "strand": "reverse", "frame": 0},
+    {"label": "declared reverse frame 1", "record_index": 0, "start": 2, "end": 11, "strand": "reverse", "frame": 1}
+  ],
+  "genetic_code": "ncbi-standard-1-2024-09-23",
+  "initiation": "literal_codon",
+  "remainder": "drop",
+  "stops": "include",
+  "ambiguity": "reject"
+}

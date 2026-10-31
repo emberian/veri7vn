@@ -71,7 +71,7 @@ fn manifest(image: &Arc<Image>) -> ReleaseManifest {
         "data_image_sha256":image.identity,
         "resource_profile_sha256":runtime_profile_sha256(&image.limits).unwrap(),
         "appliance_receipt_sha256":null,
-        "schemas":[{"id":"session","version":2},{"id":"graph","version":1},{"id":"kqa_program","version":1}],
+        "schemas":[{"id":"session","version":3},{"id":"graph","version":1},{"id":"kqa_program","version":1}],
         "resources":[],"operations":operations
     })).unwrap()).unwrap()
 }

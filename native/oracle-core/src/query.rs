@@ -665,6 +665,9 @@ pub(crate) fn evaluate_language(
 #[derive(Default)]
 pub(crate) struct LanguageWorkspace {
     stages: BTreeMap<String, (usize, bool)>,
+    stage_hits: usize,
+    column_hits: usize,
+    column_rows_decoded: usize,
     retained_rows: usize,
     retained_bytes: usize,
     columns: BTreeMap<(usize, String), AttributeColumn>,
@@ -684,6 +687,15 @@ impl LanguageWorkspace {
     pub(crate) fn new(db: &Connection) -> Result<Self> {
         db.execute_batch("DELETE FROM temp.oracle_sets; DELETE FROM temp.oracle_facts; DELETE FROM temp.oracle_attributes;")?;
         Ok(Self::default())
+    }
+    pub(crate) fn batch_costs(&self) -> (usize, usize, usize, usize, usize) {
+        (
+            self.stages.len(),
+            self.stage_hits,
+            self.columns.len(),
+            self.column_hits,
+            self.column_rows_decoded,
+        )
     }
     fn filter_column(
         &mut self,
@@ -743,7 +755,10 @@ impl LanguageWorkspace {
             }
             self.retained_bytes = self.retained_bytes.saturating_add(bytes);
             self.retained_rows = self.retained_rows.saturating_add(column.rows.len());
+            self.column_rows_decoded = self.column_rows_decoded.saturating_add(column.rows.len());
             self.columns.insert(identity.clone(), column);
+        } else {
+            self.column_hits = self.column_hits.saturating_add(1);
         }
         let column = &self.columns[&identity];
         let string_equality = predicate.comparison == ComparisonOp::Eq
@@ -852,6 +867,58 @@ pub(crate) fn evaluate_language_shared(
     )?
     .map(Delivered::into_full)
     .transpose()
+}
+
+/// Pure program/graph evaluation with request-local live-stage reuse. Unlike
+/// language admission, dead stages are structurally checked by Plan validation
+/// but are not required to produce a nonempty set. No cache crosses a lease,
+/// image, Previous selection or evaluation-mode boundary.
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn evaluate_program_shared(
+    db: &Connection,
+    identity: &str,
+    plan: &Plan,
+    previous: &Selection,
+    limits: &Limits,
+    budget: &Budget,
+    shared: &mut LanguageWorkspace,
+    demand: Demand,
+) -> Result<Option<Delivered>> {
+    // A scalar may omit pure entity/Count hydration. Rich projections can
+    // inspect additional source rows, qualifier literals and ordering/uniqueness
+    // conditions; run those original obligations before discarding the payload.
+    let needs_projection = demand != Demand::Full
+        && !matches!(plan.projection, Projection::Entities | Projection::Count);
+    let delivered = evaluate_with_mode(
+        db,
+        identity,
+        plan,
+        previous,
+        limits,
+        budget,
+        false,
+        Some(shared),
+        if needs_projection {
+            Demand::Full
+        } else {
+            demand
+        },
+    )?;
+    if needs_projection {
+        return delivered
+            .map(|value| match value {
+                Delivered::Full(_, selected) => Ok(match demand {
+                    Demand::Exists => Delivered::Exists(!selected.ids.is_empty()),
+                    Demand::Count => Delivered::Count(selected.ids.len() as u64),
+                    Demand::Full => unreachable!("projection fallback is scalar only"),
+                }),
+                _ => Err(Error::Format(
+                    "scalar projection obligation was not evaluated".into(),
+                )),
+            })
+            .transpose();
+    }
+    Ok(delivered)
 }
 
 /// `evaluate_language_shared` for a consumer that states what it needs.
@@ -1071,8 +1138,9 @@ fn compile(
             meter.budget.spend(key.len() as u64 + 1)?;
         }
 
-        let slot = if let Some(cache) = shared.as_deref() {
+        let slot = if let Some(cache) = shared.as_deref_mut() {
             if let Some(&(slot, nonempty)) = cache.stages.get(key.as_ref().expect("shared key")) {
+                cache.stage_hits = cache.stage_hits.saturating_add(1);
                 slots[i] = slot;
                 ctes.push(format!(
                     "n{i}(id) AS (SELECT id FROM temp.oracle_sets WHERE node={slot})"
@@ -1180,7 +1248,7 @@ fn compile(
         ctes.push(format!(
             "a{i}(subject,key,position,value,qualifiers) AS ({attributes})"
         ));
-        let nonempty = if (uses[i] > 1 || language) && !already_materialized {
+        let nonempty = if (uses[i] > 1 || language || shared.is_some()) && !already_materialized {
             let nonempty = materialize(db, &ctes, &parameters, i, slot, meter)?;
             let n = ctes.len();
             ctes[n - 3] =
@@ -1209,7 +1277,7 @@ fn compile(
                 db,
                 key.expect("shared key"),
                 slot,
-                nonempty.expect("language materializes each stage"),
+                nonempty.expect("shared execution materializes each live stage"),
                 meter,
             )?;
         }

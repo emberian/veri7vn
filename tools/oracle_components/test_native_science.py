@@ -53,4 +53,53 @@ class ThermalScenariosAdapter(unittest.TestCase):
         self.assertEqual(answer['classification'],'numerical_scenarios')
         self.assertEqual(answer['authority'],'computation_only')
 
+
+TRANSIENT = 'science.thermal_transient'
+TRANSIENT_CATALOG = copy.deepcopy(CATALOG)
+TRANSIENT_CATALOG['operations'].append(TRANSIENT)
+TRANSIENT_CATALOG['thermal_transient'] = {'nodes':64,'links':512,'attempted_steps':8192,'load_segments':64,
+    'requested_samples':128,'events':32,'event_hits':256,'factor_cache':8}
+TRANSIENT_ARGUMENTS = json.loads((ROOT/'native/oracle-science/examples/thermal-transient-heater.json').read_text())['arguments']
+
+
+def transient_reply():
+    node_energy = lambda name, boundary: {'id':name,'storage_change_j':0,'applied_heat_j':0,'reservoir_heat_j':boundary,
+        'outgoing_link_heat_j':0,'integrated_balance_residual_j':0,'maximum_step_balance_residual_j':0}
+    return {'schema':CATALOG['schema'],'operation':TRANSIENT,'outcome':'completed_with_local_error_control',
+        'model_identity':'sha256:'+'b'*64,'identity_encoding':'thermal-canonical-binary64-v1','node_order':['body','sink'],
+        'samples':[{'time_s':0,'temperature_k':[300,300]},{'time_s':2,'temperature_k':[300,300]}],
+        'events':[],'energy':{'nodes':[node_energy('body',None),node_energy('sink',0)],'storage_change_j':0,
+            'applied_heat_j':0,'reservoir_heat_j':0,'global_balance_residual_j':0,'internal_link_cancellation_j':0},
+        'diagnostics':{'attempted_steps':1,'accepted_steps':1,'rejected_steps':0,'implicit_substeps':3,
+            'factorizations':2,'factor_cache_hits':1,'maximum_accepted_local_error_ratio':0},'warnings':[]}
+
+
+class ThermalTransientAdapter(unittest.TestCase):
+    def adapter(self, output):
+        return NativeScienceOperations(TRANSIENT_CATALOG,lambda _:output,'fixture:science')
+    def test_transient_discovery_is_strict_and_classified(self):
+        adapter=self.adapter(transient_reply())
+        schema=next(x['input_schema'] for x in adapter.catalog() if x['id']==TRANSIENT)
+        validate(TRANSIENT_ARGUMENTS,schema)
+        answer=adapter.invoke(TRANSIENT,TRANSIENT_ARGUMENTS)
+        self.assertEqual(answer['classification'],'numerical_transient_local_error_control')
+        self.assertEqual(answer['authority'],'computation_only')
+        for changes in ({'boundary_schedule':[]},{'integration':{**TRANSIENT_ARGUMENTS['integration'],'max_steps':8193}},
+            {'events':[{'id':'warm','node_id':'body','temperature_k':305,'direction':'certified_absence'}]}):
+            with self.subTest(changes=changes),self.assertRaises(OperationError):validate({**TRANSIENT_ARGUMENTS,**changes},schema)
+    def test_incomplete_or_uncontrolled_candidate_not_promoted(self):
+        for mutate in (lambda x:x.update(outcome='partial'),
+            lambda x:x['diagnostics'].update(maximum_accepted_local_error_ratio=2),
+            lambda x:x['diagnostics'].update(attempted_steps=8193),
+            lambda x:x['diagnostics'].update(implicit_substeps=2),
+            lambda x:x['energy']['nodes'][0].update(storage_change_j=float('nan')),
+            lambda x:x['samples'][1].update(temperature_k=[-1,300]),
+            lambda x:x['samples'].pop(),lambda x:x.update(node_order=['body','body'])):
+            data=transient_reply();mutate(data)
+            self.assertEqual(self.adapter(data).invoke(TRANSIENT,TRANSIENT_ARGUMENTS)['reason'],'native_reply_invalid')
+    def test_invalid_event_bracket_or_node_refused(self):
+        data=transient_reply();data['events']=[{'id':'warm','node_id':'body','direction':'rising','bracket_s':[0,2],
+            'linear_estimate_s':3,'endpoint_temperature_k':[300,306]}]
+        self.assertEqual(self.adapter(data).invoke(TRANSIENT,TRANSIENT_ARGUMENTS)['reason'],'native_reply_invalid')
+
 if __name__=='__main__':unittest.main()
