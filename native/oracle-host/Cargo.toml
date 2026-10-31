@@ -22,6 +22,7 @@ statistics = ["dep:oracle-statistics"]
 logic = ["dep:oracle-logic"]
 
 [dependencies]
+oracle-execution = { path = "../oracle-execution" }
 oracle-runtime-core = { path = "../oracle-core" }
 oracle-reasoning = { path = "../oracle-reasoning", optional = true }
 oracle-science = { path = "../oracle-science", optional = true }

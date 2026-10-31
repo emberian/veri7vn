@@ -45,6 +45,8 @@ fn default_port() -> u16 {
 pub struct HostLimits {
     /// One global cap on requests doing work, across every route and tenant.
     pub capacity: usize,
+    /// Optional per-tenant live-work cap; absent preserves the global-only policy.
+    pub tenant_capacity: Option<usize>,
     /// Open connections, including ones still sending headers or body.
     pub connections: usize,
     pub request_bytes: usize,
@@ -54,6 +56,10 @@ pub struct HostLimits {
     /// Wall deadline for one `/invoke` call; the slot stays occupied until the
     /// work actually stops.
     pub invoke_ms: u64,
+    /// Shared cooperative deadline for the complete query cascade.
+    pub query_ms: u64,
+    /// Work units shared by all native/provider branches of one request.
+    pub execution_fuel: u64,
     /// Retained `/query` request records before the journal refuses (507).
     pub retained_requests: u64,
     /// Remembered (tenant, conversation) Engine bindings before refusing (507).
@@ -64,11 +70,14 @@ impl Default for HostLimits {
     fn default() -> Self {
         Self {
             capacity: 2,
+            tenant_capacity: None,
             connections: 16,
             request_bytes: 1024 * 1024,
             reply_bytes: 2 * 1024 * 1024,
             ingress_ms: 5000,
             invoke_ms: 30_000,
+            query_ms: 120_000,
+            execution_fuel: 10_000_000,
             retained_requests: 100_000,
             conversations: 100_000,
         }
@@ -490,6 +499,11 @@ pub fn read(path: &Path) -> Result<Config, ConfigError> {
         || limits.reply_bytes < 1024
         || limits.ingress_ms == 0
         || limits.invoke_ms == 0
+        || limits.query_ms == 0
+        || limits.execution_fuel == 0
+        || limits
+            .tenant_capacity
+            .is_some_and(|n| n == 0 || n > limits.capacity)
         || limits.retained_requests == 0
         || limits.conversations == 0
     {

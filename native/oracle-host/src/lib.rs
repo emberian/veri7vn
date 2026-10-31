@@ -7,6 +7,7 @@
 //! not authentication. See `native/docs/HOST.md`.
 #![forbid(unsafe_code)]
 
+pub mod admission;
 pub mod config;
 pub mod engine;
 pub mod front;

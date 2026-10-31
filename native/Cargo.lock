@@ -1148,10 +1148,15 @@ name = "oracle-bio"
 version = "0.2.0"
 dependencies = [
  "bio",
+ "oracle-execution",
  "serde",
  "serde_json",
  "thiserror 2.0.21",
 ]
+
+[[package]]
+name = "oracle-execution"
+version = "0.2.0"
 
 [[package]]
 name = "oracle-host"
@@ -1159,6 +1164,7 @@ version = "0.2.0"
 dependencies = [
  "nix",
  "oracle-bio",
+ "oracle-execution",
  "oracle-incremental",
  "oracle-logic",
  "oracle-reasoning",
@@ -1178,6 +1184,7 @@ name = "oracle-incremental"
 version = "0.2.0"
 dependencies = [
  "differential-dataflow",
+ "oracle-execution",
  "serde",
  "serde_json",
  "timely",
@@ -1187,6 +1194,7 @@ dependencies = [
 name = "oracle-logic"
 version = "0.1.0"
 dependencies = [
+ "oracle-execution",
  "serde",
  "serde_json",
  "sha2",
@@ -1201,6 +1209,7 @@ dependencies = [
  "num-integer",
  "num-rational",
  "num-traits",
+ "oracle-execution",
  "petgraph",
  "serde",
  "serde_json",
@@ -1215,6 +1224,7 @@ dependencies = [
  "num-bigint",
  "num-rational",
  "num-traits",
+ "oracle-execution",
  "rusqlite",
  "serde",
  "serde_json",
@@ -1243,6 +1253,7 @@ name = "oracle-science"
 version = "0.2.0"
 dependencies = [
  "faer",
+ "oracle-execution",
  "serde",
  "serde_json",
  "thiserror 2.0.21",
@@ -1253,6 +1264,7 @@ name = "oracle-statistics"
 version = "0.2.0"
 dependencies = [
  "faer",
+ "oracle-execution",
  "serde",
  "serde_json",
  "statrs",

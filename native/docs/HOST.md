@@ -1,7 +1,7 @@
 # The native appliance host
 
-`oracle-host` is one Rust program that answers Mini's questions. It owns the
-private HTTP boundary, opens the shared native data image once, keeps the
+`oracle-host` serves Oracle queries and named computations through a private
+HTTP boundary. It runs independently of Mini, opens the shared native data image once, keeps the
 extracted proof-backed organs resident, and runs the original Python Oracle7
 Engine as a contained child process for everything the native side does not
 read. Every question goes through one written rule: the routes that take a
@@ -95,11 +95,38 @@ and its own provenance, so a reader can see who answered and who declined.
 | --- | --- |
 | Hash admission | Every artifact is an absolute path with its SHA-256. The image is hashed whole on open; organ binaries are copied and re-hashed by `KernelExecutor`; the clingo solver is copied to a private directory and re-hashed; the Engine's Python and answerer are hashed; the Engine materialization receipt binds the actual patched file inventory (Git-only admission is development mode). A mismatch stops startup. |
 | Release binding | The native runtime opens through `Runtime::open_release` with a release declaration that binds this host binary's own digest, the image and the core resource profile. `oracle-host manifest` prints that declaration for the operator to review. Without one, the runtime runs in development mode and says so in `/capabilities`. |
-| One global capacity | `limits.capacity` requests may do work at once, across all routes and tenants. One more gets an immediate `429` (`busy` on `/query`, `pool_busy` on `/invoke`). There is no queue. A request whose deadline passes keeps its slot until its work really stops. |
+| Bounded admission | `limits.capacity` requests may do work at once, across all routes and tenants. Optional `limits.tenant_capacity` also caps one tenant; omitted, it equals the global cap. Saturation returns immediate `429` (`busy` on `/query`, `pool_busy` on `/invoke`). There is no queue or starvation-free scheduling promise. A timed-out request keeps its slot until its work stops. Idle tenants occupy no admission records. |
 | Bounded ingress | At most `limits.connections` open connections (more are closed at once), and one absolute deadline (`ingress_ms`) for headers plus body, as the reference server. |
 | Engine kill-and-reap | Each Engine worker runs in its own process group with a cleared environment, `PYTHONDONTWRITEBYTECODE=1`, a private `--state` directory and a PID file. A turn that misses `turn_ms` kills that process group by the recorded PID and reaps it; a replacement starts lazily for subsequent admitted work. Shutdown closes its input, waits, then kills and reaps the group. |
 | Exact retry | `/query` results are journalled by (tenant, request_id). The same bytes replay the stored reply, across restarts; different bytes under the same id get `409 request_id_conflict`. A turn refused before work (busy) leaves no record. |
 | Conversations | A conversation that reached the Engine is pinned to that worker generation. If the worker was replaced or the host restarted, the next turn gets `409 conversation_reset_required`, as the Python tenant pool does, instead of silently losing context. |
+
+## Native calls and execution limits
+
+Linked providers receive domain inputs directly. Their string interfaces remain
+for external callers and use the same kernels. The host still checks request and
+reply byte sizes, output schemas and certificates. Malformed-input diagnostics
+may reconstruct the old parser location; valid calls do not encode and reparse
+provider messages.
+
+Floating-point inputs use the same correctly rounded decimal conversion through
+the typed and wire interfaces. This deliberately corrects older wire decoding
+that could choose an adjacent binary float for difficult decimal values. Exact
+source decimals and integer representations remain distinct from these numerical
+solver inputs.
+
+Each request has one execution context. `invoke_ms` bounds an invocation;
+`query_ms` bounds the complete query cascade, including Engine startup and I/O.
+`execution_fuel` is shared across native branches and their checks. Components
+retain tighter local limits while charging that shared allowance. Fuel counts
+explicit work units and conservative estimates, not elapsed CPU time or billing.
+
+Cancellation is cooperative in native libraries. Dense decomposition, alignment,
+and other bounded library calls cannot be interrupted at arbitrary instructions.
+They retain their admission slot until they return. Engine work runs in owned
+processes that are retired and reaped on deadline; cancellation does not transfer
+a live worker to another tenant. A completed durable commit remains replayable
+even if its deadline passes while committing.
 
 ## Recovery and tenant ownership
 
@@ -171,8 +198,10 @@ its installed payload and shared resources.
   "schema": "oracle-host-v1",
   "port": 0,
   "journal": "/operator/state/host-journal.sqlite3",
-  "limits": {"capacity": 2, "connections": 16, "request_bytes": 1048576, "reply_bytes": 2097152,
-             "ingress_ms": 5000, "invoke_ms": 30000, "retained_requests": 100000, "conversations": 100000},
+  "limits": {"capacity": 2, "tenant_capacity": 1, "connections": 16,
+             "request_bytes": 1048576, "reply_bytes": 2097152,
+             "ingress_ms": 5000, "invoke_ms": 30000, "query_ms": 120000,
+             "execution_fuel": 10000000, "retained_requests": 100000, "conversations": 100000},
   "native": {
     "image": "/operator/data/reader-image-v3.sqlite",
     "image_sha256": "8fcb1db9a08e234179f66ea9e032d2633b38cdcb902f4c95d1ba2c2d49c842f4",

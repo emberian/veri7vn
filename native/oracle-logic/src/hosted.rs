@@ -65,7 +65,7 @@ pub fn call(
     envelope: &str,
     host: &str,
     limits: &Limits,
-    cancel: &AtomicBool,
+    cancel: &dyn WorkControl,
 ) -> Result<String, Error> {
     let host: Host =
         serde_json::from_str(host).map_err(|_| Error::Backend("host solver configuration"))?;
@@ -87,32 +87,70 @@ pub fn call(
         "operation".into(),
         serde_json::to_value(op).map_err(|_| Error::Backend("operation JSON"))?,
     );
-    let inner = serde_json::to_string(&Value::Object(arguments))
+    if serde_json::to_vec(&arguments)
+        .map_err(|_| Error::Invalid("request JSON"))?
+        .len()
+        > limits.request_bytes
+    {
+        return Err(Error::Limit("request bytes"));
+    }
+    let request: Request = serde_json::from_value(Value::Object(arguments))
         .map_err(|_| Error::Invalid("request JSON"))?;
-    let request = parse(&inner, limits)?;
-    let text = process::call(&inner, &host.solver, limits, cancel)?;
-    let mut reply: Map<String, Value> =
-        serde_json::from_str(&text).map_err(|_| Error::Backend("reply JSON"))?;
-    reply.insert("schema".into(), SCHEMA.into());
-    reply.insert("operation_id".into(), id.into());
-    reply.insert("program_identity".into(), program_identity(&request).into());
-    reply.insert(
-        "request_identity".into(),
-        request_identity(&request)?.into(),
-    );
-    reply.insert(
-        "identity_encoding".into(),
-        json!({
-            "program_identity": "sha256 of encode(request) ASP text over numeric atom IDs; determines the stable-model set",
-            "request_identity": "sha256 of compact serde JSON of the validated request, including labels, scope and queries",
-            "complete_program": "caller coverage assertion, not verified"
-        }),
-    );
-    let out = serde_json::to_string(&reply).map_err(|_| Error::Backend("reply JSON"))?;
-    if out.len() > limits.output_bytes {
+    // Historical inner-request byte admission remains in addition to envelope admission.
+    let reply = execute(&request, &host.solver, limits, cancel)?;
+    let value = serde_json::to_value(reply).map_err(|_| Error::Backend("reply JSON"))?;
+    serde_json::to_string(&value).map_err(|_| Error::Backend("reply JSON"))
+}
+
+#[derive(Serialize)]
+pub struct IdentityEncoding {
+    program_identity: &'static str,
+    request_identity: &'static str,
+    complete_program: &'static str,
+}
+#[derive(Serialize)]
+pub struct HostedReply {
+    #[serde(flatten)]
+    pub result: Reply,
+    pub schema: &'static str,
+    pub operation_id: &'static str,
+    pub program_identity: String,
+    pub request_identity: String,
+    pub identity_encoding: IdentityEncoding,
+}
+
+pub fn execute(
+    request: &Request,
+    solver: &std::path::Path,
+    limits: &Limits,
+    control: &dyn WorkControl,
+) -> Result<HostedReply, Error> {
+    if !solver.is_absolute() {
+        return Err(Error::Backend("host solver path must be absolute"));
+    }
+    // Wire adapters enforce their raw envelope/inner byte ceilings before
+    // decoding; typed callers retain the same structural/kernel limits.
+    let result = process::execute(request, solver, limits, control)?;
+    let reply = HostedReply {
+        result,
+        schema: SCHEMA,
+        operation_id: match request.operation { Operation::Query => QUERY, Operation::Enumerate => ENUMERATE },
+        program_identity: program_identity(request),
+        request_identity: request_identity(request)?,
+        identity_encoding: IdentityEncoding {
+            program_identity: "sha256 of encode(request) ASP text over numeric atom IDs; determines the stable-model set",
+            request_identity: "sha256 of compact serde JSON of the validated request, including labels, scope and queries",
+            complete_program: "caller coverage assertion, not verified",
+        },
+    };
+    if serde_json::to_vec(&reply)
+        .map_err(|_| Error::Backend("reply JSON"))?
+        .len()
+        > limits.output_bytes
+    {
         return Err(Error::Limit("reply bytes"));
     }
-    Ok(out)
+    Ok(reply)
 }
 
 pub fn catalog() -> Value {

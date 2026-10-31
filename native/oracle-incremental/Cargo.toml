@@ -6,6 +6,7 @@ license.workspace = true
 rust-version = "1.86"
 
 [dependencies]
+oracle-execution = { path = "../oracle-execution" }
 differential-dataflow = { version = "=0.25.1", default-features = false }
 timely = { version = "=0.31.0", default-features = false }
 serde.workspace = true

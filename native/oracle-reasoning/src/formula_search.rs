@@ -512,7 +512,13 @@ struct Proposal {
 
 /// Run egg and translate its explanation. Never fails: anything the
 /// proposer cannot certify retains the original formula with a reason.
-fn propose(dag: &mut Dag, premises: &Premises, original: NodeId, limits: &Limits) -> Proposal {
+fn propose(
+    dag: &mut Dag,
+    premises: &Premises,
+    original: NodeId,
+    limits: &Limits,
+    context: Option<&oracle_execution::ExecutionContext>,
+) -> Proposal {
     let mut proposal = Proposal {
         certificate: Certificate::default(),
         selected: original,
@@ -521,7 +527,7 @@ fn propose(dag: &mut Dag, premises: &Premises, original: NodeId, limits: &Limits
         iterations: 0,
         egraph_nodes: 0,
     };
-    if let Err(why) = search(dag, premises, original, limits, &mut proposal) {
+    if let Err(why) = search(dag, premises, original, limits, &mut proposal, context) {
         proposal.certificate = Certificate::default();
         proposal.selected = original;
         proposal.declined = Some(why.to_string());
@@ -535,6 +541,7 @@ fn search(
     original: NodeId,
     limits: &Limits,
     proposal: &mut Proposal,
+    context: Option<&oracle_execution::ExecutionContext>,
 ) -> Result<()> {
     let mut variables = BTreeMap::new();
     for index in 0..dag.variable_count() {
@@ -548,14 +555,21 @@ fn search(
     let expr = to_recexpr(dag, original)?;
     let analysis = Facts {
         variables,
-        budget: Budget::new(limits),
+        budget: Budget::controlled(limits, context),
     };
+    let hook_context = context.cloned();
     let mut runner = Runner::<Term, Facts>::new(analysis)
         .with_explanations_enabled()
         .with_expr(&expr)
         .with_node_limit(limits.egraph_nodes)
         .with_iter_limit(limits.iterations)
         .with_time_limit(Duration::from_millis(limits.search_ms))
+        .with_hook(move |_| {
+            hook_context
+                .as_ref()
+                .map_or(Ok(()), |c| crate::checkpoint(c, 1))
+                .map_err(|e| e.to_string())
+        })
         .run(&rules());
     proposal.stop = format!("{:?}", runner.stop_reason);
     proposal.iterations = runner.iterations.len();
@@ -588,6 +602,16 @@ fn search(
 
 /// Admit, search, replay, and optionally evaluate at one point.
 pub fn simplify(input: &RationalInput, limits: &Limits) -> Result<RationalReply> {
+    simplify_controlled(input, limits, None)
+}
+pub fn simplify_controlled(
+    input: &RationalInput,
+    limits: &Limits,
+    context: Option<&oracle_execution::ExecutionContext>,
+) -> Result<RationalReply> {
+    if let Some(context) = context {
+        crate::checkpoint(context, 1)?;
+    }
     let mut dag = Dag::new(&input.variables, limits)?;
     let original = dag.parse(&input.expression, limits)?;
     let used = dag.variables_used(original)?;
@@ -634,13 +658,14 @@ pub fn simplify(input: &RationalInput, limits: &Limits) -> Result<RationalReply>
     };
     // The original alone must replay (reflexivity) before any search; this
     // also refuses a denominator that is zero throughout the bounds.
-    formula::replay(
+    formula::replay_controlled(
         &dag,
         &premises,
         original,
         original,
         &Certificate::default(),
         limits,
+        context,
     )
     .map_err(|e| match e {
         Error::Check(why) => Error::Invalid(format!("original formula refused: {why}")),
@@ -648,20 +673,24 @@ pub fn simplify(input: &RationalInput, limits: &Limits) -> Result<RationalReply>
     })?;
 
     let search_started = Instant::now();
-    let proposal = propose(&mut dag, &premises, original, limits);
+    let proposal = propose(&mut dag, &premises, original, limits, context);
+    if let Some(context) = context {
+        crate::checkpoint(context, 1)?;
+    }
     let mut fallback = proposal
         .declined
         .as_ref()
         .map(|why| format!("retained original: proposal could not be certified: {why}"));
     let search_us = search_started.elapsed().as_micros();
     let check_started = Instant::now();
-    let replayed = formula::replay(
+    let replayed = formula::replay_controlled(
         &dag,
         &premises,
         original,
         proposal.selected,
         &proposal.certificate,
         limits,
+        context,
     );
     let checked = match replayed {
         Ok(checked) => checked,
@@ -669,13 +698,14 @@ pub fn simplify(input: &RationalInput, limits: &Limits) -> Result<RationalReply>
             fallback = Some(format!(
                 "retained original: proposed certificate failed replay: {error}"
             ));
-            formula::replay(
+            formula::replay_controlled(
                 &dag,
                 &premises,
                 original,
                 original,
                 &Certificate::default(),
                 limits,
+                context,
             )?
         }
     };
@@ -696,7 +726,7 @@ pub fn simplify(input: &RationalInput, limits: &Limits) -> Result<RationalReply>
         .collect::<Result<Vec<_>>>()?;
     let evaluation = match &point {
         None => None,
-        Some(point) => Some(match checked.evaluate(point, limits)? {
+        Some(point) => Some(match checked.evaluate_controlled(point, limits, context)? {
             Evaluation::Value(q) => EvaluationReply {
                 status: "value",
                 value: Some(q.to_string()),

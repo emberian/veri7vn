@@ -7,9 +7,9 @@ use faer::diag::Diag;
 use faer::dyn_stack::{MemBuffer, MemStack};
 use faer::linalg::svd::{svd, svd_scratch, ComputeSvdVectors};
 use faer::{Mat, Par};
+use oracle_execution::{ExecutionError, WorkControl};
 use serde::{Deserialize, Serialize};
 use statrs::distribution::{ContinuousCDF, Normal, StudentsT};
-use std::sync::atomic::{AtomicBool, Ordering};
 
 pub const SCHEMA: &str = "oracle-statistics-experimental-v1";
 pub const MAX_REQUEST_BYTES: usize = 1024 * 1024;
@@ -232,12 +232,13 @@ pub struct RegressionResult {
     pub warnings: Vec<String>,
 }
 
-fn checkpoint(cancel: &AtomicBool) -> Result<()> {
-    if cancel.load(Ordering::Relaxed) {
-        Err(Error::Cancelled)
-    } else {
-        Ok(())
-    }
+fn checkpoint(cancel: &dyn WorkControl) -> Result<()> {
+    cancel.checkpoint(1).map_err(|error| match error {
+        ExecutionError::Cancelled => Error::Cancelled,
+        ExecutionError::Deadline => Error::Limit("shared deadline"),
+        ExecutionError::FuelExhausted => Error::Limit("shared work"),
+        _ => Error::Limit("shared execution budget"),
+    })
 }
 fn finite(x: f64, why: &'static str) -> Result<f64> {
     if x.is_finite() {
@@ -416,10 +417,17 @@ fn interval(estimate: f64, se: f64, critical: f64) -> Result<[f64; 2]> {
 pub fn regress(
     input: &RegressionInput,
     limits: &Limits,
-    cancel: &AtomicBool,
+    cancel: &dyn WorkControl,
 ) -> Result<RegressionResult> {
     checkpoint(cancel)?;
     let (n, _q, p, work) = validate(input, limits)?;
+    // Charge the bounded foreign-kernel estimate before allocating/running it.
+    cancel.checkpoint(work as u64).map_err(|e| match e {
+        ExecutionError::Cancelled => Error::Cancelled,
+        ExecutionError::Deadline => Error::Limit("shared deadline"),
+        ExecutionError::FuelExhausted => Error::Limit("shared work"),
+        _ => Error::Limit("shared execution budget"),
+    })?;
     let k = n.min(p);
     let req = svd_scratch::<f64>(
         n,
@@ -806,7 +814,7 @@ struct Request {
     arguments: Box<serde_json::value::RawValue>,
 }
 
-pub fn call(request: &str, limits: &Limits, cancel: &AtomicBool) -> Result<String> {
+pub fn call(request: &str, limits: &Limits, cancel: &dyn WorkControl) -> Result<String> {
     checkpoint(cancel)?;
     if request.len() > limits.request_bytes.min(MAX_REQUEST_BYTES) {
         return Err(Error::Limit("request bytes"));

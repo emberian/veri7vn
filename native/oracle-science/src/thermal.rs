@@ -5,9 +5,9 @@ use super::{
     checkpoint, finite, linear, sum, Error, Limits, LinearInput, LinearResult, Model, Operation,
     Result, Tolerances, SCHEMA,
 };
+use oracle_execution::WorkControl;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
-use std::sync::atomic::AtomicBool;
 
 pub const MAX_NODES: usize = 128;
 pub const MAX_LINKS: usize = 1024;
@@ -159,7 +159,7 @@ fn product(a: f64, b: f64) -> Result<f64> {
 pub fn thermal_network(
     input: &ThermalInput,
     limits: &Limits,
-    cancel: &AtomicBool,
+    cancel: &dyn WorkControl,
 ) -> Result<ThermalResult> {
     checkpoint(cancel)?;
     let count = input.nodes.len();

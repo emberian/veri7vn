@@ -513,9 +513,18 @@ impl Image {
         program_json: &str,
         cancellation: Cancellation,
     ) -> Result<String> {
+        let budget = Budget::new(&self.limits, cancellation)?;
+        self.query_program_with_budget(tenant, program_json, &budget)
+    }
+    pub fn query_program_with_budget(
+        &self,
+        tenant: &str,
+        program_json: &str,
+        budget: &Budget,
+    ) -> Result<String> {
         crate::runtime::identifier(tenant)?;
         let limits = &self.limits;
-        let budget = Budget::new(limits, cancellation)?;
+        let budget = budget.restricted_to(limits)?;
         budget.spend(program_json.len() as u64 + 1)?;
         let program = Program::parse(program_json, limits)?;
         budget.check()?;

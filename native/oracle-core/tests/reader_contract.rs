@@ -54,7 +54,16 @@ struct Fixture {
     image: Arc<Image>,
 }
 impl Fixture {
-    fn new(mut reader: ReaderExport) -> Self {
+    fn new(reader: ReaderExport) -> Self {
+        Self::with_limits(
+            reader,
+            Limits {
+                workers: 1,
+                ..Limits::default()
+            },
+        )
+    }
+    fn with_limits(mut reader: ReaderExport, limits: Limits) -> Self {
         let directory = tempfile::tempdir().unwrap();
         let source = directory.path().join("kb.json");
         let output = directory.path().join("reader.sqlite");
@@ -83,10 +92,6 @@ impl Fixture {
             },
         )
         .unwrap();
-        let limits = Limits {
-            workers: 1,
-            ..Limits::default()
-        };
         let image = Image::open(&output, &receipt.image_sha256, limits).unwrap();
         Self {
             _directory: directory,
@@ -309,4 +314,36 @@ fn possessive_names_are_normalized_once_and_both_levels_contribute() {
         answer.readings.iter().map(|r| r.level).collect::<Vec<_>>(),
         vec![0, 1]
     );
+}
+
+#[test]
+fn shared_execution_reader_preserves_image_fuel_cap() {
+    use oracle_runtime_core::Budget;
+    let fixture = Fixture::with_limits(
+        tables(vec![entity()]),
+        Limits {
+            fuel: 1,
+            workers: 1,
+            ..Limits::default()
+        },
+    );
+    let parent = Budget::new(&Limits::default(), Cancellation::default()).unwrap();
+    assert!(matches!(
+        fixture
+            .image
+            .read_whole_with_budget("t", "who is Alice", &parent),
+        Err(Error::Limit("fuel"))
+    ));
+    parent.check().unwrap();
+    assert!(matches!(
+        fixture.image.read_whole_with_limits_and_budget(
+            "t",
+            "who is Alice",
+            &ReaderLimits::default(),
+            &parent
+        ),
+        Err(Error::Limit("fuel"))
+    ));
+    parent.check().unwrap();
+    assert_eq!(fixture.image.active_workers(), 0);
 }

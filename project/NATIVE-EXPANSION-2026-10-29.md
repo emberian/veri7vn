@@ -11,8 +11,11 @@ agent service, with scoped assurance where it helps.
 The [eleven-scout research synthesis](scouts/native-2026-10-31/README.md) now
 grounds these avenues in source and primary literature. Architecture and native
 host excellence are first-class deliverables alongside specialist capability.
-Ember authorized [Astra groundwork](lanes/NATIVE-FOUNDATION-2026-10-31.md),
-followed by Sol iteration; Mini integration remains outside this team's scope.
+The [Astra foundation batch](lanes/NATIVE-FOUNDATION-2026-10-31.md) implements
+typed calls across six provider profiles, inherited execution limits, bounded
+tenant admission and direct reader compilation. Its tracker and validation receipt
+separate source changes, checked behavior and remaining limits. Sol iteration
+will build on that foundation; Mini integration remains outside this team's scope.
 
 Ember clarified on 31 October: Mini receiving, hosting and its agent/browser
 journey belong to the Mini team. This project owns Oracle/veri7vn capability,

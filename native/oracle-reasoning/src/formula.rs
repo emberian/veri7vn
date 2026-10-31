@@ -75,15 +75,26 @@ pub fn parse_rational(text: &str, limits: &Limits) -> Result<Q> {
 pub struct Budget {
     bits: u64,
     work: usize,
+    context: Option<oracle_execution::ExecutionContext>,
 }
 impl Budget {
     pub fn new(limits: &Limits) -> Self {
+        Self::controlled(limits, None)
+    }
+    pub fn controlled(
+        limits: &Limits,
+        context: Option<&oracle_execution::ExecutionContext>,
+    ) -> Self {
         Self {
             bits: limits.rational_bits,
             work: limits.rational_work,
+            context: context.cloned(),
         }
     }
     fn charge(&mut self) -> Result<()> {
+        if let Some(context) = &self.context {
+            crate::checkpoint(context, 1)?;
+        }
         self.work = self
             .work
             .checked_sub(1)
@@ -790,15 +801,29 @@ pub fn replay<'a>(
     certificate: &Certificate,
     limits: &Limits,
 ) -> Result<Checked<'a>> {
+    replay_controlled(dag, premises, original, selected, certificate, limits, None)
+}
+pub fn replay_controlled<'a>(
+    dag: &'a Dag,
+    premises: &Premises,
+    original: NodeId,
+    selected: NodeId,
+    certificate: &Certificate,
+    limits: &Limits,
+    context: Option<&oracle_execution::ExecutionContext>,
+) -> Result<Checked<'a>> {
     let steps = &certificate.steps;
     if steps.len() > limits.proof_steps {
         return Err(Error::Limit("proof steps"));
     }
-    let mut budget = Budget::new(limits);
+    let mut budget = Budget::controlled(limits, context);
     let facts = facts(dag, premises, &mut budget)?;
     let mut endpoints = vec![original, selected];
     let mut rules = BTreeMap::new();
     for (index, step) in steps.iter().enumerate() {
+        if let Some(context) = context {
+            crate::checkpoint(context, 1)?;
+        }
         endpoints.push(step.left);
         endpoints.push(step.right);
         if dag.dimension(step.left)? != dag.dimension(step.right)? {
@@ -938,6 +963,14 @@ impl Checked<'_> {
     /// established nonzero within the bounds (inner ones first), then
     /// evaluate the selected formula. `point` assigns every annotated variable.
     pub fn evaluate(&self, point: &BTreeMap<usize, Q>, limits: &Limits) -> Result<Evaluation> {
+        self.evaluate_controlled(point, limits, None)
+    }
+    pub fn evaluate_controlled(
+        &self,
+        point: &BTreeMap<usize, Q>,
+        limits: &Limits,
+        context: Option<&oracle_execution::ExecutionContext>,
+    ) -> Result<Evaluation> {
         if point.len() != self.dag.variable_count()
             || point.keys().any(|k| *k >= self.dag.variable_count())
         {
@@ -952,7 +985,7 @@ impl Checked<'_> {
                 });
             }
         }
-        let mut budget = Budget::new(limits);
+        let mut budget = Budget::controlled(limits, context);
         let mut memo: HashMap<NodeId, Q> = HashMap::new();
         for obligation in self.obligations()? {
             if obligation.nonzero_within_bounds {

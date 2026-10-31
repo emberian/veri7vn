@@ -24,6 +24,18 @@ pub enum Error {
 }
 pub type Result<T> = std::result::Result<T, Error>;
 
+pub(crate) fn checkpoint(control: &dyn oracle_execution::WorkControl, work: u64) -> Result<()> {
+    use oracle_execution::ExecutionError;
+    control.checkpoint(work).map_err(|error| {
+        Error::Limit(match error {
+            ExecutionError::Cancelled => "shared cancellation",
+            ExecutionError::Deadline => "shared deadline",
+            ExecutionError::FuelExhausted => "shared work",
+            _ => "shared execution budget",
+        })
+    })
+}
+
 /// Operator configuration. Search limits are cooperative, not hard containment.
 #[derive(Clone, Debug, Serialize)]
 pub struct Limits {
@@ -80,7 +92,7 @@ impl Default for Limits {
 
 #[derive(Deserialize)]
 #[serde(tag = "operation", content = "arguments", deny_unknown_fields)]
-enum Request {
+pub enum Request {
     #[serde(rename = "graph.minimum_spanning_forest")]
     Forest(graph::GraphInput),
     #[serde(rename = "graph.shortest_path")]
@@ -95,32 +107,75 @@ enum Request {
     Reaction(stoichiometry::ReactionInput),
 }
 
+#[derive(Serialize)]
+#[serde(untagged)]
+pub enum Response {
+    Forest(graph::Forest),
+    ShortestPath(shortest_path::Certificate),
+    Polynomial(algebra::Optimization),
+    Dimensional(dimensions::DimensionalOptimization),
+    Rational(formula_search::RationalReply),
+    Reaction(stoichiometry::BalanceOutput),
+}
+
+/// Typed domain dispatch; independent certificate checks remain in the kernels.
+pub fn execute(
+    request: &Request,
+    limits: &Limits,
+    context: &oracle_execution::ExecutionContext,
+) -> Result<Response> {
+    execute_inner(request, limits, Some(context))
+}
+fn execute_inner(
+    request: &Request,
+    limits: &Limits,
+    context: Option<&oracle_execution::ExecutionContext>,
+) -> Result<Response> {
+    let legacy = std::sync::atomic::AtomicBool::new(false);
+    let control: &dyn oracle_execution::WorkControl =
+        context.map_or(&legacy as &dyn oracle_execution::WorkControl, |c| c);
+    checkpoint(control, 1)?;
+    let reply = match request {
+        Request::ShortestPath(input) => Response::ShortestPath(
+            shortest_path::shortest_path_bounded(input, &shortest_path_limits(limits), control)?,
+        ),
+        Request::Rational(input) => {
+            let reply = formula_search::simplify_controlled(input, limits, context)?;
+            if serde_json::to_vec(&reply)?.len() > limits.formula_reply_bytes {
+                return Err(Error::Limit("formula reply bytes"));
+            }
+            Response::Rational(reply)
+        }
+        Request::Reaction(input) => Response::Reaction(stoichiometry::balance_reaction_controlled(
+            input,
+            &stoichiometry::ChemistryLimits::default(),
+            control,
+        )?),
+        Request::Dimensional(input) => {
+            Response::Dimensional(dimensions::optimize_controlled(input, limits, context)?)
+        }
+        Request::Forest(input) => Response::Forest(graph::minimum_spanning_forest_controlled(
+            input, limits, control,
+        )?),
+        Request::Polynomial(input) => {
+            Response::Polynomial(algebra::optimize_controlled(input, limits, context)?)
+        }
+    };
+    checkpoint(control, 1)?;
+    Ok(reply)
+}
+
 pub fn call(request: &str, limits: &Limits) -> Result<String> {
     if request.len() > limits.request_bytes {
         return Err(Error::Limit("request bytes"));
     }
-    let reply = match serde_json::from_str(request)
-        .map_err(|e| Error::Invalid(format!("request JSON: {e}")))?
-    {
-        Request::ShortestPath(input) => {
-            return shortest_path::shortest_path_json(
-                &input,
-                &shortest_path_limits(limits),
-                &std::sync::atomic::AtomicBool::new(false),
-            )
-        }
-        Request::Rational(input) => return formula_search::simplify_json(&input, limits),
-        Request::Reaction(input) => serde_json::to_value(stoichiometry::balance_reaction(
-            &input,
-            &stoichiometry::ChemistryLimits::default(),
-        )?)?,
-        Request::Dimensional(input) => serde_json::to_value(dimensions::optimize(&input, limits)?)?,
-        Request::Forest(input) => {
-            serde_json::to_value(graph::minimum_spanning_forest(&input, limits)?)?
-        }
-        Request::Polynomial(input) => serde_json::to_value(algebra::optimize(&input, limits)?)?,
-    };
-    Ok(serde_json::to_string(&reply)?)
+    let request: Request =
+        serde_json::from_str(request).map_err(|e| Error::Invalid(format!("request JSON: {e}")))?;
+    let response = execute_inner(&request, limits, None)?;
+    match &response {
+        Response::ShortestPath(_) | Response::Rational(_) => Ok(serde_json::to_string(&response)?),
+        _ => Ok(serde_json::to_string(&serde_json::to_value(&response)?)?),
+    }
 }
 
 pub fn shortest_path_limits(limits: &Limits) -> shortest_path::PathLimits {

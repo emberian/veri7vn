@@ -116,9 +116,11 @@ pub struct BalanceOutput {
 struct Budget<'a> {
     limits: &'a ChemistryLimits,
     used: usize,
+    control: &'a dyn oracle_execution::WorkControl,
 }
 impl Budget<'_> {
     fn step(&mut self) -> Result<()> {
+        crate::checkpoint(self.control, 1)?;
         if self.used >= self.limits.work {
             Err(Error::Limit("stoichiometry arithmetic work"))
         } else {
@@ -207,7 +209,11 @@ pub fn check_balance(
     coefficients: &[String],
     limits: &ChemistryLimits,
 ) -> Result<Vec<ConservationRow>> {
-    let mut budget = Budget { limits, used: 0 };
+    let mut budget = Budget {
+        limits,
+        used: 0,
+        control: &std::sync::atomic::AtomicBool::new(false),
+    };
     check_balance_inner(input, coefficients, &mut budget)
 }
 fn check_balance_inner(
@@ -298,10 +304,21 @@ fn primitive(v: &[Q], budget: &mut Budget<'_>) -> Result<Option<Vec<String>>> {
 /// its failure never establishes impossibility. No species are inferred or inserted.
 /// Elimination, search and independent replay share a single arithmetic work budget.
 pub fn balance_reaction(input: &ReactionInput, limits: &ChemistryLimits) -> Result<BalanceOutput> {
+    balance_reaction_controlled(input, limits, &std::sync::atomic::AtomicBool::new(false))
+}
+pub fn balance_reaction_controlled(
+    input: &ReactionInput,
+    limits: &ChemistryLimits,
+    control: &dyn oracle_execution::WorkControl,
+) -> Result<BalanceOutput> {
     let labels = inventories(input, limits)?;
     let n = input.species.len();
     let m = labels.len();
-    let mut budget = Budget { limits, used: 0 };
+    let mut budget = Budget {
+        limits,
+        used: 0,
+        control,
+    };
     let mut a: Vec<Vec<Q>> = labels
         .iter()
         .map(|l| {

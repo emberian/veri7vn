@@ -9,8 +9,8 @@ use faer::diag::Diag;
 use faer::dyn_stack::{MemBuffer, MemStack};
 use faer::linalg::svd::{svd, svd_scratch, ComputeSvdVectors};
 use faer::{Mat, Par};
+use oracle_execution::{ExecutionError, WorkControl};
 use serde::{Deserialize, Serialize};
-use std::sync::atomic::{AtomicBool, Ordering};
 
 pub const SCHEMA: &str = "oracle-science-experimental-v1";
 pub const MAX_REQUEST_BYTES: usize = 1024 * 1024;
@@ -177,12 +177,13 @@ pub struct LinearResult {
     pub warnings: Vec<String>,
 }
 
-fn checkpoint(cancel: &AtomicBool) -> Result<()> {
-    if cancel.load(Ordering::Relaxed) {
-        Err(Error::Cancelled)
-    } else {
-        Ok(())
-    }
+fn checkpoint(cancel: &dyn WorkControl) -> Result<()> {
+    cancel.checkpoint(1).map_err(|error| match error {
+        ExecutionError::Cancelled => Error::Cancelled,
+        ExecutionError::Deadline => Error::Limit("shared deadline"),
+        ExecutionError::FuelExhausted => Error::Limit("shared work"),
+        _ => Error::Limit("shared execution budget"),
+    })
 }
 
 fn finite(value: f64, context: &'static str) -> Result<f64> {
@@ -289,10 +290,19 @@ pub fn linear(
     input: &LinearInput,
     operation: Operation,
     limits: &Limits,
-    cancel: &AtomicBool,
+    cancel: &dyn WorkControl,
 ) -> Result<LinearResult> {
     checkpoint(cancel)?;
     let (m, n, work_estimate) = validate(input, limits)?;
+    // Charge the bounded foreign-kernel estimate before allocating/running it.
+    cancel
+        .checkpoint(work_estimate as u64)
+        .map_err(|e| match e {
+            ExecutionError::Cancelled => Error::Cancelled,
+            ExecutionError::Deadline => Error::Limit("shared deadline"),
+            ExecutionError::FuelExhausted => Error::Limit("shared work"),
+            _ => Error::Limit("shared execution budget"),
+        })?;
     let k = m.min(n);
     let max_a = input
         .matrix
@@ -509,29 +519,60 @@ struct Request {
     arguments: Box<serde_json::value::RawValue>,
 }
 
-pub fn call(request: &str, limits: &Limits, cancel: &AtomicBool) -> Result<String> {
+/// Domain requests retain matrix/model and thermal semantics after decoding.
+pub enum ScientificRequest {
+    Linear {
+        input: LinearInput,
+        operation: Operation,
+    },
+    Thermal(thermal::ThermalInput),
+}
+#[derive(Serialize)]
+#[serde(untagged)]
+pub enum ScientificResponse {
+    Linear(LinearResult),
+    Thermal(thermal::ThermalResult),
+}
+pub fn execute(
+    request: &ScientificRequest,
+    limits: &Limits,
+    control: &dyn WorkControl,
+) -> Result<ScientificResponse> {
+    checkpoint(control)?;
+    match request {
+        ScientificRequest::Linear { input, operation } => {
+            linear(input, *operation, limits, control).map(ScientificResponse::Linear)
+        }
+        ScientificRequest::Thermal(input) => {
+            thermal::thermal_network(input, limits, control).map(ScientificResponse::Thermal)
+        }
+    }
+}
+
+pub fn call(request: &str, limits: &Limits, cancel: &dyn WorkControl) -> Result<String> {
     checkpoint(cancel)?;
     if request.len() > limits.request_bytes.min(MAX_REQUEST_BYTES) {
         return Err(Error::Limit("request bytes"));
     }
     let request: Request =
         serde_json::from_str(request).map_err(|e| Error::Invalid(format!("request JSON: {e}")))?;
-    let operation = match request.operation.as_str() {
-        "science.thermal_network" => {
-            let input = serde_json::from_str(request.arguments.get())
-                .map_err(|e| Error::Invalid(format!("request arguments: {e}")))?;
-            return Ok(serde_json::to_string(&thermal::thermal_network(
-                &input, limits, cancel,
-            )?)?);
-        }
-        "science.solve_linear" => Operation::SolveLinear,
-        "science.least_squares" => Operation::LeastSquares,
+    let input = match request.operation.as_str() {
+        "science.thermal_network" => ScientificRequest::Thermal(
+            serde_json::from_str(request.arguments.get())
+                .map_err(|e| Error::Invalid(format!("request arguments: {e}")))?,
+        ),
+        "science.solve_linear" | "science.least_squares" => ScientificRequest::Linear {
+            input: serde_json::from_str(request.arguments.get())
+                .map_err(|e| Error::Invalid(format!("request arguments: {e}")))?,
+            operation: if request.operation == "science.solve_linear" {
+                Operation::SolveLinear
+            } else {
+                Operation::LeastSquares
+            },
+        },
         _ => return Err(Error::Invalid("unknown scientific operation".into())),
     };
-    let input: LinearInput = serde_json::from_str(request.arguments.get())
-        .map_err(|e| Error::Invalid(format!("request arguments: {e}")))?;
-    let result = linear(&input, operation, limits, cancel)?;
-    Ok(serde_json::to_string(&result)?)
+    Ok(serde_json::to_string(&execute(&input, limits, cancel)?)?)
 }
 
 pub fn catalog() -> serde_json::Value {

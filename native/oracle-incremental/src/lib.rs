@@ -7,6 +7,7 @@
 
 use differential_dataflow::input::InputSession;
 use differential_dataflow::operators::Iterate;
+use oracle_execution::WorkControl;
 use serde::{Deserialize, Serialize};
 use std::cell::RefCell;
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
@@ -384,39 +385,81 @@ pub fn call_json(request_json: &str) -> String {
 
 /// The host chooses a rooted-v2 strategy; request JSON cannot override it.
 /// Legacy all-pairs requests retain their original differential implementation.
+pub enum DependencyRequest {
+    AllPairs(Request),
+    Rooted(RootedRequest),
+}
+#[derive(Serialize)]
+#[serde(untagged)]
+pub enum DependencyResponse {
+    AllPairs(Response),
+    Rooted(RootedResponse),
+}
+
+pub fn execute(
+    request: DependencyRequest,
+    limits: Limits,
+    strategy: Strategy,
+    context: &oracle_execution::ExecutionContext,
+) -> Result<DependencyResponse, Error> {
+    execute_inner(request, limits, strategy, Some(context))
+}
+fn execute_inner(
+    request: DependencyRequest,
+    limits: Limits,
+    strategy: Strategy,
+    context: Option<&oracle_execution::ExecutionContext>,
+) -> Result<DependencyResponse, Error> {
+    if let Some(context) = context {
+        shared_checkpoint(context, 1, None)?;
+    }
+    match request {
+        DependencyRequest::AllPairs(request) => {
+            evaluate_controlled(request, limits, context).map(DependencyResponse::AllPairs)
+        }
+        DependencyRequest::Rooted(request) => {
+            rooted::evaluate_rooted_controlled(request, limits, strategy, context)
+                .map(DependencyResponse::Rooted)
+        }
+    }
+}
+
+fn shared_checkpoint(
+    control: &dyn WorkControl,
+    work: u64,
+    version: Option<u64>,
+) -> Result<(), Error> {
+    control
+        .checkpoint(work)
+        .map_err(|e| error("cooperative_budget", e.to_string(), version))
+}
+
 pub fn call_json_with_strategy(request_json: &str, strategy: Strategy) -> String {
     #[derive(Deserialize)]
     struct Dispatch {
         operation: Option<String>,
     }
-    let result = if request_json.len() > MAX_REQUEST_BYTES {
+    let request = if request_json.len() > MAX_REQUEST_BYTES {
         Err(error("request_bytes_limit", "JSON exceeds 1 MiB", None))
     } else {
         match serde_json::from_str::<Dispatch>(request_json) {
             Err(e) => Err(error("invalid_json", e.to_string(), None)),
             Ok(dispatch) if dispatch.operation.is_some() => {
                 serde_json::from_str::<RootedRequest>(request_json)
+                    .map(DependencyRequest::Rooted)
                     .map_err(|e| error("invalid_json", e.to_string(), None))
-                    .and_then(|request| evaluate_rooted(request, Limits::default(), strategy))
-                    .and_then(|response| {
-                        serde_json::to_value(response)
-                            .map_err(|e| error("serialization", e.to_string(), None))
-                    })
             }
             Ok(_) => serde_json::from_str::<Request>(request_json)
-                .map_err(|e| error("invalid_json", e.to_string(), None))
-                .and_then(|request| evaluate(request, Limits::default()))
-                .and_then(|response| {
-                    serde_json::to_value(response)
-                        .map_err(|e| error("serialization", e.to_string(), None))
-                }),
+                .map(DependencyRequest::AllPairs)
+                .map_err(|e| error("invalid_json", e.to_string(), None)),
         }
     };
+    let result =
+        request.and_then(|request| execute_inner(request, Limits::default(), strategy, None));
     let envelope = match result {
         Ok(result) => serde_json::json!({"status":"ok", "result":result}),
         Err(error) => serde_json::json!({"status":"refused", "error":error}),
     };
-    // The envelope contains only serializable primitives and finite integers.
     serde_json::to_string(&envelope).expect("provider response serialization")
 }
 
@@ -456,8 +499,21 @@ pub fn catalog() -> serde_json::Value {
 /// publishes no partial snapshot. Callers needing hard CPU/RSS deadlines must
 /// run this provider behind their globally admitted contained-process boundary.
 pub fn evaluate(request: Request, limits: Limits) -> Result<Response, Error> {
+    evaluate_controlled(request, limits, None)
+}
+pub fn evaluate_controlled(
+    request: Request,
+    limits: Limits,
+    context: Option<&oracle_execution::ExecutionContext>,
+) -> Result<Response, Error> {
+    if let Some(context) = context {
+        shared_checkpoint(context, 1, None)?;
+    }
     let prepared = prepare(&request, &limits)?;
+    let context = context.cloned();
     timely::execute_directly(move |worker| {
+        let legacy = std::sync::atomic::AtomicBool::new(false);
+        let control: &dyn WorkControl = context.as_ref().map_or(&legacy as &dyn WorkControl, |c| c);
         let started = Instant::now();
         // This is bounded by the declared pair universe, not by output event count.
         let changes = Rc::new(RefCell::new(BTreeMap::<Pair, i64>::new()));
@@ -501,6 +557,7 @@ pub fn evaluate(request: Request, limits: Limits) -> Result<Response, Error> {
             let mut results = Vec::new();
             let mut response_items = 0usize;
             for epoch in prepared {
+                shared_checkpoint(control, 1, Some(epoch.version))?;
                 let tick = Instant::now();
                 *event_count.borrow_mut() = 0;
                 input.advance_to(epoch.version);
@@ -530,6 +587,7 @@ pub fn evaluate(request: Request, limits: Limits) -> Result<Response, Error> {
                             Some(epoch.version),
                         ));
                     }
+                    shared_checkpoint(control, 1, Some(epoch.version))?;
                     worker.step();
                     steps += 1;
                 }

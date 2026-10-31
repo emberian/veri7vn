@@ -95,13 +95,14 @@ impl Kernels {
         organ: &Organ,
         tenant: &str,
         question: &str,
-        cancellation: core::Cancellation,
+        context: oracle_execution::ExecutionContext,
     ) -> Candidate {
         let route = format!("organ:{}", organ.id);
         let started = Instant::now();
+        let budget = core::Budget::from_execution_context(context);
         let result = self
             .executor
-            .execute(tenant, &organ.id, question, cancellation);
+            .execute_with_budget(tenant, &organ.id, question, &budget);
         let ms = started.elapsed().as_secs_f64() * 1000.0;
         let reply = match result {
             Ok(reply) => reply.reply,

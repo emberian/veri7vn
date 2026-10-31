@@ -1,6 +1,7 @@
 //! The host's request semantics, independent of the socket layer: envelope
-//! checks, one global capacity, discovery, `/invoke` and the `/query` front door.
+//! checks, bounded global/tenant admission, discovery, `/invoke` and `/query`.
 
+use crate::admission::{Admission, Permit};
 use crate::config::{self, Config, ConfigError, HostLimits};
 use crate::engine::{EngineError, EnginePool};
 use crate::front::{self, Candidate, Decision};
@@ -11,9 +12,9 @@ use crate::operations::{valid_operation_id, Registry, Route};
 use crate::pure::Pure;
 use crate::wire;
 use crate::{failure, Failure};
-use oracle_runtime_core::Cancellation;
+use oracle_execution::{Cancellation, ExecutionContext};
 use serde_json::{json, Value};
-use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{mpsc, Arc};
 use std::time::{Duration, Instant};
 
@@ -25,19 +26,11 @@ pub struct Service {
     pub engine: Option<EnginePool>,
     pub registry: Registry,
     journal: Journal,
-    active: Arc<AtomicUsize>,
+    admission: Arc<Admission>,
     pub stopping: AtomicBool,
     pub host_sha256: String,
     boot: String,
     providers: Vec<Value>,
-}
-
-/// One unit of the global capacity, released when the work really stops.
-pub struct Permit(Arc<AtomicUsize>);
-impl Drop for Permit {
-    fn drop(&mut self) {
-        self.0.fetch_sub(1, Ordering::AcqRel);
-    }
 }
 
 pub fn identifier(text: &str) -> bool {
@@ -164,6 +157,10 @@ impl Service {
             }
             None => None,
         };
+        let admission = Admission::new(
+            limits.capacity,
+            limits.tenant_capacity.unwrap_or(limits.capacity),
+        );
         Ok(Arc::new(Self {
             limits,
             native,
@@ -172,7 +169,7 @@ impl Service {
             engine,
             registry,
             journal,
-            active: Arc::new(AtomicUsize::new(0)),
+            admission,
             stopping: AtomicBool::new(false),
             host_sha256,
             boot,
@@ -180,22 +177,17 @@ impl Service {
         }))
     }
 
-    pub fn acquire(&self) -> Option<Permit> {
-        let mut current = self.active.load(Ordering::Acquire);
-        loop {
-            if current >= self.limits.capacity {
-                return None;
-            }
-            match self.active.compare_exchange(
-                current,
-                current + 1,
-                Ordering::AcqRel,
-                Ordering::Acquire,
-            ) {
-                Ok(_) => return Some(Permit(self.active.clone())),
-                Err(now) => current = now,
-            }
-        }
+    pub fn acquire(&self, tenant: &str) -> Option<Permit> {
+        self.admission.acquire(tenant)
+    }
+
+    fn context(&self, timeout_ms: u64) -> Result<ExecutionContext, Failure> {
+        ExecutionContext::new(
+            self.limits.execution_fuel,
+            Duration::from_millis(timeout_ms),
+            Cancellation::default(),
+        )
+        .map_err(|_| Failure::plain(503, "invalid_execution_deadline"))
     }
 
     fn stateful_operations(&self) -> Vec<&'static str> {
@@ -225,7 +217,8 @@ impl Service {
     pub fn health(&self) -> (u16, Value) {
         let ready = !self.stopping.load(Ordering::Acquire);
         let body = json!({"ready": ready, "backend": "oracle_host", "capacity": self.limits.capacity,
-            "busy": self.active.load(Ordering::Acquire), "query_queue": 0,
+            "busy": self.admission.active(), "tenant_capacity": self.limits.tenant_capacity.unwrap_or(self.limits.capacity),
+            "query_queue": 0,
             "durable_replay": true, "query_journal": "exact retained request replay; Engine context is not persisted",
             "engine": self.engine.as_ref().map(EnginePool::health)});
         (if ready { 200 } else { 503 }, body)
@@ -249,7 +242,9 @@ impl Service {
             "request_id_semantics": "/query: exact retry from the host journal; stateful native turns: exact core reply replay; pure calls: correlation only",
             "tenant_header_authentication": false, "mini_qualified": false, "query_queue": 0,
             "limits": {"request_bytes": self.limits.request_bytes, "reply_bytes": self.limits.reply_bytes,
-                       "capacity": self.limits.capacity, "invoke_ms": self.limits.invoke_ms},
+                       "capacity": self.limits.capacity, "tenant_capacity": self.limits.tenant_capacity.unwrap_or(self.limits.capacity),
+                       "invoke_ms": self.limits.invoke_ms, "query_ms": self.limits.query_ms,
+                       "execution_fuel": self.limits.execution_fuel},
             "providers": self.providers})
     }
 
@@ -289,7 +284,7 @@ impl Service {
         };
         let stateful = matches!(route, Route::Runtime)
             && self.native.as_ref().is_some_and(|n| n.is_stateful(&id));
-        let Some(permit) = self.acquire() else {
+        let Some(permit) = self.acquire(tenant) else {
             return (
                 429,
                 failure(
@@ -300,42 +295,67 @@ impl Service {
             );
         };
         let (sender, receiver) = mpsc::channel();
-        let cancellation = Cancellation::default();
-        let flag = Arc::new(AtomicBool::new(false));
+        let context = match self.context(self.limits.invoke_ms) {
+            Ok(context) => context,
+            Err(f) => return (f.status, f.body),
+        };
+        let started = Instant::now();
         {
             let service = self.clone();
             let tenant = tenant.to_owned();
-            let cancellation = cancellation.clone();
-            let flag = flag.clone();
+            let context = context.clone();
             let id = id.clone();
-            std::thread::spawn(move || {
-                let _permit = permit;
-                let arguments = &request["arguments"];
-                let result = match route {
-                    Route::Runtime => service.native.as_ref().expect("runtime route").invoke(
-                        &id,
-                        arguments,
-                        &tenant,
-                        request["request_id"].as_str().unwrap_or(""),
-                        request["conversation_id"].as_str().unwrap_or(""),
-                        cancellation,
+            if std::thread::Builder::new()
+                .name("oracle-invoke".into())
+                .spawn(move || {
+                    let _permit = permit;
+                    let arguments = &request["arguments"];
+                    let result = match route {
+                        Route::Runtime => service.native.as_ref().expect("runtime route").invoke(
+                            &id,
+                            arguments,
+                            &tenant,
+                            request["request_id"].as_str().unwrap_or(""),
+                            request["conversation_id"].as_str().unwrap_or(""),
+                            context,
+                        ),
+                        Route::Pure(profile) => service
+                            .pure
+                            .as_ref()
+                            .expect("pure route")
+                            .invoke(profile, &id, arguments, &tenant, &context),
+                    };
+                    let _ = sender.send(result);
+                })
+                .is_err()
+            {
+                return (
+                    503,
+                    failure(
+                        "worker_unavailable",
+                        json!({"retryable": true,
+                    "state_may_have_changed": false, "exact_retry_required": false}),
                     ),
-                    Route::Pure(profile) => service
-                        .pure
-                        .as_ref()
-                        .expect("pure route")
-                        .invoke(profile, &id, arguments, &tenant, &flag),
-                };
-                let _ = sender.send(result);
-            });
+                );
+            }
         }
-        let started = Instant::now();
-        let result = match receiver.recv_timeout(Duration::from_millis(self.limits.invoke_ms)) {
+        let result = match receiver
+            .recv_timeout(context.deadline().saturating_duration_since(Instant::now()))
+        {
             Ok(result) => result,
-            Err(_) => {
+            Err(mpsc::RecvTimeoutError::Disconnected) => {
+                return (
+                    502,
+                    failure(
+                        "runtime_error",
+                        json!({"retryable": stateful,
+                    "state_may_have_changed": stateful, "exact_retry_required": stateful}),
+                    ),
+                );
+            }
+            Err(mpsc::RecvTimeoutError::Timeout) => {
                 // The slot stays held by the worker thread until it returns.
-                cancellation.cancel();
-                flag.store(true, Ordering::Release);
+                context.cancellation().cancel();
                 return (
                     503,
                     failure(
@@ -383,6 +403,15 @@ impl Service {
             Err(f) => return (f.status, f.body),
         }
         let conversation = request["conversation_id"].as_str().unwrap_or("");
+        let context = match self.context(self.limits.query_ms) {
+            Ok(context) => context,
+            Err(f) => {
+                if let Err(e) = self.journal.forget(tenant, request_id, conversation) {
+                    return (e.status, e.body);
+                }
+                return (f.status, f.body);
+            }
+        };
         let _lease = match self.journal.lease(tenant, conversation) {
             Ok(lease) => lease,
             Err(f) => {
@@ -392,7 +421,7 @@ impl Service {
                 return (f.status, f.body);
             }
         };
-        let Some(_permit) = self.acquire() else {
+        let Some(_permit) = self.acquire(tenant) else {
             if let Err(e) = self.journal.forget(tenant, request_id, conversation) {
                 return (e.status, e.body);
             }
@@ -409,15 +438,16 @@ impl Service {
         }
         // A panic after dispatch must not make the request eligible for another
         // opaque execution. This boundary is separate from native core commits.
-        let turn =
-            std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| self.turn(tenant, &request)))
-                .unwrap_or_else(|_| {
-                    Err(Failure::new(
-                        502,
-                        "runtime_error",
-                        json!({"state_may_have_changed": true, "exact_retry_required": true}),
-                    ))
-                });
+        let turn = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            self.turn(tenant, &request, &context)
+        }))
+        .unwrap_or_else(|_| {
+            Err(Failure::new(
+                502,
+                "runtime_error",
+                json!({"state_may_have_changed": true, "exact_retry_required": true}),
+            ))
+        });
         match turn {
             Ok(result) => {
                 let result = if wire::encode(&result).len() > self.limits.reply_bytes {
@@ -453,7 +483,13 @@ impl Service {
     }
 
     /// One front-door turn. Failures explicitly carry opaque-effect uncertainty.
-    fn turn(&self, tenant: &str, request: &Value) -> Result<Value, Failure> {
+    fn turn(
+        &self,
+        tenant: &str,
+        request: &Value,
+        context: &ExecutionContext,
+    ) -> Result<Value, Failure> {
+        check_context(context)?;
         let text = request["text"].as_str().unwrap_or("");
         let conversation = request["conversation_id"].as_str().unwrap_or("");
         let prefer = match self.journal.conversation(tenant, conversation)? {
@@ -470,7 +506,6 @@ impl Service {
             None => None,
         };
         self.validate_conversation_binding(tenant, prefer)?;
-        let cancellation = Cancellation::default();
         let mut first: Vec<Candidate> = Vec::new();
         std::thread::scope(|scope| {
             let reader = self
@@ -478,18 +513,18 @@ impl Service {
                 .as_ref()
                 .filter(|n| n.reader_route)
                 .map(|native| {
-                    let cancellation = cancellation.clone();
-                    scope.spawn(move || native.ask_reader(tenant, text, cancellation))
+                    let context = context.clone();
+                    scope.spawn(move || native.ask_reader(tenant, text, context))
                 });
             // KernelExecutor admits one call per tenant at a time, so the
             // organs (milliseconds each) are asked in order, beside the reader.
             let organs = self.kernels.as_ref().map(|kernels| {
-                let cancellation = cancellation.clone();
+                let context = context.clone();
                 scope.spawn(move || {
                     kernels
                         .organs
                         .iter()
-                        .map(|o| kernels.ask(o, tenant, text, cancellation.clone()))
+                        .map(|o| kernels.ask(o, tenant, text, context.clone()))
                         .collect::<Vec<_>>()
                 })
             });
@@ -505,6 +540,7 @@ impl Service {
                 }
             }
         });
+        check_context(context)?;
         let group0: Vec<&Candidate> = first.iter().collect();
         let decision = front::decide(&group0).map_err(|e| {
             Failure::new(
@@ -524,6 +560,7 @@ impl Service {
                 json!({"outcome": "completed", "reply": front::reply(&decision, &group0, &first, decided)}),
             );
         }
+        check_context(context)?;
         let engine = self.engine.as_ref().expect("engine");
         let session = format!(
             "h{}",
@@ -537,7 +574,7 @@ impl Service {
             request["request_id"].as_str().unwrap_or(""),
             conversation,
         )?;
-        match engine.ask(tenant, text, &session, prefer) {
+        match engine.ask_with_context(tenant, text, &session, prefer, context) {
             Ok((reply, worker, generation)) => {
                 self.journal.bind(
                     tenant,
@@ -578,6 +615,9 @@ impl Service {
                 "backend_unavailable",
                 json!({"retryable": true, "detail": "engine_start_failed"}),
             )),
+            Err((EngineError::Budget(error), place)) => {
+                Err(query_context_failure(error, place.is_some()))
+            }
             Err((EngineError::Timeout, _)) => Ok(failure(
                 "query_timeout",
                 json!({"state_may_have_changed": true}),
@@ -611,6 +651,29 @@ impl Service {
             engine.close();
         }
     }
+}
+
+// This boundary is used only before dispatching opaque Engine effects.
+fn check_context(context: &ExecutionContext) -> Result<(), Failure> {
+    context
+        .check()
+        .map_err(|error| query_context_failure(error, false))
+}
+
+fn query_context_failure(error: oracle_execution::ExecutionError, dispatched: bool) -> Failure {
+    use oracle_execution::ExecutionError;
+    let (status, code) = match error {
+        ExecutionError::Cancelled => (503, "query_cancelled"),
+        ExecutionError::Deadline => (504, "query_timeout"),
+        ExecutionError::FuelExhausted => (503, "query_budget"),
+        _ => (503, "execution_unavailable"),
+    };
+    Failure::new(
+        status,
+        code,
+        json!({"retryable": true,
+        "state_may_have_changed": dispatched, "exact_retry_required": dispatched}),
+    )
 }
 
 fn reset_required() -> Failure {

@@ -11,9 +11,10 @@ use crate::config::{self, err, Artifact, ConfigError};
 use crate::schema::strict_valid;
 use crate::wire::{self, as_i128, is_integer};
 use crate::Failure;
+use oracle_execution::ExecutionContext;
+use serde::Serialize;
 use serde_json::{json, Value};
 use std::collections::BTreeSet;
-use std::sync::atomic::AtomicBool;
 
 const SNAPSHOT: &str = include_str!("../descriptors/pure.json");
 const MAX_REASONING_REPLY: usize = 262144;
@@ -178,37 +179,24 @@ impl Pure {
         id: &str,
         arguments: &Value,
         tenant: &str,
-        cancel: &AtomicBool,
+        context: &ExecutionContext,
     ) -> Result<Value, Failure> {
         let profile = self
             .profile(name)
             .ok_or_else(|| Failure::plain(404, "unknown_operation"))?;
         let identity = format!("{}:{name}", self.identity_prefix);
         if name == "reasoning" {
-            return self.reasoning(profile, id, arguments, &identity, cancel);
+            return self.reasoning(profile, id, arguments, &identity, context);
         }
         if name == "logic"
             && arguments.pointer("/scope/tenant").and_then(Value::as_str) != Some(tenant)
         {
             return Err(Failure::plain(403, "tenant_scope_mismatch"));
         }
-        let request = if name == "incremental" {
-            if id == "incremental.dependencies" {
-                arguments.clone()
-            } else {
-                let mut body = arguments.as_object().cloned().unwrap_or_default();
-                body.insert("operation".into(), json!("rooted_v2"));
-                Value::Object(body)
-            }
-        } else {
-            json!({"operation": id, "arguments": arguments})
-        };
-        let text = String::from_utf8(wire::encode(&request)).expect("utf-8");
-        let raw = match self.call(name, &text, cancel) {
-            Ok(raw) => raw,
+        let result = match self.call(name, id, arguments, context) {
+            Ok(result) => result,
             Err(detail) => return Ok(refused(id, &detail, true)),
         };
-        let result = parse_reply(&raw)?;
         let structured = Structured {
             id,
             identity: &identity,
@@ -228,36 +216,207 @@ impl Pure {
         })
     }
 
+    /// Decode admitted arguments directly into each provider's domain types.
+    /// The sole Value result is the public reply representation used by the
+    /// independent host admission checks, never input to another provider.
+    fn call(
+        &self,
+        name: &str,
+        id: &str,
+        arguments: &Value,
+        context: &ExecutionContext,
+    ) -> Result<Value, String> {
+        self.call_typed(name, id, arguments, context)
+            .map_err(|e| e.chars().take(512).collect())
+    }
+
     #[allow(unused_variables)]
-    fn call(&self, name: &str, request: &str, cancel: &AtomicBool) -> Result<String, String> {
-        let detail = |e: String| e.chars().take(512).collect::<String>();
+    fn call_typed(
+        &self,
+        name: &str,
+        id: &str,
+        arguments: &Value,
+        context: &ExecutionContext,
+    ) -> Result<Value, String> {
+        let detail =
+            |e: &dyn std::fmt::Display| e.to_string().chars().take(512).collect::<String>();
+        let bytes = envelope_size(id, arguments);
         match name {
             #[cfg(feature = "reasoning")]
-            "reasoning" => oracle_reasoning::call(request, &oracle_reasoning::Limits::default())
-                .map_err(|e| detail(e.to_string())),
+            "reasoning" => {
+                use oracle_reasoning::Request;
+                let limits = oracle_reasoning::Limits::default();
+                if bytes > limits.request_bytes {
+                    return Err("resource limit: request bytes".into());
+                }
+                let request = (|| -> Result<Request, String> {
+                    Ok(match id {
+                        "graph.minimum_spanning_forest" => Request::Forest(decode(arguments)?),
+                        "graph.shortest_path" => Request::ShortestPath(decode(arguments)?),
+                        "algebra.optimize_polynomial" => Request::Polynomial(decode(arguments)?),
+                        "algebra.optimize_dimensional_polynomial" => {
+                            Request::Dimensional(decode(arguments)?)
+                        }
+                        "algebra.simplify_rational" => Request::Rational(decode(arguments)?),
+                        "chemistry.balance_reaction" => Request::Reaction(decode(arguments)?),
+                        _ => return Err("invalid input: unknown reasoning operation".into()),
+                    })
+                })()
+                .map_err(|error| {
+                    let envelope = json!({"operation": id, "arguments": arguments});
+                    let text = serde_json::to_string(&envelope).expect("JSON value");
+                    match serde_json::from_str::<Request>(&text) {
+                        Err(e) => format!("invalid input: request JSON: {e}"),
+                        Ok(_) => error,
+                    }
+                })?;
+                encode_result(
+                    oracle_reasoning::execute(&request, &limits, context)
+                        .map_err(|e| detail(&e))?,
+                )
+            }
             #[cfg(feature = "science")]
-            "science" => oracle_science::call(request, &oracle_science::Limits::default(), cancel)
-                .map_err(|e| detail(e.to_string())),
+            "science" => {
+                use oracle_science::{Operation, ScientificRequest};
+                let limits = oracle_science::Limits::default();
+                if bytes > limits.request_bytes.min(oracle_science::MAX_REQUEST_BYTES) {
+                    return Err("resource limit: request bytes".into());
+                }
+                let request = match id {
+                    "science.thermal_network" => ScientificRequest::Thermal(
+                        decode(arguments)
+                            .map_err(|e| format!("invalid input: request arguments: {e}"))?,
+                    ),
+                    "science.solve_linear" => ScientificRequest::Linear {
+                        input: decode(arguments)
+                            .map_err(|e| format!("invalid input: request arguments: {e}"))?,
+                        operation: Operation::SolveLinear,
+                    },
+                    "science.least_squares" => ScientificRequest::Linear {
+                        input: decode(arguments)
+                            .map_err(|e| format!("invalid input: request arguments: {e}"))?,
+                        operation: Operation::LeastSquares,
+                    },
+                    _ => return Err("invalid input: unknown scientific operation".into()),
+                };
+                encode_result(
+                    oracle_science::execute(&request, &limits, context).map_err(|e| detail(&e))?,
+                )
+            }
             #[cfg(feature = "incremental")]
-            "incremental" => Ok(oracle_incremental::call_json(request)),
+            "incremental" => {
+                use oracle_incremental::{DependencyRequest, Limits, Strategy};
+                // Rooted operation is host selected; preserve the historical
+                // replacement and byte admission of that small dispatch field.
+                let rooted;
+                let input = if id == "incremental.dependencies" {
+                    arguments
+                } else {
+                    let mut body = arguments.as_object().cloned().unwrap_or_default();
+                    body.insert("operation".into(), json!("rooted_v2"));
+                    rooted = Value::Object(body);
+                    &rooted
+                };
+                let invalid = |code: &str, detail: String| oracle_incremental::Error {
+                    code: code.into(),
+                    detail,
+                    version: None,
+                };
+                let request = if encoded_size(input) > oracle_incremental::MAX_REQUEST_BYTES {
+                    Err(invalid("request_bytes_limit", "JSON exceeds 1 MiB".into()))
+                } else if input.get("operation").is_some_and(|v| !v.is_null()) {
+                    decode::<oracle_incremental::RootedRequest>(input)
+                        .map(DependencyRequest::Rooted)
+                        .map_err(|e| invalid("invalid_json", e.to_string()))
+                } else {
+                    decode::<oracle_incremental::Request>(input)
+                        .map(DependencyRequest::AllPairs)
+                        .map_err(|e| invalid("invalid_json", e.to_string()))
+                };
+                Ok(
+                    match request.and_then(|r| {
+                        oracle_incremental::execute(r, Limits::default(), Strategy::Fresh, context)
+                    }) {
+                        Ok(result) => json!({"status": "ok", "result": result}),
+                        Err(error) => json!({"status": "refused", "error": error}),
+                    },
+                )
+            }
             #[cfg(feature = "bio")]
-            "bio" => oracle_bio::call(request, &oracle_bio::Limits::default(), cancel)
-                .map_err(|e| detail(e.to_string())),
+            "bio" => {
+                let limits = oracle_bio::Limits::default();
+                if bytes > limits.request_bytes.min(oracle_bio::MAX_REQUEST_BYTES) {
+                    return Err("resource limit: request bytes".into());
+                }
+                if id != "bio.align_pairwise" {
+                    return Err("invalid input: unknown bio operation".into());
+                }
+                let input = decode(arguments).map_err(|error| {
+                    let text =
+                        serde_json::to_string(&json!({"operation": id, "arguments": arguments}))
+                            .expect("JSON value");
+                    serde_json::from_str::<oracle_bio::Request>(&text)
+                        .err()
+                        .map_or(error, |e| e.to_string())
+                })?;
+                encode_result(
+                    oracle_bio::align_pairwise(&input, &limits, context).map_err(|e| detail(&e))?,
+                )
+            }
             #[cfg(feature = "statistics")]
             "statistics" => {
-                oracle_statistics::call(request, &oracle_statistics::Limits::default(), cancel)
-                    .map_err(|e| detail(e.to_string()))
+                let limits = oracle_statistics::Limits::default();
+                if bytes
+                    > limits
+                        .request_bytes
+                        .min(oracle_statistics::MAX_REQUEST_BYTES)
+                {
+                    return Err("resource limit: request bytes".into());
+                }
+                if id != "statistics.linear_regression" {
+                    return Err("invalid input: unknown statistical operation".into());
+                }
+                let input = decode(arguments)?;
+                encode_result(
+                    oracle_statistics::regress(&input, &limits, context).map_err(|e| detail(&e))?,
+                )
             }
             #[cfg(feature = "logic")]
             "logic" => {
+                let limits = oracle_logic::Limits::default();
+                if bytes > limits.request_bytes {
+                    return Err("Limit(\"request bytes\")".into());
+                }
+                if arguments.get("operation").is_some() {
+                    return Err("Invalid(\"operation is chosen by the operation ID\")".into());
+                }
+                #[derive(Serialize)]
+                struct Inner<'a> {
+                    #[serde(flatten)]
+                    arguments: &'a Value,
+                    operation: oracle_logic::Operation,
+                }
+                let operation = oracle_logic::hosted::operation(id)
+                    .ok_or("Invalid(\"unknown logic operation\")")?;
+                if encoded_size(&Inner {
+                    arguments,
+                    operation,
+                }) > limits.request_bytes
+                {
+                    return Err("Limit(\"request bytes\")".into());
+                }
+                let mut request: oracle_logic::Request =
+                    decode(arguments).map_err(|_| "Invalid(\"request JSON\")".to_owned())?;
+                request.operation = oracle_logic::hosted::operation(id)
+                    .ok_or("Invalid(\"unknown logic operation\")")?;
                 let solver = self
                     .solver
                     .as_ref()
-                    .map(|s| s.1.display().to_string())
-                    .unwrap_or_default();
-                let host = json!({"solver": solver}).to_string();
-                oracle_logic::hosted::call(request, &host, &oracle_logic::Limits::default(), cancel)
-                    .map_err(|e| detail(e.to_string()))
+                    .ok_or("Backend(\"host solver configuration\")")?;
+                encode_result(
+                    oracle_logic::hosted::execute(&request, &solver.1, &limits, context)
+                        .map_err(|e| detail(&e))?,
+                )
             }
             _ => Err("profile not compiled".into()),
         }
@@ -269,27 +428,23 @@ impl Pure {
         id: &str,
         arguments: &Value,
         identity: &str,
-        cancel: &AtomicBool,
+        context: &ExecutionContext,
     ) -> Result<Value, Failure> {
         let declaration = self
             .declaration(profile, id)
             .ok_or_else(|| Failure::plain(404, "unknown_operation"))?;
         let invalid = || Failure::plain(400, "invalid_arguments");
         reasoning_arguments(id, arguments, declaration, &profile.catalog).map_err(|_| invalid())?;
-        let request = String::from_utf8(wire::encode(
-            &json!({"operation": id, "arguments": arguments}),
-        ))
-        .expect("utf-8");
         let request_bytes = profile
             .catalog
             .pointer("/limits/request_bytes")
             .and_then(Value::as_u64)
             .unwrap_or(0);
-        if request.len() as u64 > request_bytes {
+        if envelope_size(id, arguments) as u64 > request_bytes {
             return Err(invalid());
         }
-        let raw = match self.call("reasoning", &request, cancel) {
-            Ok(raw) => raw,
+        let result = match self.call("reasoning", id, arguments, context) {
+            Ok(result) => result,
             Err(detail) => return Ok(refused(id, &detail, false)),
         };
         let row = |key: &str| {
@@ -313,10 +468,9 @@ impl Pure {
             .cloned()
             .unwrap_or(Value::Null);
         let checked = (|| -> Option<Value> {
-            if raw.len() > maximum {
+            if encoded_size(&result) > maximum {
                 return None;
             }
-            let result = wire::parse(raw.as_bytes()).ok()?;
             if !strict_valid(&result, &results) {
                 return None;
             }
@@ -365,17 +519,48 @@ fn refused(id: &str, detail: &str, computation_only: bool) -> Value {
     reply
 }
 
-fn parse_reply(raw: &str) -> Result<Value, Failure> {
-    let failure = Failure::new(
-        503,
-        "native_reply_invalid",
-        json!({"retryable": false,
-        "state_may_have_changed": false, "exact_retry_required": false}),
-    );
-    match wire::parse(raw.as_bytes()) {
-        Ok(value @ Value::Object(_)) => Ok(value),
-        _ => Err(failure),
+/// Byte admission without materializing and reparsing an internal JSON string.
+fn encoded_size<T: Serialize + ?Sized>(value: &T) -> usize {
+    struct Counter(usize);
+    impl std::io::Write for Counter {
+        fn write(&mut self, bytes: &[u8]) -> std::io::Result<usize> {
+            self.0 = self.0.saturating_add(bytes.len());
+            Ok(bytes.len())
+        }
+        fn flush(&mut self) -> std::io::Result<()> {
+            Ok(())
+        }
     }
+    let mut counter = Counter(0);
+    if serde_json::to_writer(&mut counter, value).is_err() {
+        return usize::MAX;
+    }
+    counter.0
+}
+fn envelope_size(operation: &str, arguments: &Value) -> usize {
+    #[derive(Serialize)]
+    struct Envelope<'a> {
+        operation: &'a str,
+        arguments: &'a Value,
+    }
+    encoded_size(&Envelope {
+        operation,
+        arguments,
+    })
+}
+fn decode<T: serde::de::DeserializeOwned>(arguments: &Value) -> Result<T, String> {
+    T::deserialize(arguments).map_err(|error| {
+        // Error-only compatibility: old wire refusals include parser line and
+        // column. This decodes rejected data solely to format its diagnostic;
+        // no provider execution or second admission attempt occurs here.
+        let text = serde_json::to_string(arguments).expect("JSON value");
+        let error = serde_json::from_str::<T>(&text).err().unwrap_or(error);
+        error.to_string().chars().take(512).collect()
+    })
+}
+
+fn encode_result<T: Serialize>(result: T) -> Result<Value, String> {
+    serde_json::to_value(result).map_err(|e| e.to_string().chars().take(512).collect())
 }
 
 fn catalog_row<'a>(catalog: &'a Value, id: &str) -> Option<&'a Value> {
@@ -1064,5 +1249,277 @@ fn check_chemistry(arguments: &Value, result: &Value) -> Option<()> {
         ok.then_some(())
     } else {
         (result["coefficients"].is_null() && rows.is_empty()).then_some(())
+    }
+}
+
+#[cfg(all(
+    test,
+    feature = "reasoning",
+    feature = "science",
+    feature = "statistics",
+    feature = "bio",
+    feature = "incremental",
+    feature = "logic"
+))]
+mod typed_parity {
+    use super::*;
+    use std::sync::atomic::AtomicBool;
+    use std::time::{Duration, Instant};
+
+    fn context(fuel: u64) -> ExecutionContext {
+        ExecutionContext::new(fuel, Duration::from_secs(30), Default::default()).unwrap()
+    }
+    fn provider() -> Pure {
+        let dir = tempfile::tempdir().unwrap();
+        let path = std::env::var_os("CLINGO_EXECUTABLE")
+            .map(std::path::PathBuf::from)
+            .unwrap_or_else(|| dir.path().join("deliberately-absent-solver"));
+        Pure {
+            profiles: vec![],
+            loaded: vec![],
+            identity_prefix: "fixture".into(),
+            solver: Some((dir, path, "0".repeat(64))),
+        }
+    }
+    fn legacy(pure: &Pure, name: &str, id: &str, args: &Value) -> Result<Value, String> {
+        let request = if name == "incremental" {
+            let mut args = args.clone();
+            if id != "incremental.dependencies" {
+                args["operation"] = json!("rooted_v2");
+            }
+            args
+        } else {
+            json!({"operation": id, "arguments": args})
+        };
+        let request = String::from_utf8(wire::encode(&request)).unwrap();
+        let flag = AtomicBool::new(false);
+        let raw = match name {
+            "reasoning" => {
+                oracle_reasoning::call(&request, &Default::default()).map_err(|e| e.to_string())
+            }
+            "science" => oracle_science::call(&request, &Default::default(), &flag)
+                .map_err(|e| e.to_string()),
+            "statistics" => oracle_statistics::call(&request, &Default::default(), &flag)
+                .map_err(|e| e.to_string()),
+            "bio" => {
+                oracle_bio::call(&request, &Default::default(), &flag).map_err(|e| e.to_string())
+            }
+            "incremental" => Ok(oracle_incremental::call_json(&request)),
+            "logic" => oracle_logic::hosted::call(
+                &request,
+                &json!({"solver": pure.solver.as_ref().unwrap().1}).to_string(),
+                &Default::default(),
+                &flag,
+            )
+            .map_err(|e| e.to_string()),
+            _ => unreachable!(),
+        }
+        .map_err(|e| e.chars().take(512).collect::<String>())?;
+        Ok(wire::parse(raw.as_bytes()).unwrap())
+    }
+    fn without_timings(value: &mut Value) {
+        match value {
+            Value::Object(map) => {
+                map.retain(|k, _| !k.ends_with("_us"));
+                for value in map.values_mut() {
+                    without_timings(value);
+                }
+            }
+            Value::Array(items) => items.iter_mut().for_each(without_timings),
+            _ => (),
+        }
+    }
+    fn parity(name: &str, id: &str, args: &Value) {
+        let pure = provider();
+        let mut expected = legacy(&pure, name, id, args);
+        let mut actual = pure.call(name, id, args, &context(u64::MAX));
+        if let Ok(value) = &mut expected {
+            without_timings(value);
+        }
+        if let Ok(value) = &mut actual {
+            without_timings(value);
+        }
+        assert_eq!(actual, expected, "{name}/{id}: {args}");
+    }
+
+    #[test]
+    fn all_profiles_typed_wire_success_and_refusal_parity() {
+        for id in ["graph.minimum_spanning_forest", "graph.shortest_path"] {
+            let mut args = json!({"vertices": 3, "edges": [[0,1,9223372036854775807i64],[1,2,-9223372036854775807i64]]});
+            if id.ends_with("shortest_path") {
+                args["source"] = json!(0);
+                args["target"] = json!(2);
+            }
+            parity("reasoning", id, &args);
+        }
+        parity(
+            "reasoning",
+            "algebra.optimize_polynomial",
+            &json!({"expression":"(+ x 0)"}),
+        );
+        let dimensional =
+            json!({"expression":"(+ x 0)","variables":[{"name":"x","dimension":[0,0,0,0,0,0,0]}]});
+        parity(
+            "reasoning",
+            "algebra.optimize_dimensional_polynomial",
+            &dimensional,
+        );
+        parity("reasoning", "algebra.simplify_rational", &dimensional);
+        parity(
+            "reasoning",
+            "chemistry.balance_reaction",
+            &json!({"species":[
+            {"name":"a","side":"reactant","composition":{"H":18446744073709551615u64},"charge":0},
+            {"name":"b","side":"product","composition":{"H":18446744073709551615u64},"charge":0}]}),
+        );
+        let bio = json!({"query":"ACGT","reference":"AGGT","mode":"global","scoring":{"match_score":2,"mismatch_score":-1,"gap_open":-3,"gap_extend":-1}});
+        parity("bio", "bio.align_pairwise", &bio);
+        let graph = json!({"scope":"supplied α","nodes":[0,1],"epochs":[{"version":1,"mutations":[{"op":"insert","fact_id":"a","from":0,"to":1}],"queries":[{"op":"reachable","from":0,"to":1}]}]});
+        parity("incremental", "incremental.dependencies", &graph);
+        parity(
+            "incremental",
+            "incremental.dependencies_rooted",
+            &json!({"graph":graph,"roots":{"downstream":[0],"upstream":[]}}),
+        );
+        let logic = json!({"scope":{"tenant":"fixture","snapshot":"v1","complete_program":true},"atoms":["a"],"rules":[{"head":0,"positive":[],"negative":[]}],"queries":[0]});
+        for id in ["logic.query", "logic.enumerate"] {
+            parity("logic", id, &logic);
+        }
+        for (name, id) in [
+            ("reasoning", "graph.shortest_path"),
+            ("science", "science.solve_linear"),
+            ("bio", "bio.align_pairwise"),
+            ("statistics", "statistics.linear_regression"),
+            ("logic", "logic.query"),
+            ("incremental", "incremental.dependencies"),
+        ] {
+            parity(name, id, &json!({"unknown":"rejected before computation"}));
+        }
+    }
+
+    #[test]
+    fn floating_numeric_lexemes_survive_direct_typed_admission() {
+        for number in [
+            "1",
+            "1.0",
+            "1e0",
+            "0.10000000000000001",
+            "1.0000000000000003",
+            "51.248178375505404",
+            "1.00000000000000011102230246251565404236316680908203125",
+            "-0.0",
+            "1e-100",
+            "9007199254740993",
+        ] {
+            let args = wire::parse(format!(r#"{{"matrix":[[{number}]],"rhs":[1.0],"model":{{"description":"caller model","variable_units":["m"],"row_units":["N"],"normalization":"supplied","assumptions":[]}}}}"#).as_bytes()).unwrap();
+            for id in ["science.solve_linear", "science.least_squares"] {
+                parity("science", id, &args);
+            }
+            let stats = wire::parse(format!(r#"{{"features":[[{number}],[2.0],[3.0]],"response":[1.0,2.0,4.0],"intercept":true,"covariance":"classical_normal_errors","model":{{"description":"caller model","predictor_names":["x"],"predictor_units":["m"],"response_unit":"N","assumptions":[]}}}}"#).as_bytes()).unwrap();
+            parity("statistics", "statistics.linear_regression", &stats);
+            let conductance = wire::parse(number.as_bytes()).unwrap();
+            parity(
+                "science",
+                "science.thermal_network",
+                &json!({"description":"supplied network","assumptions":[],"reference_temperature_k":300.0,"nodes":[{"id":"boundary","applied_heat_w":0.0,"fixed_temperature_k":300.0},{"id":"body","applied_heat_w":20.0}],"links":[{"from":"boundary","to":"body","conductance_w_per_k":conductance}]}),
+            );
+        }
+        parity(
+            "science",
+            "science.thermal_network",
+            &json!({"description":"supplied network","assumptions":[],"reference_temperature_k":300.0,"nodes":[{"id":"boundary","applied_heat_w":0.0,"fixed_temperature_k":300.0},{"id":"body","applied_heat_w":20.0}],"links":[{"from":"boundary","to":"body","conductance_w_per_k":2.0}]}),
+        );
+    }
+
+    #[test]
+    fn float_rounding_matches_exact_binary64_neighbors() {
+        // In [1,2) binary64 spacing is 2^-52. The first decimal is
+        // 1.351079888... spacings above 1, so its nearest value is 1+2^-52.
+        // The long decimal is exactly halfway to that neighbor: ties go to 1.
+        for (source, expected) in [
+            ("1.0000000000000003", 0x3ff0000000000001u64),
+            (
+                "1.00000000000000011102230246251565404236316680908203125",
+                0x3ff0000000000000u64,
+            ),
+            (
+                "1.00000000000000011102230246251565404236316680908203126",
+                0x3ff0000000000001u64,
+            ),
+            ("51.248178375505404", 0x40499fc44f1b2f60u64),
+            ("2.2250738585072014e-308", 0x0010000000000000u64),
+            ("5e-324", 0x0000000000000001u64),
+            ("2.4703282292062327e-324", 0x0000000000000000u64),
+            ("2.4703282292062328e-324", 0x0000000000000001u64),
+            ("1.7976931348623157e308", 0x7fefffffffffffffu64),
+            ("-0.0", 0x8000000000000000u64),
+        ] {
+            let via_wire: f64 = serde_json::from_str(source).unwrap();
+            let value = wire::parse(source.as_bytes()).unwrap();
+            let direct: f64 = decode(&value).unwrap();
+            assert_eq!(direct.to_bits(), expected, "typed {source}");
+            assert_eq!(via_wire.to_bits(), expected, "wire {source}");
+        }
+    }
+
+    #[test]
+    fn byte_count_and_strict_ingress_are_not_widened() {
+        let args = json!({"text":"α\n\"\\", "n":18446744073709551615u64});
+        assert_eq!(
+            envelope_size("operation", &args),
+            wire::encode(&json!({"operation":"operation","arguments":args})).len()
+        );
+        for invalid in [
+            r#"{"x":1,"x":2}"#,
+            r#"{"x":1e400}"#,
+            r#"{"x":"\ud800"}"#,
+            "{} trailing",
+        ] {
+            assert!(wire::parse(invalid.as_bytes()).is_err());
+        }
+    }
+
+    #[test]
+    fn shared_exhaustion_is_not_cancellation_or_success() {
+        let pure = provider();
+        let args = json!({"vertices":2,"source":0,"target":1,"edges":[[0,1,4]]});
+        let fuel = pure
+            .call("reasoning", "graph.shortest_path", &args, &context(2))
+            .unwrap_err();
+        assert!(fuel.contains("shared work"), "{fuel}");
+        let deadline =
+            ExecutionContext::with_deadline(u64::MAX, Instant::now(), Default::default());
+        let time = pure
+            .call("reasoning", "graph.shortest_path", &args, &deadline)
+            .unwrap_err();
+        assert!(time.contains("shared deadline"), "{time}");
+        let cancelled = context(u64::MAX);
+        cancelled.cancellation().cancel();
+        let error = pure
+            .call("reasoning", "graph.shortest_path", &args, &cancelled)
+            .unwrap_err();
+        assert!(error.contains("shared cancellation"), "{error}");
+        let rational =
+            json!({"expression":"(+ x 0)","variables":[{"name":"x","dimension":[0,0,0,0,0,0,0]}]});
+        assert!(pure
+            .call(
+                "reasoning",
+                "algebra.simplify_rational",
+                &rational,
+                &context(2)
+            )
+            .unwrap_err()
+            .contains("shared work"));
+        let graph = json!({"graph":{"scope":"budget","nodes":[0,1],"epochs":[{"version":0,"mutations":[{"op":"insert","fact_id":"a","from":0,"to":1}]}]},"roots":{"downstream":[0],"upstream":[]}});
+        let result = pure
+            .call(
+                "incremental",
+                "incremental.dependencies_rooted",
+                &graph,
+                &context(2),
+            )
+            .unwrap();
+        assert_eq!(result["status"], "refused");
+        assert_eq!(result["error"]["code"], "cooperative_budget");
     }
 }

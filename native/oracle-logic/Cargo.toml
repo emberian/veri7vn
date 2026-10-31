@@ -5,6 +5,7 @@ edition = "2021"
 license = "MIT"
 
 [dependencies]
+oracle-execution = { path = "../oracle-execution" }
 serde.workspace = true
 serde_json.workspace = true
 sha2.workspace = true

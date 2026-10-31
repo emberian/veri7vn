@@ -142,12 +142,24 @@ fn validate_expression(expression: &RecExpr<Expression>, limits: &Limits) -> Res
 // or randomized evaluations. Expanded monomials are sorted multisets of variables.
 type Polynomial = BTreeMap<Vec<Variable>, BigInt>;
 fn normalize(expression: &RecExpr<Expression>, limits: &Limits) -> Result<Polynomial> {
+    normalize_controlled(
+        expression,
+        limits,
+        &std::sync::atomic::AtomicBool::new(false),
+    )
+}
+fn normalize_controlled(
+    expression: &RecExpr<Expression>,
+    limits: &Limits,
+    control: &dyn oracle_execution::WorkControl,
+) -> Result<Polynomial> {
     validate_expression(expression, limits)?;
     let mut values: Vec<Polynomial> = Vec::new();
     let mut work = limits.polynomial_work;
     for node in expression.as_ref() {
         let mut result = Polynomial::new();
         let mut insert = |monomial: Vec<Variable>, coefficient: BigInt| -> Result<()> {
+            crate::checkpoint(control, 1)?;
             work = work.checked_sub(1).ok_or(Error::Limit("polynomial work"))?;
             if monomial.len() > limits.expression_nodes {
                 return Err(Error::Limit("polynomial degree"));
@@ -203,10 +215,36 @@ pub fn equivalent(left: &str, right: &str, limits: &Limits) -> Result<bool> {
     Ok(normalize(&parse(left, limits)?, limits)? == normalize(&parse(right, limits)?, limits)?)
 }
 
+pub(crate) fn equivalent_controlled(
+    left: &str,
+    right: &str,
+    limits: &Limits,
+    context: Option<&oracle_execution::ExecutionContext>,
+) -> Result<bool> {
+    let Some(context) = context else {
+        return equivalent(left, right, limits);
+    };
+    Ok(
+        normalize_controlled(&parse(left, limits)?, limits, context)?
+            == normalize_controlled(&parse(right, limits)?, limits, context)?,
+    )
+}
+
 pub fn optimize(input: &PolynomialInput, limits: &Limits) -> Result<Optimization> {
+    optimize_controlled(input, limits, None)
+}
+pub fn optimize_controlled(
+    input: &PolynomialInput,
+    limits: &Limits,
+    context: Option<&oracle_execution::ExecutionContext>,
+) -> Result<Optimization> {
+    let legacy = std::sync::atomic::AtomicBool::new(false);
+    let control: &dyn oracle_execution::WorkControl =
+        context.map_or(&legacy as &dyn oracle_execution::WorkControl, |c| c);
+    let hook_context = context.cloned();
     let started = Instant::now();
     let expression = parse(&input.expression, limits)?;
-    let polynomial = normalize(&expression, limits)?;
+    let polynomial = normalize_controlled(&expression, limits, control)?;
     let original_cost = Cost.cost_rec(&expression);
     let normalize_us = started.elapsed().as_micros();
     let search_started = Instant::now();
@@ -229,11 +267,18 @@ pub fn optimize(input: &PolynomialInput, limits: &Limits) -> Result<Optimization
         .with_node_limit(limits.egraph_nodes)
         .with_iter_limit(limits.iterations)
         .with_time_limit(Duration::from_millis(limits.search_ms))
+        .with_hook(move |_| {
+            hook_context
+                .as_ref()
+                .map_or(Ok(()), |c| crate::checkpoint(c, 1))
+                .map_err(|e| e.to_string())
+        })
         .run(&rules);
+    crate::checkpoint(control, 1)?;
     let (cost, candidate) = Extractor::new(&runner.egraph, Cost).find_best(runner.roots[0]);
     let search_us = search_started.elapsed().as_micros();
     let check_started = Instant::now();
-    if normalize(&candidate, limits)? != polynomial {
+    if normalize_controlled(&candidate, limits, control)? != polynomial {
         return Err(Error::Check("polynomial identity"));
     }
     Ok(Optimization {

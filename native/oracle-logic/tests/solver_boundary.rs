@@ -141,7 +141,25 @@ impl Drop for ChildReceipt {
 }
 
 #[test]
-fn blocked_stdin_child_times_out_and_is_reaped() {
+fn blocked_stdin_shared_deadline_after_startup_reaps_child() {
+    use oracle_execution::{ExecutionError, WorkControl};
+    use std::sync::atomic::Ordering;
+    use std::time::{Duration, Instant};
+
+    // Test-only deadline injection, armed after the child actually starts.
+    // This tests deadline propagation and blocked-pipe shutdown, not measured
+    // cancellation latency or the production wall-clock policy.
+    struct InjectedDeadline(AtomicBool);
+    impl WorkControl for InjectedDeadline {
+        fn checkpoint(&self, _work: u64) -> Result<(), ExecutionError> {
+            if self.0.load(Ordering::Acquire) {
+                Err(ExecutionError::Deadline)
+            } else {
+                Ok(())
+            }
+        }
+    }
+
     let receipt = ChildReceipt::new();
     // Pure shell builtins, no descendants; does not consume the provider stdin.
     let script = format!(
@@ -154,15 +172,60 @@ fn blocked_stdin_child_times_out_and_is_reaped() {
         "atoms":["a"],"queries":[0],"rules":[{"head":0,"positive":vec![0;32768],"negative":[]}]})
         .to_string();
     let l = Limits {
-        milliseconds: 300,
+        // Test watchdog only. Serving defaults are unchanged; the helper
+        // injects the shared deadline well before this local ceiling.
+        milliseconds: 10_000,
         ..Limits::default()
     };
-    let started = std::time::Instant::now();
-    let reply = process::call(&input, &fixture.0, &l, &AtomicBool::new(false)).unwrap();
-    assert!(started.elapsed() < std::time::Duration::from_secs(3));
-    let v: serde_json::Value = serde_json::from_str(&reply).unwrap();
+    // Decode/validate before starting the boundary test: a short timeout must
+    // not be consumed by debug-build preprocessing before the child exists.
+    let request = oracle_logic::parse(&input, &l).unwrap();
+    assert!(
+        oracle_logic::encode(&request).len() > 64 * 1024,
+        "payload must exceed the 64 KiB pipe-capacity bound used by this fixture"
+    );
+    let deadline = InjectedDeadline(AtomicBool::new(false));
+    let started = Instant::now();
+    let (reply, observed_start) = std::thread::scope(|scope| {
+        let trigger = scope.spawn(|| {
+            let until = Instant::now() + Duration::from_secs(5);
+            let observed = loop {
+                if fs::read_to_string(&receipt.0)
+                    .ok()
+                    .is_some_and(|pid| !pid.is_empty())
+                {
+                    break true;
+                }
+                if Instant::now() >= until {
+                    break false;
+                }
+                std::thread::sleep(Duration::from_millis(2));
+            };
+            if observed {
+                std::thread::sleep(Duration::from_millis(100));
+            }
+            // Also stop an unexpectedly late child if startup wasn't observed.
+            deadline.0.store(true, Ordering::Release);
+            observed
+        });
+        let reply = process::execute(&request, &fixture.0, &l, &deadline);
+        // Join before any assertion, including on an early provider error.
+        // The scope also joins the bounded helper while unwinding.
+        (reply, trigger.join())
+    });
+    let observed_start = observed_start.unwrap();
+    let reply = reply.unwrap();
+    assert!(
+        observed_start,
+        "fixture child did not publish its PID within startup allowance"
+    );
+    assert!(
+        started.elapsed() < Duration::from_secs(8),
+        "shared deadline did not stop the call before its local watchdog"
+    );
+    let v = serde_json::to_value(reply).unwrap();
     assert_eq!(v["status"], "inconclusive");
-    assert!(v["reason"].as_str().unwrap().contains("deadline"));
+    assert!(v["reason"].as_str().unwrap().contains("shared deadline"));
     receipt.assert_reaped();
 }
 

@@ -290,6 +290,16 @@ impl Runtime {
         self.require_operation(RequestDialect::Graph.operation(false))?;
         self.image.query(tenant, plan_json, cancellation)
     }
+    /// Execute using the enclosing operation's budget without refreshing it.
+    pub fn query_with_budget(
+        &self,
+        tenant: &str,
+        plan_json: &str,
+        budget: &Budget,
+    ) -> Result<String> {
+        self.require_operation(RequestDialect::Graph.operation(false))?;
+        self.image.query_with_budget(tenant, plan_json, budget)
+    }
     pub fn query_program(
         &self,
         tenant: &str,
@@ -298,6 +308,17 @@ impl Runtime {
     ) -> Result<String> {
         self.require_operation(RequestDialect::KqaProgram.operation(false))?;
         self.image.query_program(tenant, program_json, cancellation)
+    }
+    /// Execute using the enclosing operation's budget without refreshing it.
+    pub fn query_program_with_budget(
+        &self,
+        tenant: &str,
+        program_json: &str,
+        budget: &Budget,
+    ) -> Result<String> {
+        self.require_operation(RequestDialect::KqaProgram.operation(false))?;
+        self.image
+            .query_program_with_budget(tenant, program_json, budget)
     }
     pub fn identity(&self) -> &str {
         self.release
@@ -315,6 +336,16 @@ impl Runtime {
     ) -> Result<String> {
         self.require_operation("reader.whole")?;
         self.image.read_whole(tenant, question, cancellation)
+    }
+    /// Execute using the enclosing operation's budget without refreshing it.
+    pub fn read_whole_with_budget(
+        &self,
+        tenant: &str,
+        question: &str,
+        budget: &Budget,
+    ) -> Result<String> {
+        self.require_operation("reader.whole")?;
+        self.image.read_whole_with_budget(tenant, question, budget)
     }
     pub(crate) fn require_operation(&self, name: &str) -> Result<()> {
         if let Some(release) = &self.release {
@@ -584,6 +615,78 @@ impl Runtime {
             None,
         )
     }
+    /// Retain the enclosing operation's deadline, cancellation and fuel.
+    #[allow(clippy::too_many_arguments)]
+    pub fn execute_with_budget(
+        &self,
+        tenant: &str,
+        session: &str,
+        request: &str,
+        expected_version: i64,
+        plan_json: &str,
+        budget: &Budget,
+    ) -> Result<String> {
+        let budget = budget.restricted_to(&self.image.limits)?;
+        self.execute_dialect_budget(
+            tenant,
+            session,
+            request,
+            expected_version,
+            plan_json,
+            budget.execution_context().cancellation().clone(),
+            RequestDialect::Graph,
+            None,
+            Some(&budget),
+        )
+    }
+    /// Retain the enclosing operation's deadline, cancellation and fuel.
+    #[allow(clippy::too_many_arguments)]
+    pub fn execute_program_with_budget(
+        &self,
+        tenant: &str,
+        session: &str,
+        request: &str,
+        expected_version: i64,
+        program_json: &str,
+        budget: &Budget,
+    ) -> Result<String> {
+        let budget = budget.restricted_to(&self.image.limits)?;
+        self.execute_dialect_budget(
+            tenant,
+            session,
+            request,
+            expected_version,
+            program_json,
+            budget.execution_context().cancellation().clone(),
+            RequestDialect::KqaProgram,
+            None,
+            Some(&budget),
+        )
+    }
+    /// Retain the enclosing operation's deadline, cancellation and fuel.
+    #[allow(clippy::too_many_arguments)]
+    pub fn execute_language_with_budget(
+        &self,
+        tenant: &str,
+        session: &str,
+        request: &str,
+        expected_version: i64,
+        question: &str,
+        budget: &Budget,
+    ) -> Result<String> {
+        let budget = budget.restricted_to(&self.image.limits)?;
+        self.execute_dialect_budget(
+            tenant,
+            session,
+            request,
+            expected_version,
+            question,
+            budget.execution_context().cancellation().clone(),
+            RequestDialect::Language,
+            None,
+            Some(&budget),
+        )
+    }
     #[allow(clippy::too_many_arguments)]
     fn execute_dialect(
         &self,
@@ -595,6 +698,31 @@ impl Runtime {
         cancellation: Cancellation,
         dialect: RequestDialect,
         effects: Option<HostEffects<'_>>,
+    ) -> Result<String> {
+        self.execute_dialect_budget(
+            tenant,
+            session,
+            request,
+            expected_version,
+            plan_json,
+            cancellation,
+            dialect,
+            effects,
+            None,
+        )
+    }
+    #[allow(clippy::too_many_arguments)]
+    fn execute_dialect_budget(
+        &self,
+        tenant: &str,
+        session: &str,
+        request: &str,
+        expected_version: i64,
+        plan_json: &str,
+        cancellation: Cancellation,
+        dialect: RequestDialect,
+        effects: Option<HostEffects<'_>>,
+        inherited_budget: Option<&Budget>,
     ) -> Result<String> {
         self.require_operation(dialect.operation(true))?;
         if matches!(dialect, RequestDialect::Language) && self.image.capabilities.reader.is_none() {
@@ -660,7 +788,14 @@ impl Runtime {
                 return Ok(reply);
             }
         }
-        let budget = Budget::new(limits, cancellation)?;
+        let owned_budget;
+        let budget = match inherited_budget {
+            Some(budget) => budget,
+            None => {
+                owned_budget = Budget::new(limits, cancellation)?;
+                &owned_budget
+            }
+        };
         budget.check()?;
         let plan = if matches!(dialect, RequestDialect::Language) {
             None
@@ -845,10 +980,20 @@ impl Image {
         plan_json: &str,
         cancellation: Cancellation,
     ) -> Result<String> {
+        let budget = Budget::new(&self.limits, cancellation)?;
+        self.query_with_budget(tenant, plan_json, &budget)
+    }
+    pub fn query_with_budget(
+        self: &Arc<Self>,
+        tenant: &str,
+        plan_json: &str,
+        budget: &Budget,
+    ) -> Result<String> {
         identifier(tenant)?;
         let limits = &self.limits;
+        let budget = budget.restricted_to(limits)?;
+        budget.check()?;
         let plan = Plan::parse(plan_json, limits)?;
-        let budget = Budget::new(limits, cancellation)?;
         let worker = self.acquire(tenant, &budget)?;
         let outcome = evaluate(
             &worker,

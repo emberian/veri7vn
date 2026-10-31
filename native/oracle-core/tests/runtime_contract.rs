@@ -395,3 +395,88 @@ fn lowered_limits_refuse_retained_values_without_rewriting_them() {
     );
     assert_eq!(run(&r, "t", "two", 1, &p)["version"], 2);
 }
+
+#[test]
+fn shared_execution_deadline_preserves_commit_and_replay_boundaries() {
+    use oracle_execution::ExecutionContext;
+    use oracle_runtime_core::Budget;
+    use std::time::Instant;
+    let f = Fixture::new();
+    let runtime = f.runtime(Limits::default());
+    let expired = Budget::from_execution_context(ExecutionContext::with_deadline(
+        100_000,
+        Instant::now(),
+        Cancellation::default(),
+    ));
+    let plan = find("Alice");
+    assert!(matches!(
+        runtime.query_with_budget("t", &plan, &expired),
+        Err(Error::Deadline)
+    ));
+    assert!(matches!(
+        runtime.execute_with_budget("t", "s", "one", 0, &plan, &expired),
+        Err(Error::Deadline)
+    ));
+    let fresh = Budget::new(&Limits::default(), Cancellation::default()).unwrap();
+    let committed = runtime
+        .execute_with_budget("t", "s", "one", 0, &plan, &fresh)
+        .unwrap();
+    assert_eq!(
+        serde_json::from_str::<Value>(&committed).unwrap()["version"],
+        1
+    );
+    // Durable retry is not another evaluation; its known outcome survives the
+    // deadline, just as a commit that finishes after cancellation does.
+    assert_eq!(
+        runtime
+            .execute_with_budget("t", "s", "one", 0, &plan, &expired)
+            .unwrap(),
+        committed
+    );
+}
+
+#[test]
+fn shared_execution_preserves_parent_and_local_core_fuel_caps() {
+    use oracle_runtime_core::Budget;
+    let program = r#"[{"function":"Find","dependencies":[],"inputs":["Alice"]},{"function":"What","dependencies":[0],"inputs":[]}]"#;
+    let f = Fixture::new();
+    let runtime = f.runtime(Limits::default());
+    let tiny = Budget::new(
+        &Limits {
+            fuel: 1,
+            ..Limits::default()
+        },
+        Cancellation::default(),
+    )
+    .unwrap();
+    assert!(matches!(
+        runtime.query_program_with_budget("t", program, &tiny),
+        Err(Error::Limit("fuel"))
+    ));
+    assert!(matches!(tiny.check(), Err(Error::Limit("fuel"))));
+    drop(runtime);
+    let runtime = f.runtime(Limits {
+        fuel: 1,
+        ..Limits::default()
+    });
+    let parent = Budget::new(&Limits::default(), Cancellation::default()).unwrap();
+    assert!(matches!(
+        runtime.query_program_with_budget("t", program, &parent),
+        Err(Error::Limit("fuel"))
+    ));
+    parent.check().unwrap();
+    assert!(matches!(
+        runtime
+            .image
+            .query_program_with_budget("t", program, &parent),
+        Err(Error::Limit("fuel"))
+    ));
+    assert!(matches!(
+        runtime
+            .image
+            .query_with_budget("t", &find("Alice"), &parent),
+        Err(Error::Limit("fuel"))
+    ));
+    parent.check().unwrap();
+    assert_eq!(runtime.image.active_workers(), 0);
+}

@@ -6,6 +6,9 @@ use oracle_host::{
 use std::path::PathBuf;
 const REV: &str = "0123456789abcdef0123456789abcdef01234567";
 fn pool() -> (tempfile::TempDir, EnginePool) {
+    pool_with_turn_ms(100)
+}
+fn pool_with_turn_ms(turn_ms: u64) -> (tempfile::TempDir, EnginePool) {
     let dir = tempfile::tempdir().unwrap();
     let python = std::env::split_paths(&std::env::var_os("PATH").unwrap())
         .map(|p| p.join("python3"))
@@ -46,7 +49,7 @@ for line in sys.stdin:
         state: dir.path().join("state"),
         workers: 1,
         startup_ms: 3000,
-        turn_ms: 100,
+        turn_ms,
         reply_bytes: 1024,
         specialist: None,
         compose: None,
@@ -101,4 +104,48 @@ fn timeout_protocol_and_oversize_retire_without_resurrecting_private_state() {
         assert_eq!(r["response"], "[]");
         assert!(fresh_g > g);
     }
+}
+
+#[test]
+fn shared_execution_pre_cancel_does_not_start_or_dispatch_engine() {
+    use oracle_execution::{Cancellation, ExecutionContext, ExecutionError};
+    use std::time::Duration;
+    let (_dir, pool) = pool();
+    let cancellation = Cancellation::default();
+    cancellation.cancel();
+    let context = ExecutionContext::new(10, Duration::from_secs(60), cancellation).unwrap();
+    assert!(matches!(
+        pool.ask_with_context("t", "remember:secret", "s", None, &context),
+        Err((EngineError::Budget(ExecutionError::Cancelled), None))
+    ));
+    assert_eq!(pool.health()["starts"], 0);
+    assert_eq!(pool.health()["retired"], 0);
+}
+
+#[test]
+fn shared_execution_deadline_retires_active_engine_before_capacity_returns() {
+    use oracle_execution::{Cancellation, ExecutionContext, ExecutionError};
+    use std::time::Duration;
+    let (dir, pool) = pool_with_turn_ms(2_000);
+    let (_, index, generation) = pool.ask("t", "remember:secret", "s", None).unwrap();
+    let pid_file = dir.path().join(format!("state/worker-{index}.pid"));
+    assert!(pid_file.is_file());
+    // The configured turn cap is 2,000 ms; this host allowance is already the
+    // remaining total budget after routing and is deliberately shorter.
+    let context =
+        ExecutionContext::new(10, Duration::from_millis(250), Cancellation::default()).unwrap();
+    assert!(matches!(
+        pool.ask_with_context("t", "timeout", "s", Some((index, generation)), &context),
+        Err((EngineError::Budget(ExecutionError::Deadline), Some(place))) if place == (index, generation)
+    ));
+    assert!(!pid_file.exists());
+    assert_eq!(pool.health()["retired"], 1);
+    assert_eq!(pool.health()["busy"], 0);
+    assert_eq!(
+        pool.validate_binding("t", index, generation),
+        Err(EngineError::Lost("conversation_reset_required"))
+    );
+    let (reply, _, next_generation) = pool.ask("t", "recall", "new", None).unwrap();
+    assert_eq!(reply["response"], "[]");
+    assert!(next_generation > generation);
 }

@@ -4,7 +4,7 @@
 //! Coverage includes whole templates, exact segments and one nested fragment pass.
 //! Fallbacks, analogy and clause patches remain unsupported. Direct
 //! graph/program execution does not inherit this reader's admission rules.
-use crate::grammar::{self, GrammarSpan, MatchLimits, MatchedProgram};
+use crate::grammar::{self, GrammarSpan, MatchLimits};
 use crate::lexicon::{self, CandidateOptions, LexiconLimits};
 use crate::program::{Operation, Program};
 use crate::query::{encode, evaluate_language_shared, LanguageWorkspace, Selection};
@@ -12,7 +12,7 @@ use crate::{Budget, Cancellation, Error, Image, Limits, QueryResult, Result};
 use rusqlite::Connection;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::collections::BTreeSet;
+use std::collections::{BTreeSet, HashMap};
 use std::sync::Arc;
 
 pub const COVERAGE: &str = "whole_and_exact_fragment_outer_v1+exact_segment_and_single_nested_v1";
@@ -180,6 +180,7 @@ fn evaluate_inner(
     };
     let mut result = ReaderResult::empty(identity, ReaderReason::NoTemplate);
     let mut shared = LanguageWorkspace::new(db)?;
+    let mut compilation = CompilationWorkspace::default();
     let mut lexical_workspace = lexicon::LexicalWorkspace::new(db, raw_question);
     let mut total_bytes = 0usize;
     let mut selection = None::<Selection>;
@@ -257,22 +258,12 @@ fn evaluate_inner(
             match_limits,
             budget,
             |fragment| {
-                let candidate = MatchedProgram {
-                    template: String::new(),
-                    level,
-                    support: 0,
-                    program: fragment.clone(),
-                };
-                let Some((program, plan)) = compile_candidate(&candidate, limits)? else {
+                let Some(compiled) = compilation.compile(fragment, limits)? else {
                     // A malformed/unsupported fragment must not disappear and
                     // leave another reading falsely certain.
                     return Err(Error::Invalid("unsupported composition fragment".into()));
                 };
-                if program
-                    .0
-                    .last()
-                    .is_none_or(|s| s.function.contract().output != crate::ProgramType::Entities)
-                {
+                if compiled.terminal.contract().output != crate::ProgramType::Entities {
                     return Err(Error::Format("non-entity composition fragment".into()));
                 }
                 // Viability needs one boolean, so no ids, facts or attributes
@@ -283,7 +274,7 @@ fn evaluate_inner(
                     crate::query::evaluate_language_demand(
                         db,
                         identity,
-                        &plan,
+                        &compiled.plan,
                         previous,
                         limits,
                         budget,
@@ -300,8 +291,8 @@ fn evaluate_inner(
             if result.matched_programs > reader_limits.matched_programs {
                 return Err(Error::Limit("reader matched programs"));
             }
-            let compiled = compile_candidate(&candidate, limits)?;
-            let Some((program, plan)) = compiled else {
+            let compiled = compilation.compile(&candidate.program, limits)?;
+            let Some(compiled) = compiled else {
                 result.unsupported_programs += 1;
                 continue;
             };
@@ -311,7 +302,7 @@ fn evaluate_inner(
             let evaluation = evaluate_language_shared(
                 db,
                 identity,
-                &plan,
+                &compiled.plan,
                 previous,
                 limits,
                 budget,
@@ -321,10 +312,7 @@ fn evaluate_inner(
             let Some((query, selected)) = evaluation? else {
                 continue;
             };
-            match execution_answer(
-                &query,
-                program.0.last().expect("validated program").function,
-            )? {
+            match execution_answer(&query, compiled.terminal)? {
                 Answer::Absent => continue,
                 Answer::Ambiguous => {
                     result.ambiguous_executions += 1;
@@ -409,24 +397,63 @@ fn evaluate_inner(
     Ok((result, selected))
 }
 
-fn compile_candidate(
-    candidate: &MatchedProgram,
-    limits: &Limits,
-) -> Result<Option<(Program, crate::Plan)>> {
-    if candidate.program.len() > limits.plan_nodes {
-        return Err(Error::Limit("reader program steps"));
-    }
-    let encoded = encode(&candidate.program, limits.request_bytes)?;
-    let result = Program::parse(&encoded, limits).and_then(|program| {
-        let plan = program.compile(limits)?;
-        Ok((program, plan))
-    });
-    match result {
-        Ok(compiled) => Ok(Some(compiled)),
-        // A native-uncovered/malformed learned candidate cannot erase ambiguity
-        // by disappearing. The caller vetoes the complete reader answer.
-        Err(Error::Invalid(_) | Error::Json(_)) => Ok(None),
-        Err(error) => Err(error),
+/// A checked plan is immutable and owned only by this request. Syntax identity
+/// is deliberately stricter than equal answers: it retains dead branches, exact
+/// literal spelling and qualifier operations. Derivation metadata is NOT a key;
+/// every admitted derivation still passes agreement and form checks separately.
+struct CompiledCandidate {
+    terminal: Operation,
+    plan: crate::Plan,
+}
+
+#[derive(Default)]
+struct CompilationWorkspace {
+    plans: HashMap<Program, Arc<CompiledCandidate>>,
+    retained_bytes: usize,
+}
+
+impl CompilationWorkspace {
+    fn compile(
+        &mut self,
+        syntax: &grammar::Program,
+        limits: &Limits,
+    ) -> Result<Option<Arc<CompiledCandidate>>> {
+        if syntax.len() > limits.plan_nodes {
+            return Err(Error::Limit("reader program steps"));
+        }
+        let program = match Program::from_reader(syntax, limits) {
+            Ok(program) => program,
+            Err(Error::Invalid(_) | Error::Json(_)) => return Ok(None),
+            Err(error) => return Err(error),
+        };
+        if let Some(compiled) = self.plans.get(&program) {
+            return Ok(Some(Arc::clone(compiled)));
+        }
+        let plan = match program.compile(limits) {
+            Ok(plan) => plan,
+            Err(Error::Invalid(_) | Error::Json(_)) => return Ok(None),
+            Err(error) => return Err(error),
+        };
+        let compiled = Arc::new(CompiledCandidate {
+            terminal: program.0.last().expect("validated program").function,
+            plan,
+        });
+        // Cache residency is optional. A conservative charge bounds retained
+        // syntax/plan storage without turning a cache miss into a refusal. The
+        // ordinary compilation and evaluation bounds still apply on every miss.
+        let charge = crate::query::encoded_size(&program, limits.request_bytes)?
+            .saturating_add(crate::query::encoded_size(&compiled.plan, usize::MAX)?)
+            .saturating_mul(16)
+            .saturating_add(512);
+        if charge
+            <= limits
+                .materialized_bytes
+                .saturating_sub(self.retained_bytes)
+        {
+            self.retained_bytes += charge;
+            self.plans.insert(program, Arc::clone(&compiled));
+        }
+        Ok(Some(compiled))
     }
 }
 
@@ -499,6 +526,32 @@ impl Image {
             return Err(Error::Format("image has no learned reader tables".into()));
         }
         let budget = Budget::new(&self.limits, cancellation)?;
+        self.read_whole_with_limits_and_budget(tenant, question, reader_limits, &budget)
+    }
+
+    /// Reuse the caller's deadline, cancellation and aggregate work allowance.
+    pub fn read_whole_with_budget(
+        self: &Arc<Self>,
+        tenant: &str,
+        question: &str,
+        budget: &Budget,
+    ) -> Result<String> {
+        self.read_whole_with_limits_and_budget(tenant, question, &ReaderLimits::default(), budget)
+    }
+
+    pub fn read_whole_with_limits_and_budget(
+        self: &Arc<Self>,
+        tenant: &str,
+        question: &str,
+        reader_limits: &ReaderLimits,
+        budget: &Budget,
+    ) -> Result<String> {
+        crate::runtime::identifier(tenant)?;
+        if self.capabilities.reader.is_none() {
+            return Err(Error::Format("image has no learned reader tables".into()));
+        }
+        let budget = budget.restricted_to(&self.limits)?;
+        budget.check()?;
         let worker = self.acquire(tenant, &budget)?;
         let outcome = evaluate_whole(
             &worker,
@@ -512,5 +565,58 @@ impl Image {
         budget.check()?;
         let (result, _) = outcome?;
         encode(&result, self.limits.result_bytes)
+    }
+}
+
+#[cfg(test)]
+mod compilation_tests {
+    use super::*;
+    use serde_json::json;
+
+    fn syntax(name: &str, qualifier: &str) -> grammar::Program {
+        serde_json::from_value(json!([
+            {"function":"Find","dependencies":[],"inputs":[name]},
+            {"function":"Find","dependencies":[],"inputs":["Alice"]},
+            {"function":"Relate","dependencies":[1],"inputs":["meets","forward"]},
+            {"function":"QFilterYear","dependencies":[2],"inputs":["since",qualifier,"="]}
+        ]))
+        .unwrap()
+    }
+
+    #[test]
+    fn compilation_shares_only_exact_complete_syntax_within_request() {
+        let limits = Limits::default();
+        let mut workspace = CompilationWorkspace::default();
+        let first = workspace
+            .compile(&syntax("Unused", "2000"), &limits)
+            .unwrap()
+            .unwrap();
+        let repeated = workspace
+            .compile(&syntax("Unused", "2000"), &limits)
+            .unwrap()
+            .unwrap();
+        assert!(Arc::ptr_eq(&first, &repeated));
+        for alternative in [
+            syntax("Other dead branch", "2000"),
+            syntax("Unused", "2001"),
+        ] {
+            let other = workspace.compile(&alternative, &limits).unwrap().unwrap();
+            assert!(!Arc::ptr_eq(&first, &other));
+        }
+        let new_request = CompilationWorkspace::default()
+            .compile(&syntax("Unused", "2000"), &limits)
+            .unwrap()
+            .unwrap();
+        assert!(!Arc::ptr_eq(&first, &new_request));
+    }
+
+    #[test]
+    fn unsupported_dead_branch_still_vetoes_compilation() {
+        let mut syntax = syntax("Unused", "2000");
+        syntax[0].function = "NotAnOperation".into();
+        assert!(CompilationWorkspace::default()
+            .compile(&syntax, &Limits::default())
+            .unwrap()
+            .is_none());
     }
 }

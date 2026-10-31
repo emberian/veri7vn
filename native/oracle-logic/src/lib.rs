@@ -4,6 +4,7 @@
 #![forbid(unsafe_code)]
 pub mod hosted;
 pub mod process;
+use oracle_execution::{ExecutionError, WorkControl};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -89,11 +90,11 @@ pub struct Budget<'a> {
     output_left: usize,
     start: Instant,
     ms: u64,
-    cancel: &'a AtomicBool,
+    cancel: &'a dyn WorkControl,
     limits: &'a Limits,
 }
 impl<'a> Budget<'a> {
-    pub fn new(l: &'a Limits, cancel: &'a AtomicBool) -> Self {
+    pub fn new(l: &'a Limits, cancel: &'a dyn WorkControl) -> Self {
         Self {
             left: l.checker_work,
             output_left: l.output_bytes,
@@ -104,9 +105,12 @@ impl<'a> Budget<'a> {
         }
     }
     pub fn tick(&mut self) -> Result<(), Error> {
-        if self.cancel.load(Ordering::Relaxed) {
-            return Err(Error::Cancelled);
-        }
+        self.cancel.checkpoint(1).map_err(|error| match error {
+            ExecutionError::Cancelled => Error::Cancelled,
+            ExecutionError::Deadline => Error::Limit("shared deadline"),
+            ExecutionError::FuelExhausted => Error::Limit("shared work"),
+            _ => Error::Limit("shared execution budget"),
+        })?;
         if self.start.elapsed() >= Duration::from_millis(self.ms) {
             return Err(Error::Limit("deadline"));
         }

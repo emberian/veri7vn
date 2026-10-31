@@ -5,12 +5,12 @@
 //! Scalar producers become final projections over a shared entity DAG. No entity
 //! IDs or intermediate rows cross the language boundary during compilation.
 
+use crate::query::{Node, Projection, QualifierCondition, SelectionOrder, ValuePredicate};
 use crate::value::{ComparisonOp, TypedValue, ValueKind, ValueLimits};
 use crate::{Error, Limits, Plan, Result};
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Value};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Deserialize, Serialize)]
 pub enum Operation {
     FindAll,
     Find,
@@ -51,7 +51,7 @@ pub enum ProgramType {
 
 /// The upstream wire format. Unknown fields, operations and non-string literals
 /// are rejected rather than passed through to Python.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ProgramStep {
     pub function: Operation,
@@ -59,7 +59,7 @@ pub struct ProgramStep {
     pub inputs: Vec<String>,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
 #[serde(transparent)]
 pub struct Program(pub Vec<ProgramStep>);
 
@@ -189,7 +189,7 @@ impl Program {
             return Err(Error::Invalid("program dimensions".into()));
         }
         // Programmatic callers receive the same byte bound as wire callers.
-        crate::query::encode(self, limits.request_bytes)?;
+        crate::query::encoded_size(self, limits.request_bytes)?;
         let mut types = Vec::with_capacity(self.0.len());
         for (index, step) in self.0.iter().enumerate() {
             let contract = step.function.contract();
@@ -259,97 +259,172 @@ impl Program {
     /// retains DAG sharing; it contains no source-data-dependent expansion.
     pub fn compile(&self, limits: &Limits) -> Result<Plan> {
         self.validate(limits)?;
-        let mut nodes = Vec::<Value>::new();
+        self.compile_validated(limits)
+    }
+
+    /// This path is private: callers must first validate the complete program,
+    /// including branches that are not dependencies of the final projection.
+    fn compile_validated(&self, limits: &Limits) -> Result<Plan> {
+        let mut nodes = Vec::new();
         let mut lowered = Vec::<Lowered>::with_capacity(self.0.len());
         for step in &self.0 {
             use Operation::*;
             let inputs = &step.inputs;
-            // Validation proved every dependency's type and position.
             let entity = |n: usize| lowered[step.dependencies[n]].entity();
-            let predicate = |kind: Option<ValueKind>, literal: &str, comparison: &str| json!({"kind":kind,"literal":literal,"comparison":comparison});
+            let predicate = |kind, literal: &str, comparison: &str| -> Result<ValuePredicate> {
+                Ok(ValuePredicate {
+                    kind,
+                    literal: literal.to_owned(),
+                    comparison: operator(comparison)?,
+                })
+            };
             let (node, scalar) = match step.function {
-                FindAll => (Some(json!({"op":"all"})), None),
-                Find => (Some(json!({"op":"find","name":inputs[0]})), None),
+                FindAll => (Some(Node::All), None),
+                Find => (
+                    Some(Node::Find {
+                        name: inputs[0].clone(),
+                    }),
+                    None,
+                ),
                 FilterConcept => (
-                    Some(json!({"op":"filter_concept","input":entity(0),"name":inputs[0]})),
+                    Some(Node::FilterConcept {
+                        input: entity(0),
+                        name: inputs[0].clone(),
+                    }),
                     None,
                 ),
                 Relate => (
-                    Some(
-                        json!({"op":"relate","input":entity(0),"predicate":inputs[0],"direction":inputs[1]}),
-                    ),
+                    Some(Node::Relate {
+                        input: entity(0),
+                        predicate: inputs[0].clone(),
+                        direction: inputs[1].clone(),
+                    }),
                     None,
                 ),
-                And | Or => (
-                    Some(
-                        json!({"op":if step.function == And {"and"} else {"or"},"left":entity(0),"right":entity(1)}),
-                    ),
+                And => (
+                    Some(Node::And {
+                        left: entity(0),
+                        right: entity(1),
+                    }),
+                    None,
+                ),
+                Or => (
+                    Some(Node::Or {
+                        left: entity(0),
+                        right: entity(1),
+                    }),
                     None,
                 ),
                 FilterStr | FilterNum | FilterYear | FilterDate | QFilterStr | QFilterNum
                 | QFilterYear | QFilterDate => {
                     let comparison = if inputs.len() == 2 { "=" } else { &inputs[2] };
-                    let op = if matches!(
+                    let predicate =
+                        predicate(step.function.literal_kind(), &inputs[1], comparison)?;
+                    let input = entity(0);
+                    let key = inputs[0].clone();
+                    let node = if matches!(
                         step.function,
                         QFilterStr | QFilterNum | QFilterYear | QFilterDate
                     ) {
-                        "filter_qualifier"
+                        Node::FilterQualifier {
+                            input,
+                            key,
+                            predicate,
+                        }
                     } else {
-                        "filter_attribute"
+                        Node::FilterAttribute {
+                            input,
+                            key,
+                            predicate,
+                        }
                     };
-                    (
-                        Some(
-                            json!({"op":op,"input":entity(0),"key":inputs[0],"predicate":predicate(step.function.literal_kind(), &inputs[1], comparison)}),
-                        ),
-                        None,
-                    )
+                    (Some(node), None)
                 }
-                What => (None, Some((entity(0), json!({"kind":"unique_name"})))),
-                Count => (None, Some((entity(0), json!({"kind":"count"})))),
+                What => (None, Some((entity(0), Projection::UniqueName))),
+                Count => (None, Some((entity(0), Projection::Count))),
                 QueryAttr => (
                     None,
                     Some((
                         entity(0),
-                        json!({"kind":"unique_attribute","key":inputs[0]}),
+                        Projection::UniqueAttribute {
+                            key: inputs[0].clone(),
+                            condition: None,
+                        },
                     )),
                 ),
                 QueryAttrUnderCondition => (
                     None,
                     Some((
                         entity(0),
-                        json!({"kind":"unique_attribute","key":inputs[0],"condition":{"key":inputs[1],"predicate":predicate(None, &inputs[2], "=")}}),
+                        Projection::UniqueAttribute {
+                            key: inputs[0].clone(),
+                            condition: Some(QualifierCondition {
+                                key: inputs[1].clone(),
+                                predicate: predicate(None, &inputs[2], "=")?,
+                            }),
+                        },
                     )),
                 ),
                 QueryAttrQualifier => (
                     None,
                     Some((
                         entity(0),
-                        json!({"kind":"attribute_qualifier","key":inputs[0],"predicate":predicate(None, &inputs[1], "="),"qualifier":inputs[2]}),
+                        Projection::AttributeQualifier {
+                            key: inputs[0].clone(),
+                            predicate: predicate(None, &inputs[1], "=")?,
+                            qualifier: inputs[2].clone(),
+                        },
                     )),
                 ),
                 QueryRelation => (
                     None,
-                    Some((entity(0), json!({"kind":"relation","target":entity(1)}))),
+                    Some((
+                        entity(0),
+                        Projection::Relation {
+                            target: entity(1),
+                            direction: None,
+                        },
+                    )),
                 ),
                 QueryRelationQualifier => (
                     None,
                     Some((
                         entity(0),
-                        json!({"kind":"relation_qualifier","target":entity(1),"predicate":inputs[0],"qualifier":inputs[1]}),
+                        Projection::RelationQualifier {
+                            target: entity(1),
+                            predicate: inputs[0].clone(),
+                            direction: None,
+                            qualifier: inputs[1].clone(),
+                        },
                     )),
                 ),
                 SelectAmong => (
                     None,
                     Some((
                         entity(0),
-                        json!({"kind":"select","key":inputs[0],"order":inputs[1]}),
+                        Projection::Select {
+                            key: inputs[0].clone(),
+                            order: if inputs[1] == "largest" {
+                                SelectionOrder::Largest
+                            } else {
+                                SelectionOrder::Smallest
+                            },
+                        },
                     )),
                 ),
                 SelectBetween => (
                     None,
                     Some((
                         entity(0),
-                        json!({"kind":"select_between","target":entity(1),"key":inputs[0],"order":if inputs[1] == "greater" {"largest"} else {"smallest"}}),
+                        Projection::SelectBetween {
+                            target: entity(1),
+                            key: inputs[0].clone(),
+                            order: if inputs[1] == "greater" {
+                                SelectionOrder::Largest
+                            } else {
+                                SelectionOrder::Smallest
+                            },
+                        },
                     )),
                 ),
                 VerifyStr | VerifyNum | VerifyYear | VerifyDate => {
@@ -362,7 +437,14 @@ impl Program {
                         None,
                         Some((
                             *output,
-                            json!({"kind":"verify","source":projection,"predicate":predicate(step.function.literal_kind(), &inputs[0], comparison)}),
+                            Projection::Verify {
+                                source: Box::new(projection.clone()),
+                                predicate: predicate(
+                                    step.function.literal_kind(),
+                                    &inputs[0],
+                                    comparison,
+                                )?,
+                            },
                         )),
                     )
                 }
@@ -377,26 +459,77 @@ impl Program {
             }
         }
         let (output, projection) = match lowered.last().expect("nonempty validated program") {
-            Lowered::Entities(output) => (*output, json!({"kind":"entities"})),
+            Lowered::Entities(output) => (*output, Projection::Entities),
             Lowered::Scalar { output, projection } => (*output, projection.clone()),
         };
-        // Typed Plan admission remains the single authority for executable DAGs.
-        // The translated representation can be larger than its wire request.
-        // Bound that internal allocation separately; the original program has
-        // already passed the request-byte bound, including programmatic callers.
-        let wire = crate::query::encode(
-            &json!({"nodes":nodes,"output":output,"projection":projection}),
-            limits.materialized_bytes,
-        )?;
-        let mut translated_limits = limits.clone();
-        translated_limits.request_bytes = limits.materialized_bytes;
-        Plan::parse(&wire, &translated_limits)
+        let plan = Plan {
+            nodes,
+            output,
+            projection,
+        };
+        // The former lowering omitted these optional null fields. Preserve its
+        // exact internal byte boundary while constructing the same typed plan.
+        fn omitted_bytes(projection: &Projection) -> usize {
+            match projection {
+                Projection::UniqueAttribute {
+                    condition: None, ..
+                } => ",\"condition\":null".len(),
+                Projection::Relation {
+                    direction: None, ..
+                }
+                | Projection::RelationQualifier {
+                    direction: None, ..
+                } => ",\"direction\":null".len(),
+                Projection::Verify { source, .. } => omitted_bytes(source),
+                _ => 0,
+            }
+        }
+        let omitted = omitted_bytes(&plan.projection);
+        crate::query::encoded_size(&plan, limits.materialized_bytes.saturating_add(omitted))?;
+        plan.validate(limits)?;
+        Ok(plan)
+    }
+
+    /// Convert learned syntax without a JSON round trip. This is still untrusted
+    /// input: the complete operation contract is checked before compilation.
+    pub(crate) fn from_reader(steps: &crate::grammar::Program, limits: &Limits) -> Result<Self> {
+        // Preserve the original reader byte admission even for invalid syntax.
+        crate::query::encoded_size(steps, limits.request_bytes)?;
+        let steps = steps
+            .iter()
+            .map(|step| {
+                let function = Operation::deserialize(serde::de::value::StrDeserializer::<
+                    serde::de::value::Error,
+                >::new(&step.function))
+                .map_err(|e| Error::Invalid(e.to_string()))?;
+                let inputs = step
+                    .inputs
+                    .iter()
+                    .map(|v| {
+                        v.as_str().map(str::to_owned).ok_or_else(|| {
+                            Error::Invalid("program literal must be a string".into())
+                        })
+                    })
+                    .collect::<Result<Vec<_>>>()?;
+                Ok(ProgramStep {
+                    function,
+                    dependencies: step.dependencies.clone(),
+                    inputs,
+                })
+            })
+            .collect::<Result<Vec<_>>>()?;
+        let program = Self(steps);
+        program.validate(limits)?;
+        Ok(program)
     }
 }
 
 enum Lowered {
     Entities(usize),
-    Scalar { output: usize, projection: Value },
+    Scalar {
+        output: usize,
+        projection: Projection,
+    },
 }
 
 impl Lowered {
@@ -405,5 +538,104 @@ impl Lowered {
             Self::Entities(index) => *index,
             Self::Scalar { .. } => unreachable!("validated entity dependency"),
         }
+    }
+}
+
+#[cfg(test)]
+mod typed_reader_tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn reader_conversion_agrees_with_wire_admission() {
+        let cases = [
+            json!([]),
+            json!([{"function":"Find","dependencies":[],"inputs":["α\n\"x"]}]),
+            json!([{"function":"Find","inputs":[42]}]),
+            json!([{"function":"Find","inputs":[null]}]),
+            json!([{"function":"Missing","inputs":[]}]),
+            json!([{"function":"What","dependencies":[0],"inputs":[]}]),
+            json!([{"function":"FindAll","inputs":[]},{"function":"FilterNum","dependencies":[0],"inputs":["mass","9007199254740993 kilogram","="]}]),
+            json!([{"function":"FindAll","inputs":[]},{"function":"FilterDate","dependencies":[0],"inputs":["born","1900-02-29","="]},{"function":"FindAll","inputs":[]}]),
+        ];
+        for value in cases {
+            let syntax: crate::grammar::Program = serde_json::from_value(value).unwrap();
+            let wire = serde_json::to_string(&syntax).unwrap();
+            for bound in [wire.len().saturating_sub(1), wire.len(), wire.len() + 1] {
+                let limits = Limits {
+                    request_bytes: bound,
+                    ..Limits::default()
+                };
+                let direct = Program::from_reader(&syntax, &limits);
+                let parsed = Program::parse(&wire, &limits);
+                assert_eq!(direct.is_ok(), parsed.is_ok(), "{wire}, bound {bound}");
+                if let (Ok(direct), Ok(parsed)) = (direct, parsed) {
+                    assert_eq!(direct, parsed);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn typed_lowering_preserves_original_internal_byte_boundary() {
+        for (function, inputs, projection) in [
+            (
+                "QueryAttr",
+                json!(["mass"]),
+                json!({"kind":"unique_attribute","key":"mass"}),
+            ),
+            (
+                "QueryAttrUnderCondition",
+                json!(["mass", "since", "2000"]),
+                json!({"kind":"unique_attribute","key":"mass","condition":{"key":"since","predicate":{"kind":null,"literal":"2000","comparison":"="}}}),
+            ),
+        ] {
+            let wire = json!([
+                {"function":"FindAll","dependencies":[],"inputs":[]},
+                {"function":function,"dependencies":[0],"inputs":inputs}
+            ])
+            .to_string();
+            let old_lowered =
+                json!({"nodes":[{"op":"all"}],"output":0,"projection":projection}).to_string();
+            let program = Program::parse(&wire, &Limits::default()).unwrap();
+            for (bound, accepted) in [(old_lowered.len() - 1, false), (old_lowered.len(), true)] {
+                let limits = Limits {
+                    materialized_bytes: bound,
+                    ..Limits::default()
+                };
+                assert_eq!(program.compile(&limits).is_ok(), accepted);
+            }
+        }
+    }
+
+    #[test]
+    fn counting_writer_matches_json_byte_length() {
+        for value in [json!("α\n\"\\"), json!([1, 2, 3]), json!({"a":null})] {
+            let length = serde_json::to_vec(&value).unwrap().len();
+            assert_eq!(crate::query::encoded_size(&value, length).unwrap(), length);
+            assert!(crate::query::encoded_size(&value, length - 1).is_err());
+        }
+    }
+
+    #[test]
+    fn typed_lowering_retains_dead_nodes_exact_literals_and_qualifier_scope() {
+        let program = Program::parse(r#"[
+            {"function":"Find","dependencies":[],"inputs":["Unused"]},
+            {"function":"Find","dependencies":[],"inputs":["Alice"]},
+            {"function":"QueryAttrUnderCondition","dependencies":[1],"inputs":["mass","since","2000"]},
+            {"function":"VerifyNum","dependencies":[2],"inputs":["9007199254740993 kilogram","="]}
+        ]"#, &Limits::default()).unwrap();
+        let plan = program.compile(&Limits::default()).unwrap();
+        let expected = json!({
+            "nodes":[{"op":"find","name":"Unused"},{"op":"find","name":"Alice"}],
+            "output":1,
+            "projection":{"kind":"verify", "source":{"kind":"unique_attribute","key":"mass",
+                "condition":{"key":"since","predicate":{"kind":null,"literal":"2000","comparison":"="}}},
+                "predicate":{"kind":"quantity","literal":"9007199254740993 kilogram","comparison":"="}}
+        });
+        assert_eq!(serde_json::to_value(&plan).unwrap(), expected);
+        let wire = serde_json::to_string(&plan).unwrap();
+        let parsed = Plan::parse(&wire, &Limits::default()).unwrap();
+        assert_eq!(serde_json::to_value(parsed).unwrap(), expected);
     }
 }

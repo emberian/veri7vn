@@ -4,8 +4,8 @@
 #![forbid(unsafe_code)]
 
 use bio::alignment::{pairwise::Aligner, AlignmentOperation};
+use oracle_execution::{ExecutionError, WorkControl};
 use serde::{Deserialize, Serialize};
-use std::sync::atomic::{AtomicBool, Ordering};
 
 pub const SCHEMA: &str = "oracle-bio-experimental-v1";
 pub const MAX_REQUEST_BYTES: usize = 256 * 1024;
@@ -145,12 +145,13 @@ pub struct AlignmentResult {
     pub interpretation: &'static str,
 }
 
-fn checkpoint(cancel: &AtomicBool) -> Result<()> {
-    if cancel.load(Ordering::Relaxed) {
-        Err(Error::Cancelled)
-    } else {
-        Ok(())
-    }
+fn checkpoint(cancel: &dyn WorkControl) -> Result<()> {
+    cancel.checkpoint(1).map_err(|error| match error {
+        ExecutionError::Cancelled => Error::Cancelled,
+        ExecutionError::Deadline => Error::Limit("shared deadline"),
+        ExecutionError::FuelExhausted => Error::Limit("shared work"),
+        _ => Error::Limit("shared execution budget"),
+    })
 }
 fn canonical(b: u8) -> bool {
     matches!(b, b'A' | b'C' | b'G' | b'T')
@@ -224,7 +225,13 @@ fn admission(input: &AlignmentInput, limits: &Limits) -> Result<(usize, usize)> 
 
 /// Independent rolling-row affine DP. It reads only input and scoring, never
 /// Rust-Bio's matrices, traceback or reported score. Four i64 rows, O(m*n).
-fn optimal_score(x: &[u8], y: &[u8], mode: Mode, s: Scoring, cancel: &AtomicBool) -> Result<i64> {
+fn optimal_score(
+    x: &[u8],
+    y: &[u8],
+    mode: Mode,
+    s: Scoring,
+    cancel: &dyn WorkControl,
+) -> Result<i64> {
     const NEG: i64 = i64::MIN / 4;
     let gap = |k: usize| i64::from(s.gap_open) + (k as i64 - 1) * i64::from(s.gap_extend);
     let mut prev = vec![0_i64; y.len() + 1];
@@ -271,7 +278,7 @@ fn replay(
     x: &[u8],
     y: &[u8],
     candidate: &Candidate,
-    cancel: &AtomicBool,
+    cancel: &dyn WorkControl,
 ) -> Result<Checks> {
     let c = candidate;
     if c.query_start > c.query_end
@@ -371,7 +378,7 @@ pub fn check_alignment(
     input: &AlignmentInput,
     candidate: &Candidate,
     limits: &Limits,
-    cancel: &AtomicBool,
+    cancel: &dyn WorkControl,
 ) -> Result<Checks> {
     checkpoint(cancel)?;
     admission(input, limits)?;
@@ -390,10 +397,17 @@ pub fn check_alignment(
 pub fn align_pairwise(
     input: &AlignmentInput,
     limits: &Limits,
-    cancel: &AtomicBool,
+    cancel: &dyn WorkControl,
 ) -> Result<AlignmentResult> {
     checkpoint(cancel)?;
     let (cells, bytes) = admission(input, limits)?;
+    // Charge the bounded foreign-kernel estimate before allocating/running it.
+    cancel.checkpoint(cells as u64).map_err(|e| match e {
+        ExecutionError::Cancelled => Error::Cancelled,
+        ExecutionError::Deadline => Error::Limit("shared deadline"),
+        ExecutionError::FuelExhausted => Error::Limit("shared work"),
+        _ => Error::Limit("shared execution budget"),
+    })?;
     let x = input.query.to_ascii_uppercase();
     let y = input.reference.to_ascii_uppercase();
     let (x, y) = (x.as_bytes(), y.as_bytes());
@@ -473,11 +487,11 @@ pub fn align_pairwise(
 
 #[derive(Deserialize)]
 #[serde(tag = "operation", content = "arguments", deny_unknown_fields)]
-enum Request {
+pub enum Request {
     #[serde(rename = "bio.align_pairwise")]
     Align(AlignmentInput),
 }
-pub fn call(request: &str, limits: &Limits, cancel: &AtomicBool) -> Result<String> {
+pub fn call(request: &str, limits: &Limits, cancel: &dyn WorkControl) -> Result<String> {
     checkpoint(cancel)?;
     if request.len() > limits.request_bytes.min(MAX_REQUEST_BYTES) {
         return Err(Error::Limit("request bytes"));

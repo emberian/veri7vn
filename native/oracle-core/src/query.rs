@@ -201,19 +201,59 @@ pub(crate) fn encode<T: Serialize>(value: &T, limit: usize) -> Result<String> {
     String::from_utf8(writer.bytes).map_err(|_| Error::Format("invalid encoded UTF-8".into()))
 }
 
+/// Count the canonical wire representation without allocating an encoded copy.
+/// Uses serde's own escaping/number rules, so byte admission stays exact.
+pub(crate) fn encoded_size<T: Serialize>(value: &T, limit: usize) -> Result<usize> {
+    struct Counter {
+        bytes: usize,
+        limit: usize,
+        exceeded: bool,
+    }
+    impl Write for Counter {
+        fn write(&mut self, bytes: &[u8]) -> std::io::Result<usize> {
+            if bytes.len() > self.limit.saturating_sub(self.bytes) {
+                self.exceeded = true;
+                return Err(std::io::Error::other("encoded byte limit"));
+            }
+            self.bytes += bytes.len();
+            Ok(bytes.len())
+        }
+        fn flush(&mut self) -> std::io::Result<()> {
+            Ok(())
+        }
+    }
+    let mut counter = Counter {
+        bytes: 0,
+        limit,
+        exceeded: false,
+    };
+    let result = serde_json::to_writer(&mut counter, value);
+    if counter.exceeded {
+        return Err(Error::Limit("encoded bytes"));
+    }
+    result?;
+    Ok(counter.bytes)
+}
+
 impl Plan {
     pub fn parse(text: &str, limits: &Limits) -> Result<Self> {
         if text.len() > limits.request_bytes {
             return Err(Error::Limit("request bytes"));
         }
         let plan: Self = serde_json::from_str(text)?;
-        if plan.nodes.is_empty()
-            || plan.nodes.len() > limits.plan_nodes
-            || plan.output >= plan.nodes.len()
+        plan.validate(limits)?;
+        Ok(plan)
+    }
+
+    /// Shared structural admission for wire and checked typed producers.
+    pub(crate) fn validate(&self, limits: &Limits) -> Result<()> {
+        if self.nodes.is_empty()
+            || self.nodes.len() > limits.plan_nodes
+            || self.output >= self.nodes.len()
         {
             return Err(Error::Invalid("plan dimensions".into()));
         }
-        for (i, node) in plan.nodes.iter().enumerate() {
+        for (i, node) in self.nodes.iter().enumerate() {
             let deps = match node {
                 Node::Relate {
                     input, direction, ..
@@ -240,8 +280,8 @@ impl Plan {
                 return Err(Error::Invalid("dependency must precede consumer".into()));
             }
         }
-        plan.projection.validate(plan.nodes.len(), 0)?;
-        Ok(plan)
+        self.projection.validate(self.nodes.len(), 0)?;
+        Ok(())
     }
 }
 

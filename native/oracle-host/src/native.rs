@@ -203,7 +203,7 @@ impl NativeRuntime {
         tenant: &str,
         request_id: &str,
         conversation_id: &str,
-        cancellation: core::Cancellation,
+        context: oracle_execution::ExecutionContext,
     ) -> Result<Value, Failure> {
         let (id, field, stateful) =
             operation(id).ok_or_else(|| Failure::plain(404, "unknown_operation"))?;
@@ -227,19 +227,18 @@ impl NativeRuntime {
             .get("expected_version")
             .and_then(Value::as_i64)
             .unwrap_or(0);
+        let budget = core::Budget::from_execution_context(context);
         let raw = match id {
-            "graph.query" => runtime.query(tenant, input, cancellation),
-            "kqa.query" => runtime.query_program(tenant, input, cancellation),
-            "reader.whole" => runtime.read_whole(tenant, input, cancellation),
+            "graph.query" => runtime.query_with_budget(tenant, input, &budget),
+            "kqa.query" => runtime.query_program_with_budget(tenant, input, &budget),
+            "reader.whole" => runtime.read_whole_with_budget(tenant, input, &budget),
             "graph.execute" => {
-                runtime.execute(tenant, &session, &request, expected, input, cancellation)
+                runtime.execute_with_budget(tenant, &session, &request, expected, input, &budget)
             }
-            "kqa.execute" => {
-                runtime.execute_program(tenant, &session, &request, expected, input, cancellation)
-            }
-            _ => {
-                runtime.execute_language(tenant, &session, &request, expected, input, cancellation)
-            }
+            "kqa.execute" => runtime
+                .execute_program_with_budget(tenant, &session, &request, expected, input, &budget),
+            _ => runtime
+                .execute_language_with_budget(tenant, &session, &request, expected, input, &budget),
         };
         let raw = raw.map_err(|e| match e {
             core::Error::Conflict(_) => Failure::new(
@@ -398,12 +397,15 @@ impl NativeRuntime {
         &self,
         tenant: &str,
         question: &str,
-        cancellation: core::Cancellation,
+        context: oracle_execution::ExecutionContext,
     ) -> crate::front::Candidate {
         use crate::front::{Candidate, Offer};
         let route = "native:reader".to_owned();
         let started = std::time::Instant::now();
-        let result = self.runtime.read_whole(tenant, question, cancellation);
+        let budget = core::Budget::from_execution_context(context);
+        let result = self
+            .runtime
+            .read_whole_with_budget(tenant, question, &budget);
         let ms = started.elapsed().as_secs_f64() * 1000.0;
         let raw = match result {
             Ok(raw) => raw,

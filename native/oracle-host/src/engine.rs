@@ -13,6 +13,7 @@
 
 use crate::config::{self, err, ConfigError, EngineConfig};
 use crate::front::{Candidate, Offer};
+use oracle_execution::{Cancellation, ExecutionContext, ExecutionError};
 use serde_json::{json, Value};
 use std::io::{BufRead, BufReader, Read, Write};
 use std::os::fd::AsRawFd;
@@ -63,6 +64,8 @@ pub type Turn = Result<(Value, usize, u64), (EngineError, Option<(usize, u64)>)>
 /// Why an Engine turn produced no reply.
 #[derive(Debug, PartialEq, Eq)]
 pub enum EngineError {
+    /// Shared-budget failure; Turn location is None before request dispatch.
+    Budget(ExecutionError),
     Busy,
     Timeout,
     Lost(&'static str),
@@ -321,6 +324,27 @@ impl EnginePool {
         session: &str,
         prefer: Option<(usize, u64)>,
     ) -> Turn {
+        // Standalone callers receive one budget covering startup and the turn.
+        let timeout = Duration::from_millis(self.config.startup_ms)
+            .saturating_add(Duration::from_millis(self.config.turn_ms));
+        let context = ExecutionContext::new(u64::MAX, timeout, Cancellation::default())
+            .map_err(|_| (EngineError::Timeout, None))?;
+        self.ask_with_context(tenant, question, session, prefer, &context)
+    }
+
+    /// The host's absolute deadline includes routing, startup and reply I/O.
+    /// Cancellation retires the owned process before releasing this slot.
+    pub fn ask_with_context(
+        &self,
+        tenant: &str,
+        question: &str,
+        session: &str,
+        prefer: Option<(usize, u64)>,
+        context: &ExecutionContext,
+    ) -> Turn {
+        context
+            .spend(1)
+            .map_err(|error| (EngineError::Budget(error), None))?;
         if self.stopping.load(Ordering::Acquire) {
             return Err((EngineError::Stopping, None));
         }
@@ -376,8 +400,8 @@ impl EnginePool {
             self.spawn(&mut slot)
                 .map_err(|_| (EngineError::Lost("engine_start_failed"), None))?;
         }
-        let deadline = Instant::now() + Duration::from_millis(self.config.startup_ms);
-        if let Err(e) = wait_ready(&mut slot, deadline) {
+        let deadline = stage_deadline(context, self.config.startup_ms);
+        if let Err(e) = wait_ready(&mut slot, deadline, context) {
             Self::retire(&mut slot);
             return Err((e, None));
         }
@@ -387,12 +411,15 @@ impl EnginePool {
         let worker = slot.worker.as_mut().expect("started");
         let mut line = crate::wire::encode(&request);
         line.push(b'\n');
-        let deadline = Instant::now() + Duration::from_millis(self.config.turn_ms);
-        if let Err(timed_out) = write_deadline(&mut worker.stdin, &line, deadline) {
+        let deadline = stage_deadline(context, self.config.turn_ms);
+        if let Err(timed_out) = write_deadline(&mut worker.stdin, &line, deadline, context) {
             Self::retire(&mut slot);
             return Err((
                 if timed_out {
-                    EngineError::Timeout
+                    context
+                        .check()
+                        .err()
+                        .map_or(EngineError::Timeout, EngineError::Budget)
                 } else {
                     EngineError::Lost("worker_lost")
                 },
@@ -400,9 +427,8 @@ impl EnginePool {
             ));
         }
         loop {
-            let left = deadline.saturating_duration_since(Instant::now());
             let worker = slot.worker.as_mut().expect("started");
-            match worker.lines.recv_timeout(left) {
+            match receive_until(&worker.lines, deadline, context) {
                 Ok(text) => {
                     if text.len() > self.config.reply_bytes {
                         Self::retire(&mut slot);
@@ -428,7 +454,11 @@ impl EnginePool {
                 }
                 Err(RecvTimeoutError::Timeout) => {
                     Self::retire(&mut slot);
-                    return Err((EngineError::Timeout, Some(place)));
+                    let error = context
+                        .check()
+                        .err()
+                        .map_or(EngineError::Timeout, EngineError::Budget);
+                    return Err((error, Some(place)));
                 }
                 Err(RecvTimeoutError::Disconnected) => {
                     Self::retire(&mut slot);
@@ -490,13 +520,17 @@ impl EnginePool {
     }
 }
 
-fn wait_ready(slot: &mut Slot, deadline: Instant) -> Result<(), EngineError> {
+fn wait_ready(
+    slot: &mut Slot,
+    deadline: Instant,
+    context: &ExecutionContext,
+) -> Result<(), EngineError> {
     let worker = slot.worker.as_mut().ok_or(EngineError::Starting)?;
+    context.check().map_err(EngineError::Budget)?;
     if worker.is_ready {
         return Ok(());
     }
-    let left = deadline.saturating_duration_since(Instant::now());
-    match worker.lines.recv_timeout(left) {
+    match receive_until(&worker.lines, deadline, context) {
         Ok(text) => {
             let value = crate::wire::parse(text.as_bytes())
                 .map_err(|_| EngineError::Lost("engine_start_failed"))?;
@@ -512,7 +546,10 @@ fn wait_ready(slot: &mut Slot, deadline: Instant) -> Result<(), EngineError> {
             worker.is_ready = true;
             Ok(())
         }
-        Err(RecvTimeoutError::Timeout) => Err(EngineError::Starting),
+        Err(RecvTimeoutError::Timeout) => Err(context
+            .check()
+            .err()
+            .map_or(EngineError::Starting, EngineError::Budget)),
         Err(RecvTimeoutError::Disconnected) => Err(EngineError::Lost("engine_start_failed")),
     }
 }
@@ -551,10 +588,15 @@ impl Drop for EnginePool {
     }
 }
 
-fn write_deadline(pipe: &mut ChildStdin, bytes: &[u8], deadline: Instant) -> Result<(), bool> {
+fn write_deadline(
+    pipe: &mut ChildStdin,
+    bytes: &[u8],
+    deadline: Instant,
+    context: &ExecutionContext,
+) -> Result<(), bool> {
     let mut sent = 0;
     while sent < bytes.len() {
-        if Instant::now() >= deadline {
+        if context.check().is_err() || Instant::now() >= deadline {
             return Err(true);
         }
         match pipe.write(&bytes[sent..]) {
@@ -583,4 +625,68 @@ fn resolve_location(path: &std::path::Path) -> std::io::Result<PathBuf> {
         .file_name()
         .ok_or_else(|| std::io::Error::other("invalid state name"))?;
     Ok(base.join(name))
+}
+
+// Child pipe readers use bounded channels. Polling permits cancellation without
+// introducing another scheduler or allowing an abandoned child to keep a slot.
+fn receive_until(
+    lines: &Receiver<String>,
+    deadline: Instant,
+    context: &ExecutionContext,
+) -> Result<String, RecvTimeoutError> {
+    loop {
+        if context.check().is_err() || Instant::now() >= deadline {
+            return Err(RecvTimeoutError::Timeout);
+        }
+        let left = deadline.saturating_duration_since(Instant::now());
+        match lines.recv_timeout(left.min(Duration::from_millis(10))) {
+            Err(RecvTimeoutError::Timeout) => continue,
+            result => return result,
+        }
+    }
+}
+fn stage_deadline(context: &ExecutionContext, stage_ms: u64) -> Instant {
+    Instant::now()
+        .checked_add(Duration::from_millis(stage_ms))
+        .map_or(context.deadline(), |deadline| {
+            deadline.min(context.deadline())
+        })
+}
+
+#[cfg(test)]
+mod execution_inheritance_tests {
+    use super::*;
+    #[test]
+    fn stage_limits_cannot_restart_an_expired_enclosing_deadline() {
+        let deadline = Instant::now();
+        let context = ExecutionContext::with_deadline(10, deadline, Cancellation::default());
+        assert_eq!(stage_deadline(&context, 60_000), deadline);
+        let (send, receive) = mpsc::channel();
+        send.send("already queued".to_owned()).unwrap();
+        assert_eq!(
+            receive_until(&receive, deadline, &context),
+            Err(RecvTimeoutError::Timeout)
+        );
+    }
+    #[test]
+    fn cancellation_interrupts_an_idle_reply_channel() {
+        let context =
+            ExecutionContext::new(10, Duration::from_secs(60), Cancellation::default()).unwrap();
+        let cancellation = context.cancellation().clone();
+        let (_send, receive) = mpsc::channel();
+        let (started, start) = mpsc::channel();
+        let (done, completed) = mpsc::channel();
+        let thread = std::thread::spawn(move || {
+            started.send(()).unwrap();
+            done.send(receive_until(&receive, context.deadline(), &context))
+                .unwrap();
+        });
+        start.recv_timeout(Duration::from_secs(2)).unwrap();
+        cancellation.cancel();
+        assert_eq!(
+            completed.recv_timeout(Duration::from_secs(2)).unwrap(),
+            Err(RecvTimeoutError::Timeout)
+        );
+        thread.join().unwrap();
+    }
 }

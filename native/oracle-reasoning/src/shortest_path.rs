@@ -2,10 +2,10 @@
 //! real-world edges. Candidate search and certificate checking are handwritten
 //! Rust, independently structured; neither is Isabelle-verified.
 use crate::{Error, Result};
+use oracle_execution::WorkControl;
 use serde::{Deserialize, Serialize};
 use std::cmp::Reverse;
 use std::collections::{BinaryHeap, VecDeque};
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Instant;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -59,10 +59,10 @@ struct Budget<'a> {
     remaining: usize,
     start: Instant,
     limits: &'a PathLimits,
-    cancel: &'a AtomicBool,
+    cancel: &'a dyn WorkControl,
 }
 impl<'a> Budget<'a> {
-    fn new(limits: &'a PathLimits, cancel: &'a AtomicBool) -> Self {
+    fn new(limits: &'a PathLimits, cancel: &'a dyn WorkControl) -> Self {
         Self {
             remaining: limits.work,
             start: Instant::now(),
@@ -71,9 +71,7 @@ impl<'a> Budget<'a> {
         }
     }
     fn tick(&mut self) -> Result<()> {
-        if self.cancel.load(Ordering::Relaxed) {
-            return Err(Error::Limit("shortest path cancelled"));
-        }
+        crate::checkpoint(self.cancel, 1)?;
         if self.remaining == 0 {
             return Err(Error::Limit("shortest path work"));
         }
@@ -205,7 +203,7 @@ fn route(
 pub fn shortest_path(
     g: &ShortestPathInput,
     limits: &PathLimits,
-    cancel: &AtomicBool,
+    cancel: &dyn WorkControl,
 ) -> Result<Certificate> {
     let mut b = Budget::new(limits, cancel);
     solve(g, &mut b)
@@ -380,7 +378,7 @@ pub fn check_certificate(
     g: &ShortestPathInput,
     cert: &Certificate,
     limits: &PathLimits,
-    cancel: &AtomicBool,
+    cancel: &dyn WorkControl,
 ) -> Result<()> {
     let mut b = Budget::new(limits, cancel);
     validate(g, limits, &mut b)?;
@@ -459,11 +457,11 @@ fn check_inner(g: &ShortestPathInput, cert: &Certificate, b: &mut Budget<'_>) ->
 
 /// Search, independent check and bounded JSON encoding share one allowance.
 /// Certificate fields are ASCII; no complete intermediate JSON value is built.
-pub fn shortest_path_json(
+pub fn shortest_path_bounded(
     g: &ShortestPathInput,
     limits: &PathLimits,
-    cancel: &AtomicBool,
-) -> Result<String> {
+    cancel: &dyn WorkControl,
+) -> Result<Certificate> {
     let mut b = Budget::new(limits, cancel);
     let cert = solve(g, &mut b)?;
     let mut writer = CertificateWriter {
@@ -477,8 +475,18 @@ pub fn shortest_path_json(
     }
     encoded?;
     writer.budget.tick()?;
-    Ok(writer.output)
+    Ok(cert)
 }
+pub fn shortest_path_json(
+    g: &ShortestPathInput,
+    limits: &PathLimits,
+    cancel: &dyn WorkControl,
+) -> Result<String> {
+    Ok(serde_json::to_string(&shortest_path_bounded(
+        g, limits, cancel,
+    )?)?)
+}
+
 struct CertificateWriter<'a, 'b> {
     output: String,
     budget: &'a mut Budget<'b>,

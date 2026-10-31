@@ -4,13 +4,14 @@ This directory contains a shared-data query runtime and optional computation
 providers. The [capability catalog](docs/CAPABILITIES.md) lists exact operation
 IDs, current limits and retained results.
 
-The [standalone HTTP service](docs/STANDALONE.md) shares bounded worker processes
-across tenants. It runs without Oracle7, Mini or an account. Supplied-model
-operations need no Oracle dataset. The optional [durable runtime](docs/RUNTIME-HOST.md)
-serves an admitted data image, KQA programs and learned language turns, with exact
-reply replay after restart. The [distribution builder](docs/DISTRIBUTION.md)
-packages the service into a relocatable directory; images, journals and private
-configuration stay external.
+The [Rust appliance host](docs/HOST.md) shares the native image and extracted
+workers across tenants. Its optional Python Oracle7 Engine handles fallback.
+It runs independently of Mini; supplied-model computations need no Oracle dataset.
+The [durable runtime](docs/RUNTIME-HOST.md) serves an admitted data image, KQA
+programs and learned language turns, with exact reply replay after restart.
+The [distribution builder](docs/DISTRIBUTION.md) packages the service into a
+relocatable directory; images, journals and private configuration stay external.
+The earlier [Python HTTP service](docs/STANDALONE.md) remains a reference.
 
 `oracle-core` builds a KQA-shaped JSON source into immutable indexed SQLite,
 executes bounded query graphs and stores versioned session selections/replies.
@@ -101,6 +102,18 @@ be evaluated again after a crash. This guarantee does not extend to arbitrary
 Python callbacks or external effects; those require an authorized host executor and its own recovery contract.
 
 ## Resource and isolation contract
+
+`oracle-execution` supplies the native host and providers with shared cancellation,
+an absolute deadline and work fuel. A child call can tighten its limits while
+charging the enclosing request; it cannot replenish that request's allowance.
+The core `Budget` API wraps the same context. Existing cancellation-only provider
+callers remain supported, but gain no fuel limit merely by using that interface.
+
+The reader converts admitted grammar programs directly into checked typed plans.
+A request can reuse compiled plans while keeping each derivation and its evidence
+separate. Its cache has a retention cap; that cap is not an aggregate limit on
+charts, live results and allocator overhead. This changes representation, not
+language coverage or the agreement rule.
 
 Each Image owns a fixed pool of SQLite handles. A lease is exclusive to one
 request, and a tenant can occupy at most one slot at a time. Busy work is refused

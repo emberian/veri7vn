@@ -213,11 +213,33 @@ pub fn call(
     input: &str,
     executable: &Path,
     l: &Limits,
-    cancel: &AtomicBool,
+    cancel: &dyn WorkControl,
 ) -> Result<String, Error> {
     // Deadline includes bounded JSON decoding/validation and source encoding.
     let mut budget = Budget::new(l, cancel);
     let p = parse(input, l)?;
+    let reply = execute_with_budget(&p, executable, l, &mut budget)?;
+    serde_json::to_string(&reply).map_err(|_| Error::Backend("reply JSON"))
+}
+
+/// Typed invocation keeps solver bytes at the actual subprocess boundary.
+pub fn execute(
+    p: &Request,
+    executable: &Path,
+    l: &Limits,
+    control: &dyn WorkControl,
+) -> Result<Reply, Error> {
+    let mut budget = Budget::new(l, control);
+    validate(p, l)?;
+    execute_with_budget(p, executable, l, &mut budget)
+}
+
+fn execute_with_budget(
+    p: &Request,
+    executable: &Path,
+    l: &Limits,
+    budget: &mut Budget<'_>,
+) -> Result<Reply, Error> {
     if !executable.is_absolute() {
         return Err(Error::Invalid("absolute pinned executable required"));
     }
@@ -234,11 +256,11 @@ pub fn call(
         let program = encode(&p);
         budget.tick()?;
         match p.operation {
-            Operation::Query => query(&p, executable, &program, l, &mut budget),
+            Operation::Query => query(&p, executable, &program, l, budget),
             Operation::Enumerate => {
                 let count = l.models.checked_add(1).ok_or(Error::Limit("model bound"))?;
-                let bytes = solve(executable, program, count, l, &mut budget)?;
-                decode(&p, &bytes, l, &mut budget)
+                let bytes = solve(executable, program, count, l, budget)?;
+                decode(&p, &bytes, l, budget)
             }
         }
     };
@@ -250,5 +272,5 @@ pub fn call(
     if text.len() > l.output_bytes {
         return Err(Error::Limit("reply bytes"));
     }
-    Ok(text)
+    Ok(reply)
 }

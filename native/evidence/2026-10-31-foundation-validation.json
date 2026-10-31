@@ -1,0 +1,666 @@
+{
+  "schema": "oracle-foundation-validation-v1",
+  "date": "2026-10-31",
+  "status": "complete_for_scoped_validation",
+  "scope": "Architectural regression checks; no new specialist panel measurements or theorem claims.",
+  "specialist_panels": {
+    "measured": false,
+    "new_panel_gains": null
+  },
+  "build": {
+    "platform": "macOS",
+    "jobs": 2,
+    "target": "native/target",
+    "profile": "test/dev",
+    "initial_available_disk_gib": 232
+  },
+  "runs": [
+    {
+      "command": "CARGO_BUILD_JOBS=2 cargo test --manifest-path native/Cargo.toml -p oracle-execution --lib",
+      "exit": 0,
+      "passed": 8,
+      "failed": 0,
+      "filtered_out": 0,
+      "build_seconds": 1.85,
+      "test_seconds": 0.0,
+      "final_source": false,
+      "note": "Execution lane reopened for bounded child scopes after this run; rerun required."
+    },
+    {
+      "name": "execution-final",
+      "command": "CARGO_BUILD_JOBS=2 cargo test --manifest-path native/Cargo.toml -p oracle-execution --lib",
+      "exit": 0,
+      "elapsed_seconds": 1.49,
+      "log": "var/foundation-validation-20261031/execution-final.log",
+      "log_sha256": "fabd45389c51396798eff51061b6706fb49512582a300523f8e2e5ca47309097",
+      "test_summaries": [
+        "test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "final_source": false,
+      "superseded_by": "execution-arc-final"
+    },
+    {
+      "name": "core-facade",
+      "command": "CARGO_BUILD_JOBS=2 cargo test --manifest-path native/Cargo.toml -p oracle-runtime-core --lib budget_facade_tests",
+      "exit": 0,
+      "elapsed_seconds": 6.676,
+      "log": "var/foundation-validation-20261031/core-facade.log",
+      "log_sha256": "48a25a61584dc5274ade5752b75e2a036db7ebe4c699b571a0d34862a922dd72",
+      "test_summaries": [
+        "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 22 filtered out; finished in 0.00s"
+      ],
+      "final_source": true
+    },
+    {
+      "name": "core-typed-reader",
+      "command": "CARGO_BUILD_JOBS=2 cargo test --manifest-path native/Cargo.toml -p oracle-runtime-core --lib typed_reader_tests",
+      "exit": 0,
+      "elapsed_seconds": 0.222,
+      "log": "var/foundation-validation-20261031/core-typed-reader.log",
+      "log_sha256": "e775d2ba0c5b8ddf4fcb90a7f03dd9986d3f7021981c02ece8b77dabd5032483",
+      "test_summaries": [
+        "test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 21 filtered out; finished in 0.00s"
+      ],
+      "final_source": false,
+      "superseded_by": "numeric-core-typed"
+    },
+    {
+      "name": "core-compilation",
+      "command": "CARGO_BUILD_JOBS=2 cargo test --manifest-path native/Cargo.toml -p oracle-runtime-core --lib compilation_tests",
+      "exit": 0,
+      "elapsed_seconds": 0.191,
+      "log": "var/foundation-validation-20261031/core-compilation.log",
+      "log_sha256": "d412c398bb9502feea2abcc55725d3ceef6664b528fe1795542509b36de3dfc4",
+      "test_summaries": [
+        "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 23 filtered out; finished in 0.00s"
+      ],
+      "final_source": true
+    },
+    {
+      "name": "core-contracts",
+      "command": "CARGO_BUILD_JOBS=2 cargo test --manifest-path native/Cargo.toml -p oracle-runtime-core --test program_contract --test reader_contract --test composition_contract",
+      "exit": 0,
+      "elapsed_seconds": 17.41,
+      "log": "var/foundation-validation-20261031/core-contracts.log",
+      "log_sha256": "9982eda80cd822ead621dffeb3ca42b8023eef9e595fc06dc2e56cded987bdf5",
+      "test_summaries": [
+        "test result: ok. 12 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.25s",
+        "test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s",
+        "test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.22s"
+      ],
+      "final_source": false,
+      "note": "Composition12 and program14 remain applicable; reader10 superseded by core-reader-final11. Subsequent image-cap changes separately exercised by core-shared-execution-final and core-reader-final.",
+      "superseded_by": "numeric-core-values"
+    },
+    {
+      "name": "core-shared-execution",
+      "command": "CARGO_BUILD_JOBS=2 cargo test --manifest-path native/Cargo.toml -p oracle-runtime-core --test runtime_contract shared_execution",
+      "exit": 0,
+      "elapsed_seconds": 1.596,
+      "log": "var/foundation-validation-20261031/core-shared-execution.log",
+      "log_sha256": "215af55df15007b8e91821a294c8430e0b5f5fadd576138d069871930dd69bb5",
+      "test_summaries": [
+        "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 14 filtered out; finished in 0.07s"
+      ],
+      "final_source": false,
+      "note": "Before follow-up local Image budget cap fix; boundary-specific rerun pending."
+    },
+    {
+      "name": "core-kernel-lifetime",
+      "command": "CARGO_BUILD_JOBS=2 cargo test --manifest-path native/Cargo.toml -p oracle-runtime-core --test kernel_contract cancellation_holds_admission_until_child_and_all_io_have_joined",
+      "exit": 0,
+      "elapsed_seconds": 1.906,
+      "log": "var/foundation-validation-20261031/core-kernel-lifetime.log",
+      "log_sha256": "ba4cf1f49639ecfa36baec131372f27c1669bd587ef0aec8322c0446cc7453d6",
+      "test_summaries": [
+        "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 14 filtered out; finished in 0.72s"
+      ],
+      "final_source": true
+    },
+    {
+      "name": "core-shared-execution-final",
+      "command": "CARGO_BUILD_JOBS=2 cargo test --manifest-path native/Cargo.toml -p oracle-runtime-core --test runtime_contract shared_execution",
+      "exit": 0,
+      "elapsed_seconds": 3.687,
+      "log": "var/foundation-validation-20261031/core-shared-execution-final.log",
+      "log_sha256": "eef3c09d2061557b94b5644ffe2099bd9db10eb2234c7f4783579c9d94ab255c",
+      "test_summaries": [
+        "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 14 filtered out; finished in 0.11s"
+      ],
+      "final_source": true
+    },
+    {
+      "name": "reasoning-contracts",
+      "command": "CARGO_BUILD_JOBS=2 cargo test --manifest-path native/Cargo.toml -p oracle-reasoning --test contracts --test dimensions_contract --test shortest_path_contract --test stoichiometry_contract --test formula_contract",
+      "exit": 101,
+      "elapsed_seconds": 8.474,
+      "log": "var/foundation-validation-20261031/reasoning-contracts.log",
+      "log_sha256": "855b44d3995530887f795ca584616a6f11b1898921c6cd922113cda69e91831d",
+      "test_summaries": [],
+      "final_source": false,
+      "superseded_by": "reasoning-contracts-fixed"
+    },
+    {
+      "name": "science-contracts",
+      "command": "CARGO_BUILD_JOBS=2 cargo test --manifest-path native/Cargo.toml -p oracle-science --test contracts --test thermal",
+      "exit": 0,
+      "elapsed_seconds": 40.926,
+      "log": "var/foundation-validation-20261031/science-contracts.log",
+      "log_sha256": "08b8c823a9e7f6096e4166b86b557392e4f3728bc7bd645ae03848fb8a611843",
+      "test_summaries": [
+        "test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "final_source": false,
+      "superseded_by": "numeric-science"
+    },
+    {
+      "name": "statistics-contracts",
+      "command": "CARGO_BUILD_JOBS=2 cargo test --manifest-path native/Cargo.toml -p oracle-statistics --test regression",
+      "exit": 0,
+      "elapsed_seconds": 34.051,
+      "log": "var/foundation-validation-20261031/statistics-contracts.log",
+      "log_sha256": "a5319e4fecc62e58acf043d646e6f0e828112dda5ff8a14c1c83519fdfe08612",
+      "test_summaries": [
+        "test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "final_source": false,
+      "superseded_by": "numeric-statistics"
+    },
+    {
+      "name": "bio-contracts",
+      "command": "CARGO_BUILD_JOBS=2 cargo test --manifest-path native/Cargo.toml -p oracle-bio --test alignment_contract",
+      "exit": 0,
+      "elapsed_seconds": 21.533,
+      "log": "var/foundation-validation-20261031/bio-contracts.log",
+      "log_sha256": "a4af6347095be1a935d66b9ed19adad7c5fa927a6e854375a2f7ec56b0f94aae",
+      "test_summaries": [
+        "test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s"
+      ],
+      "final_source": false,
+      "superseded_by": "numeric-bio"
+    },
+    {
+      "name": "incremental-contracts",
+      "command": "CARGO_BUILD_JOBS=2 cargo test --manifest-path native/Cargo.toml -p oracle-incremental --test semantics --test rooted",
+      "exit": 101,
+      "elapsed_seconds": 12.733,
+      "log": "var/foundation-validation-20261031/incremental-contracts.log",
+      "log_sha256": "6a82c90b4fd1d499cba1e6cd8219cbd1e9ce4d2364b3bc5efc91b340bce419c9",
+      "test_summaries": [],
+      "final_source": false,
+      "superseded_by": "incremental-contracts-fixed"
+    },
+    {
+      "name": "logic-contracts",
+      "command": "CARGO_BUILD_JOBS=2 cargo test --manifest-path native/Cargo.toml -p oracle-logic --test semantics --test solver_boundary --test hosted --test demo_consistency",
+      "exit": 101,
+      "elapsed_seconds": 3.528,
+      "log": "var/foundation-validation-20261031/logic-contracts.log",
+      "log_sha256": "5670cdc9c3f5d222fb1af28d56c6c3b79d09b00efdd7e81225ed83773b0fb4eb",
+      "test_summaries": [],
+      "final_source": false,
+      "superseded_by": "logic-contracts-fixed"
+    },
+    {
+      "name": "core-reader-final",
+      "command": "CARGO_BUILD_JOBS=2 cargo test --manifest-path native/Cargo.toml -p oracle-runtime-core --test reader_contract",
+      "exit": 0,
+      "elapsed_seconds": 4.471,
+      "log": "var/foundation-validation-20261031/core-reader-final.log",
+      "log_sha256": "c0d52898409115f1b4a07a86d4bb4b310d03ecebd5944fdd2baf17ccc6270b44",
+      "test_summaries": [
+        "test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.25s"
+      ],
+      "final_source": false,
+      "superseded_by": "numeric-core-values"
+    },
+    {
+      "name": "reasoning-contracts-fixed",
+      "command": "CARGO_BUILD_JOBS=2 cargo test --manifest-path native/Cargo.toml -p oracle-reasoning --test contracts --test dimensions_contract --test shortest_path_contract --test stoichiometry_contract --test formula_contract",
+      "exit": 0,
+      "elapsed_seconds": 8.745,
+      "log": "var/foundation-validation-20261031/reasoning-contracts-fixed.log",
+      "log_sha256": "fe2a304c5b992c1720f4ed4b5b318d353174ac53983f6b84affaee6450327659",
+      "test_summaries": [
+        "test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.27s",
+        "test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.24s",
+        "test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.31s",
+        "test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.09s",
+        "test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "final_source": false,
+      "superseded_by": "numeric-reasoning"
+    },
+    {
+      "name": "execution-arc-final",
+      "command": "CARGO_BUILD_JOBS=2 cargo test --manifest-path native/Cargo.toml -p oracle-execution --lib",
+      "exit": 0,
+      "elapsed_seconds": 1.935,
+      "log": "var/foundation-validation-20261031/execution-arc-final.log",
+      "log_sha256": "ce97681427512591a2368c431c83dea16bc2ca9c6866e9cb28e6b7dcbb7a0d05",
+      "test_summaries": [
+        "test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "final_source": true
+    },
+    {
+      "name": "incremental-contracts-fixed",
+      "command": "CARGO_BUILD_JOBS=2 cargo test --manifest-path native/Cargo.toml -p oracle-incremental --test semantics --test rooted",
+      "exit": 0,
+      "elapsed_seconds": 11.711,
+      "log": "var/foundation-validation-20261031/incremental-contracts-fixed.log",
+      "log_sha256": "ac1b7171e1b8bbbfde9d93c0b7fa05c5311f5d959b9a0b5bc3b342d8a2444fb8",
+      "test_summaries": [
+        "test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s",
+        "test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s"
+      ],
+      "final_source": false,
+      "superseded_by": "numeric-incremental"
+    },
+    {
+      "name": "logic-contracts-fixed",
+      "command": "CARGO_BUILD_JOBS=2 cargo test --manifest-path native/Cargo.toml -p oracle-logic --test semantics --test solver_boundary --test hosted --test demo_consistency",
+      "exit": 101,
+      "elapsed_seconds": 3.671,
+      "log": "var/foundation-validation-20261031/logic-contracts-fixed.log",
+      "log_sha256": "05282e7c5bc28bb15d35b4e7c5a99b809bc45ab025b75026291dd9a777d3aa4c",
+      "test_summaries": [
+        "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.18s",
+        "test result: ok. 3 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 10 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 0.02s",
+        "test result: FAILED. 5 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.79s"
+      ],
+      "final_source": false,
+      "note": "21 passed; blocked-stdin fixture deadline expired before child PID creation under concurrent test startup. Same unchanged test passed alone in logic-blocked-stdin-serial, proving its intended child reaping branch on that run.",
+      "superseded_by": "numeric-logic + numeric-logic-boundary-final"
+    },
+    {
+      "name": "logic-blocked-stdin-serial",
+      "command": "CARGO_BUILD_JOBS=2 cargo test --manifest-path native/Cargo.toml -p oracle-logic --test solver_boundary blocked_stdin_child_times_out_and_is_reaped -- --test-threads=1",
+      "exit": 0,
+      "elapsed_seconds": 0.539,
+      "log": "var/foundation-validation-20261031/logic-blocked-stdin-serial.log",
+      "log_sha256": "a7497970f3e5f20b7edc7fe3c69fd1c80dcd3d96859656ad3db608e8f0448232",
+      "test_summaries": [
+        "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.31s"
+      ],
+      "final_source": false,
+      "superseded_by": "numeric-logic-boundary-final"
+    },
+    {
+      "name": "host-typed-parity",
+      "command": "CARGO_BUILD_JOBS=2 cargo test --manifest-path native/Cargo.toml -p oracle-host --all-features --lib pure::typed_parity",
+      "exit": 0,
+      "elapsed_seconds": 27.958,
+      "log": "var/foundation-validation-20261031/host-typed-parity.log",
+      "log_sha256": "2a1bdd007cc06fabe5b2d77fab9fa396b28f61bc3a809ea5a1a09e5c89b14316",
+      "test_summaries": [
+        "test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 14 filtered out; finished in 0.27s"
+      ],
+      "final_source": false,
+      "superseded_by": "numeric-final-parity"
+    },
+    {
+      "name": "host-admission-unit",
+      "command": "CARGO_BUILD_JOBS=2 cargo test --manifest-path native/Cargo.toml -p oracle-host --all-features --lib admission::tests",
+      "exit": 0,
+      "elapsed_seconds": 0.481,
+      "log": "var/foundation-validation-20261031/host-admission-unit.log",
+      "log_sha256": "8b2e5ea7275135bad9b6f840d8e95042a070b747085ff79ea56775ffe9d71e9e",
+      "test_summaries": [
+        "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 15 filtered out; finished in 0.00s"
+      ],
+      "final_source": true
+    },
+    {
+      "name": "host-context-unit",
+      "command": "CARGO_BUILD_JOBS=2 cargo test --manifest-path native/Cargo.toml -p oracle-host --all-features --lib execution_inheritance_tests",
+      "exit": 0,
+      "elapsed_seconds": 0.351,
+      "log": "var/foundation-validation-20261031/host-context-unit.log",
+      "log_sha256": "175bc4d5011c6f7662190d0e35b7893345d482c1ae56c3047b1142e3d1566a59",
+      "test_summaries": [
+        "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 16 filtered out; finished in 0.01s"
+      ],
+      "final_source": true
+    },
+    {
+      "name": "host-contracts",
+      "command": "CARGO_BUILD_JOBS=2 cargo test --manifest-path native/Cargo.toml -p oracle-host --all-features --test admission --test recovery --test journey -- --test-threads=1",
+      "exit": 0,
+      "elapsed_seconds": 50.781,
+      "log": "var/foundation-validation-20261031/host-contracts.log",
+      "log_sha256": "670fdfed6cbeb072b8274e9e52b9cd4181186a5f4a5348d27ff35219153f7abc",
+      "test_summaries": [
+        "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.23s",
+        "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 25.77s",
+        "test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 15.75s"
+      ],
+      "final_source": false,
+      "superseded_by": "numeric-host-contracts"
+    },
+    {
+      "name": "host-engine-context",
+      "command": "CARGO_BUILD_JOBS=2 cargo test --manifest-path native/Cargo.toml -p oracle-host --all-features --test engine_ownership shared_execution -- --test-threads=1",
+      "exit": 0,
+      "elapsed_seconds": 2.587,
+      "log": "var/foundation-validation-20261031/host-engine-context.log",
+      "log_sha256": "9646e6929d52232b800136bc31599c0a01df9083fd10ca142e371eb387f52ad4",
+      "test_summaries": [
+        "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.36s"
+      ],
+      "final_source": true
+    },
+    {
+      "name": "python-interface",
+      "command": "CARGO_BUILD_JOBS=2 cargo check --manifest-path native/Cargo.toml -p oracle-runtime-python --all-features",
+      "exit": 0,
+      "elapsed_seconds": 51.966,
+      "log": "var/foundation-validation-20261031/python-interface.log",
+      "log_sha256": "673c189d4d734e4cf655e3ae4a2fc8db357cab4cec1a63f3a4164b001c1fcfe5",
+      "test_summaries": [],
+      "final_source": false,
+      "superseded_by": "numeric-python-interface"
+    },
+    {
+      "name": "numeric-before-feature",
+      "command": "CARGO_BUILD_JOBS=2 cargo test --manifest-path native/Cargo.toml -p oracle-host --all-features --lib float_rounding_matches_exact_binary64_neighbors",
+      "exit": 101,
+      "elapsed_seconds": 4.292,
+      "log": "var/foundation-validation-20261031/numeric-before-feature.log",
+      "log_sha256": "d922eb68ffd0a610faa13328dff98385c3e7acf3425e4ace389eb210ac32b372",
+      "test_summaries": [
+        "test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 18 filtered out; finished in 0.00s"
+      ],
+      "final_source": false,
+      "superseded_by": "numeric-final-parity"
+    },
+    {
+      "name": "numeric-final-parity",
+      "command": "CARGO_BUILD_JOBS=2 cargo test --manifest-path native/Cargo.toml -p oracle-host --all-features --lib pure::typed_parity",
+      "exit": 0,
+      "elapsed_seconds": 28.029,
+      "log": "var/foundation-validation-20261031/numeric-final-parity.log",
+      "log_sha256": "a04124deab1e52b45d4c8acd46236adde0d486049cc177441ea84e7381a3580f",
+      "test_summaries": [
+        "test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 14 filtered out; finished in 0.34s"
+      ],
+      "final_source": true
+    },
+    {
+      "name": "numeric-core-values",
+      "command": "CARGO_BUILD_JOBS=2 cargo test --manifest-path native/Cargo.toml -p oracle-runtime-core --test value_contract --test program_contract --test reader_contract --test composition_contract",
+      "exit": 0,
+      "elapsed_seconds": 15.979,
+      "log": "var/foundation-validation-20261031/numeric-core-values.log",
+      "log_sha256": "5731b26c0444912f27235581b5c227ff40ba1366951e3261969c4607e3c3e677",
+      "test_summaries": [
+        "test result: ok. 12 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.23s",
+        "test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s",
+        "test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.26s",
+        "test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s"
+      ],
+      "final_source": true
+    },
+    {
+      "name": "numeric-core-typed",
+      "command": "CARGO_BUILD_JOBS=2 cargo test --manifest-path native/Cargo.toml -p oracle-runtime-core --lib typed_reader_tests",
+      "exit": 0,
+      "elapsed_seconds": 6.228,
+      "log": "var/foundation-validation-20261031/numeric-core-typed.log",
+      "log_sha256": "77e6bd4295be607168aac4f09e313b238bb323a4c5f83c991fcc028135cf7aa2",
+      "test_summaries": [
+        "test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 21 filtered out; finished in 0.00s"
+      ],
+      "final_source": true
+    },
+    {
+      "name": "numeric-reasoning",
+      "command": "CARGO_BUILD_JOBS=2 cargo test --manifest-path native/Cargo.toml -p oracle-reasoning --test contracts --test dimensions_contract --test shortest_path_contract --test stoichiometry_contract --test formula_contract",
+      "exit": 0,
+      "elapsed_seconds": 8.652,
+      "log": "var/foundation-validation-20261031/numeric-reasoning.log",
+      "log_sha256": "f6976104496dd4bae8ad85ec20d4516cfb9130d972c835abb12b1cc49dcaf668",
+      "test_summaries": [
+        "test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.28s",
+        "test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.24s",
+        "test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.52s",
+        "test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s",
+        "test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "final_source": true
+    },
+    {
+      "name": "numeric-science",
+      "command": "CARGO_BUILD_JOBS=2 cargo test --manifest-path native/Cargo.toml -p oracle-science --test contracts --test thermal",
+      "exit": 0,
+      "elapsed_seconds": 5.689,
+      "log": "var/foundation-validation-20261031/numeric-science.log",
+      "log_sha256": "40c0aecbb510c912f6e3a840893ecd8f60087e03c37d52559c571fb349471252",
+      "test_summaries": [
+        "test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "final_source": true
+    },
+    {
+      "name": "numeric-statistics",
+      "command": "CARGO_BUILD_JOBS=2 cargo test --manifest-path native/Cargo.toml -p oracle-statistics --test regression",
+      "exit": 0,
+      "elapsed_seconds": 3.504,
+      "log": "var/foundation-validation-20261031/numeric-statistics.log",
+      "log_sha256": "afdba8f8eebfc296914cc3af7cfe731ee01b5ba1fc7c487a27d91dde91a442f5",
+      "test_summaries": [
+        "test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "final_source": true
+    },
+    {
+      "name": "numeric-bio",
+      "command": "CARGO_BUILD_JOBS=2 cargo test --manifest-path native/Cargo.toml -p oracle-bio --test alignment_contract",
+      "exit": 0,
+      "elapsed_seconds": 2.285,
+      "log": "var/foundation-validation-20261031/numeric-bio.log",
+      "log_sha256": "2ef284befc7d1576a059a9e6c440ebc7f6ccace5b1fa02a3e775a7125a3fa0b9",
+      "test_summaries": [
+        "test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s"
+      ],
+      "final_source": true
+    },
+    {
+      "name": "numeric-incremental",
+      "command": "CARGO_BUILD_JOBS=2 cargo test --manifest-path native/Cargo.toml -p oracle-incremental --test semantics --test rooted",
+      "exit": 0,
+      "elapsed_seconds": 11.54,
+      "log": "var/foundation-validation-20261031/numeric-incremental.log",
+      "log_sha256": "46e0600cadc5cdb08720d88ee55b91922e5f5c92cd9ad01e9a30fc8618749d44",
+      "test_summaries": [
+        "test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s",
+        "test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s"
+      ],
+      "final_source": true
+    },
+    {
+      "name": "numeric-logic",
+      "command": "CARGO_BUILD_JOBS=2 cargo test --manifest-path native/Cargo.toml -p oracle-logic --test semantics --test solver_boundary --test hosted --test demo_consistency -- --test-threads=1",
+      "exit": 101,
+      "elapsed_seconds": 6.47,
+      "log": "var/foundation-validation-20261031/numeric-logic.log",
+      "log_sha256": "5004ae8d6d76d07d1b61eeb464add7017f40bd6b3cd80591724b5df0e291271f",
+      "test_summaries": [
+        "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s",
+        "test result: ok. 3 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.01s",
+        "test result: ok. 10 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 0.02s",
+        "test result: FAILED. 5 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.83s"
+      ],
+      "final_source": false,
+      "note": "Final-source demo3/hosted3/semantics10 pass; solver_boundary5/1 failure superseded by numeric-logic-boundary-final6 after deterministic fixture repair."
+    },
+    {
+      "name": "numeric-host-wire",
+      "command": "CARGO_BUILD_JOBS=2 cargo test --manifest-path native/Cargo.toml -p oracle-host --all-features --lib wire::tests",
+      "exit": 0,
+      "elapsed_seconds": 3.267,
+      "log": "var/foundation-validation-20261031/numeric-host-wire.log",
+      "log_sha256": "05071d43665db8d5cf457b29464c2749b032cd8a9b5b1969f44bcf45fed8a1b0",
+      "test_summaries": [
+        "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 17 filtered out; finished in 0.00s"
+      ],
+      "final_source": true
+    },
+    {
+      "name": "numeric-host-contracts",
+      "command": "CARGO_BUILD_JOBS=2 cargo test --manifest-path native/Cargo.toml -p oracle-host --all-features --test admission --test recovery --test journey -- --test-threads=1",
+      "exit": 0,
+      "elapsed_seconds": 50.907,
+      "log": "var/foundation-validation-20261031/numeric-host-contracts.log",
+      "log_sha256": "7edc29884f6f9cb296fdf6605dfd77fbe4e50ba613bc513565581938ad9b69cd",
+      "test_summaries": [
+        "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.21s",
+        "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 24.43s",
+        "test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 17.24s"
+      ],
+      "final_source": true
+    },
+    {
+      "name": "numeric-python-interface",
+      "command": "CARGO_BUILD_JOBS=2 cargo check --manifest-path native/Cargo.toml -p oracle-runtime-python --all-features",
+      "exit": 0,
+      "elapsed_seconds": 4.698,
+      "log": "var/foundation-validation-20261031/numeric-python-interface.log",
+      "log_sha256": "aad463ba15a773951115ed8ea7581e6f8d7fbd66476af892949e032d2085082e",
+      "test_summaries": [],
+      "final_source": true
+    },
+    {
+      "name": "numeric-logic-boundary-final",
+      "command": "CARGO_BUILD_JOBS=2 cargo test --manifest-path native/Cargo.toml -p oracle-logic --test solver_boundary -- --test-threads=1",
+      "exit": 0,
+      "elapsed_seconds": 3.355,
+      "log": "var/foundation-validation-20261031/numeric-logic-boundary-final.log",
+      "log_sha256": "9c5614b04cb24d03f8b93ceec8d0a1155c63353f808f71ada9c2b633a59b2735",
+      "test_summaries": [
+        "test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.74s"
+      ],
+      "final_source": true
+    }
+  ],
+  "python_fixture_interpreter": "/Library/Frameworks/Python.framework/Versions/3.11/bin/python3",
+  "remaining": [],
+  "solver_environment": {
+    "CLINGO_EXECUTABLE": "/Users/ember/dev/o7vn/var/o3-logic/clingo-build/bin/clingo",
+    "version": "5.8.2",
+    "sha256": "c30e55ebf01cdb4b986bb8be337d48beb98c0d06ec9d260864dac4010e909bb7",
+    "platform": "macOS arm64",
+    "applies_to": "provider contract runs and subsequent host parity/smoke"
+  },
+  "actual_logic_smoke": {
+    "status": "passed",
+    "revisions": 5,
+    "pure_calls": 10,
+    "ready": {
+      "backend": "oracle_host",
+      "host_sha256": "2b8a04c83e424ae043efe2a3c7703eaa31b117ba8f1000ffc6fb46fc64e5ce4c",
+      "listening": "http://127.0.0.1:57642",
+      "operations": 2,
+      "routes": []
+    },
+    "host_sha256": "2b8a04c83e424ae043efe2a3c7703eaa31b117ba8f1000ffc6fb46fc64e5ce4c",
+    "solver_sha256": "c30e55ebf01cdb4b986bb8be337d48beb98c0d06ec9d260864dac4010e909bb7",
+    "elapsed_seconds": 5.655,
+    "profile": "debug/test",
+    "cleanup": "Owned host PID terminated and reaped, exit0",
+    "scope": "Actual macOS host with clingo5.8.2; manufactured finite logic consumer; no panel or performance claim."
+  },
+  "final_totals": {
+    "execution": {
+      "passed": 14
+    },
+    "core": {
+      "passed_unique": 67,
+      "composition_ignored": 1,
+      "detail": "facade3 + typed-reader4 + compilation-sharing2 + composition12 + program14 + final-reader11 + inherited-runtime2 + child-I/O-lifetime1 + exact-value18"
+    },
+    "providers": {
+      "passed_unique": 149,
+      "detail": "reasoning51 + science34 + statistics14 + bio10 + incremental18 + logic22; final solver boundary6 pass after deterministic fixture repair",
+      "logic_ignored": 3
+    },
+    "host": {
+      "passed": 30,
+      "detail": "typed parity5 + wire2 + admission unit3 + context unit2 + admission integration3 + journey3 + recovery10 + engine context2"
+    },
+    "python_interface": "all six provider features compile, exit0",
+    "actual_http_smoke": "five revisions, ten logic calls; actual clingo5.8.2",
+    "unique_tests_passed": 260
+  },
+  "ignored_tests": [
+    {
+      "test": "composition_byte_peaks_on_frozen_cases",
+      "reason": "Existing opt-in performance fixture; not run in architectural regression scope"
+    },
+    {
+      "test": "hosted_examples_with_actual_clingo",
+      "reason": "Existing ignored test; separate host typed parity uses actual clingo and actual HTTP smoke covers five revisions/ten calls"
+    },
+    {
+      "test": "clingo_matches_independent_oracle",
+      "reason": "Existing opt-in solver campaign; not run in narrowed scope"
+    },
+    {
+      "test": "sixty_irrelevant_default_choices_do_not_force_enumeration",
+      "reason": "Existing opt-in solver scalability fixture; not run in narrowed scope"
+    }
+  ],
+  "limitations": [
+    "No shipped specialist panels measured and no gain claimed.",
+    "Typed/wire parity is a host-provider boundary test; HTTP journey is separate and actual logic consumer exercises transport.",
+    "No sustained fairness, resource benchmark, release packaging, Mini, or theorem validation performed."
+  ],
+  "changes_owned": [
+    "native/evidence/2026-10-31-foundation-validation.json",
+    "native/Cargo.toml: authorized float_roundtrip feature addition only"
+  ],
+  "theorem_statements": [],
+  "source_hashes": {
+    "path": "var/foundation-validation-20261031/final-source-hashes.json",
+    "sha256": "6d46fc27138c1ba960a04a8f877afa87943a74625b5f18396fd99c4d02cdd5a2",
+    "scope": "Native Rust sources and Cargo manifests/lockfile after final numeric correction and fixture repair"
+  },
+  "cleanup": "Actual smoke owned host process terminated and reaped with exit0; no running central build/test sessions remain.",
+  "historical_actual_logic_smokes": [
+    {
+      "status": "passed",
+      "revisions": 5,
+      "pure_calls": 10,
+      "ready": {
+        "backend": "oracle_host",
+        "host_sha256": "b82eaa20a154ce9bc1c51ad973bc6b7540ff12acab648d195286335518e37e7b",
+        "listening": "http://127.0.0.1:55691",
+        "operations": 2,
+        "routes": []
+      },
+      "host_sha256": "b82eaa20a154ce9bc1c51ad973bc6b7540ff12acab648d195286335518e37e7b",
+      "solver_sha256": "c30e55ebf01cdb4b986bb8be337d48beb98c0d06ec9d260864dac4010e909bb7",
+      "elapsed_seconds": 7.29,
+      "profile": "debug/test",
+      "cleanup": "Owned host PID terminated and reaped, exit0",
+      "scope": "Actual macOS host with clingo5.8.2; manufactured finite logic consumer; no panel or performance claim."
+    }
+  ],
+  "numeric_correction": {
+    "change": "Workspace serde_json features now arbitrary_precision + float_roundtrip; no dependency version changes",
+    "red": "1.0000000000000003 parsed 1ULP high by prior wire parser; numeric-before-feature exit101",
+    "green": "numeric-final-parity5 pass; exact ties, hard decimals, normal/subnormal/max finite cases and provider parity",
+    "regression_scope": "Rechecked all six provider contracts, core exact value/program/reader/composition contracts, host wire and integrated HTTP/recovery, Python all-feature compile, actual HTTP logic smoke."
+  },
+  "fixture_repair": {
+    "test": "blocked_stdin_shared_deadline_after_startup_reaps_child",
+    "owner": "typed provider lane",
+    "reason": "Old300ms deadline could expire during preprocessing before child startup, including serial run",
+    "replacement": "Typed input prepared before execution; pipe-filling encoding asserted; test-only WorkControl deadline injected after observed child startup; bounded watchdogs and scoped trigger; asserts shared deadline and reaped child",
+    "production_changes": false,
+    "result": "solver_boundary6 pass on final run"
+  }
+}

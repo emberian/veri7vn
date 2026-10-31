@@ -101,7 +101,13 @@ fn validate(request: &RootedRequest, limits: &Limits) -> Result<(Vec<Prepared>, 
     Ok((prepared, bound.unwrap_or(0)))
 }
 
-fn check_time(started: Instant, limits: &Limits, version: u64) -> Result<(), Error> {
+fn check_time(
+    started: Instant,
+    limits: &Limits,
+    version: u64,
+    control: &dyn WorkControl,
+) -> Result<(), Error> {
+    shared_checkpoint(control, 0, Some(version))?;
     if started.elapsed().as_millis() >= u128::from(limits.max_elapsed_ms) {
         return Err(error(
             "cooperative_budget",
@@ -112,7 +118,14 @@ fn check_time(started: Instant, limits: &Limits, version: u64) -> Result<(), Err
     Ok(())
 }
 
-fn charge(work: &mut u64, started: Instant, limits: &Limits, version: u64) -> Result<(), Error> {
+fn charge(
+    work: &mut u64,
+    started: Instant,
+    limits: &Limits,
+    version: u64,
+    control: &dyn WorkControl,
+) -> Result<(), Error> {
+    shared_checkpoint(control, 1, Some(version))?;
     *work = work.saturating_add(1);
     if *work > limits.max_fresh_work_per_epoch {
         return Err(error(
@@ -122,7 +135,7 @@ fn charge(work: &mut u64, started: Instant, limits: &Limits, version: u64) -> Re
         ));
     }
     if *work & 255 == 0 {
-        check_time(started, limits, version)?;
+        check_time(started, limits, version, control)?;
     }
     Ok(())
 }
@@ -187,14 +200,27 @@ pub fn evaluate_rooted(
     limits: Limits,
     strategy: Strategy,
 ) -> Result<RootedResponse, Error> {
+    evaluate_rooted_controlled(request, limits, strategy, None)
+}
+pub fn evaluate_rooted_controlled(
+    request: RootedRequest,
+    limits: Limits,
+    strategy: Strategy,
+    context: Option<&oracle_execution::ExecutionContext>,
+) -> Result<RootedResponse, Error> {
+    let legacy = std::sync::atomic::AtomicBool::new(false);
+    let control: &dyn WorkControl = context.map_or(&legacy as &dyn WorkControl, |c| c);
+    shared_checkpoint(control, 1, None)?;
     let started = Instant::now();
     let (prepared, bound) = validate(&request, &limits)?;
     if let Some(first) = prepared.first() {
-        check_time(started, &limits, first.version)?;
+        check_time(started, &limits, first.version, control)?;
     }
     let (epochs, fresh_work) = match strategy {
-        Strategy::Fresh => fresh(&request, prepared, &limits, started)?,
-        Strategy::Differential => maintained(&request, prepared, limits, started)?,
+        Strategy::Fresh => fresh(&request, prepared, &limits, started, control)?,
+        Strategy::Differential => {
+            maintained(&request, prepared, limits, started, context.cloned())?
+        }
     };
     Ok(RootedResponse {
         schema: 2,
@@ -223,6 +249,7 @@ fn fresh(
     prepared: Vec<Prepared>,
     limits: &Limits,
     started: Instant,
+    control: &dyn WorkControl,
 ) -> Result<(Vec<EpochResult>, Vec<u64>), Error> {
     let index: BTreeMap<_, _> = request
         .graph
@@ -240,9 +267,9 @@ fn fresh(
     for epoch in prepared {
         let tick = Instant::now();
         let mut work = 0;
-        check_time(started, limits, epoch.version)?;
+        check_time(started, limits, epoch.version, control)?;
         for &(pair, diff) in &epoch.updates {
-            charge(&mut work, started, limits, epoch.version)?;
+            charge(&mut work, started, limits, epoch.version, control)?;
             let count = supports.entry(pair).or_default();
             *count += diff;
             if *count == 0 {
@@ -254,7 +281,7 @@ fn fresh(
         let mut forward = vec![Vec::<usize>::new(); n];
         let mut reverse = vec![Vec::<usize>::new(); n];
         for &(from, to) in supports.keys() {
-            charge(&mut work, started, limits, epoch.version)?;
+            charge(&mut work, started, limits, epoch.version, control)?;
             let a = index[&from];
             let b = index[&to];
             forward[a].push(b);
@@ -270,11 +297,11 @@ fn fresh(
         ] {
             for &root in roots {
                 generation += 1;
-                charge(&mut work, started, limits, epoch.version)?;
+                charge(&mut work, started, limits, epoch.version, control)?;
                 // Identity is not seeded: self requires a nonempty cycle.
                 queue.extend(adjacency[index[&root]].iter().copied());
                 while let Some(node) = queue.pop_front() {
-                    charge(&mut work, started, limits, epoch.version)?;
+                    charge(&mut work, started, limits, epoch.version, control)?;
                     if seen[node] != generation {
                         seen[node] = generation;
                         let external = request.graph.nodes[node];
@@ -321,7 +348,7 @@ fn fresh(
                 Some(epoch.version),
             ));
         }
-        check_time(started, limits, epoch.version)?;
+        check_time(started, limits, epoch.version, control)?;
         previous = current;
         work_log.push(work);
         results.push(result);
@@ -334,9 +361,12 @@ fn maintained(
     prepared: Vec<Prepared>,
     limits: Limits,
     started: Instant,
+    context: Option<oracle_execution::ExecutionContext>,
 ) -> Result<(Vec<EpochResult>, Vec<u64>), Error> {
     let roots = request.roots.clone();
     timely::execute_directly(move |worker| {
+        let legacy = std::sync::atomic::AtomicBool::new(false);
+        let control: &dyn WorkControl = context.as_ref().map_or(&legacy as &dyn WorkControl, |c| c);
         let changes = Rc::new(RefCell::new(BTreeMap::<Pair, i64>::new()));
         let events = Rc::new(RefCell::new(0u64));
         let sink = changes.clone();
@@ -407,7 +437,7 @@ fn maintained(
                 edges_input.flush();
                 let mut steps = 0;
                 while probe.less_than(&closed) {
-                    check_time(started, &limits, epoch.version)?;
+                    check_time(started, &limits, epoch.version, control)?;
                     if steps >= limits.max_steps_per_epoch {
                         return Err(error(
                             "cooperative_budget",
@@ -422,6 +452,7 @@ fn maintained(
                             Some(epoch.version),
                         ));
                     }
+                    shared_checkpoint(control, 1, Some(epoch.version))?;
                     worker.step();
                     steps += 1;
                 }
@@ -465,7 +496,7 @@ fn maintained(
                     &mut retained,
                     &limits,
                 )?;
-                check_time(started, &limits, epoch.version)?;
+                check_time(started, &limits, epoch.version, control)?;
                 results.push(result);
             }
             Ok((results, Vec::new()))

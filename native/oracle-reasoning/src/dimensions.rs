@@ -290,10 +290,11 @@ fn check_admitted_candidate(
     environment: &Environment,
     expected: Dimension,
     limits: &Limits,
+    context: Option<&oracle_execution::ExecutionContext>,
 ) -> Result<Dimension> {
     let expression = algebra::parse(candidate, limits)?;
     infer(&expression, environment, limits)?.resolve(Some(expected))?;
-    if !algebra::equivalent(&input.expression, candidate, limits)? {
+    if !algebra::equivalent_controlled(&input.expression, candidate, limits, context)? {
         return Err(Error::Check("dimensional polynomial identity"));
     }
     Ok(expected)
@@ -308,18 +309,26 @@ pub fn check_candidate(
     limits: &Limits,
 ) -> Result<Dimension> {
     let (environment, dimension) = admit(input, limits)?;
-    check_admitted_candidate(input, candidate, &environment, dimension, limits)
+    check_admitted_candidate(input, candidate, &environment, dimension, limits, None)
 }
 
 /// Optimize an admitted dimensional polynomial and recheck the actual selected
 /// expression against the original dimension and independent exact arithmetic.
 pub fn optimize(input: &DimensionalInput, limits: &Limits) -> Result<DimensionalOptimization> {
+    optimize_controlled(input, limits, None)
+}
+pub fn optimize_controlled(
+    input: &DimensionalInput,
+    limits: &Limits,
+    context: Option<&oracle_execution::ExecutionContext>,
+) -> Result<DimensionalOptimization> {
     let (environment, output_dimension) = admit(input, limits)?;
-    let mut optimization = algebra::optimize(
+    let mut optimization = algebra::optimize_controlled(
         &PolynomialInput {
             expression: input.expression.clone(),
         },
         limits,
+        context,
     )?;
     // The algebra provider has already independently checked polynomial
     // identity. Only dimensional rejection triggers this fallback, never a
@@ -340,6 +349,7 @@ pub fn optimize(input: &DimensionalInput, limits: &Limits) -> Result<Dimensional
         &environment,
         output_dimension,
         limits,
+        context,
     )?;
     optimization.schema = "oracle-dimensional-polynomial-optimization-v1";
     Ok(DimensionalOptimization {
