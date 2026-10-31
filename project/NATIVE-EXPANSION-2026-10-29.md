@@ -53,6 +53,58 @@ The operation implementation adopts our suggested dotted IDs, input schemas,
 reply evidence and catalog-bound cursors. Prefer compatibility over another
 parallel discovery format; retain distinct authority and evidence semantics.
 
+## Source orientation: ownership and useful connections
+
+The 30 October source reading traced both host entry points, the Engine worker
+lifecycle, the older Python pools, core transactions and representative domain
+implementations. These are source findings, not new execution receipts.
+
+- The [core image](../native/oracle-core/src/image.rs) owns a bounded pool of
+  read-only SQLite connections, private temporary tables and per-tenant execution
+  admission. Public data is shared; per-worker caches and request scratch still
+  cost memory. [Core turns](../native/oracle-core/src/runtime.rs) look up completed
+  retries before acquiring an execution slot, evaluate against a session revision,
+  then atomically commit the new session and reply. Preserve this boundary.
+- The [host query path](../native/oracle-host/src/service.rs) adds a separate
+  journal and Engine-worker conversation binding. It acquires capacity before
+  replay and binds a conversation after running the Engine. A binding failure
+  reaches the path that deletes the pending request. Two first turns in one
+  conversation also have no conversation lease before worker selection; with
+  multiple workers they can acquire different homes. Reserve ownership before
+  execution. Pure core evaluation can roll back; a Python turn requires a durable
+  uncertainty record when its mutations cannot be atomically committed with the
+  host result. Do not disguise that difference behind a generic error return.
+- Native `/query` calls `read_whole`, without a conversation, whereas native
+  stateful `/invoke` uses core sessions. Engine fallback has its own memory.
+  Routing alone therefore does not transfer context between providers. Define
+  which structured context each provider consumes and returns before connecting
+  follow-up questions. Session-name hashing alone does not establish isolation
+  of the Engine's other mutable state; that state still needs an ownership audit.
+- [Pure calls](../native/oracle-host/src/pure.rs) run inside the host. An HTTP
+  timeout retains the execution permit until the call ends, but cannot kill the
+  thread. Reasoning and incremental calls do not receive the host cancel flag;
+  they use their own budgets. Statistics explicitly identifies uninterruptible
+  SVD work. Select containment per provider and propagate one request deadline.
+- Most new domain providers are structured operations, not question routes.
+  [The graph organ](../src/extract/graph-native/oracle7-organ/organ_algorithms_native.py)
+  demonstrates the missing connection: a conservative recognizer constructs a
+  typed request and checks the returned answer against it. Keep that recognizer
+  untrusted and retain useful direct operations beyond its language coverage.
+
+The strongest shared performance idea is demanded computation. Scalar query
+demands avoid result materialization; composition delays fragment execution;
+rooted incremental analysis bounds retained pairs by the requested roots. The
+incremental API currently builds a dataflow for a supplied batch of epochs inside
+one call: it is not yet a durable subscription service across calls. Pursue a real
+consumer before adding that lifecycle. Likewise, rational rewriting already
+replays an egg explanation in a separate checker; extend its domain consumers
+without folding search and checking into one trusted implementation.
+
+Packaging also needs an explicit worker entry point. The current Engine adapter
+is the parity answerer, whose `--state` path must be inside the source repository's
+`var` directory. A standalone appliance should configure private state directly,
+without inheriting this test-harness directory assumption.
+
 ## Proposed batches and completion conditions
 
 ### 1. Make the host safe to compose and recover
