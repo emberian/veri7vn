@@ -1,0 +1,79 @@
+[
+  {
+    "name": "retained100:200",
+    "profile": "reader",
+    "operation": "reader.whole",
+    "arguments": {
+      "question": "For the administrative territorial entity whose FIPS 6-4 (US counties) is 29037, what is the time point for its population of 100319?"
+    },
+    "expected": {
+      "answer": "2012-07-01",
+      "kind": "dataset_gold"
+    },
+    "selection": "Previously observed1s deadline-sensitive case; diagnostic,notrepresentative cohort"
+  },
+  {
+    "name": "targeted16:ambiguous_university_selection_cardiff",
+    "profile": "reader",
+    "operation": "reader.whole",
+    "arguments": {
+      "question": "Which university headquartered in city whose official website is https://www.cardiff.gov.uk/ whose population is 346100?"
+    },
+    "expected": {
+      "kind": "decline_ambiguous",
+      "entity_ids": [
+        "Q1035745",
+        "Q1072029"
+      ],
+      "answer": null
+    },
+    "selection": "Previously observed1s deadline-sensitive case; diagnostic,notrepresentative cohort"
+  },
+  {
+    "name": "targeted16:empty_parent_headquarters_saskatoon",
+    "profile": "reader",
+    "operation": "reader.whole",
+    "arguments": {
+      "question": "How many universities headquartered in city whose official website is http://www.saskatoon.ca/ whose population is 222189?"
+    },
+    "expected": {
+      "kind": "decline_empty",
+      "entity_ids": [],
+      "answer": null
+    },
+    "selection": "Previously observed1s deadline-sensitive case; diagnostic,notrepresentative cohort"
+  },
+  {
+    "name": "targeted16:nested_headquarters_city_website_population_bristol",
+    "profile": "reader",
+    "operation": "reader.whole",
+    "arguments": {
+      "question": "Which university headquartered in city whose official website is http://www.bristol.gov.uk/ whose population is 442500?"
+    },
+    "expected": {
+      "kind": "entity",
+      "entity_ids": [
+        "Q459506"
+      ],
+      "answer": "University of Bristol"
+    },
+    "selection": "Previously observed1s deadline-sensitive case; diagnostic,notrepresentative cohort"
+  },
+  {
+    "name": "targeted16:nested_university_count_cardiff",
+    "profile": "reader",
+    "operation": "reader.whole",
+    "arguments": {
+      "question": "How many universities headquartered in city whose official website is https://www.cardiff.gov.uk/ whose population is 346100?"
+    },
+    "expected": {
+      "kind": "count",
+      "entity_ids": [
+        "Q1035745",
+        "Q1072029"
+      ],
+      "answer": "2"
+    },
+    "selection": "Previously observed1s deadline-sensitive case; diagnostic,notrepresentative cohort"
+  }
+]

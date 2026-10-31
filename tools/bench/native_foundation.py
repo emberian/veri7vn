@@ -166,7 +166,7 @@ def main():
             v['cancellation']={'http_ms':elapsed*1000,'response':reply,'drain_observations':observations}
         finally:v['cancel_process_tree']=h.close()
         # Policy added by foundation cannot be silently supplied to the old parser.
-        if version=='foundation':
+        if version!='pre':
             limited=copy.deepcopy(config); limited['limits']['tenant_capacity']=1
             h=Host(binary,limited,a.root/'runs'/version/('tenant-'+str(time.time_ns())))
             try:
@@ -177,7 +177,7 @@ def main():
                         rows=list(pool.map(lambda i:request(h.port,body(heavy),format(i%tenants+1,'064x')),range(a.repeats)))
                     v['tenant_capacity_1'][str(tenants)]=summary(rows,time.perf_counter()-start)
             finally:v['tenant_process_tree']=h.close()
-        if version=='foundation':
+        if version!='pre':
             fueled=copy.deepcopy(config); fueled['limits']['execution_fuel']=1
             h=Host(binary,fueled,a.root/'runs'/version/('fuel-'+str(time.time_ns())))
             try:v['fuel_1_response']=request(h.port,body(heavy))[1]

@@ -1,0 +1,76 @@
+{
+  "direct": {
+    "path": "tools/bench/sol/direct.rs",
+    "sha256": "03f7318a33dbffa491d653a327914dbf8734338f64098997b091562225de1e40",
+    "remote_source": "/tank/lanes/o7-sol-measurement-20261031/sol-direct/src/main.rs",
+    "verification": "Local and retained remote direct.rs/foundation-direct/src/main.rs/sol-direct/src/main.rs byte hashes agree.",
+    "interface": "RUN_DIRECTORY only; fixed1000 measured calls plus20warmups per workload;two workloads per execution.",
+    "counts_by_record": {
+      "foundation-direct-A": [
+        1000,
+        1000
+      ],
+      "sol-direct-A": [
+        1000,
+        1000
+      ],
+      "sol-direct-B": [
+        1000,
+        1000
+      ],
+      "foundation-direct-B": [
+        1000,
+        1000
+      ],
+      "foundation-direct-cpu0": [
+        1000,
+        1000
+      ],
+      "sol-direct-cpu0": [
+        1000,
+        1000
+      ]
+    }
+  },
+  "reader": {
+    "path": "tools/bench/sol/reader.rs",
+    "sha256": "16d289d6b671fe449cefac4bc37d30016c1475f7b0d6530eaad14c487a86776a",
+    "remote_source": "/tank/lanes/o7-sol-measurement-20261031/sol-reader/src/main.rs",
+    "verification": "Local and both retained remote reader copies byte hashes agree.",
+    "interface": "IMAGE SHA256 FIXTURES_JSON [TIMEOUT_MS=1000] [REPEATS=10];three warmups per fixture."
+  },
+  "consumers": {
+    "preparation": {
+      "path": "var/sol-wave-20261031/measurement/consumers-preparation.rs",
+      "remote_path": "/tank/lanes/o7-sol-measurement-20261031/consumers.rs",
+      "sha256": "55bf5eeffcad3a6b3478c5c4e45fce0faba2e49d733bfbe87ebe4c1f6ac824cc",
+      "role": "Retained preparation copy, NOT asserted to be the compiled first-pass bytes."
+    },
+    "first_pass": {
+      "path": "tools/bench/sol/recorded/consumers_first.rs",
+      "sha256": "62899046fe6b24e5fd6f646f66afa7e52512705b93347d8ef9aa83cd76e6976a",
+      "derivation": "Recovered from retained preparation copy by sole documented prebuild substitution starts_with(pat) to starts_with(pat.as_str()). The original compiler input was not separately hashed at build time.",
+      "binary_sha256": "9f5f5a308f902d1407d9c4bb7242b75812c5ab6af3863e8e60a15d023e2c4707",
+      "record": "sol-consumers-results",
+      "interface": "No arguments;ten trials per case;sequence prepared first."
+    },
+    "counterbalanced": {
+      "path": "tools/bench/sol/consumers.rs",
+      "sha256": "3bcd3519880d263cfc8acbd06119627550366eacb161dc3a4a2b8d1f8de74199",
+      "remote_source": "/tank/lanes/o7-sol-measurement-20261031/consumers-order-followup.rs",
+      "verification": "Local file and retained followup/sol-consumers/src/main.rs byte hashes agree.",
+      "binary_sha256": "fa89f50eaaa4474faa563e3558ab5c40a7f399d89c93d4111cf782b06d05a18e",
+      "records": [
+        "sol-consumers-order-prepared",
+        "sol-consumers-order-fresh"
+      ],
+      "interface": "No count/order argv;ten trials per case. SOL_FRESH_FIRST absent means sequence prepared first, present means fresh first. Thermal order unchanged."
+    }
+  },
+  "http": {
+    "path": "tools/bench/native_foundation.py",
+    "actual_repeats_per_fixture": 40,
+    "required_argv": "--versions foundation,sol --repeats 40;second run also --reverse"
+  },
+  "audit": "Read-only source reconciliation, no workload/build rerun, no new unexecuted count/order parameterization."
+}

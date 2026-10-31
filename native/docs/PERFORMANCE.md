@@ -72,3 +72,79 @@ failed attempts and raw replies remain under
 `var/sol-wave-20261031/measurement/` and hbox's
 `/tank/lanes/o7-sol-measurement-20261031/`. Sol worker/readiness changes, reader
 retained reservations and new consumer reuse need their own frozen comparison.
+
+## Sol first-wave comparison
+
+The [separate Sol receipt](../evidence/2026-10-31-sol-performance.json) uses the
+validator's final checked 722-file snapshot, including the narrow reader refusal
+repair. It excludes phase-two changes. Builds used the same release settings,
+serial two-job warm target and pinned lockfiles. Both HTTP execution orders ran
+40 calls per fixture; all 28 semantic reply/evidence pairs agreed.
+
+| Same-image HTTP median, two orders | Foundation | Sol first wave |
+|---|---:|---:|
+| Small science | 20.12 / 20.24 ms | 0.484 / 0.642 ms |
+| 400-base alignment | 19.93 / 20.30 ms | 4.30 / 2.92 ms |
+| Eight clients, four tenants: answered throughput | 199 / 196 per second | 942 / 1,112 per second |
+
+The new readiness handling removes the polling floor. At eight clients, 17–19
+of Sol's 40 requests still received busy refusals; its larger **request** rate
+is not an answer rate. Sampled reader-inclusive host/child RSS was 47–49 MiB
+before and 38–39 MiB after. These are observations on a shared machine, not
+hard ceilings or isolated attribution to one change.
+
+Direct `Service::invoke` excludes TCP/readiness and final response encoding.
+Small graph medians improved from 144 / 194 microseconds to 63.5 / 61.3, while
+a 1,000-vertex graph **regressed** from 4.08 / 4.00 ms to 7.54 / 8.15 ms. Both
+versions answered every measured call and returned matching graph results.
+The machine has eight fast SMT cores and eight slower cores. One bounded pair
+using the existing binaries on CPU 0 reduced the large-graph gap to 2.659 versus
+3.534 ms, leaving a 33% regression. Scheduling explains part of the observation;
+this experiment does not identify the remaining cause. Phase-two repairs must
+compare against these retained artifacts rather than rewriting this result.
+
+Prepared thermal chains included preparation and all scenario solves:
+
+| Nodes / scenarios | Prepared batch median | Fresh factorization per scenario |
+|---|---:|---:|
+| 16 / 8 | 0.236 ms | 0.606 ms |
+| 64 / 32 | 2.69 ms | 20.80 ms |
+| 128 / 8 | 4.32 ms | 24.35 ms |
+
+Ten trials checked temperatures against an analytic chain solution, original-node
+power and boundary exchange, plus fresh/prepared agreement. These are internal
+calls with cancellation-only control, excluding production fuel charging, HTTP
+and physical-model validation. Solve-only times are separately retained.
+
+Sequence pages and identities matched the stateless API exactly and matched an
+independent both-strand scan. Timing did **not** establish a stable API advantage:
+
+| Pages | Prepared first: prepared / stateless | Stateless first: prepared / stateless |
+|---|---:|---:|
+| 10 | 0.168 / 0.0447 ms | 0.0260 / 0.184 ms |
+| 40 | 2.885 / 0.761 ms | 0.310 / 2.983 ms |
+
+The second alternative was faster in either order. Output retention, allocator
+and cache state confound this paired harness; the original negative observation
+and its counterbalanced followup are both retained. A useful next experiment
+must warm and drop each alternative symmetrically before claiming a speedup.
+
+Reader instrumentation now supplies concrete counters: the website case had
+20 matched readings, seven compiled plans, 16 execution-cache hits and four
+projection hydrations; the composed case had ten final readings but 1,292
+intermediate compilations. Tracked retained peaks were approximately 4.37 and
+15.42 MiB respectively. Every measured outer reservation returned to zero after
+the read. These conservative reservation units exclude SQLite, mmap and returned
+wire-string ownership; they are not RSS or a complete heap account.
+
+A selected five-case release diagnostic had no errors in 15 measured one-second
+calls; medians were 83–119 ms. The separate five-second diagnostic also completed.
+These small release observations do not erase the central validator's debug
+one-second errors or establish stable one-second behavior for the retained cohort.
+Full code/data reader comparisons and specialist-panel counts belong to the
+central validation receipt, not this performance sample.
+
+The [Sol harness guide](../../tools/bench/sol/README.md) records commands and
+scope. Raw replies, source bindings, CPU/load observations, binary hashes and
+build logs remain beside the earlier measurements. The runner was released
+before phase-two execution; no phase-two fix is included above.
