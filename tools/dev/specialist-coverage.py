@@ -126,9 +126,14 @@ def capability_declaration(repo: Path, family: str, specialist: str, is_relation
 
 def collect_lane_evidence(repo: Path, lane_root: Path, semantic_files: list[Path], specialist_ids: list[str]) -> dict:
     docs = {}
-    for path in sorted(lane_root.glob("*.md")):
-        if path.name != "E-coverage-tool.md":
-            docs[path] = "lane_report"
+    lane_roots = [lane_root]
+    history_lanes = repo / "project/history/lanes"
+    if lane_root == (repo / "project/lanes") and history_lanes.is_dir():
+        lane_roots.append(history_lanes)
+    for root in lane_roots:
+        for path in sorted(root.glob("*.md")):
+            if path.name != "E-coverage-tool.md":
+                docs[path] = "lane_report"
     for path in semantic_files:
         docs[path] = "semantic_gap_ledger"
     evidence = {sid: [] for sid in specialist_ids}

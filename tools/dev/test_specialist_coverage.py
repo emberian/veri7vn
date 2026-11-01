@@ -141,6 +141,20 @@ class CoverageInventoryTests(unittest.TestCase):
         # A manifest declaration alone does not create an evidence association.
         self.assertEqual(rows["rel-quiet"]["semantic_evidence"]["semantic_reference"], "unknown")
 
+    def test_archived_history_lanes_are_included_when_using_default_lane_root(self):
+        history_lanes = self.repo / "project/history/lanes"
+        history_lanes.mkdir(parents=True)
+        (history_lanes / "ARCHIVED-demo.md").write_text(
+            "# Semantic audit\nrel-quiet counterexample in archived lane report.\n",
+            encoding="utf-8",
+        )
+        report = self.build()
+        rows = {row["id"]: row for row in report["specialists"]}
+        quiet = rows["rel-quiet"]["semantic_evidence"]
+        self.assertEqual(quiet["semantic_reference"], "reference_found")
+        self.assertEqual(quiet["counterexample_text"], "found")
+        self.assertTrue(any(row["source"] == "project/history/lanes/ARCHIVED-demo.md" for row in quiet["records"]))
+
     def test_receipt_status_requires_current_binary_and_source_association(self):
         family_dir = self.repo / "var/demo/build"
         family_dir.mkdir(parents=True)
