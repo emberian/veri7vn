@@ -180,6 +180,130 @@ fn fixed_family_protocol_constructs_quantity_specialist_arguments() {
 }
 
 #[test]
+fn registry_specialist_wire_names_and_allowlists_agree() {
+    let registry: Value =
+        serde_json::from_str(include_str!("../../../src/extract/families.json")).unwrap();
+    let families: Vec<_> = registry["families"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|entry| entry["role"] == "specialist")
+        .collect();
+    // The registry also owns stores: its driver requires external fetch resources
+    // and warehouse session state, which this stateless transport does not admit.
+    // Compare identities, not a count: a new or missing family needs an explicit
+    // protocol decision rather than silently passing a cardinality assertion.
+    let admitted = [
+        KernelFamily::Acoustics,
+        KernelFamily::Quantity { specialist: None },
+        KernelFamily::AnatomyAgri { specialist: None },
+        KernelFamily::Chemistry { specialist: None },
+        KernelFamily::Climate { specialist: None },
+        KernelFamily::Computing { specialist: None },
+        KernelFamily::Discrete { specialist: None },
+        KernelFamily::Earth { specialist: None },
+        KernelFamily::Emoptics { specialist: None },
+        KernelFamily::Energy { specialist: None },
+        KernelFamily::Facts { specialist: None },
+        KernelFamily::Finance { specialist: None },
+        KernelFamily::GeoStats { specialist: None },
+        KernelFamily::Humanities { specialist: None },
+        KernelFamily::Life { specialist: None },
+        KernelFamily::Materials { specialist: None },
+        KernelFamily::Mechanics { specialist: None },
+        KernelFamily::Space { specialist: None },
+        KernelFamily::Trades { specialist: None },
+        KernelFamily::Variants { specialist: None },
+    ];
+    let admitted_names: std::collections::BTreeSet<String> = admitted
+        .iter()
+        .map(|family| {
+            let wire = serde_json::to_value(family).unwrap();
+            wire.as_str()
+                .map(str::to_owned)
+                .unwrap_or_else(|| wire.as_object().unwrap().keys().next().unwrap().clone())
+        })
+        .collect();
+    let registry_names: std::collections::BTreeSet<String> = families
+        .iter()
+        .filter(|entry| entry["family"] != "stores")
+        .map(|entry| entry["family"].as_str().unwrap().to_owned())
+        .collect();
+    assert_eq!(admitted_names, registry_names);
+    assert!(families
+        .iter()
+        .any(|entry| entry["family"] == "stores" && entry["state_flag"] == true));
+    for entry in &families {
+        let name = entry["family"].as_str().unwrap();
+        if name == "stores" {
+            for specialist in entry["specialists"].as_array().unwrap() {
+                assert!(serde_json::from_value::<KernelFamily>(
+                    serde_json::json!({name: {"specialist": specialist}})
+                )
+                .is_err());
+            }
+            continue;
+        }
+        assert_ne!(
+            entry["state_flag"], true,
+            "stateful family admitted: {name}"
+        );
+        for specialist in entry["specialists"].as_array().unwrap() {
+            let wire = if entry["specialist_flag"] == true {
+                serde_json::json!({name: {"specialist": specialist}})
+            } else {
+                serde_json::json!(name)
+            };
+            let family: KernelFamily = serde_json::from_value(wire.clone())
+                .unwrap_or_else(|error| panic!("{wire}: {error}"));
+            assert_eq!(serde_json::to_value(&family).unwrap(), wire);
+            assert_eq!(
+                family.specialist_argument().unwrap(),
+                if entry["specialist_flag"] == true {
+                    specialist.as_str()
+                } else {
+                    None
+                }
+            );
+        }
+        if entry["specialist_flag"] != true {
+            continue;
+        }
+        for wire in [
+            serde_json::json!({name: {}}),
+            serde_json::json!({name: {"specialist": null}}),
+        ] {
+            let family: KernelFamily = serde_json::from_value(wire).unwrap();
+            assert_eq!(family.specialist_argument().unwrap(), None);
+        }
+        for specialist in ["", "not-a-registered-specialist"] {
+            let wire = serde_json::json!({name: {"specialist": specialist}});
+            if let Ok(family) = serde_json::from_value::<KernelFamily>(wire) {
+                assert!(
+                    family.specialist_argument().is_err(),
+                    "{name}: {specialist}"
+                );
+            }
+        }
+        // Another family's ID must not silently poll the entire family.
+        for other in &families {
+            if other["family"] == entry["family"] {
+                continue;
+            }
+            for specialist in other["specialists"].as_array().unwrap() {
+                let wire = serde_json::json!({name: {"specialist": specialist}});
+                if let Ok(family) = serde_json::from_value::<KernelFamily>(wire) {
+                    assert!(
+                        family.specialist_argument().is_err(),
+                        "{name}: {specialist}"
+                    );
+                }
+            }
+        }
+    }
+}
+
+#[test]
 fn sequential_multi_organ_polling_reuses_distinct_slots_without_thrashing_slot_zero() {
     let f = Fixture::new();
     let descriptors = vec![

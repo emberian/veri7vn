@@ -545,15 +545,10 @@ fn iso_date(surface: &str) -> Option<String> {
         && bytes[5..7].iter().all(u8::is_ascii_digit)
         && bytes[8..10].iter().all(u8::is_ascii_digit)
     {
-        let month = (bytes[5] - b'0') * 10 + (bytes[6] - b'0');
-        let day = (bytes[8] - b'0') * 10 + (bytes[9] - b'0');
-        if (1..=12).contains(&month) && (1..=31).contains(&day) {
-            return Some(format!(
-                "{}-{}-{}",
-                &surface[..4],
-                &surface[5..7],
-                &surface[8..10]
-            ));
+        let date = surface.replace(' ', "-");
+        if crate::value::GregorianDate::parse(&date, &crate::value::ValueLimits::default()).is_ok()
+        {
+            return Some(date);
         }
     }
     None

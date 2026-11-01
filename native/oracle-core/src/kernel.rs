@@ -1,7 +1,7 @@
 //! Bounded transport for operator-admitted, stateless extracted specialists.
 //!
 //! This is untrusted process/framing code, not a Rust reimplementation or a new
-//! proof. Acoustics/quantity use JSONL. The MST certificate uses its fixed
+//! proof. The specialist families use JSONL. The MST certificate uses its fixed
 //! bounded ASCII line protocol. All are resident and stateless across requests;
 //! specialist session fields are ignored. Stateful families are not admitted.
 //! A digest binds the bytes copied at admission; it does not attest a build,
@@ -39,6 +39,7 @@ pub enum KernelFamily {
     Quantity {
         specialist: Option<QuantitySpecialist>,
     },
+    #[serde(rename = "anatomyagri", alias = "anatomy_agri")]
     AnatomyAgri {
         specialist: Option<String>,
     },
@@ -69,6 +70,7 @@ pub enum KernelFamily {
     Finance {
         specialist: Option<String>,
     },
+    #[serde(rename = "geostats", alias = "geo_stats")]
     GeoStats {
         specialist: Option<String>,
     },
@@ -108,7 +110,9 @@ impl KernelFamily {
         }
         match self {
             Self::Acoustics | Self::MstCertificate => Ok(None),
-            Self::Quantity { specialist } => Ok(specialist.as_ref().map(QuantitySpecialist::argument)),
+            Self::Quantity { specialist } => {
+                Ok(specialist.as_ref().map(QuantitySpecialist::argument))
+            }
             Self::AnatomyAgri { specialist } => check(
                 specialist,
                 &[
@@ -323,10 +327,9 @@ impl KernelFamily {
                     "crafts",
                 ],
             ),
-            Self::Variants { specialist } => check(
-                specialist,
-                &["densities-r2", "units-v2", "units-v3-r2"],
-            ),
+            Self::Variants { specialist } => {
+                check(specialist, &["densities-r2", "units-v2", "units-v3-r2"])
+            }
         }
     }
 }

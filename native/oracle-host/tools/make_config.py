@@ -38,12 +38,14 @@ def infer_organ_family(specialist: str):
     if registry.is_file():
         data = json.loads(registry.read_text())
         for entry in data.get("families", ()):
-            if specialist in entry.get("specialists", ()):
+            if entry.get("role") == "specialist" and specialist in entry.get("specialists", ()):
                 family = entry["family"]
+                if entry.get("state_flag", False):
+                    raise ValueError(f"Kernel family {family!r} requires external resources and session state; it is not supported by the stateless kernel host")
                 if not entry.get("specialist_flag", False):
                     return family
                 return {family: {"specialist": specialist}}
-    return "acoustics"
+    raise ValueError(f"Cannot infer stateless kernel family for {specialist!r}; supply FAMILY_JSON explicitly")
 
 
 def main():
@@ -120,7 +122,10 @@ def main():
         for spec in a.organ:
             parts = spec.split(",", 3)
             ident, executable, specialist = parts[:3]
-            family = json.loads(parts[3]) if len(parts) > 3 else infer_organ_family(specialist)
+            try:
+                family = json.loads(parts[3]) if len(parts) > 3 else infer_organ_family(specialist)
+            except ValueError as error:
+                ap.error(str(error))
             path = Path(executable).resolve()
             organs.append({"id": ident, "executable": str(path), "sha256": sha256(path),
                            "family": family,

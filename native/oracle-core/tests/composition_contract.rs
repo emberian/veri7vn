@@ -563,6 +563,8 @@ fn demanded_unsupported_or_scalar_fragment_vetoes_a_successful_whole_reading() {
 #[test]
 #[ignore]
 fn reader100_retained_control_evaluation() {
+    // Optional supplied-image control, not a specialist panel or a 39/100 claim.
+    // Keep the historical one-second deadline and retain every reply for audit.
     let image_path = std::env::var("O1_IMAGE")
         .unwrap_or_else(|_| "../../var/data-20261029/reader-image-v3.sqlite".into());
     let receipt_path = std::env::var("O1_RECEIPT")
@@ -573,9 +575,14 @@ fn reader100_retained_control_evaluation() {
         serde_json::from_str(&std::fs::read_to_string(&receipt_path).unwrap()).unwrap();
     let cases: Vec<Value> =
         serde_json::from_str(&std::fs::read_to_string(&cases_path).unwrap()).unwrap();
+    assert_eq!(
+        cases.len(),
+        100,
+        "expected the retained 100-question control"
+    );
     let mut limits = Limits::default();
     limits.workers = 2;
-    limits.timeout_ms = 2000;
+    limits.timeout_ms = 1000;
     limits.fuel = 10_000_000;
     let image = Image::open(
         std::path::Path::new(&image_path),
@@ -596,6 +603,10 @@ fn reader100_retained_control_evaluation() {
             .read_whole(&format!("r100_{idx}"), q, Cancellation::default())
             .unwrap();
         let res: Value = serde_json::from_str(&raw).unwrap();
+        println!(
+            "READER100_CASE {}",
+            json!({"source_index":idx,"question":q,"gold":gold,"reply":res})
+        );
         match res["status"].as_str().unwrap() {
             "answered" => {
                 if res["answer"].as_str() == Some(gold) {
@@ -619,4 +630,8 @@ fn reader100_retained_control_evaluation() {
     );
     println!("ANSWERED_INDICES={newly_answered:?}");
     assert_eq!(answered_wrong, 0);
+    assert!(
+        answered_correct >= 36,
+        "regressed below the historical control"
+    );
 }

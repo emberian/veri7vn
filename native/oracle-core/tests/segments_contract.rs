@@ -1625,4 +1625,102 @@ fn following_segment_strip_fallback_matches_tilde_key_and_strips_leading_glue() 
     let glued = fixture.read("How many persons who were born in York?");
     assert_eq!(glued.status, ReaderStatus::Answered);
     assert_eq!(glued.answer.as_deref(), Some("1"));
+    // Evidence must identify the stored fallback row, including its tilde.
+    assert!(glued
+        .readings
+        .iter()
+        .any(|r| r.template.contains("~born in E1")));
+    assert!(!glued
+        .readings
+        .iter()
+        .any(|r| r.template.contains("who were born in E1")));
+}
+
+#[test]
+fn following_segment_fallback_preserves_competing_programs_and_exact_precedence() {
+    let source = |relation: &str| {
+        unit(
+            "source",
+            json!([
+                step("Find", &[], json!([["@", "E", 1, ""]])),
+                step("Relate", &[], json!([relation, "backward"]))
+            ]),
+        )
+    };
+    let rows = vec![
+        concept_unit(),
+        row("segment", "~born in E1", source("born in")),
+        row("segment", "~born in E1", source("resident of")),
+        row("outer", "how many X1", outer("Count")),
+    ];
+    let ambiguous = Fixture::new(rows.clone(), vec![]).read("How many persons born in York?");
+    assert_eq!(ambiguous.status, ReaderStatus::Ambiguous);
+    assert_eq!(ambiguous.distinct_answers, vec!["1", "2"]);
+    assert!(ambiguous
+        .readings
+        .iter()
+        .all(|r| r.template.contains("~born in E1")));
+
+    let mut exact_rows = rows;
+    exact_rows.push(row("segment", "born in E1", source("born in")));
+    let exact = Fixture::new(exact_rows, vec![]).read("How many persons born in York?");
+    assert_eq!(exact.status, ReaderStatus::Answered);
+    assert_eq!(exact.answer.as_deref(), Some("1"));
+    assert!(exact
+        .readings
+        .iter()
+        .all(|r| !r.template.contains("~born in E1")));
+}
+
+#[test]
+fn following_segment_fallback_respects_keep_words_and_does_not_drop_internal_glue() {
+    let rows = vec![
+        concept_unit(),
+        row(
+            "segment",
+            "~born in E1",
+            unit(
+                "source",
+                json!([
+                    step("Find", &[], json!([["@", "E", 1, ""]])),
+                    step("Relate", &[], json!(["born in", "backward"]))
+                ]),
+            ),
+        ),
+        row("outer", "how many X1", outer("Count")),
+    ];
+    let words = vec![
+        WordRow {
+            category: "glue".into(),
+            word: "who".into(),
+        },
+        WordRow {
+            category: "glue".into(),
+            word: "were".into(),
+        },
+        WordRow {
+            category: "keep".into(),
+            word: "were".into(),
+        },
+    ];
+    let fixture = Fixture::with_words(rows, vec![], words);
+    assert_eq!(
+        fixture.read("How many persons who born in York?").status,
+        ReaderStatus::Answered
+    );
+    for question in [
+        "How many persons who were born in York?",
+        "How many persons born who in York?",
+    ] {
+        assert_ne!(
+            fixture.read(question).status,
+            ReaderStatus::Answered,
+            "{question}"
+        );
+    }
+    // The fallback remains scoped to following units, not an initial source.
+    assert_ne!(
+        fixture.read("How many born in York?").status,
+        ReaderStatus::Answered
+    );
 }

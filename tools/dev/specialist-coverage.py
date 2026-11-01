@@ -28,7 +28,7 @@ DELTA_RE = re.compile(r"(?:\bfrom\b.{0,60}\bto\b|\b(?:before|after)\b|→|\bimpr
 MEASURE_RE = re.compile(r"\b(?:shipped|heldout|dev|seed|probes?|cases?)\b.{0,50}\b\d+\s*/\s*\d+|\b\d+\s*/\s*\d+.{0,50}\b(?:shipped|heldout|dev|seed|probes?|cases?)\b", re.I)
 SEMANTIC_RE = re.compile(r"semantic|counterexample|examined|frontier|known next|gap|remaining|limit|model boundary", re.I)
 
-# Mirrors the current deputy-family areas in project/CODEX-2026-10-18.md.
+# Historical deputy-family areas from project/history/handoffs/CODEX-2026-10-18.md.
 OWNER_BY_FAMILY = {
     "acoustics": "physical", "emoptics": "physical", "energy": "physical",
     "geostats": "physical", "mechanics": "physical", "quantity": "physical",
@@ -39,7 +39,7 @@ OWNER_BY_FAMILY = {
     "computing": "symbolic", "discrete": "symbolic", "facts": "symbolic",
     "humanities": "symbolic", "stores": "symbolic",
 }
-OWNER_MAPPING_SOURCE = "project/CODEX-2026-10-18.md#Ownership for the next wave"
+OWNER_MAPPING_SOURCE = "project/history/handoffs/CODEX-2026-10-18.md#Ownership for the next wave"
 
 
 def sha256(path: Path) -> str:

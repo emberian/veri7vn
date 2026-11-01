@@ -660,13 +660,12 @@ impl<'a> Chart<'a> {
             offset += word.len() + 1;
         }
         offsets.push(normalized.len().saturating_add(1));
-        let has_strip_segments: bool = db
-            .query_row(
+        budget.spend(1)?;
+        let has_strip_segments: bool = db.query_row(
                 "SELECT EXISTS(SELECT 1 FROM reader_template WHERE family='segment' AND level=?1 AND template>='~' AND template<'~\x7f')",
                 [level],
                 |r| r.get(0),
-            )
-            .unwrap_or(false);
+            )?;
         let mut chart = Self {
             db,
             edges: vec![vec![]; words.len()],
@@ -1487,7 +1486,7 @@ impl<'a> Chart<'a> {
                             emitted += 1;
                             let retained_bytes = serde_json::to_vec(&program)?
                                 .len()
-                                .saturating_add(prefix.len())
+                                .saturating_add(hit.matched_key.len())
                                 .saturating_add(children.len().saturating_mul(48))
                                 .saturating_add(64);
                             // Reserve the one live parsed value, then transfer
@@ -1499,7 +1498,7 @@ impl<'a> Chart<'a> {
                                 self,
                                 Parsed {
                                     end: position,
-                                    template: prefix.clone(),
+                                    template: hit.matched_key.clone(),
                                     support: candidate.support,
                                     program,
                                     role,

@@ -1,8 +1,9 @@
 //! Bounded whole-template language reader over one leased native image worker.
 //!
 //! This is an untrusted recognizer, not a proof of natural-language meaning.
-//! Coverage includes whole templates, exact segments and one nested fragment pass.
-//! Fallbacks, analogy and clause patches remain unsupported. Direct
+//! Coverage includes whole templates, segments (with leading-glue fallback for
+//! following segments), and one nested fragment pass. Other fallbacks, analogy
+//! and clause patches remain unsupported. Direct
 //! graph/program execution does not inherit this reader's admission rules.
 use crate::grammar::{self, GrammarSpan, MatchLimits};
 use crate::lexicon::{self, CandidateOptions, LexiconLimits};

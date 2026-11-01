@@ -110,3 +110,19 @@ class PreparedConfig(unittest.TestCase):
         self.assertEqual(M.infer_organ_family('statistics-v2'), {'geostats': {'specialist': 'statistics-v2'}})
         self.assertEqual(M.infer_organ_family('energy-v3'), {'energy': {'specialist': 'energy-v3'}})
         self.assertEqual(M.infer_organ_family('units-v3'), {'quantity': {'specialist': 'units-v3'}})
+        self.assertEqual(M.infer_organ_family('anatomy'), {'anatomyagri': {'specialist': 'anatomy'}})
+
+    def test_unknown_organ_never_silently_uses_acoustics(self):
+        with self.assertRaisesRegex(ValueError, 'FAMILY_JSON'):
+            M.infer_organ_family('not-a-registered-specialist')
+        with tempfile.TemporaryDirectory() as temporary, patch.object(M, 'REPO', Path(temporary)):
+            with self.assertRaisesRegex(ValueError, 'FAMILY_JSON'):
+                M.infer_organ_family('acoustics')
+
+    def test_stateful_store_specialists_are_not_inferred_as_stateless_kernels(self):
+        registry = json.loads((M.REPO / 'src/extract/families.json').read_text())
+        stores = next(entry for entry in registry['families'] if entry['family'] == 'stores')
+        self.assertTrue(stores['state_flag'])
+        for specialist in stores['specialists']:
+            with self.subTest(specialist=specialist), self.assertRaisesRegex(ValueError, 'not supported by the stateless kernel host'):
+                M.infer_organ_family(specialist)

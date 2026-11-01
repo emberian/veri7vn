@@ -9,6 +9,9 @@ fn budget() -> Budget {
     Budget::new(&Limits::default(), Cancellation::default()).unwrap()
 }
 fn fixture() -> Connection {
+    fixture_with_name(None)
+}
+fn fixture_with_name(extra: Option<&str>) -> Connection {
     let db = Connection::open_in_memory().unwrap();
     db.execute_batch("CREATE TABLE metadata(key TEXT PRIMARY KEY,value TEXT); CREATE TABLE nodes(id TEXT PRIMARY KEY,kind TEXT,record TEXT);").unwrap();
     for (id, kind, value) in [
@@ -31,12 +34,111 @@ fn fixture() -> Connection {
         )
         .unwrap();
     }
+    if let Some(name) = extra {
+        db.execute(
+            "INSERT INTO nodes VALUES ('LONG','entity',?1)",
+            [json!({"name":name}).to_string()],
+        )
+        .unwrap();
+    }
     lexicon::build_from_nodes(&db, &budget(), &LexiconBuildLimits::default()).unwrap();
     lexicon::validate(&db).unwrap();
     db
 }
 fn read(db: &Connection, raw: &str, options: CandidateOptions) -> lexicon::CandidateSet {
     lexicon::candidates(db, raw, &options, &LexiconLimits::default(), &budget()).unwrap()
+}
+
+#[test]
+fn iso_date_readings_require_calendar_validity_and_preserve_competing_spans() {
+    let db = fixture();
+    for date in ["2000-02-29", "1989-11-09"] {
+        let result = read(&db, date, CandidateOptions::default());
+        assert!(result.spans.iter().any(|s| s.start == 0
+            && s.end == 10
+            && s.readings
+                .iter()
+                .any(|r| r.kind == LexicalKind::N && r.canonical == date)));
+        // The longer date span must not suppress the three independent numbers.
+        assert_eq!(
+            result
+                .spans
+                .iter()
+                .filter(
+                    |s| s.end - s.start < 10 && s.readings.iter().any(|r| r.kind == LexicalKind::N)
+                )
+                .count(),
+            3
+        );
+    }
+    for date in [
+        "1900-02-29",
+        "2023-02-29",
+        "2024-04-31",
+        "2024-00-01",
+        "2024-01-00",
+    ] {
+        let result = read(&db, date, CandidateOptions::default());
+        assert!(
+            !result.spans.iter().any(|s| s.start == 0
+                && s.end == 10
+                && s.readings.iter().any(|r| r.kind == LexicalKind::N)),
+            "{date}"
+        );
+    }
+    lexicon::install_aliases(
+        &db,
+        &[Alias {
+            surface: "1989 11 09".into(),
+            kind: LexicalKind::N,
+            canonical: "42".into(),
+        }],
+        &LexiconBuildLimits::default(),
+        &budget(),
+    )
+    .unwrap();
+    let aliased = read(&db, "1989-11-09", CandidateOptions::default());
+    let full = aliased
+        .spans
+        .iter()
+        .find(|s| s.start == 0 && s.end == 10)
+        .unwrap();
+    assert_eq!(full.readings.len(), 1);
+    assert_eq!(full.readings[0].canonical, "42");
+    assert!(full.readings[0].via_alias);
+}
+
+#[test]
+fn sixteen_word_entity_keeps_shorter_overlapping_names_and_obeys_explicit_cap() {
+    let name =
+        "one two three four five six seven eight nine ten eleven twelve thirteen fourteen New York";
+    let db = fixture_with_name(Some(name));
+    let result = read(&db, name, CandidateOptions::default());
+    for expected in [name, "New York", "York"] {
+        assert!(
+            result.spans.iter().any(|s| s
+                .readings
+                .iter()
+                .any(|r| r.kind == LexicalKind::E && r.canonical == expected)),
+            "{expected}"
+        );
+    }
+    let capped = read(
+        &db,
+        name,
+        CandidateOptions {
+            max_words: 8,
+            ..CandidateOptions::default()
+        },
+    );
+    assert!(!capped
+        .spans
+        .iter()
+        .any(|s| s.readings.iter().any(|r| r.canonical == name)));
+    assert!(capped
+        .spans
+        .iter()
+        .any(|s| s.readings.iter().any(|r| r.canonical == "New York")));
 }
 
 #[test]
