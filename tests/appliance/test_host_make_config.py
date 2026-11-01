@@ -77,3 +77,30 @@ class MakeConfig(unittest.TestCase):
                 M.main()
             run.assert_not_called()
             hashed.assert_not_called()
+
+
+class PreparedConfig(unittest.TestCase):
+    def test_prepared_requires_independent_pin_and_engine(self):
+        base = ['make_config', '--host', '/fake', '--out', '/unused', '--journal', '/unused']
+        for extra in (['--engine-prepared-manifest', '/public/MANIFEST.json'],
+                      ['--engine-prepared-manifest', '/public/MANIFEST.json', '--engine-prepared-sha256', 'a' * 64]):
+            with self.subTest(extra=extra), patch.object(sys, 'argv', base + extra), patch.object(M, 'sha256') as hashed:
+                with self.assertRaises(SystemExit): M.main()
+                hashed.assert_not_called()
+
+    def test_prepared_typed_forwarding(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            for name in ('python', 'worker.py'): (root / name).write_text('fixture')
+            (root / 'APPLIANCE.json').write_text(json.dumps({'source_revision': 'fixture'}))
+            public = root / 'public'; public.mkdir()
+            manifest = public / 'MANIFEST.json'; manifest.write_text('{}')
+            out = root / 'config.json'
+            args = ['make_config', '--host', '/fake', '--out', str(out), '--journal', str(root / 'journal'),
+                    '--engine-python', str(root / 'python'), '--engine-answerer', str(root / 'worker.py'),
+                    '--engine-checkout', str(root), '--engine-state', str(root / 'state'),
+                    '--engine-prepared-manifest', str(manifest), '--engine-prepared-sha256', M.sha256(manifest)]
+            with patch.object(sys, 'argv', args): M.main()
+            prepared = json.loads(out.read_text())['engine']['prepared']
+            self.assertEqual(prepared, {'artifact': {'path': str(manifest), 'sha256': M.sha256(manifest)},
+                                        'replacement_attempts': 2, 'replacement_backoff_ms': 1000})

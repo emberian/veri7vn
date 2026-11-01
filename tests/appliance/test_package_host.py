@@ -127,6 +127,47 @@ class HostDistribution(unittest.TestCase):
         bundled.unlink()
         self.assertNotEqual(self.launch().returncode, 0)
 
+    def test_prepared_artifact_external_relocation_and_custody(self):
+        worker = ROOT / 'tools/appliance/engine_worker.py'
+        checkout = self.root / 'checkout'; checkout.mkdir()
+        receipt = checkout / 'APPLIANCE.json'
+        receipt.write_text(json.dumps({'source_revision': 'fixture', 'files': {}, 'stores': []}))
+        public = self.root / 'public'; public.mkdir()
+        rows = {}
+        for name in ('reader90_' + 'a' * 24 + '.pickle', 'clause101_' + 'b' * 20 + '.pickle'):
+            data = b'fixture trusted bytes'; (public / name).write_bytes(data)
+            rows[name] = {'bytes': len(data), 'sha256': P.digest(data)}
+        manifest = public / 'MANIFEST.json'
+        manifest.write_text(json.dumps({'schema': 'oracle-public-reader-preparation-v1', 'files': rows,
+                                        'identity': {}, 'assurance': 'fixture'}))
+        c = json.loads(self.config.read_text())
+        c['engine'] = {'python': {'path': str(Path(sys.executable).absolute()), 'sha256': P.digest(Path(sys.executable).read_bytes())},
+                       'answerer': {'path': str(worker), 'sha256': P.digest(worker.read_bytes())},
+                       'checkout': str(checkout), 'revision': 'fixture', 'state': '/old/engine',
+                       'materialization': {'path': str(receipt), 'sha256': P.digest(receipt.read_bytes())},
+                       'prepared': {'artifact': {'path': str(manifest), 'sha256': P.digest(manifest.read_bytes())}}}
+        self.config.write_text(json.dumps(c)); self.build()
+        moved = self.root / 'relocated-public'; public.rename(moved)
+        args = [sys.executable, '-I', '-B', '-S', str(self.bundle / 'bin/oracle-host'),
+                '--state-root', str(self.state), '--prepared-root', str(moved)]
+        result = subprocess.run(args, capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(result.stdout)['engine']['prepared']['artifact']['path'], str(moved / 'MANIFEST.json'))
+        self.assertFalse(any(self.bundle.rglob('*.pickle')))
+        (moved / next(iter(rows))).write_bytes(b'tamper')
+        self.assertNotEqual(subprocess.run(args, capture_output=True).returncode, 0)
+
+    def test_bounded_external_hashing_refuses_oversize_and_wrong_size(self):
+        artifact = self.root / 'table.pickle'
+        artifact.write_bytes(b'bounded fixture')
+        self.assertEqual(P.bounded_regular(artifact, 64, expected_size=15),
+                         (P.digest(b'bounded fixture'), None))
+        with self.assertRaises(ValueError): P.bounded_regular(artifact, 14)
+        with self.assertRaises(ValueError): P.bounded_regular(artifact, 64, expected_size=14)
+        with self.assertRaises(ValueError): P.bounded_regular(artifact, 64, expected_size=16)
+        alias = self.root / 'alias'; alias.symlink_to(artifact)
+        with self.assertRaises(ValueError): P.bounded_regular(alias, 64)
+
     def test_organs_and_solver_are_bundled(self):
         organ = self.root / 'organ'
         solver = self.root / 'solver'

@@ -65,20 +65,22 @@ fn serve(path: &str) {
     let listener = TcpListener::bind(("127.0.0.1", config.port))
         .unwrap_or_else(|e| fail(format!("bind: {e}")));
     let service = Service::open(&config).unwrap_or_else(|e| fail(e));
+    let stop = Arc::new(AtomicBool::new(false));
+    {
+        let stop = stop.clone();
+        let service = service.clone();
+        std::thread::spawn(move || {
+            if signals.wait().is_ok() {
+                stop.store(true, Ordering::Release);
+                service.close();
+            }
+        });
+    }
     if let Some(engine) = &service.engine {
         if let Err(e) = engine.start_all() {
             service.close();
             fail(e);
         }
-    }
-    let stop = Arc::new(AtomicBool::new(false));
-    {
-        let stop = stop.clone();
-        std::thread::spawn(move || {
-            if signals.wait().is_ok() {
-                stop.store(true, Ordering::Release);
-            }
-        });
     }
     let port = listener.local_addr().map(|a| a.port()).unwrap_or(0);
     println!(

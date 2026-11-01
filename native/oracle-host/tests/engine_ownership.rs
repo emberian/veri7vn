@@ -47,6 +47,7 @@ for line in sys.stdin:
         checkout,
         revision: REV.into(),
         materialization: None,
+        prepared: None,
         state: dir.path().join("state"),
         workers: 1,
         startup_ms: 3000,

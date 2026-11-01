@@ -58,9 +58,17 @@ def main():
     ap.add_argument("--engine-specialist")
     ap.add_argument("--engine-compose")
     ap.add_argument("--engine-tip")
+    ap.add_argument("--engine-prepared-manifest", help="independently admitted external MANIFEST.json")
+    ap.add_argument("--engine-prepared-sha256", help="operator trust pin, never inferred from payload")
+    ap.add_argument("--engine-replacement-attempts", type=int, default=2)
+    ap.add_argument("--engine-replacement-backoff-ms", type=int, default=1000)
     ap.add_argument("--engine-turn-ms", type=int, default=300000)
     a = ap.parse_args()
 
+    if bool(a.engine_prepared_manifest) != bool(a.engine_prepared_sha256):
+        ap.error("prepared manifest and independently admitted sha256 are required together")
+    if a.engine_prepared_manifest and not a.engine_python:
+        ap.error("prepared mode requires --engine-python")
     if a.conversation_profile == "native-v1" and a.engine_python:
         ap.error("--conversation-profile native-v1 does not support --engine-python")
 
@@ -133,6 +141,20 @@ def main():
             value = getattr(a, "engine_" + key)
             if value:
                 engine[key] = str(Path(value).resolve()) if key == "specialist" else value
+        if a.engine_prepared_manifest:
+            import re
+            path = Path(a.engine_prepared_manifest).absolute()
+            if path.name != "MANIFEST.json" or any(p.is_symlink() for p in (path, *path.parents)) or ".." in path.parts:
+                ap.error("prepared manifest must be nonsymlink MANIFEST.json")
+            if not materialization:
+                ap.error("prepared mode requires materialization APPLIANCE.json")
+            if not re.fullmatch('[0-9a-f]{64}', a.engine_prepared_sha256) or sha256(path) != a.engine_prepared_sha256:
+                ap.error("prepared manifest differs from independently admitted sha256")
+            if not 1 <= a.engine_replacement_attempts <= 8 or not 1 <= a.engine_replacement_backoff_ms <= 60000:
+                ap.error("invalid bounded replacement policy")
+            engine["prepared"] = {"artifact": {"path": str(path), "sha256": a.engine_prepared_sha256},
+                                  "replacement_attempts": a.engine_replacement_attempts,
+                                  "replacement_backoff_ms": a.engine_replacement_backoff_ms}
         config["engine"] = engine
     Path(a.out).write_text(json.dumps(config, indent=1) + "\n")
 

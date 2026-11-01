@@ -11,6 +11,7 @@ import json
 import os
 from pathlib import Path
 import re
+import stat
 import tempfile
 
 from package_native import clean_path, read_regular, publish_directory
@@ -26,6 +27,32 @@ def digest(data):
 
 def encoded(value):
     return (json.dumps(value, sort_keys=True, indent=2, allow_nan=False) + '\n').encode()
+
+
+def bounded_regular(path, maximum, *, expected_size=None, retain=False):
+    """Hash bounded regular bytes; retain only small explicitly requested inputs."""
+    path = clean_path(path)
+    flags = os.O_RDONLY | getattr(os, 'O_NOFOLLOW', 0) | getattr(os, 'O_NONBLOCK', 0)
+    with os.fdopen(os.open(path, flags), 'rb') as stream:
+        metadata = os.fstat(stream.fileno())
+        if not stat.S_ISREG(metadata.st_mode):
+            raise ValueError('input is not a regular file')
+        if metadata.st_size > maximum or (expected_size is not None and metadata.st_size != expected_size):
+            raise ValueError('external file size mismatch or limit exceeded')
+        h = hashlib.sha256()
+        chunks = [] if retain else None
+        count = 0
+        while True:
+            block = stream.read(min(1048576, maximum - count + 1))
+            if not block: break
+            count += len(block)
+            if count > maximum or (expected_size is not None and count > expected_size):
+                raise ValueError('external file grew beyond admitted size')
+            h.update(block)
+            if retain: chunks.append(block)
+        if count != metadata.st_size or (expected_size is not None and count != expected_size):
+            raise ValueError('external file changed size while hashing')
+        return h.hexdigest(), b''.join(chunks) if retain else None
 
 
 LAUNCHER = r'''#!/usr/bin/env -S python3 -I -B -S
@@ -56,6 +83,7 @@ def main():
     ap.add_argument('--state-root', required=True)
     ap.add_argument('--port', type=int)
     ap.add_argument('--verify', action='store_true')
+    ap.add_argument('--prepared-root', help='relocate the admitted shared public artifact directory')
     a = ap.parse_args()
     state = Path(a.state_root)
     if not state.is_absolute() or '..' in state.parts or any(p.is_symlink() for p in (state, *state.parents)):
@@ -69,7 +97,14 @@ def main():
         p = Path(name)
         if p.is_absolute() or '..' in p.parts or hashed(ROOT / p) != expected['sha256']:
             raise ValueError('payload hash mismatch: ' + name)
+    prepared_root = Path(a.prepared_root) if a.prepared_root else None
+    if prepared_root is not None and (not prepared_root.is_absolute() or '..' in prepared_root.parts):
+        raise ValueError('prepared-root must be absolute without traversal')
+    if prepared_root is not None and not m.get('prepared_artifact'):
+        raise ValueError('prepared-root requires prepared Engine configuration')
     for item in m['external_files']:
+        if item.get('prepared_relative') and prepared_root is not None:
+            item = dict(item, path=str(prepared_root / item['prepared_relative']))
         if item.get('invocation') and str(Path(item['invocation']).resolve(strict=True)) != item['path']:
             raise ValueError('interpreter invocation target changed')
         if hashed(item['path']) != item['sha256']:
@@ -97,6 +132,15 @@ def main():
         engine = config['engine']
         for key in ('python', 'answerer', 'materialization', 'conversation_adapter'):
             if engine.get(key): engine[key]['path'] = resolve_path(engine[key]['path'])
+        if engine.get('prepared') and prepared_root is not None:
+            engine['prepared']['artifact']['path'] = str(prepared_root / 'MANIFEST.json')
+        if engine.get('prepared'):
+            public = Path(engine['prepared']['artifact']['path']).parent
+            if public == state or public in state.parents or state in public.parents:
+                raise ValueError('prepared public artifact must be separate from private state')
+            expected = m['prepared_artifact']['files']
+            if set(p.name for p in public.iterdir()) != set(expected):
+                raise ValueError('unexpected prepared artifact entry')
         for key in ('checkout', 'state', 'specialist'):
             if engine.get(key): engine[key] = resolve_path(engine[key])
     if a.port is not None:
@@ -141,6 +185,7 @@ def build_distribution(host, sha256, config, output, *, source_root=ROOT, archiv
         descriptor_path = json.loads(read_regular(release_input))['descriptors']['path']
         payload['release-descriptors.json'] = read_regular(descriptor_path)
     external = []
+    prepared_artifact = None
 
     def copy_artifact(row, key, name):
         data = read_regular(row[key])
@@ -183,6 +228,34 @@ def build_distribution(host, sha256, config, output, *, source_root=ROOT, archiv
             raise ValueError('interpreter SHA-256 mismatch')
         external.append({'path': str(interpreter.resolve()), 'invocation': str(interpreter),
                          'sha256': e['python']['sha256']})
+        if e.get('prepared'):
+            declared = e['prepared']['artifact']
+            path = clean_path(declared['path'])
+            if path.name != 'MANIFEST.json': raise ValueError('prepared artifact must name MANIFEST.json')
+            manifest_hash, raw = bounded_regular(path, 2 * 1024 * 1024, retain=True)
+            if manifest_hash != declared['sha256']:
+                raise ValueError('prepared manifest digest/size mismatch')
+            manifest = json.loads(raw)
+            rows = manifest['files']
+            if manifest['schema'] != 'oracle-public-reader-preparation-v1' or len(rows) != 2:
+                raise ValueError('invalid prepared manifest')
+            names = list(rows)
+            if sum(bool(re.fullmatch(r'reader90_[0-9a-f]{24}\.pickle', n)) for n in names) != 1 or sum(bool(re.fullmatch(r'clause101_[0-9a-f]{20}\.pickle', n)) for n in names) != 1:
+                raise ValueError('invalid prepared artifact pair')
+            if set(p.name for p in path.parent.iterdir()) != set(rows) | {'MANIFEST.json'}:
+                raise ValueError('unexpected prepared artifact entry')
+            custody = {'MANIFEST.json': declared['sha256']}
+            for name, row in rows.items():
+                if type(row['bytes']) is not int or not 0 < row['bytes'] <= 512 * 1024 * 1024:
+                    raise ValueError('prepared payload size limit exceeded')
+                actual, _ = bounded_regular(path.parent / name, 512 * 1024 * 1024, expected_size=row['bytes'])
+                if actual != row['sha256']:
+                    raise ValueError('prepared payload digest/size mismatch')
+                custody[name] = row['sha256']
+            for name, expected in custody.items():
+                external.append({'path': str(path.parent / name), 'sha256': expected, 'prepared_relative': name})
+            declared['path'] = str(path)
+            prepared_artifact = {'files': custody, 'custody': 'operator_protected_immutable'}
         e['state'] = '@state/engine'
         e['checkout'] = str(clean_path(e['checkout']))
         if not Path(e['checkout']).is_dir(): raise ValueError('engine checkout missing')
@@ -195,6 +268,8 @@ def build_distribution(host, sha256, config, output, *, source_root=ROOT, archiv
         else:
             raise ValueError('distribution requires an admitted Engine materialization receipt')
     for item in external:
+        if item.get('prepared_relative'):
+            continue  # Already checked through bounded streaming admission above.
         if digest(read_regular(item['path'])) != item['sha256']:
             raise ValueError('external SHA-256 mismatch: ' + item['path'])
     payload['host.template.json'] = encoded(config)
@@ -202,7 +277,8 @@ def build_distribution(host, sha256, config, output, *, source_root=ROOT, archiv
         'Rust Oracle host distribution. Mini remains the authenticating boundary.\n'
         'Run: python3 -I -B -S bin/oracle-host --state-root /absolute/external/state [--port N] [--verify]\n'
         'The host serves /query and /invoke on private loopback. No minid is required.\n'
-        'Image, Engine checkout and stores remain external side mounts; no state is copied.\n'
+        'Image, Engine checkout, stores and prepared public tables remain external side mounts; no state is copied.\n'
+        'Use --prepared-root /absolute/shared/tables to relocate the exact admitted prepared artifact.\n'
         'Requires matching OS/architecture, system dynamic libraries, CPython and Engine dependencies.\n'
         'Interpreter hash does not bind its standard library, virtualenv packages or native dependencies.\n'
         'The Engine deployment identity is admitted by the Rust host, not inferred from a git revision.\n'
@@ -216,6 +292,8 @@ def build_distribution(host, sha256, config, output, *, source_root=ROOT, archiv
                 'requirements': {'hermetic': False, 'python_environment_verified': False,
                                  'dynamic_libraries_bundled': False},
                 'files': {name: {'sha256': digest(data), 'bytes': len(data)} for name, data in sorted(payload.items())}}
+    if prepared_artifact is not None:
+        manifest['prepared_artifact'] = prepared_artifact
     if release is not None:
         manifest['release'] = release
     archive_receipt = None

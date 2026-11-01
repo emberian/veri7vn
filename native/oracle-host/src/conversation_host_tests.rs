@@ -260,6 +260,7 @@ for line in sys.stdin:
         checkout,
         revision: revision.into(),
         materialization: None,
+        prepared: None,
         state: directory.path().join("engine-state"),
         workers: 1,
         startup_ms: 3000,

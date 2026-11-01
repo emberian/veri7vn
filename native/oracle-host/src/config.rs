@@ -173,6 +173,10 @@ pub struct EngineConfig {
     /// A pinned provisioner receipt admits the materialized tree without Git.
     #[serde(default)]
     pub materialization: Option<Artifact>,
+    /// Independently admitted public tables; source and artifacts remain protected
+    /// against writes for the complete host lifetime. No private state is shared.
+    #[serde(default)]
+    pub prepared: Option<PreparedEngineConfig>,
     /// The upstream checkout and source revision (Git alone is development mode).
     pub checkout: PathBuf,
     pub revision: String,
@@ -190,6 +194,23 @@ pub struct EngineConfig {
     pub tip: Option<String>,
     #[serde(default = "reply_bytes")]
     pub reply_bytes: usize,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(deny_unknown_fields)]
+pub struct PreparedEngineConfig {
+    /// Exact external artifact-root/MANIFEST.json, never an inherited environment.
+    pub artifact: Artifact,
+    #[serde(default = "replacement_attempts")]
+    pub replacement_attempts: usize,
+    #[serde(default = "replacement_backoff_ms")]
+    pub replacement_backoff_ms: u64,
+}
+fn replacement_attempts() -> usize {
+    2
+}
+fn replacement_backoff_ms() -> u64 {
+    1000
 }
 
 fn one() -> usize {
@@ -351,6 +372,14 @@ pub fn deployment_identity(config: &Config, host_sha256: &str) -> Result<String,
             }
         }
         engine.remove("checkout");
+        if let Some(artifact) = engine
+            .get_mut("prepared")
+            .and_then(|p| p.get_mut("artifact"))
+            .and_then(Value::as_object_mut)
+        {
+            artifact.remove("path");
+        }
+
         for field in [
             "python",
             "answerer",
@@ -492,6 +521,201 @@ pub fn admit_engine_checkout(settings: &EngineConfig) -> Result<Value, ConfigErr
         json!({"mode": "materialized", "revision": settings.revision,
         "receipt_sha256": artifact.sha256, "contents_verified": true, "files": files.len()}),
     )
+}
+
+/// After admit_engine_checkout, admit exact public artifact bytes before workers.
+/// The Python worker independently checks Python/options and source identity before decoding pickle.
+/// Admission is not a write lock: operator-protected immutable custody is required.
+pub fn admit_engine_prepared(settings: &EngineConfig) -> Result<Option<Value>, ConfigError> {
+    let Some(prepared) = &settings.prepared else {
+        return Ok(None);
+    };
+    if !(1..=8).contains(&prepared.replacement_attempts)
+        || !(1..=60_000).contains(&prepared.replacement_backoff_ms)
+    {
+        return Err(err("engine.prepared: invalid bounded replacement policy"));
+    }
+    let source = settings
+        .materialization
+        .as_ref()
+        .ok_or_else(|| err("engine.prepared requires admitted materialization"))?;
+    if settings.revision != "c473d28914e480425adb29b4f7f42485b8cfb4e3"
+        || settings
+            .tip
+            .as_deref()
+            .is_some_and(|t| t != "oracle_release_runtime_w574")
+    {
+        return Err(err("engine.prepared requires exact U8 w574 source"));
+    }
+    // Caller must first admit_engine_checkout, including actual shared store bytes.
+    admit("engine.materialization", source)?;
+    let receipt = crate::wire::parse(&std::fs::read(&source.path).map_err(|e| err(e.to_string()))?)
+        .map_err(|e| err(e.0))?;
+    if receipt["prepared_source"]["mode"] != "isolated_prepared_u8_w574"
+        || receipt["prepared_source"]["baseline_appliance_sha256"]
+            != "97286fb824bb102a24ac9e7458fc8d8426212ad0bff2b585bd00d6e0462d00a5"
+        || !receipt["patches"].as_array().is_some_and(|rows| {
+            rows.iter().any(|r| {
+                r["sha256"] == "c3f4de2ea8d1a6ff039786668cba8c730943a5649db784364b1745d03d0ef2d8"
+            })
+        })
+    {
+        return Err(err("engine.prepared: unsupported patched materialization"));
+    }
+    let artifact = &prepared.artifact;
+    absolute("engine.prepared.artifact", &artifact.path)?;
+    if artifact.path.file_name().and_then(|s| s.to_str()) != Some("MANIFEST.json") {
+        return Err(err("engine.prepared.artifact must name MANIFEST.json"));
+    }
+    let root = artifact
+        .path
+        .parent()
+        .ok_or_else(|| err("prepared artifact root missing"))?;
+    fn resolve_location(path: &Path) -> std::io::Result<PathBuf> {
+        if path.exists() {
+            return std::fs::canonicalize(path);
+        }
+        let parent = path
+            .parent()
+            .ok_or_else(|| std::io::Error::other("no path parent"))?;
+        let name = path
+            .file_name()
+            .ok_or_else(|| std::io::Error::other("invalid path name"))?;
+        Ok(resolve_location(parent)?.join(name))
+    }
+    let public_location = resolve_location(root).map_err(|e| err(e.to_string()))?;
+    let checkout_location = resolve_location(&settings.checkout).map_err(|e| err(e.to_string()))?;
+    let state_location = resolve_location(&settings.state).map_err(|e| err(e.to_string()))?;
+    if public_location.starts_with(&checkout_location)
+        || checkout_location.starts_with(&public_location)
+        || public_location.starts_with(&state_location)
+        || state_location.starts_with(&public_location)
+    {
+        return Err(err(
+            "prepared artifact, checkout and private state must be disjoint",
+        ));
+    }
+    fn regular(path: &Path) -> Result<std::fs::Metadata, ConfigError> {
+        for part in path.ancestors() {
+            if part
+                .components()
+                .any(|c| matches!(c, std::path::Component::ParentDir))
+                || std::fs::symlink_metadata(part)
+                    .map_err(|e| err(e.to_string()))?
+                    .file_type()
+                    .is_symlink()
+            {
+                return Err(err("prepared artifact symlink/traversal refused"));
+            }
+        }
+        let m = std::fs::metadata(path).map_err(|e| err(e.to_string()))?;
+        if !m.is_file() {
+            return Err(err("prepared artifact must be regular"));
+        }
+        Ok(m)
+    }
+    if regular(&artifact.path)?.len() > 2 * 1024 * 1024 {
+        return Err(err("prepared manifest exceeds 2 MiB"));
+    }
+    let mut raw = Vec::new();
+    std::fs::File::open(&artifact.path)
+        .map_err(|e| err(e.to_string()))?
+        .take(2 * 1024 * 1024 + 1)
+        .read_to_end(&mut raw)
+        .map_err(|e| err(e.to_string()))?;
+    if raw.len() > 2 * 1024 * 1024
+        || !is_hash(&artifact.sha256)
+        || sha256_bytes(&raw) != artifact.sha256
+    {
+        return Err(err("prepared manifest digest/size mismatch"));
+    }
+    let manifest = crate::wire::parse(&raw).map_err(|e| err(e.0))?;
+    if manifest.as_object().map(|o| o.len()) != Some(4)
+        || manifest["schema"] != "oracle-public-reader-preparation-v1"
+        || manifest["identity"]["materialization_sha256"] != source.sha256
+        || manifest["identity"]["hash_seed"] != "0"
+    {
+        return Err(err("prepared manifest source/schema mismatch"));
+    }
+    let expected_sources: serde_json::Map<String, Value> = receipt["files"]
+        .as_object()
+        .ok_or_else(|| err("source inventory missing"))?
+        .iter()
+        .filter(|(name, _)| name.starts_with("workbench/swarm/") && name.ends_with(".py"))
+        .map(|(name, row)| (name.clone(), row["sha256"].clone()))
+        .collect();
+    if expected_sources.is_empty()
+        || !expected_sources.contains_key("workbench/swarm/runtime_preparation.py")
+        || manifest["identity"]["source_sha256"] != Value::Object(expected_sources)
+    {
+        return Err(err("prepared reader source closure mismatch"));
+    }
+    for name in ["train.json", "kb.json"] {
+        let expected = &receipt["files"][format!("root/organs10/kqa/{name}")]["sha256"];
+        if !expected.as_str().is_some_and(is_hash)
+            || manifest["identity"]["data_sha256"][name] != *expected
+        {
+            return Err(err("prepared public data identity mismatch"));
+        }
+    }
+    let files = manifest["files"]
+        .as_object()
+        .ok_or_else(|| err("prepared files missing"))?;
+    if files.len() != 2 {
+        return Err(err("prepared requires exact reader/clause pair"));
+    }
+    let mut reader = 0;
+    let mut clause = 0;
+    for (name, row) in files {
+        let valid = |prefix: &str, digits: usize| {
+            name.strip_prefix(prefix)
+                .and_then(|n| n.strip_suffix(".pickle"))
+                .is_some_and(|n| {
+                    n.len() == digits
+                        && n.bytes()
+                            .all(|b| b.is_ascii_hexdigit() && !b.is_ascii_uppercase())
+                })
+        };
+        if valid("reader90_", 24) {
+            reader += 1;
+        } else if valid("clause101_", 20) {
+            clause += 1;
+        } else {
+            return Err(err("invalid prepared filename"));
+        }
+        let size = row["bytes"]
+            .as_u64()
+            .filter(|n| *n > 0 && *n <= 512 * 1024 * 1024)
+            .ok_or_else(|| err("invalid prepared payload size"))?;
+        let hash = row["sha256"]
+            .as_str()
+            .filter(|s| is_hash(s))
+            .ok_or_else(|| err("invalid prepared hash"))?;
+        let path = root.join(name);
+        if row.as_object().map(|o| o.len()) != Some(2)
+            || regular(&path)?.len() != size
+            || sha256_file(&path).map_err(|e| err(e.to_string()))? != hash
+        {
+            return Err(err("prepared payload size/hash mismatch"));
+        }
+    }
+    if reader != 1 || clause != 1 {
+        return Err(err("prepared pair mismatch"));
+    }
+    let names: std::collections::BTreeSet<_> = std::fs::read_dir(root)
+        .map_err(|e| err(e.to_string()))?
+        .map(|r| r.map(|e| e.file_name().to_string_lossy().into_owned()))
+        .collect::<Result<_, _>>()
+        .map_err(|e| err(e.to_string()))?;
+    let mut expected: std::collections::BTreeSet<_> = files.keys().cloned().collect();
+    expected.insert("MANIFEST.json".into());
+    if names != expected {
+        return Err(err("unexpected prepared artifact entry"));
+    }
+    Ok(Some(
+        json!({"mode":"prepared_u8_w574", "manifest_sha256":artifact.sha256,
+        "materialization_sha256":source.sha256,"custody":"operator_protected_immutable"}),
+    ))
 }
 
 pub fn read(path: &Path) -> Result<Config, ConfigError> {

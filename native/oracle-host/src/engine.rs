@@ -8,7 +8,7 @@
 //! all process memory; old state files remain but are never imported.
 //! A turn that misses its deadline kills the worker's whole process group by
 //! the PID the host recorded at spawn and reaps it. A fresh conversation starts
-//! its replacement lazily.
+//! its replacement lazily, or on bounded supervisor threads in prepared mode.
 //! There is no queue: a request that finds every worker busy is told so.
 
 use crate::config::{self, err, ConfigError, EngineConfig};
@@ -16,28 +16,61 @@ use crate::front::{Candidate, Offer};
 use oracle_execution::{Cancellation, ExecutionContext, ExecutionError};
 use serde_json::{json, Value};
 use std::io::{BufRead, BufReader, Read, Write};
+use std::ops::Deref;
 use std::os::fd::AsRawFd;
 use std::os::unix::net::UnixStream;
 use std::path::PathBuf;
 use std::process::{Child, ChildStdin, Command, Stdio};
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::mpsc::{self, Receiver, RecvTimeoutError};
-use std::sync::{Mutex, TryLockError};
+use std::sync::{Arc, Condvar, Mutex, TryLockError};
+use std::thread::JoinHandle;
 use std::time::{Duration, Instant};
 
 const STDERR_LOG_BYTES: u64 = 16 * 1024 * 1024;
 
 pub struct EnginePool {
+    core: Arc<EngineCore>,
+    supervisors: Mutex<Vec<JoinHandle<()>>>,
+}
+
+#[doc(hidden)]
+pub struct EngineCore {
     config: EngineConfig,
     argv: Vec<String>,
     slots: Vec<Mutex<Slot>>,
     boot: String,
     sequence: AtomicU64,
     stopping: AtomicBool,
+    spawn_gate: Mutex<()>,
+    preparing: Vec<AtomicBool>,
     pub admission: Value,
+    wake: Arc<Wake>,
+    cancellation: Cancellation,
+}
+
+struct Wake {
+    epoch: Mutex<u64>,
+    changed: Condvar,
+}
+impl Wake {
+    fn notify(&self) {
+        let mut epoch = self.epoch.lock().unwrap_or_else(|e| e.into_inner());
+        *epoch = epoch.wrapping_add(1);
+        self.changed.notify_all();
+    }
+}
+impl Deref for EnginePool {
+    type Target = EngineCore;
+    fn deref(&self) -> &EngineCore {
+        &self.core
+    }
 }
 
 struct Slot {
+    wake: Arc<Wake>,
+    replenish: bool,
+    exhausted: bool,
     index: usize,
     tenant: Option<String>,
     generation: u64,
@@ -55,6 +88,7 @@ struct Worker {
     is_ready: bool,
     runtime_readiness: Value,
     pid_file: PathBuf,
+    readers: Vec<JoinHandle<()>>,
 }
 
 /// A reply with the (worker, generation) that produced it, or why there is none
@@ -95,6 +129,7 @@ impl EnginePool {
             return Err(err("engine.workers must be between 1 and 16"));
         }
         let checkout_identity = config::admit_engine_checkout(settings)?;
+        let prepared_identity = config::admit_engine_prepared(settings)?;
         let checkout = std::fs::canonicalize(&settings.checkout)
             .map_err(|e| err(format!("engine.checkout: {e}")))?;
         let state =
@@ -130,39 +165,174 @@ impl EnginePool {
             "workers": settings.workers, "specialist": settings.specialist.as_ref().map(|p| p.file_name()
                 .map(|n| n.to_string_lossy().into_owned())), "compose": settings.compose, "tip": settings.tip,
             "containment": {"process_group": true, "environment": "cleared", "bytecode_writes": false,
-                            "memory_limit": false, "filesystem_sandbox": false, "tenant_ownership": "whole_process_generation", "state_export": false, "lazy_start": true, "host_death_guardian": "one_process_per_active_worker"}});
-        Ok(Self {
-            slots: (0..settings.workers)
-                .map(|index| {
-                    Mutex::new(Slot {
-                        index,
-                        tenant: None,
-                        generation: 0,
-                        worker: None,
-                        starts: 0,
-                        deaths: 0,
+                            "memory_limit": false, "filesystem_sandbox": false, "tenant_ownership": "whole_process_generation", "state_export": false, "lazy_start": settings.prepared.is_none(), "host_death_guardian": "one_process_per_active_worker"}});
+        let wake = Arc::new(Wake {
+            epoch: Mutex::new(0),
+            changed: Condvar::new(),
+        });
+        let mut admission = admission;
+        admission["prepared"] = prepared_identity.unwrap_or(Value::Null);
+        let pool = Self {
+            core: Arc::new(EngineCore {
+                wake: wake.clone(),
+                cancellation: Cancellation::default(),
+                slots: (0..settings.workers)
+                    .map(|index| {
+                        Mutex::new(Slot {
+                            wake: wake.clone(),
+                            replenish: true,
+                            exhausted: false,
+                            index,
+                            tenant: None,
+                            generation: 0,
+                            worker: None,
+                            starts: 0,
+                            deaths: 0,
+                        })
                     })
-                })
-                .collect(),
-            config: settings.clone(),
-            argv,
-            boot: boot.to_owned(),
-            sequence: AtomicU64::new(0),
-            stopping: AtomicBool::new(false),
-            admission,
-        })
+                    .collect(),
+                config: settings.clone(),
+                argv,
+                boot: boot.to_owned(),
+                sequence: AtomicU64::new(0),
+                stopping: AtomicBool::new(false),
+                spawn_gate: Mutex::new(()),
+                preparing: (0..settings.workers)
+                    .map(|_| AtomicBool::new(settings.prepared.is_some()))
+                    .collect(),
+                admission,
+            }),
+            supervisors: Mutex::new(Vec::new()),
+        };
+        if settings.prepared.is_some() {
+            for index in 0..settings.workers {
+                let core = pool.core.clone();
+                let handle = std::thread::Builder::new()
+                    .name(format!("engine-prepare-{index}"))
+                    .spawn(move || core.supervise(index))
+                    .map_err(|e| err(format!("engine supervisor: {e}")))?;
+                pool.supervisors.lock().unwrap().push(handle);
+            }
+        }
+        Ok(pool)
     }
 
     pub fn workers(&self) -> usize {
         self.slots.len()
     }
 
-    /// Reserve bounded capacity without constructing tenantless full Engines.
-    /// Readiness of a specific generation is established on its first turn.
+    /// Prepared mode completes initial public readiness before service admission.
+    /// Lazy mode retains its original first-turn startup behavior.
     pub fn start_all(&self) -> Result<(), String> {
-        Ok(())
+        if self.config.prepared.is_none() {
+            return Ok(());
+        }
+        loop {
+            let epoch = *self.wake.epoch.lock().unwrap_or_else(|e| e.into_inner());
+            if self.stopping.load(Ordering::Acquire) {
+                return Err("engine stopping".into());
+            }
+            let mut pending = false;
+            for slot in &self.slots {
+                match slot.try_lock() {
+                    Ok(slot) => {
+                        if slot.exhausted {
+                            return Err("engine preparation attempts exhausted".into());
+                        }
+                        pending |= !slot.worker.as_ref().is_some_and(|w| w.is_ready);
+                    }
+                    Err(_) => pending = true,
+                }
+            }
+            if !pending {
+                return Ok(());
+            }
+            let guard = self.wake.epoch.lock().unwrap_or_else(|e| e.into_inner());
+            let _guard = self
+                .wake
+                .changed
+                .wait_while(guard, |value| {
+                    *value == epoch && !self.stopping.load(Ordering::Acquire)
+                })
+                .unwrap_or_else(|e| e.into_inner());
+        }
     }
+}
 
+impl EngineCore {
+    fn supervise(&self, index: usize) {
+        let prepared = self.config.prepared.as_ref().expect("prepared supervisor");
+        loop {
+            let epoch = *self.wake.epoch.lock().unwrap_or_else(|e| e.into_inner());
+            if self.stopping.load(Ordering::Acquire) {
+                break;
+            }
+            let mut slot = self.slots[index].lock().unwrap_or_else(|e| e.into_inner());
+            if slot.worker.is_none() && slot.replenish {
+                self.preparing[index].store(true, Ordering::Release);
+                slot.replenish = false;
+                slot.tenant = None;
+                slot.exhausted = false;
+                for attempt in 0..prepared.replacement_attempts {
+                    if self.stopping.load(Ordering::Acquire) {
+                        break;
+                    }
+                    let Ok(context) = ExecutionContext::new(
+                        u64::MAX,
+                        Duration::from_millis(self.config.startup_ms),
+                        self.cancellation.clone(),
+                    ) else {
+                        break;
+                    };
+                    let result = self
+                        .spawn(&mut slot)
+                        .map_err(|_| EngineError::Lost("engine_start_failed"))
+                        .and_then(|_| {
+                            wait_ready(
+                                &mut slot,
+                                context.deadline(),
+                                &context,
+                                Some(&prepared.artifact.sha256),
+                            )
+                        });
+                    if result.is_ok() {
+                        break;
+                    }
+                    EnginePool::retire(&mut slot);
+                    slot.replenish = false;
+                    if attempt + 1 < prepared.replacement_attempts {
+                        drop(slot);
+                        let guard = self.wake.epoch.lock().unwrap_or_else(|e| e.into_inner());
+                        let guard = self
+                            .wake
+                            .changed
+                            .wait_timeout_while(
+                                guard,
+                                Duration::from_millis(prepared.replacement_backoff_ms),
+                                |_| !self.stopping.load(Ordering::Acquire),
+                            )
+                            .unwrap_or_else(|e| e.into_inner());
+                        drop(guard);
+                        slot = self.slots[index].lock().unwrap_or_else(|e| e.into_inner());
+                    }
+                }
+                slot.exhausted = slot.worker.is_none();
+                self.preparing[index].store(false, Ordering::Release);
+                drop(slot);
+                self.wake.notify();
+                continue;
+            }
+            drop(slot);
+            let guard = self.wake.epoch.lock().unwrap_or_else(|e| e.into_inner());
+            let _guard = self
+                .wake
+                .changed
+                .wait_while(guard, |value| {
+                    *value == epoch && !self.stopping.load(Ordering::Acquire)
+                })
+                .unwrap_or_else(|e| e.into_inner());
+        }
+    }
     fn spawn(&self, slot: &mut Slot) -> Result<(), String> {
         use std::os::unix::process::CommandExt;
         slot.generation += 1;
@@ -206,7 +376,25 @@ impl EnginePool {
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::piped());
+        if let Some(prepared) = &self.config.prepared {
+            command
+                .env("ORACLE7_PREPARED_SERVING", "1")
+                .env(
+                    "ORACLE7_READER_ARTIFACT",
+                    prepared
+                        .artifact
+                        .path
+                        .parent()
+                        .expect("admitted manifest parent"),
+                )
+                .env("ORACLE7_READER_ARTIFACT_SHA256", &prepared.artifact.sha256);
+        }
+        let spawn_gate = self.spawn_gate.lock().unwrap_or_else(|e| e.into_inner());
+        if self.stopping.load(Ordering::Acquire) {
+            return Err("engine stopping".into());
+        }
         let mut child = command.spawn().map_err(|e| format!("engine spawn: {e}"))?;
+        drop(spawn_gate);
         drop(guardian_endpoint);
         let pid = child.id() as i32;
         let pid_file = self.config.state.join(format!("worker-{}.pid", slot.index));
@@ -226,54 +414,84 @@ impl EnginePool {
                 nix::sys::signal::Signal::SIGKILL,
             );
             let _ = child.wait();
+            let _ = std::fs::remove_file(&pid_file);
             return Err("cannot bound engine pipe writes".into());
         }
         let stdout = child.stdout.take().expect("piped");
         let stderr = child.stderr.take().expect("piped");
         let (line_tx, lines) = mpsc::sync_channel(2);
         let frame_limit = self.config.reply_bytes;
-        std::thread::spawn(move || {
-            let mut reader = BufReader::new(stdout);
-            loop {
-                let mut bytes = Vec::new();
-                match reader
-                    .by_ref()
-                    .take(frame_limit as u64 + 1)
-                    .read_until(b'\n', &mut bytes)
-                {
-                    Ok(0) | Err(_) => break,
-                    Ok(_) if bytes.len() > frame_limit || !bytes.ends_with(b"\n") => break,
-                    Ok(_) => {
-                        let Ok(line) = String::from_utf8(bytes) else {
-                            break;
-                        };
-                        // A full channel is a protocol violation: do not allow
-                        // unbounded output or leave a producer blocked forever.
-                        if line_tx.try_send(line).is_err() {
-                            break;
+        let output_reader = std::thread::Builder::new()
+            .name("engine-stdout".into())
+            .spawn(move || {
+                let mut reader = BufReader::new(stdout);
+                loop {
+                    let mut bytes = Vec::new();
+                    match reader
+                        .by_ref()
+                        .take(frame_limit as u64 + 1)
+                        .read_until(b'\n', &mut bytes)
+                    {
+                        Ok(0) | Err(_) => break,
+                        Ok(_) if bytes.len() > frame_limit || !bytes.ends_with(b"\n") => break,
+                        Ok(_) => {
+                            let Ok(line) = String::from_utf8(bytes) else {
+                                break;
+                            };
+                            // A full channel is a protocol violation: do not allow
+                            // unbounded output or leave a producer blocked forever.
+                            if line_tx.try_send(line).is_err() {
+                                break;
+                            }
                         }
                     }
                 }
+            });
+        let output_reader = match output_reader {
+            Ok(reader) => reader,
+            Err(e) => {
+                let _ = nix::sys::signal::killpg(
+                    nix::unistd::Pid::from_raw(pid),
+                    nix::sys::signal::Signal::SIGKILL,
+                );
+                let _ = child.wait();
+                let _ = std::fs::remove_file(&pid_file);
+                return Err(format!("engine stdout reader: {e}"));
             }
-        });
-        std::thread::spawn(move || {
-            let mut log = log;
-            let mut written = 0u64;
-            let mut reader = BufReader::new(stderr);
-            let mut line = Vec::new();
-            loop {
-                line.clear();
-                match reader.by_ref().take(1 << 20).read_until(b'\n', &mut line) {
-                    Ok(0) | Err(_) => break,
-                    Ok(n) => {
-                        if written < STDERR_LOG_BYTES {
-                            let _ = log.write_all(&line);
-                            written += n as u64;
+        };
+        let error_reader = std::thread::Builder::new()
+            .name("engine-stderr".into())
+            .spawn(move || {
+                let mut log = log;
+                let mut written = 0u64;
+                let mut reader = BufReader::new(stderr);
+                let mut line = Vec::new();
+                loop {
+                    line.clear();
+                    match reader.by_ref().take(1 << 20).read_until(b'\n', &mut line) {
+                        Ok(0) | Err(_) => break,
+                        Ok(n) => {
+                            if written < STDERR_LOG_BYTES {
+                                let _ = log.write_all(&line);
+                                written += n as u64;
+                            }
                         }
                     }
                 }
+            });
+        let error_reader = match error_reader {
+            Ok(reader) => reader,
+            Err(e) => {
+                let _ = nix::sys::signal::killpg(
+                    nix::unistd::Pid::from_raw(pid),
+                    nix::sys::signal::Signal::SIGKILL,
+                );
+                let _ = child.wait();
+                let _ = output_reader.join();
+                let _ = std::fs::remove_file(&pid_file);
+                return Err(format!("engine stderr reader: {e}"));
             }
-        });
+        };
         slot.worker = Some(Worker {
             child,
             _liveness: liveness,
@@ -283,10 +501,13 @@ impl EnginePool {
             is_ready: false,
             runtime_readiness: Value::Null,
             pid_file,
+            readers: vec![output_reader, error_reader],
         });
         Ok(())
     }
+}
 
+impl EnginePool {
     fn retire(slot: &mut Slot) {
         if let Some(mut worker) = slot.worker.take() {
             // Only the process group this host created, by the PID it recorded.
@@ -296,8 +517,13 @@ impl EnginePool {
             );
             let _ = worker.child.wait();
             let _ = std::fs::remove_file(&worker.pid_file);
+            for reader in worker.readers {
+                let _ = reader.join();
+            }
             slot.deaths += 1;
         }
+        slot.replenish = true;
+        slot.wake.notify();
     }
 
     /// Check a conversation generation without dispatching or starting work.
@@ -437,7 +663,9 @@ impl EnginePool {
         if prefer.is_some_and(|(index, _)| index >= self.slots.len()) {
             return Err((EngineError::Lost("conversation_reset_required"), None));
         }
+        let prepared = self.config.prepared.is_some();
         let mut chosen = None;
+        let mut unavailable = false;
         let candidates: Vec<usize> = match prefer {
             Some((index, _)) if index < self.slots.len() => vec![index],
             _ => (0..self.slots.len()).collect(),
@@ -451,10 +679,19 @@ impl EnginePool {
                     Err(TryLockError::Poisoned(p)) => p.into_inner(),
                     Err(TryLockError::WouldBlock) => continue,
                 };
+                unavailable |= prepared && guard.worker.is_none();
                 if prefer.is_some()
-                    || (pass == 0 && guard.tenant.as_deref() == Some(tenant))
-                    || (pass == 1 && guard.worker.is_none())
-                    || pass == 2
+                    || (pass == 0
+                        && guard.tenant.as_deref() == Some(tenant)
+                        && (!prepared || guard.worker.is_some()))
+                    || (pass == 1
+                        && if prepared {
+                            guard.tenant.is_none()
+                                && guard.worker.as_ref().is_some_and(|w| w.is_ready)
+                        } else {
+                            guard.worker.is_none()
+                        })
+                    || (pass == 2 && (!prepared || guard.worker.is_some()))
                 {
                     chosen = Some(guard);
                     break;
@@ -465,8 +702,20 @@ impl EnginePool {
             }
         }
         let Some(mut slot) = chosen else {
-            return Err((EngineError::Busy, None));
+            return Err((
+                if prepared
+                    && (unavailable || self.preparing.iter().any(|p| p.load(Ordering::Acquire)))
+                {
+                    EngineError::Starting
+                } else {
+                    EngineError::Busy
+                },
+                None,
+            ));
         };
+        if self.stopping.load(Ordering::Acquire) {
+            return Err((EngineError::Stopping, None));
+        }
         if let Some((_, generation)) = prefer {
             if generation != slot.generation
                 || slot.worker.is_none()
@@ -479,15 +728,28 @@ impl EnginePool {
             }
         }
         if slot.tenant.as_deref() != Some(tenant) {
-            Self::retire(&mut slot);
+            if prepared {
+                if slot.worker.is_none() {
+                    return Err((EngineError::Starting, None));
+                }
+                if slot.tenant.is_some() || !slot.worker.as_ref().is_some_and(|w| w.is_ready) {
+                    Self::retire(&mut slot);
+                    return Err((EngineError::Starting, None));
+                }
+            } else {
+                Self::retire(&mut slot);
+            }
             slot.tenant = Some(tenant.to_owned());
         }
         if slot.worker.is_none() {
+            if prepared {
+                return Err((EngineError::Starting, None));
+            }
             self.spawn(&mut slot)
                 .map_err(|_| (EngineError::Lost("engine_start_failed"), None))?;
         }
         let deadline = stage_deadline(context, self.config.startup_ms);
-        if let Err(e) = wait_ready(&mut slot, deadline, context) {
+        if let Err(e) = wait_ready(&mut slot, deadline, context, None) {
             Self::retire(&mut slot);
             return Err((e, None));
         }
@@ -567,9 +829,15 @@ impl EnginePool {
         let mut starts = 0;
         let mut deaths = 0;
         let mut readiness = Vec::new();
+        let mut unassigned = 0;
+        let mut exhausted = 0;
         for slot in &self.slots {
             match slot.try_lock() {
                 Ok(mut slot) => {
+                    exhausted += usize::from(slot.exhausted);
+                    unassigned += usize::from(
+                        slot.tenant.is_none() && slot.worker.as_ref().is_some_and(|w| w.is_ready),
+                    );
                     if let Some(worker) = slot.worker.as_mut() {
                         if worker.is_ready {
                             ready += 1;
@@ -582,11 +850,21 @@ impl EnginePool {
                 Err(_) => busy += 1,
             }
         }
-        json!({"workers": self.slots.len(), "busy": busy, "ready_idle": ready, "ready_idle_scope": "constructor_handshake_not_liveness_probe", "runtime_readiness": readiness, "starts": starts, "retired": deaths, "lazy_start": true, "tenant_isolation": "whole_process_generation", "state_export": false, "conversation_survives_eviction": false, "supported_conversation_protocol": "oracle-conversation-v1", "supported_conversation_scope": "explicit_source_pinned_adapter_routes_only", "legacy_engine_state_export": false})
+        json!({"workers": self.slots.len(), "unassigned_ready": unassigned, "exhausted": exhausted, "preparing": self.preparing.iter().filter(|p| p.load(Ordering::Acquire)).count(), "replacement_policy": "bounded_attempts_then_unavailable_until_host_restart", "busy": busy, "ready_idle": ready, "ready_idle_scope": "constructor_handshake_not_liveness_probe", "runtime_readiness": readiness, "starts": starts, "retired": deaths, "lazy_start": self.config.prepared.is_none(), "tenant_isolation": "whole_process_generation", "state_export": false, "conversation_survives_eviction": false, "supported_conversation_protocol": "oracle-conversation-v1", "supported_conversation_scope": "explicit_source_pinned_adapter_routes_only", "legacy_engine_state_export": false})
     }
 
     pub fn close(&self) {
-        self.stopping.store(true, Ordering::Release);
+        {
+            let _gate = self.spawn_gate.lock().unwrap_or_else(|e| e.into_inner());
+            self.stopping.store(true, Ordering::Release);
+        }
+        self.cancellation.cancel();
+        self.wake.notify();
+        let handles =
+            std::mem::take(&mut *self.supervisors.lock().unwrap_or_else(|e| e.into_inner()));
+        for handle in handles {
+            let _ = handle.join();
+        }
         for slot in &self.slots {
             let mut slot = slot.lock().unwrap_or_else(|e| e.into_inner());
             // Signal the owned group before reaping its leader. Reaping first
@@ -617,6 +895,7 @@ fn wait_ready(
     slot: &mut Slot,
     deadline: Instant,
     context: &ExecutionContext,
+    prepared_sha256: Option<&str>,
 ) -> Result<(), EngineError> {
     let worker = slot.worker.as_mut().ok_or(EngineError::Starting)?;
     context.check().map_err(EngineError::Budget)?;
@@ -631,6 +910,18 @@ fn wait_ready(
                 || value.get("protocol") != Some(&json!("oracle-engine-v1"))
             {
                 return Err(EngineError::Lost("engine_start_failed"));
+            }
+            if let Some(digest) = prepared_sha256 {
+                let readiness = &value["runtime_readiness"];
+                if readiness["scope"] != "prepared_u8_required_dependencies"
+                    || readiness["reader_artifact_manifest_sha256"].as_str() != Some(digest)
+                    || readiness["background_loading_policy"]
+                        != "synchronous_before_constructor_return"
+                    || readiness["required_components"]
+                        != json!(["standing_family", "air", "physics", "facts"])
+                {
+                    return Err(EngineError::Lost("engine_prepared_readiness"));
+                }
             }
             worker.runtime_readiness = value
                 .get("runtime_readiness")
@@ -781,5 +1072,153 @@ mod execution_inheritance_tests {
             Err(RecvTimeoutError::Timeout)
         );
         thread.join().unwrap();
+    }
+}
+
+#[cfg(test)]
+mod prepared_lifecycle_tests {
+    use super::*;
+    use crate::config::{Artifact, PreparedEngineConfig};
+
+    // Manufactured workers exercise lifecycle ownership only. Public artifact
+    // admission is tested separately; this fixture intentionally bypasses it.
+    fn fixture(mode: &str) -> (tempfile::TempDir, EnginePool) {
+        let dir = tempfile::tempdir().unwrap();
+        let python = std::env::split_paths(&std::env::var_os("PATH").unwrap())
+            .map(|p| p.join("python3"))
+            .find(|p| p.is_file())
+            .unwrap();
+        let checkout = dir.path().join("checkout");
+        std::fs::create_dir_all(checkout.join(".git")).unwrap();
+        let revision = "0123456789abcdef0123456789abcdef01234567";
+        std::fs::write(checkout.join(".git/HEAD"), revision).unwrap();
+        let worker = dir.path().join("worker.py");
+        std::fs::write(&worker, r#"import sys,json,os,time,pathlib
+state=pathlib.Path(sys.argv[sys.argv.index('--state')+1]); state.mkdir()
+mode=(state.parent/'mode').read_text()
+if mode=='slow': time.sleep(30)
+readiness={'scope':'prepared_u8_required_dependencies','reader_artifact_manifest_sha256':os.environ['ORACLE7_READER_ARTIFACT_SHA256'],'required_components':['standing_family','air','physics','facts'],'background_loading_policy':'synchronous_before_constructor_return'}
+if mode=='wrong': readiness['scope']='constructor_complete'
+assert os.environ['ORACLE7_PREPARED_SERVING']=='1'
+assert os.environ['ORACLE7_READER_ARTIFACT']==str(state.parent.parent)
+print(json.dumps({'protocol':'oracle-engine-v1','ready':True,'runtime_readiness':readiness}),flush=True)
+private=[]
+for line in sys.stdin:
+ r=json.loads(line)
+ if r['q']=='error': print(json.dumps({'id':r['id'],'error':'failed after dispatch'}),flush=True); continue
+ if r['q'].startswith('remember:'): private.append(r['q'])
+ print(json.dumps({'id':r['id'],'status':'answered','response':str(private)}),flush=True)
+"#).unwrap();
+        let artifact = |path: PathBuf| Artifact {
+            sha256: config::sha256_file(&path).unwrap(),
+            path,
+        };
+        let settings = EngineConfig {
+            python: artifact(python),
+            answerer: artifact(worker),
+            conversation_adapter: None,
+            checkout,
+            revision: revision.into(),
+            materialization: None,
+            prepared: None,
+            state: dir.path().join("state"),
+            workers: 1,
+            startup_ms: 1000,
+            turn_ms: 1000,
+            reply_bytes: 4096,
+            specialist: None,
+            compose: None,
+            tip: None,
+        };
+        let mut pool = EnginePool::open(&settings, "prepared-test").unwrap();
+        std::fs::write(settings.state.join("mode"), mode).unwrap();
+        let core = Arc::get_mut(&mut pool.core).unwrap();
+        core.config.prepared = Some(PreparedEngineConfig {
+            artifact: Artifact {
+                path: dir.path().join("MANIFEST.json"),
+                sha256: "a".repeat(64),
+            },
+            replacement_attempts: 2,
+            replacement_backoff_ms: 20,
+        });
+        core.preparing[0].store(true, Ordering::Release);
+        let core = pool.core.clone();
+        pool.supervisors
+            .lock()
+            .unwrap()
+            .push(std::thread::spawn(move || core.supervise(0)));
+        (dir, pool)
+    }
+
+    #[test]
+    fn prepared_claim_once_and_replacement_never_share_private_state() {
+        let (_dir, pool) = fixture("ready");
+        pool.start_all().unwrap();
+        assert_eq!(pool.health()["unassigned_ready"], 1);
+        let (a, index, generation) = pool.ask("a", "remember:secret", "s", None).unwrap();
+        assert!(a["response"].as_str().unwrap().contains("secret"));
+        assert_eq!(pool.health()["unassigned_ready"], 0);
+        assert_eq!(
+            pool.ask("b", "recall", "s", None),
+            Err((EngineError::Starting, None))
+        );
+        pool.start_all().unwrap();
+        let (b, _, replacement) = pool.ask("b", "recall", "s", None).unwrap();
+        assert_eq!(b["response"], "[]");
+        assert!(replacement > generation);
+        assert!(matches!(
+            pool.ask("a", "recall", "s", Some((index, generation))),
+            Err((EngineError::Lost("conversation_reset_required"), _))
+        ));
+        assert_eq!(
+            pool.ask("b", "error", "s", Some((index, replacement))),
+            Err((
+                EngineError::Lost("worker_error"),
+                Some((index, replacement))
+            ))
+        );
+        pool.start_all().unwrap();
+        assert_eq!(pool.health()["starts"], 3);
+        pool.close();
+        assert_eq!(pool.health()["ready_idle"], 0);
+        assert_eq!(
+            pool.ask("c", "recall", "s", None),
+            Err((EngineError::Stopping, None))
+        );
+    }
+
+    #[test]
+    fn wrong_prepared_marker_exhausts_finite_attempts_without_request_rearming() {
+        let (_dir, pool) = fixture("wrong");
+        assert!(pool.start_all().is_err());
+        for _ in 0..20 {
+            assert_eq!(
+                pool.ask("t", "q", "s", None),
+                Err((EngineError::Starting, None))
+            );
+        }
+        assert_eq!(pool.health()["starts"], 2);
+        assert_eq!(pool.health()["exhausted"], 1);
+        assert_eq!(pool.health()["ready_idle"], 0);
+    }
+
+    #[test]
+    fn shutdown_cancels_preparation_and_joins_before_returning() {
+        let (dir, pool) = fixture("slow");
+        let pid_file = dir.path().join("state/worker-0.pid");
+        let until = Instant::now() + Duration::from_secs(2);
+        while !pid_file.exists() && Instant::now() < until {
+            std::thread::sleep(Duration::from_millis(2));
+        }
+        assert!(
+            pid_file.exists(),
+            "fixture must be inside startup before cancellation"
+        );
+        let before = Instant::now();
+        pool.close();
+        assert!(before.elapsed() < Duration::from_secs(2));
+        assert!(!dir.path().join("state/worker-0.pid").exists());
+        assert!(pool.supervisors.lock().unwrap().is_empty());
+        assert_eq!(pool.start_all(), Err("engine stopping".into()));
     }
 }
