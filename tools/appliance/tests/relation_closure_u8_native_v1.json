@@ -1,0 +1,198 @@
+{
+  "assurance": "untrusted_readonly_sql_export_not_full_source_admission",
+  "exporter_sha256": "d5ea2b8338dd19f86a0f40464f9cb86301158fcdeb925f38ddd575aa8b9fc2ba",
+  "format": "oracle_finite_relation_reference_v1",
+  "native_image_comparison": {
+    "coverage": "complete_rows_for_enumerated_place_of_birth_scopes_only",
+    "image_declared_sha256": "8fcb1db9a08e234179f66ea9e032d2633b38cdcb902f4c95d1ba2c2d49c842f4",
+    "image_observed_sha256": null,
+    "namespace": "wikidata_declared_for_this_comparison",
+    "receipt_sha256": "a86c50bb1c2771600fc494e7a5223c170e59b34aca64c1f20b56cca9ad05b3c6",
+    "scopes": [
+      {
+        "direction": "forward",
+        "limit": null,
+        "objects": [
+          {
+            "id": "Q189288",
+            "name": "Stratford-upon-Avon"
+          }
+        ],
+        "parameters": [
+          "Q692",
+          "place of birth",
+          "forward"
+        ],
+        "predicate": "place of birth",
+        "query": "SELECT predicate,direction,object,qualifiers FROM edges WHERE subject=? AND predicate=? AND direction=? ORDER BY object,qualifiers",
+        "rows": [
+          {
+            "direction": "forward",
+            "object": "Q189288",
+            "predicate": "place of birth",
+            "qualifiers": {}
+          }
+        ],
+        "subject": "Q692",
+        "unique_object_status": "unique"
+      },
+      {
+        "direction": "forward",
+        "limit": null,
+        "objects": [
+          {
+            "id": "Q18438",
+            "name": "Long Island"
+          }
+        ],
+        "parameters": [
+          "Q81438",
+          "place of birth",
+          "forward"
+        ],
+        "predicate": "place of birth",
+        "query": "SELECT predicate,direction,object,qualifiers FROM edges WHERE subject=? AND predicate=? AND direction=? ORDER BY object,qualifiers",
+        "rows": [
+          {
+            "direction": "forward",
+            "object": "Q18438",
+            "predicate": "place of birth",
+            "qualifiers": {}
+          }
+        ],
+        "subject": "Q81438",
+        "unique_object_status": "unique"
+      }
+    ],
+    "source": "reader-image-v3"
+  },
+  "u8": {
+    "coverage": "complete_rows_for_enumerated_subject_property_scopes_only",
+    "entities": [
+      {
+        "id": "wd:Q692",
+        "is_person_direct_p31_q5": true,
+        "label": "William Shakespeare",
+        "p31_rows": [
+          {
+            "literal": null,
+            "object": 5
+          }
+        ]
+      },
+      {
+        "id": "wd:Q18438",
+        "is_person_direct_p31_q5": false,
+        "label": "Long Island",
+        "p31_rows": [
+          {
+            "literal": null,
+            "object": 23442
+          },
+          {
+            "literal": null,
+            "object": 2610088
+          }
+        ]
+      },
+      {
+        "id": "wd:Q81438",
+        "is_person_direct_p31_q5": true,
+        "label": "Walt Whitman",
+        "p31_rows": [
+          {
+            "literal": null,
+            "object": 5
+          }
+        ]
+      },
+      {
+        "id": "wd:Q189288",
+        "is_person_direct_p31_q5": false,
+        "label": "Stratford-upon-Avon",
+        "p31_rows": [
+          {
+            "literal": null,
+            "object": 3957
+          },
+          {
+            "literal": null,
+            "object": 1115575
+          }
+        ]
+      },
+      {
+        "id": "wd:Q3461211",
+        "is_person_direct_p31_q5": false,
+        "label": "West Hills",
+        "p31_rows": [
+          {
+            "literal": null,
+            "object": 498162
+          },
+          {
+            "literal": null,
+            "object": 17343829
+          }
+        ]
+      }
+    ],
+    "namespace": "wikidata",
+    "receipt_sha256": "97286fb824bb102a24ac9e7458fc8d8426212ad0bff2b585bd00d6e0462d00a5",
+    "scopes": [
+      {
+        "limit": null,
+        "object_ids": [
+          "wd:Q189288"
+        ],
+        "parameters": [
+          692,
+          19
+        ],
+        "property": "wd:P19",
+        "query": "SELECT p,o,lit FROM fact INDEXED BY fact_sp WHERE s=? AND p=? ORDER BY o,lit",
+        "rows": [
+          {
+            "literal": null,
+            "object": 189288,
+            "property": 19
+          }
+        ],
+        "subject": "wd:Q692",
+        "unique_object_status": "unique"
+      },
+      {
+        "limit": null,
+        "object_ids": [
+          "wd:Q18438",
+          "wd:Q3461211"
+        ],
+        "parameters": [
+          81438,
+          19
+        ],
+        "property": "wd:P19",
+        "query": "SELECT p,o,lit FROM fact INDEXED BY fact_sp WHERE s=? AND p=? ORDER BY o,lit",
+        "rows": [
+          {
+            "literal": null,
+            "object": 18438,
+            "property": 19
+          },
+          {
+            "literal": null,
+            "object": 3461211,
+            "property": 19
+          }
+        ],
+        "subject": "wd:Q81438",
+        "unique_object_status": "ambiguous"
+      }
+    ],
+    "source": "oracle7-slim-10.1/U8/relations_v2",
+    "store_bytes": 5569425408,
+    "store_declared_sha256": "7df5c620982634e7ed6ff097f7d9082605cc879e9ee938d36d6a14af11cc4095",
+    "store_observed_sha256": null,
+    "store_relative_path": "root/relstore/relations_v2.sqlite3"
+  }
+}

@@ -432,23 +432,26 @@ class Adapter:
             if cost and st.result:
                 value, unit = st.result
                 rate_unit = cost[2]
-                ratios = {("J", "kWh"): Fraction(1, 3600000), ("j", "kwh"): Fraction(1, 3600000)}
-                ratio = Fraction(1) if unit.lower() == rate_unit.lower() else ratios.get((unit, rate_unit))
-                if ratio is not None:
-                    amount = Fraction(str(value)) * ratio * Fraction(cost[1])
-                    v = float(amount)
-                    if not math.isfinite(v):
-                        raise ValueError("nonfinite cost")
-                    reply = {"status": "answered", "response": "The cost is $%s." % format(v, ".12g"),
-                             "path": "adapter:quantity_cost", "value": v, "unit": "$",
-                             "provenance": {"kind": "quantity_cost", "input": self.prior_number(value, unit, owner="context"), "rate": cost[1],
-                                            "rate_unit": rate_unit, "conversion_factor": str(ratio), "origin": "python_float"}}
-                    self.precision = {}
-                    st.q = question; st.result = (v, "$"); st.solved = {}
-                    self.runtime._conversation_contexts[sid] = deepcopy(st)
-                    self.runtime._last_value.pop(sid, None)
-                    self.runtime._pending_conversion.pop(sid, None)
-                    return reply
+                # Unit symbols are case-sensitive: mJ and MJ differ by 10^9.
+                # Only this audited cross-unit conversion is admitted here.
+                ratios = {("J", "kWh"): Fraction(1, 3600000)}
+                ratio = Fraction(1) if unit == rate_unit else ratios.get((unit, rate_unit))
+                if ratio is None:
+                    raise SemanticWithheld("quantity_unit_mismatch", "That rate unit does not match the retained quantity.")
+                amount = Fraction(str(value)) * ratio * Fraction(cost[1])
+                v = float(amount)
+                if not math.isfinite(v):
+                    raise ValueError("nonfinite cost")
+                reply = {"status": "answered", "response": "The cost is $%s." % format(v, ".12g"),
+                         "path": "adapter:quantity_cost", "value": v, "unit": "$",
+                         "provenance": {"kind": "quantity_cost", "input": self.prior_number(value, unit, owner="context"), "rate": cost[1],
+                                        "rate_unit": rate_unit, "conversion_factor": str(ratio), "origin": "python_float"}}
+                self.precision = {}
+                st.q = question; st.result = (v, "$"); st.solved = {}
+                self.runtime._conversation_contexts[sid] = deepcopy(st)
+                self.runtime._last_value.pop(sid, None)
+                self.runtime._pending_conversion.pop(sid, None)
+                return reply
             physics = getattr(self.runtime, "_organs", {}).get("physics")
             if physics is not None:
                 for module in (physics.G, physics.G.R, physics.G.systems, sys.modules[type(physics).__module__]):

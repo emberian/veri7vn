@@ -201,6 +201,40 @@ class Boundary(unittest.TestCase):
                 self.assertEqual(events, ["released"])
                 self.assertEqual(result["conversation"], before)
 
+    def test_cost_unit_case_is_dimensional_and_joule_kwh_is_explicit(self):
+        cases = [("mJ", "MJ", 1, None), ("MJ", "mJ", 1, None),
+                 ("J", "kwh", 3600000, None), ("j", "kWh", 3600000, None),
+                 ("mJ", "mJ", 2, 0.4), ("J", "kWh", 3600000, 0.2)]
+        for unit, rate_unit, value, expected in cases:
+            with self.subTest(unit=unit, rate_unit=rate_unit):
+                a = self.adapter(); a.restore("s", self.initial())
+                a.project("s", {"status": "answered", "conversation_projection": {
+                    "question": "quantity", "result": {"number": value, "unit": unit, "origin": "displayed_decimal"}}})
+                before = a.capture("s"); committed = self.envelope(before)
+                a.cc._STATES = {}; a.cc.rewrite = lambda *_: None
+                def begin(runtime, _text, sid):
+                    a.cc._STATES[sid] = deepcopy(runtime._conversation_contexts[sid]); return {"sid": sid}
+                def release(frame):
+                    a.cc._STATES.pop(frame["sid"], None)
+                base = SimpleNamespace(_compute=lambda *_: None, _resolve_followup=lambda _self, text, _sid: (text, False),
+                    _carry=lambda *_: None, _witness_compute=lambda *_: None)
+                w29 = SimpleNamespace(OracleReleaseRuntimeW29=base, _TRAIL=re.compile(r"[\s?.!]+$"), _LEAD=re.compile(r"^what is\s+", re.I))
+                a.verify_module = lambda *_: None
+                worker, eng = self.refusal_worker(a)
+                with patch.dict(sys.modules, {"runtime_conversation_state": SimpleNamespace(begin=begin, release=release),
+                                              "oracle_release_runtime_w29": w29}):
+                    result = worker.conversation_answer(eng, None, None, "What does that cost at $0.20 per " + rate_unit + "?", "s", False,
+                        {"protocol": A.PROTOCOL, "state": committed})
+                if expected is None:
+                    self.assertEqual(result["path"], "adapter:withheld>quantity_unit_mismatch")
+                    self.assertEqual(result["conversation"], before)
+                else:
+                    self.assertEqual(result["status"], "answered")
+                    self.assertEqual(result["value"], expected)
+                    self.assertEqual(result["unit"], "$")
+                    self.assertEqual(result["provenance"]["input"]["unit"], unit)
+                    self.assertEqual(result["provenance"]["rate_unit"], rate_unit)
+
     def test_physics_known_declines_preserve_and_bad_results_fail(self):
         cases = [({"status": "declined", "kind": kind, "why": "No supported result."}, "physics_" + kind)
                  for kind in ("form", "no_part", "no_value", "disagree")]
