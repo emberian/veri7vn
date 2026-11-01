@@ -221,6 +221,16 @@ fn keys_values_qualifiers_and_numeric_tokens_have_the_expected_gates() {
     assert_eq!(keyed.spans[1].readings[0].canonical, "valid at");
     assert_eq!(keyed.spans[2].readings[0].canonical, "since");
     assert_eq!(keyed.spans[3].readings[0].kind, LexicalKind::R);
+
+    let dated = read(&db, "on 1989-11-09", CandidateOptions::default());
+    assert_eq!(dated.normalized, "on 1989 11 09");
+    assert!(dated.spans.iter().any(|span| {
+        span.start == 3
+            && span.end == 13
+            && span.readings.len() == 1
+            && span.readings[0].kind == LexicalKind::N
+            && span.readings[0].canonical == "1989-11-09"
+    }));
 }
 
 #[test]

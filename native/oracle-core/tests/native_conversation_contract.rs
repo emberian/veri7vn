@@ -75,6 +75,7 @@ fn quantity(number: &str, unit: &str, origin: NumericOrigin) -> NativeQuantity {
         number: number.into(),
         unit: unit.into(),
         origin,
+        role: QuantityRole::Scalar,
     }
 }
 fn provider() -> ProviderIdentity {
@@ -562,4 +563,158 @@ fn explicit_empty_and_ambiguous_graph_results_clear_stale_entity_only_on_reconci
         assert_eq!(c.envelope.selection.ids.len(), selected);
         commit(&rt, c, b"{\"operation\":\"graph.execute\"}", &b);
     }
+}
+
+#[test]
+fn temperature_point_and_difference_roles_distinguish_affine_and_linear_operations() {
+    let f = Fixture::new();
+    let rt = f.runtime();
+    let b = f.budget();
+    let mut c = begin(&rt, "obs-temp", &b);
+    initialize(&rt, &mut c, &b);
+    let r = rt
+        .conversation_native_command(
+            &mut c,
+            NativeContextCommand::Observe {
+                quantity: NativeQuantity {
+                    number: "20".into(),
+                    unit: "degC".into(),
+                    origin: NumericOrigin::ExactDecimal,
+                    role: QuantityRole::TemperaturePoint,
+                },
+            },
+            &b,
+        )
+        .unwrap();
+    assert_eq!(r.status, NativeContextStatus::Answered);
+    commit(&rt, c, b"{}", &b);
+
+    // Scaling an affine temperature point is refused and preserves the point.
+    let mut c = begin(&rt, "scale-point", &b);
+    let r = rt
+        .conversation_native_command(
+            &mut c,
+            NativeContextCommand::Scale { factor: "2".into() },
+            &b,
+        )
+        .unwrap();
+    assert_eq!(r.status, NativeContextStatus::Withheld);
+    assert_eq!(
+        r.reason,
+        Some(NativeContextRefusal::IncompatibleTemperatureRole)
+    );
+    commit(&rt, c, b"{}", &b);
+
+    // Affine conversion to K: 20 degC -> 293.15 K (5863/20 K).
+    let mut c = begin(&rt, "to-k", &b);
+    let r = rt
+        .conversation_native_command(
+            &mut c,
+            NativeContextCommand::ConvertTemperature {
+                target_unit: "K".into(),
+            },
+            &b,
+        )
+        .unwrap();
+    assert_eq!(r.status, NativeContextStatus::Answered);
+    assert_eq!(r.quantity().unwrap().number, "5863/20");
+    assert_eq!(r.quantity().unwrap().unit, "K");
+    assert_eq!(r.quantity().unwrap().role, QuantityRole::TemperaturePoint);
+    commit(&rt, c, b"{}", &b);
+
+    // Subtracting baseline 273.15 K produces a TemperatureDifference of 20 K (20/1 K), which CAN be scaled.
+    let mut c = begin(&rt, "diff-from", &b);
+    let r = rt
+        .conversation_native_command(
+            &mut c,
+            NativeContextCommand::TemperatureDifferenceFrom {
+                baseline: "273.15".into(),
+                baseline_unit: "K".into(),
+            },
+            &b,
+        )
+        .unwrap();
+    assert_eq!(r.status, NativeContextStatus::Answered);
+    assert_eq!(r.quantity().unwrap().number, "20/1");
+    assert_eq!(
+        r.quantity().unwrap().role,
+        QuantityRole::TemperatureDifference
+    );
+    commit(&rt, c, b"{}", &b);
+
+    let mut c = begin(&rt, "scale-diff", &b);
+    let r = rt
+        .conversation_native_command(
+            &mut c,
+            NativeContextCommand::Scale { factor: "3".into() },
+            &b,
+        )
+        .unwrap();
+    assert_eq!(r.status, NativeContextStatus::Answered);
+    assert_eq!(r.quantity().unwrap().number, "60/1");
+    assert_eq!(
+        r.quantity().unwrap().role,
+        QuantityRole::TemperatureDifference
+    );
+    commit(&rt, c, b"{}", &b);
+}
+
+#[test]
+fn direct_entity_id_selection_and_retained_fitted_model_evaluation() {
+    let f = Fixture::new();
+    let rt = f.runtime();
+    let b = f.budget();
+    let mut c = begin(&rt, "by-id", &b);
+    initialize(&rt, &mut c, &b);
+    let entity = rt
+        .conversation_native_entity_query(
+            &mut c,
+            NativeEntityQuery::ById {
+                id: "person".into(),
+            },
+            &b,
+        )
+        .unwrap();
+    assert_eq!(entity.status, NativeContextStatus::Answered);
+    assert_eq!(entity.entity.as_ref().unwrap().label, "Ada");
+    commit(&rt, c, b"{}", &b);
+
+    // Installing a fitted calibration model clears the entity anchor while retaining the model.
+    let mut c = begin(&rt, "install-model", &b);
+    let r = rt
+        .conversation_native_command(
+            &mut c,
+            NativeContextCommand::InstallModel {
+                model: RetainedFittedModel::Calibration {
+                    request: "install-model".into(),
+                    revision: 2,
+                    intercept: "1".into(),
+                    slope: "2".into(),
+                    x_unit: "m".into(),
+                    response_unit: "N".into(),
+                    direction: "forward_mean".into(),
+                },
+            },
+            &b,
+        )
+        .unwrap();
+    assert_eq!(r.status, NativeContextStatus::Answered);
+    assert_eq!(r.anchor, NativeAnchor::Empty);
+    assert!(r.fitted_model.is_some());
+    commit(&rt, c, b"{}", &b);
+
+    // Evaluating the retained model at x = 5 m produces 1 + 2*5 = 11 N as the quantity anchor.
+    let mut c = begin(&rt, "eval-model", &b);
+    let r = rt
+        .conversation_native_command(
+            &mut c,
+            NativeContextCommand::EvaluateModel { value: "5".into() },
+            &b,
+        )
+        .unwrap();
+    assert_eq!(r.status, NativeContextStatus::Answered);
+    assert_eq!(r.quantity().unwrap().number, "11/1");
+    assert_eq!(r.quantity().unwrap().unit, "N");
+    assert!(r.fitted_model.is_some());
+    commit(&rt, c, b"{}", &b);
 }

@@ -104,3 +104,9 @@ class PreparedConfig(unittest.TestCase):
             prepared = json.loads(out.read_text())['engine']['prepared']
             self.assertEqual(prepared, {'artifact': {'path': str(manifest), 'sha256': M.sha256(manifest)},
                                         'replacement_attempts': 2, 'replacement_backoff_ms': 1000})
+
+    def test_organ_infers_family_from_registry_when_omitted(self):
+        self.assertEqual(M.infer_organ_family('acoustics'), 'acoustics')
+        self.assertEqual(M.infer_organ_family('statistics-v2'), {'geostats': {'specialist': 'statistics-v2'}})
+        self.assertEqual(M.infer_organ_family('energy-v3'), {'energy': {'specialist': 'energy-v3'}})
+        self.assertEqual(M.infer_organ_family('units-v3'), {'quantity': {'specialist': 'units-v3'}})

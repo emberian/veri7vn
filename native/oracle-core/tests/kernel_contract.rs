@@ -180,6 +180,81 @@ fn fixed_family_protocol_constructs_quantity_specialist_arguments() {
 }
 
 #[test]
+fn sequential_multi_organ_polling_reuses_distinct_slots_without_thrashing_slot_zero() {
+    let f = Fixture::new();
+    let descriptors = vec![
+        KernelDescriptor::new("acoustics", &f.path, &f.sha, KernelFamily::Acoustics),
+        KernelDescriptor::new(
+            "units",
+            &f.path,
+            &f.sha,
+            KernelFamily::Quantity {
+                specialist: Some(QuantitySpecialist::UnitsV3),
+            },
+        ),
+        KernelDescriptor::new(
+            "stats",
+            &f.path,
+            &f.sha,
+            KernelFamily::GeoStats {
+                specialist: Some("statistics-v2".into()),
+            },
+        ),
+    ];
+    let executor = KernelExecutor::new(
+        descriptors,
+        KernelLimits {
+            workers: 3,
+            ..KernelLimits::default()
+        },
+    )
+    .unwrap();
+    let r1_acoustics = executor
+        .execute("tenant", "acoustics", "q1", Cancellation::default())
+        .unwrap();
+    let r1_units = executor
+        .execute("tenant", "units", "q1", Cancellation::default())
+        .unwrap();
+    let r1_stats = executor
+        .execute("tenant", "stats", "q1", Cancellation::default())
+        .unwrap();
+    assert_eq!(
+        r1_stats.reply["argv"],
+        serde_json::json!(["--specialist", "statistics-v2"])
+    );
+
+    let r2_acoustics = executor
+        .execute("tenant", "acoustics", "q2", Cancellation::default())
+        .unwrap();
+    let r2_units = executor
+        .execute("tenant", "units", "q2", Cancellation::default())
+        .unwrap();
+    let r2_stats = executor
+        .execute("tenant", "stats", "q2", Cancellation::default())
+        .unwrap();
+
+    assert_eq!(r1_acoustics.worker_pid, r2_acoustics.worker_pid);
+    assert_eq!(r1_units.worker_pid, r2_units.worker_pid);
+    assert_eq!(r1_stats.worker_pid, r2_stats.worker_pid);
+    assert_eq!(r2_acoustics.reply["count"], 2);
+    assert_eq!(r2_units.reply["count"], 2);
+    assert_eq!(r2_stats.reply["count"], 2);
+
+    let bad_family = KernelDescriptor::new(
+        "bad",
+        &f.path,
+        &f.sha,
+        KernelFamily::GeoStats {
+            specialist: Some("acoustics".into()),
+        },
+    );
+    assert!(matches!(
+        KernelExecutor::new(vec![bad_family], KernelLimits::default()),
+        Err(Error::Invalid(_))
+    ));
+}
+
+#[test]
 fn request_bound_includes_json_escaping_and_envelope_before_process_start() {
     let f = Fixture::new();
     let executor = f.executor(KernelLimits {

@@ -350,7 +350,9 @@ fn plan_retained_bytes(plan: &Plan) -> usize {
             .saturating_add(projection(&plan.projection)),
         |bytes, node| {
             bytes.saturating_add(match node {
-                Node::Find { name } | Node::FilterConcept { name, .. } => name.capacity(),
+                Node::Find { name }
+                | Node::Id { id: name }
+                | Node::FilterConcept { name, .. } => name.capacity(),
                 Node::Relate {
                     predicate,
                     direction,

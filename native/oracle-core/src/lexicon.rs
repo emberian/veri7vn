@@ -536,6 +536,28 @@ fn number(surface: &str) -> bool {
     surface.as_bytes().first().is_some_and(u8::is_ascii_digit)
         && surface.bytes().all(|b| b.is_ascii_digit() || b == b'.')
 }
+fn iso_date(surface: &str) -> Option<String> {
+    let bytes = surface.as_bytes();
+    if bytes.len() == 10
+        && bytes[4] == b' '
+        && bytes[7] == b' '
+        && bytes[..4].iter().all(u8::is_ascii_digit)
+        && bytes[5..7].iter().all(u8::is_ascii_digit)
+        && bytes[8..10].iter().all(u8::is_ascii_digit)
+    {
+        let month = (bytes[5] - b'0') * 10 + (bytes[6] - b'0');
+        let day = (bytes[8] - b'0') * 10 + (bytes[9] - b'0');
+        if (1..=12).contains(&month) && (1..=31).contains(&day) {
+            return Some(format!(
+                "{}-{}-{}",
+                &surface[..4],
+                &surface[5..7],
+                &surface[8..10]
+            ));
+        }
+    }
+    None
+}
 struct Scratch<'a> {
     limits: &'a LexiconLimits,
     budget: &'a Budget,
@@ -976,6 +998,10 @@ fn candidates_from(
             }
             if j == i + 1 && number(surface) && !aliases.contains(&LexicalKind::N) {
                 scratch.reading(&mut readings, LexicalKind::N, surface, false)?;
+            } else if j == i + 3 && !aliases.contains(&LexicalKind::N) {
+                if let Some(date) = iso_date(surface) {
+                    scratch.reading(&mut readings, LexicalKind::N, &date, false)?;
+                }
             }
             if !readings.is_empty() {
                 if spans.len() >= limits.spans {

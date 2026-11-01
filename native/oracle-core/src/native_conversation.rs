@@ -13,6 +13,20 @@ pub const OWNER_VERSION: u32 = 1;
 pub const OPERATION: &str = "context.native";
 pub const MAX_OWNER_BYTES: usize = 16384;
 
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum QuantityRole {
+    #[default]
+    Scalar,
+    TemperaturePoint,
+    TemperatureDifference,
+}
+impl QuantityRole {
+    pub fn is_scalar(&self) -> bool {
+        matches!(self, Self::Scalar)
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct NativeQuantity {
@@ -20,13 +34,29 @@ pub struct NativeQuantity {
     /// An explicit unit token. `1` is dimensionless; no unit is inferred.
     pub unit: String,
     pub origin: NumericOrigin,
+    #[serde(default, skip_serializing_if = "QuantityRole::is_scalar")]
+    pub role: QuantityRole,
 }
 impl NativeQuantity {
     pub fn validate(&self) -> Result<()> {
-        ExactNumber::parse(&self.number, &number_limits())?;
+        let parsed = rational(&self.number)?;
         if self.unit.is_empty() || self.unit.len() > 256 || self.unit.chars().any(char::is_control)
         {
             return Err(Error::Invalid("native quantity unit".into()));
+        }
+        match self.role {
+            QuantityRole::Scalar => {}
+            QuantityRole::TemperaturePoint => {
+                let kelvin = to_kelvin(&parsed, &self.unit, true)?;
+                if kelvin < BigRational::zero() {
+                    return Err(Error::Invalid(
+                        "temperature point below absolute zero".into(),
+                    ));
+                }
+            }
+            QuantityRole::TemperatureDifference => {
+                to_kelvin(&parsed, &self.unit, false)?;
+            }
         }
         Ok(())
     }
@@ -121,12 +151,62 @@ pub struct AnchorLineage {
     pub derivation: Option<Derivation>,
 }
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
+pub enum RetainedFittedModel {
+    Calibration {
+        request: String,
+        revision: i64,
+        intercept: String,
+        slope: String,
+        x_unit: String,
+        response_unit: String,
+        direction: String,
+    },
+}
+impl RetainedFittedModel {
+    fn validate(&self, revision: i64) -> Result<()> {
+        match self {
+            Self::Calibration {
+                request,
+                revision: model_rev,
+                intercept,
+                slope,
+                x_unit,
+                response_unit,
+                direction,
+            } => {
+                request_id(request)?;
+                if *model_rev < 1 || *model_rev > revision {
+                    return Err(Error::Format("native fitted model revision".into()));
+                }
+                ExactNumber::parse(intercept, &number_limits())?;
+                ExactNumber::parse(slope, &number_limits())?;
+                for u in [x_unit, response_unit] {
+                    if u.is_empty() || u.len() > 256 || u.chars().any(char::is_control) {
+                        return Err(Error::Invalid("native fitted model unit".into()));
+                    }
+                }
+                if !matches!(
+                    direction.as_str(),
+                    "forward_mean" | "forward_observation" | "inverse_point"
+                ) {
+                    return Err(Error::Invalid("native fitted model direction".into()));
+                }
+                Ok(())
+            }
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct NativeContextState {
     pub owner: String,
     pub version: u32,
     pub anchor: NativeAnchor,
     pub delivery: Option<AnchorLineage>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub fitted_model: Option<RetainedFittedModel>,
 }
 impl Default for NativeContextState {
     fn default() -> Self {
@@ -135,6 +215,7 @@ impl Default for NativeContextState {
             version: OWNER_VERSION,
             anchor: NativeAnchor::Empty,
             delivery: None,
+            fitted_model: None,
         }
     }
 }
@@ -158,6 +239,9 @@ impl NativeContextState {
                     "native anchor lineage missing or spurious".into(),
                 ))
             }
+        }
+        if let Some(model) = &self.fitted_model {
+            model.validate(revision)?;
         }
         crate::query::encoded_size(self, MAX_OWNER_BYTES)?;
         Ok(())
@@ -198,7 +282,16 @@ fn validate_lineage(lineage: &AnchorLineage, revision: i64) -> Result<()> {
         request_id(&d.previous_request)?;
         if d.previous_revision < 1
             || d.previous_revision >= lineage.revision
-            || !matches!(d.operation.as_str(), "scale" | "divide" | "cost")
+            || !matches!(
+                d.operation.as_str(),
+                "scale"
+                    | "divide"
+                    | "cost"
+                    | "convert_temperature"
+                    | "shift_temperature"
+                    | "temperature_difference_from"
+                    | "evaluate_model"
+            )
         {
             return Err(Error::Format("native derivation lineage".into()));
         }
@@ -221,6 +314,47 @@ fn rational(text: &str) -> Result<BigRational> {
         n.numerator().clone(),
         n.denominator().clone(),
     ))
+}
+fn to_kelvin(value: &BigRational, unit: &str, point: bool) -> Result<BigRational> {
+    match unit {
+        "K" => Ok(value.clone()),
+        "degC" | "C" => Ok(if point {
+            value + BigRational::new(27315.into(), 100.into())
+        } else {
+            value.clone()
+        }),
+        "degF" | "F" => Ok(if point {
+            (value + BigRational::new(45967.into(), 100.into()))
+                * BigRational::new(5.into(), 9.into())
+        } else {
+            value * BigRational::new(5.into(), 9.into())
+        }),
+        _ => Err(Error::Invalid("unsupported temperature unit".into())),
+    }
+}
+fn from_kelvin(kelvin: &BigRational, unit: &str, point: bool) -> Result<BigRational> {
+    match unit {
+        "K" => Ok(kelvin.clone()),
+        "degC" | "C" => Ok(if point {
+            kelvin - BigRational::new(27315.into(), 100.into())
+        } else {
+            kelvin.clone()
+        }),
+        "degF" | "F" => Ok(if point {
+            kelvin * BigRational::new(9.into(), 5.into())
+                - BigRational::new(45967.into(), 100.into())
+        } else {
+            kelvin * BigRational::new(9.into(), 5.into())
+        }),
+        _ => Err(Error::Invalid("unsupported temperature unit".into())),
+    }
+}
+fn temp_scale_to_kelvin(unit: &str) -> Result<BigRational> {
+    match unit {
+        "K" | "degC" | "C" => Ok(BigRational::from_integer(1.into())),
+        "degF" | "F" => Ok(BigRational::new(5.into(), 9.into())),
+        _ => Err(Error::Invalid("unsupported temperature unit".into())),
+    }
 }
 // Numeric syntax already caps digits/exponents. Check bigint growth and charge
 // the bounded multiplication before allocating its result, including on paths
@@ -266,6 +400,28 @@ pub enum NativeContextCommand {
         rate: String,
         per_unit: String,
     },
+    /// Convert a retained temperature point (affine) or difference (linear) to `target_unit`.
+    ConvertTemperature {
+        target_unit: String,
+    },
+    /// Shift a retained temperature point or difference by a signed temperature difference.
+    ShiftTemperature {
+        delta: String,
+        delta_unit: String,
+    },
+    /// Subtract a baseline temperature point from the retained temperature point, producing a difference.
+    TemperatureDifferenceFrom {
+        baseline: String,
+        baseline_unit: String,
+    },
+    /// Install a fitted model into native conversation context, clearing any scalar/entity anchor.
+    InstallModel {
+        model: RetainedFittedModel,
+    },
+    /// Evaluate the retained fitted model at the supplied scalar value.
+    EvaluateModel {
+        value: String,
+    },
     Acknowledge,
     ResetTopic,
     Inspect,
@@ -282,8 +438,11 @@ pub enum NativeContextRefusal {
     PriorQuantityUnavailable,
     UndefinedDivision,
     IncompatibleRateUnit,
+    IncompatibleTemperatureRole,
+    BelowAbsoluteZero,
     PriorEntityUnavailable,
     RelationNotUnique,
+    PriorModelUnavailable,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -293,6 +452,8 @@ pub struct NativeContextReply {
     pub version: i64,
     pub anchor: NativeAnchor,
     pub delivery: Option<AnchorLineage>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub fitted_model: Option<RetainedFittedModel>,
     pub reason: Option<NativeContextRefusal>,
 }
 impl NativeContextReply {
@@ -318,6 +479,7 @@ pub(crate) fn reply(
         version: revision,
         anchor: state.anchor.clone(),
         delivery: state.delivery.clone(),
+        fitted_model: state.fitted_model.clone(),
         reason,
     }
 }
@@ -403,6 +565,231 @@ pub(crate) fn transition(
         NativeContextCommand::ResetTopic => {
             state.anchor = NativeAnchor::Empty;
             state.delivery = None;
+            state.fitted_model = None;
+        }
+        NativeContextCommand::InstallModel { mut model } => {
+            match &mut model {
+                RetainedFittedModel::Calibration {
+                    request: mreq,
+                    revision: mrev,
+                    ..
+                } => {
+                    *mreq = request.into();
+                    *mrev = next;
+                }
+            }
+            model.validate(next)?;
+            state.anchor = NativeAnchor::Empty;
+            state.delivery = None;
+            state.fitted_model = Some(model);
+        }
+        NativeContextCommand::EvaluateModel { value } => {
+            let x = rational(&value)?;
+            if let Some(model) = state.fitted_model.clone() {
+                match model {
+                    RetainedFittedModel::Calibration {
+                        request: mreq,
+                        revision: mrev,
+                        intercept,
+                        slope,
+                        x_unit,
+                        response_unit,
+                        direction,
+                    } => {
+                        let b0 = rational(&intercept)?;
+                        let b1 = rational(&slope)?;
+                        if direction == "inverse_point" && b1.is_zero() {
+                            reason = Some(NativeContextRefusal::UndefinedDivision);
+                        } else {
+                            let (result, unit) = if direction == "inverse_point" {
+                                (multiply(x - b0, b1.recip(), budget)?, x_unit)
+                            } else {
+                                (b0 + multiply(b1, x, budget)?, response_unit)
+                            };
+                            let number = ratio_text(&result)?;
+                            state.anchor = NativeAnchor::Quantity {
+                                value: NativeQuantity {
+                                    number,
+                                    unit,
+                                    origin: NumericOrigin::PythonFloat,
+                                    role: QuantityRole::Scalar,
+                                },
+                            };
+                            state.delivery = Some(AnchorLineage {
+                                request: request.into(),
+                                revision: next,
+                                source: AnchorSource::Supplied,
+                                derivation: Some(Derivation {
+                                    previous_request: mreq,
+                                    previous_revision: mrev,
+                                    operation: "evaluate_model".into(),
+                                    operand: value,
+                                    conversion_factor: "1/1".into(),
+                                }),
+                            });
+                        }
+                    }
+                }
+            } else {
+                reason = Some(NativeContextRefusal::PriorModelUnavailable);
+            }
+        }
+        NativeContextCommand::ConvertTemperature { target_unit } => {
+            let _ = temp_scale_to_kelvin(&target_unit)?;
+            if let NativeAnchor::Quantity { value } = &state.anchor {
+                let point = match value.role {
+                    QuantityRole::TemperaturePoint => Some(true),
+                    QuantityRole::TemperatureDifference => Some(false),
+                    QuantityRole::Scalar => None,
+                };
+                if let Some(point) = point {
+                    let prior = state
+                        .delivery
+                        .as_ref()
+                        .ok_or_else(|| Error::Format("native prior lineage".into()))?;
+                    let current = rational(&value.number)?;
+                    let kelvin = to_kelvin(&current, &value.unit, point)?;
+                    let converted = from_kelvin(&kelvin, &target_unit, point)?;
+                    let scale = temp_scale_to_kelvin(&value.unit)?
+                        / temp_scale_to_kelvin(&target_unit)?;
+                    let number = ratio_text(&converted)?;
+                    let origin = value.origin.clone();
+                    let role = value.role;
+                    let lineage = AnchorLineage {
+                        request: request.into(),
+                        revision: next,
+                        source: prior.source.clone(),
+                        derivation: Some(Derivation {
+                            previous_request: prior.request.clone(),
+                            previous_revision: prior.revision,
+                            operation: "convert_temperature".into(),
+                            operand: "1/1".into(),
+                            conversion_factor: ratio_text(&scale)?,
+                        }),
+                    };
+                    state.anchor = NativeAnchor::Quantity {
+                        value: NativeQuantity {
+                            number,
+                            unit: target_unit,
+                            origin,
+                            role,
+                        },
+                    };
+                    state.delivery = Some(lineage);
+                } else {
+                    reason = Some(NativeContextRefusal::IncompatibleTemperatureRole);
+                }
+            } else {
+                reason = Some(NativeContextRefusal::PriorQuantityUnavailable);
+            }
+        }
+        NativeContextCommand::ShiftTemperature { delta, delta_unit } => {
+            let delta_val = rational(&delta)?;
+            let delta_kelvin = to_kelvin(&delta_val, &delta_unit, false)?;
+            if let NativeAnchor::Quantity { value } = &state.anchor {
+                let point = match value.role {
+                    QuantityRole::TemperaturePoint => Some(true),
+                    QuantityRole::TemperatureDifference => Some(false),
+                    QuantityRole::Scalar => None,
+                };
+                if let Some(point) = point {
+                    let prior = state
+                        .delivery
+                        .as_ref()
+                        .ok_or_else(|| Error::Format("native prior lineage".into()))?;
+                    let current = rational(&value.number)?;
+                    let kelvin = to_kelvin(&current, &value.unit, point)? + delta_kelvin;
+                    if point && kelvin < BigRational::zero() {
+                        reason = Some(NativeContextRefusal::BelowAbsoluteZero);
+                    } else {
+                        let shifted = from_kelvin(&kelvin, &value.unit, point)?;
+                        let scale = temp_scale_to_kelvin(&delta_unit)?
+                            / temp_scale_to_kelvin(&value.unit)?;
+                        let number = ratio_text(&shifted)?;
+                        let unit = value.unit.clone();
+                        let origin = value.origin.clone();
+                        let role = value.role;
+                        let lineage = AnchorLineage {
+                            request: request.into(),
+                            revision: next,
+                            source: prior.source.clone(),
+                            derivation: Some(Derivation {
+                                previous_request: prior.request.clone(),
+                                previous_revision: prior.revision,
+                                operation: "shift_temperature".into(),
+                                operand: delta,
+                                conversion_factor: ratio_text(&scale)?,
+                            }),
+                        };
+                        state.anchor = NativeAnchor::Quantity {
+                            value: NativeQuantity {
+                                number,
+                                unit,
+                                origin,
+                                role,
+                            },
+                        };
+                        state.delivery = Some(lineage);
+                    }
+                } else {
+                    reason = Some(NativeContextRefusal::IncompatibleTemperatureRole);
+                }
+            } else {
+                reason = Some(NativeContextRefusal::PriorQuantityUnavailable);
+            }
+        }
+        NativeContextCommand::TemperatureDifferenceFrom {
+            baseline,
+            baseline_unit,
+        } => {
+            let base_val = rational(&baseline)?;
+            let base_kelvin = to_kelvin(&base_val, &baseline_unit, true)?;
+            if base_kelvin < BigRational::zero() {
+                return Err(Error::Invalid(
+                    "baseline temperature point below absolute zero".into(),
+                ));
+            }
+            if let NativeAnchor::Quantity { value } = &state.anchor {
+                if value.role == QuantityRole::TemperaturePoint {
+                    let prior = state
+                        .delivery
+                        .as_ref()
+                        .ok_or_else(|| Error::Format("native prior lineage".into()))?;
+                    let current = rational(&value.number)?;
+                    let diff_kelvin = to_kelvin(&current, &value.unit, true)? - base_kelvin;
+                    let diff_in_unit = from_kelvin(&diff_kelvin, &value.unit, false)?;
+                    let scale = temp_scale_to_kelvin(&baseline_unit)?
+                        / temp_scale_to_kelvin(&value.unit)?;
+                    let number = ratio_text(&diff_in_unit)?;
+                    let unit = value.unit.clone();
+                    let origin = value.origin.clone();
+                    let lineage = AnchorLineage {
+                        request: request.into(),
+                        revision: next,
+                        source: prior.source.clone(),
+                        derivation: Some(Derivation {
+                            previous_request: prior.request.clone(),
+                            previous_revision: prior.revision,
+                            operation: "temperature_difference_from".into(),
+                            operand: baseline,
+                            conversion_factor: ratio_text(&scale)?,
+                        }),
+                    };
+                    state.anchor = NativeAnchor::Quantity {
+                        value: NativeQuantity {
+                            number,
+                            unit,
+                            origin,
+                            role: QuantityRole::TemperatureDifference,
+                        },
+                    };
+                    state.delivery = Some(lineage);
+                } else {
+                    reason = Some(NativeContextRefusal::IncompatibleTemperatureRole);
+                }
+            } else {
+                reason = Some(NativeContextRefusal::PriorQuantityUnavailable);
+            }
         }
         command => {
             let operation = match &command {
@@ -430,60 +817,72 @@ pub(crate) fn transition(
             if operation == "divide" && operand_number.is_zero() {
                 reason = Some(NativeContextRefusal::UndefinedDivision);
             } else if let NativeAnchor::Quantity { value } = &state.anchor {
-                let conversion = if let Some(per_unit) = &per_unit {
-                    if &value.unit == per_unit {
-                        Some(BigRational::from_integer(1.into()))
-                    } else {
-                        match (value.unit.as_str(), per_unit.as_str()) {
-                            ("J", "kWh") => Some(BigRational::new(1.into(), 3_600_000.into())),
-                            ("kWh", "J") => Some(BigRational::from_integer(3_600_000.into())),
-                            _ => None,
+                if value.role == QuantityRole::TemperaturePoint
+                    || (operation == "cost" && value.role != QuantityRole::Scalar)
+                {
+                    reason = Some(NativeContextRefusal::IncompatibleTemperatureRole);
+                } else {
+                    let conversion = if let Some(per_unit) = &per_unit {
+                        if &value.unit == per_unit {
+                            Some(BigRational::from_integer(1.into()))
+                        } else {
+                            match (value.unit.as_str(), per_unit.as_str()) {
+                                ("J", "kWh") => Some(BigRational::new(1.into(), 3_600_000.into())),
+                                ("kWh", "J") => Some(BigRational::from_integer(3_600_000.into())),
+                                _ => None,
+                            }
                         }
+                    } else {
+                        Some(BigRational::from_integer(1.into()))
+                    };
+                    if let Some(conversion) = conversion {
+                        let prior = state
+                            .delivery
+                            .as_ref()
+                            .ok_or_else(|| Error::Format("native prior lineage".into()))?;
+                        let factor = if operation == "divide" {
+                            operand_number.recip()
+                        } else {
+                            operand_number
+                        };
+                        let scaled = multiply(rational(&value.number)?, factor, budget)?;
+                        let result = multiply(scaled, conversion.clone(), budget)?;
+                        let number = ratio_text(&result)?;
+                        let unit = if operation == "cost" {
+                            "$".into()
+                        } else {
+                            value.unit.clone()
+                        };
+                        let origin = value.origin.clone();
+                        let role = if operation == "cost" {
+                            QuantityRole::Scalar
+                        } else {
+                            value.role
+                        };
+                        let lineage = AnchorLineage {
+                            request: request.into(),
+                            revision: next,
+                            source: prior.source.clone(),
+                            derivation: Some(Derivation {
+                                previous_request: prior.request.clone(),
+                                previous_revision: prior.revision,
+                                operation: operation.into(),
+                                operand,
+                                conversion_factor: ratio_text(&conversion)?,
+                            }),
+                        };
+                        state.anchor = NativeAnchor::Quantity {
+                            value: NativeQuantity {
+                                number,
+                                unit,
+                                origin,
+                                role,
+                            },
+                        };
+                        state.delivery = Some(lineage);
+                    } else {
+                        reason = Some(NativeContextRefusal::IncompatibleRateUnit);
                     }
-                } else {
-                    Some(BigRational::from_integer(1.into()))
-                };
-                if let Some(conversion) = conversion {
-                    let prior = state
-                        .delivery
-                        .as_ref()
-                        .ok_or_else(|| Error::Format("native prior lineage".into()))?;
-                    let factor = if operation == "divide" {
-                        operand_number.recip()
-                    } else {
-                        operand_number
-                    };
-                    let scaled = multiply(rational(&value.number)?, factor, budget)?;
-                    let result = multiply(scaled, conversion.clone(), budget)?;
-                    let number = ratio_text(&result)?;
-                    let unit = if operation == "cost" {
-                        "$".into()
-                    } else {
-                        value.unit.clone()
-                    };
-                    let origin = value.origin.clone();
-                    let lineage = AnchorLineage {
-                        request: request.into(),
-                        revision: next,
-                        source: prior.source.clone(),
-                        derivation: Some(Derivation {
-                            previous_request: prior.request.clone(),
-                            previous_revision: prior.revision,
-                            operation: operation.into(),
-                            operand,
-                            conversion_factor: ratio_text(&conversion)?,
-                        }),
-                    };
-                    state.anchor = NativeAnchor::Quantity {
-                        value: NativeQuantity {
-                            number,
-                            unit,
-                            origin,
-                        },
-                    };
-                    state.delivery = Some(lineage);
-                } else {
-                    reason = Some(NativeContextRefusal::IncompatibleRateUnit);
                 }
             } else {
                 reason = Some(NativeContextRefusal::PriorQuantityUnavailable);

@@ -42,7 +42,7 @@ pub(crate) fn refusals(plan: &dyn CheckedPlanView, policy: EmptyPolicy) -> Vec<b
                     live[*left] = true;
                     live[*right] = true;
                 }
-                Node::Find { .. } | Node::All | Node::Previous => {}
+                Node::Find { .. } | Node::Id { .. } | Node::All | Node::Previous => {}
             }
         }
     }

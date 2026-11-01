@@ -39,6 +39,296 @@ pub enum KernelFamily {
     Quantity {
         specialist: Option<QuantitySpecialist>,
     },
+    AnatomyAgri {
+        specialist: Option<String>,
+    },
+    Chemistry {
+        specialist: Option<String>,
+    },
+    Climate {
+        specialist: Option<String>,
+    },
+    Computing {
+        specialist: Option<String>,
+    },
+    Discrete {
+        specialist: Option<String>,
+    },
+    Earth {
+        specialist: Option<String>,
+    },
+    Emoptics {
+        specialist: Option<String>,
+    },
+    Energy {
+        specialist: Option<String>,
+    },
+    Facts {
+        specialist: Option<String>,
+    },
+    Finance {
+        specialist: Option<String>,
+    },
+    GeoStats {
+        specialist: Option<String>,
+    },
+    Humanities {
+        specialist: Option<String>,
+    },
+    Life {
+        specialist: Option<String>,
+    },
+    Materials {
+        specialist: Option<String>,
+    },
+    Mechanics {
+        specialist: Option<String>,
+    },
+    Space {
+        specialist: Option<String>,
+    },
+    Trades {
+        specialist: Option<String>,
+    },
+    Variants {
+        specialist: Option<String>,
+    },
+}
+
+impl KernelFamily {
+    pub fn specialist_argument(&self) -> Result<Option<&str>> {
+        fn check<'a>(specialist: &'a Option<String>, allowed: &[&str]) -> Result<Option<&'a str>> {
+            match specialist.as_deref() {
+                None => Ok(None),
+                Some(name) if allowed.contains(&name) => Ok(Some(name)),
+                Some(name) => Err(Error::Invalid(format!(
+                    "unrecognized specialist '{name}' for kernel family"
+                ))),
+            }
+        }
+        match self {
+            Self::Acoustics | Self::MstCertificate => Ok(None),
+            Self::Quantity { specialist } => Ok(specialist.as_ref().map(QuantitySpecialist::argument)),
+            Self::AnatomyAgri { specialist } => check(
+                specialist,
+                &[
+                    "anatomy",
+                    "anatomy-r2",
+                    "agriculture-v2",
+                    "gardening",
+                    "nutrition-label-v2",
+                ],
+            ),
+            Self::Chemistry { specialist } => check(
+                specialist,
+                &[
+                    "chemistry",
+                    "chemistry-v3",
+                    "decay",
+                    "labsolutions",
+                    "labsolutions-r2",
+                ],
+            ),
+            Self::Climate { specialist } => check(
+                specialist,
+                &[
+                    "carboncapture",
+                    "airquality",
+                    "climate",
+                    "carbonmat",
+                    "coldchain",
+                    "coldchain-v2",
+                ],
+            ),
+            Self::Computing { specialist } => check(
+                specialist,
+                &[
+                    "networking",
+                    "embedded",
+                    "cyber",
+                    "linux-v2",
+                    "git",
+                    "sql",
+                    "python",
+                    "python-r2",
+                    "robotics-v2",
+                ],
+            ),
+            Self::Discrete { specialist } => check(
+                specialist,
+                &[
+                    "games-v3",
+                    "logic-v3",
+                    "dataformats",
+                    "algorithms",
+                    "calculus",
+                ],
+            ),
+            Self::Earth { specialist } => check(
+                specialist,
+                &[
+                    "geography",
+                    "geology",
+                    "seismology",
+                    "hydrology",
+                    "ocean",
+                    "meteorology",
+                    "meteorology-v2",
+                    "greenhouse",
+                    "greenhouse-r2",
+                ],
+            ),
+            Self::Emoptics { specialist } => check(
+                specialist,
+                &[
+                    "electrical",
+                    "electronics",
+                    "electronics-r2",
+                    "wiring",
+                    "optics",
+                    "optics-v2",
+                    "optics-v3",
+                    "optics-v5",
+                    "optics-v5-r2",
+                ],
+            ),
+            Self::Energy { specialist } => check(
+                specialist,
+                &[
+                    "thermo",
+                    "energy-v2",
+                    "energy-v3",
+                    "hvac",
+                    "renewables",
+                    "iot",
+                ],
+            ),
+            Self::Facts { specialist } => check(
+                specialist,
+                &[
+                    "literature-v2",
+                    "worldhistory",
+                    "arthistory",
+                    "medicine-r2",
+                    "medicine",
+                    "law",
+                    "psychology",
+                    "sociology",
+                    "linguistics",
+                    "poetry",
+                    "botany",
+                    "entomology",
+                    "marinebio",
+                    "ornithology",
+                    "mycology",
+                    "mycelial",
+                    "pets",
+                    "childdev",
+                    "etiquette",
+                    "firesafety-v2",
+                    "firstaid",
+                    "javascript",
+                ],
+            ),
+            Self::Finance { specialist } => check(
+                specialist,
+                &[
+                    "finance",
+                    "finance-v2",
+                    "finance-v2-r2",
+                    "economics",
+                    "retail",
+                ],
+            ),
+            Self::GeoStats { specialist } => check(
+                specialist,
+                &[
+                    "geometry",
+                    "geometry-v3",
+                    "geometry-v4",
+                    "statistics",
+                    "statistics-v2",
+                    "statistics-v3",
+                ],
+            ),
+            Self::Humanities { specialist } => check(
+                specialist,
+                &[
+                    "music-v2-r2",
+                    "music-v2",
+                    "grammar",
+                    "mythology",
+                    "ushistory",
+                    "library",
+                    "government",
+                ],
+            ),
+            Self::Life { specialist } => check(
+                specialist,
+                &[
+                    "genetics-v2",
+                    "biology",
+                    "ecology",
+                    "forestry",
+                    "wildlife",
+                    "microbiology-v2",
+                ],
+            ),
+            Self::Materials { specialist } => check(
+                specialist,
+                &[
+                    "additive-v2",
+                    "materials-v2",
+                    "soil",
+                    "soil-r2",
+                    "water",
+                    "water-r3",
+                ],
+            ),
+            Self::Mechanics { specialist } => check(
+                specialist,
+                &[
+                    "physics",
+                    "physics-r2",
+                    "physics-r3",
+                    "mechanisms",
+                    "mechanisms-v2",
+                    "bodies-v2",
+                    "sports",
+                    "fleet",
+                    "fluids-r2",
+                ],
+            ),
+            Self::Space { specialist } => check(
+                specialist,
+                &[
+                    "orbits",
+                    "planetary",
+                    "spacecraft",
+                    "spacecomms",
+                    "astronomy",
+                    "astronomy-v2",
+                    "astronomy-v3",
+                    "astronomy-v3-r2",
+                ],
+            ),
+            Self::Trades { specialist } => check(
+                specialist,
+                &[
+                    "architecture",
+                    "printing",
+                    "printing-v2",
+                    "safety",
+                    "woodworking",
+                    "crafts",
+                ],
+            ),
+            Self::Variants { specialist } => check(
+                specialist,
+                &["densities-r2", "units-v2", "units-v3-r2"],
+            ),
+        }
+    }
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
@@ -117,8 +407,8 @@ pub struct KernelLimits {
 impl Default for KernelLimits {
     fn default() -> Self {
         Self {
-            workers: 2,
-            registry_entries: 32,
+            workers: 16,
+            registry_entries: 160,
             executable_bytes: 32 * 1024 * 1024,
             request_bytes: 65536,
             reply_bytes: 2 * 1024 * 1024,
@@ -214,6 +504,7 @@ pub struct KernelExecutor {
     slots: Vec<Mutex<Slot>>,
     tenants: Mutex<HashSet<String>>,
     active: AtomicUsize,
+    evict_cursor: AtomicUsize,
     sequence: AtomicU64,
     limits: KernelLimits,
 }
@@ -255,6 +546,7 @@ impl KernelExecutor {
                 .collect(),
             tenants: Mutex::new(HashSet::new()),
             active: AtomicUsize::new(0),
+            evict_cursor: AtomicUsize::new(0),
             sequence: AtomicU64::new(0),
             limits,
         })
@@ -486,19 +778,76 @@ impl KernelExecutor {
             tenant,
         };
         let mut any_poisoned = false;
+        let mut selected = None;
+        // Pass 1: reuse an unlocked resident worker already serving `kernel_id`.
         for slot in &self.slots {
-            let mut slot = match slot.try_lock() {
-                Ok(slot) => slot,
+            match slot.try_lock() {
+                Ok(slot) => {
+                    if slot.poisoned {
+                        any_poisoned = true;
+                        continue;
+                    }
+                    if slot
+                        .worker
+                        .as_ref()
+                        .is_some_and(|w| w.kernel_id == kernel_id)
+                    {
+                        selected = Some(slot);
+                        break;
+                    }
+                }
                 Err(std::sync::TryLockError::WouldBlock) => continue,
                 Err(std::sync::TryLockError::Poisoned(_)) => {
                     any_poisoned = true;
                     continue;
                 }
-            };
-            if slot.poisoned {
-                any_poisoned = true;
-                continue;
             }
+        }
+        // Pass 2: claim an empty slot before retiring another kernel's resident worker.
+        if selected.is_none() {
+            for slot in &self.slots {
+                match slot.try_lock() {
+                    Ok(slot) => {
+                        if slot.poisoned {
+                            any_poisoned = true;
+                            continue;
+                        }
+                        if slot.worker.is_none() {
+                            selected = Some(slot);
+                            break;
+                        }
+                    }
+                    Err(std::sync::TryLockError::WouldBlock) => continue,
+                    Err(std::sync::TryLockError::Poisoned(_)) => {
+                        any_poisoned = true;
+                        continue;
+                    }
+                }
+            }
+        }
+        // Pass 3: round-robin eviction across slots when all free slots hold other kernels.
+        if selected.is_none() && !self.slots.is_empty() {
+            let start = self.evict_cursor.fetch_add(1, Ordering::Relaxed) % self.slots.len();
+            for offset in 0..self.slots.len() {
+                let idx = (start + offset) % self.slots.len();
+                match self.slots[idx].try_lock() {
+                    Ok(slot) => {
+                        if slot.poisoned {
+                            any_poisoned = true;
+                            continue;
+                        }
+                        selected = Some(slot);
+                        break;
+                    }
+                    Err(std::sync::TryLockError::WouldBlock) => continue,
+                    Err(std::sync::TryLockError::Poisoned(_)) => {
+                        any_poisoned = true;
+                        continue;
+                    }
+                }
+            }
+        }
+        if let Some(mut slot) = selected {
             self.active.fetch_add(1, Ordering::AcqRel);
             let _active = ActiveLease(&self.active);
             let result = (|| {
@@ -602,6 +951,7 @@ impl Write for CappedWriter {
 }
 
 fn admit(descriptor: KernelDescriptor, limits: &KernelLimits) -> Result<Admitted> {
+    descriptor.family.specialist_argument()?;
     if !descriptor.executable.is_absolute()
         || descriptor.sha256.len() != 64
         || !descriptor
@@ -808,11 +1158,8 @@ impl Worker {
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::piped());
-        if let KernelFamily::Quantity {
-            specialist: Some(specialist),
-        } = &admitted.receipt.family
-        {
-            command.args(["--specialist", specialist.argument()]);
+        if let Some(argument) = admitted.receipt.family.specialist_argument()? {
+            command.args(["--specialist", argument]);
         }
         // The writable snapshot handle was closed at admission. A concurrent
         // fork can nevertheless briefly inherit that CLOEXEC handle before its

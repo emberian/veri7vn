@@ -8,6 +8,7 @@ use crate::session::ExtensionState;
 #[derive(Debug, Clone)]
 pub enum NativeEntityQuery {
     Find { name: String },
+    ById { id: String },
     Relation { predicate: String },
 }
 #[derive(Debug, Serialize)]
@@ -119,13 +120,20 @@ impl Runtime {
     ) -> Result<NativeContextReply> {
         let state = self.conversation_native_validate(candidate, budget)?;
         let budget = budget.restricted_to(&self.image.limits)?;
-        let reset = matches!(&command, NativeContextCommand::ResetTopic);
+        let reset = matches!(
+            &command,
+            NativeContextCommand::ResetTopic | NativeContextCommand::InstallModel { .. }
+        );
         let quantity_mutation = matches!(
             &command,
             NativeContextCommand::Observe { .. }
                 | NativeContextCommand::Scale { .. }
                 | NativeContextCommand::Divide { .. }
                 | NativeContextCommand::Cost { .. }
+                | NativeContextCommand::ConvertTemperature { .. }
+                | NativeContextCommand::ShiftTemperature { .. }
+                | NativeContextCommand::TemperatureDifferenceFrom { .. }
+                | NativeContextCommand::EvaluateModel { .. }
         );
         let (state, reply) = crate::native_conversation::transition(
             candidate.revision(),
@@ -265,6 +273,7 @@ impl Runtime {
         let memory = budget.reserve_memory(self.image.limits.result_bytes.saturating_mul(4))?;
         let nodes = match query {
             NativeEntityQuery::Find { name } => vec![crate::Node::Find { name }],
+            NativeEntityQuery::ById { id } => vec![crate::Node::Id { id }],
             NativeEntityQuery::Relation { predicate } => {
                 if !matches!(state.anchor, NativeAnchor::Entity { .. }) {
                     let context = crate::native_conversation::reply(

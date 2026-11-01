@@ -33,6 +33,19 @@ def sha256(path):
     return digest.hexdigest()
 
 
+def infer_organ_family(specialist: str):
+    registry = REPO / "src/extract/families.json"
+    if registry.is_file():
+        data = json.loads(registry.read_text())
+        for entry in data.get("families", ()):
+            if specialist in entry.get("specialists", ()):
+                family = entry["family"]
+                if not entry.get("specialist_flag", False):
+                    return family
+                return {family: {"specialist": specialist}}
+    return "acoustics"
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--host", required=True)
@@ -107,10 +120,10 @@ def main():
         for spec in a.organ:
             parts = spec.split(",", 3)
             ident, executable, specialist = parts[:3]
-            family = parts[3] if len(parts) > 3 else '"acoustics"'
+            family = json.loads(parts[3]) if len(parts) > 3 else infer_organ_family(specialist)
             path = Path(executable).resolve()
             organs.append({"id": ident, "executable": str(path), "sha256": sha256(path),
-                           "family": json.loads(family),
+                           "family": family,
                            "accept": runtime_contract.acceptance(REPO, REPO / "upstream", specialist)})
         config["kernels"] = {"organs": organs}
     if a.engine_python:

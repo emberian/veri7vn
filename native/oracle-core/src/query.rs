@@ -12,6 +12,9 @@ pub enum Node {
     Find {
         name: String,
     },
+    Id {
+        id: String,
+    },
     All,
     Previous,
     Relate {
@@ -1456,6 +1459,12 @@ fn compile_with_policy(
         let ids = match node {
             Node::Find { name } => {
                 format!("SELECT id FROM nodes WHERE name={}", bind(name.clone()))
+            }
+            Node::Id { id } => {
+                format!(
+                    "SELECT id FROM nodes WHERE id={} AND kind='entity'",
+                    bind(id.clone())
+                )
             }
             Node::All => "SELECT id FROM nodes WHERE kind='entity'".into(),
             Node::Previous => {
