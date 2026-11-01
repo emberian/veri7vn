@@ -12,7 +12,7 @@ is an HTTP execution error, not a successful semantic refusal.
 This composition differs from the original Workbench's core-first extension.
 The spent panel, scorer and negative original verdict remain unchanged. Passing
 this qualification would establish neither original gate admission nor a new
-shipped specialist-panel score. There are no execution results here yet.
+shipped specialist-panel score. Central execution receipts remain separate; the native boundary observation is recorded below.
 
 `panel.json` freezes independent inputs and analytic gold. Dev and heldout have
 different data and gold; their shared coverage is deliberate. Both contain
@@ -78,13 +78,13 @@ From repository root, with the final relocated statistics-enabled native-v1 host
 on port 8765 (request-byte limit above 70 KiB, reply-byte limit at least 1 MiB):
 
 ```sh
-python3 -B tools/usage/specialist/modeling/composed/qualify.py --url http://127.0.0.1:8765 --split both --controls native --run-id composed-native-v1 --out var/modeling-composed/native.json
+python3 -B tools/usage/specialist/modeling/composed/qualify.py --url http://127.0.0.1:8765 --split both --controls native --conversation-request-bytes 65536 --run-id composed-native-v1 --out var/modeling-composed/native.json
 ```
 
 Restart that same host/state externally, then:
 
 ```sh
-python3 -B tools/usage/specialist/modeling/composed/qualify.py --url http://127.0.0.1:8765 --replay-from var/modeling-composed/native.json --out var/modeling-composed/restarted.json
+python3 -B tools/usage/specialist/modeling/composed/qualify.py --url http://127.0.0.1:8765 --conversation-request-bytes 65536 --replay-from var/modeling-composed/native.json --out var/modeling-composed/restarted.json
 ```
 
 With the real prepared Engine configured in an ordinary query-journal host
@@ -108,3 +108,41 @@ HTTP200 completed, withheld, `conversation_transition_unsupported`. Neither is a
 numeric domain success. Execution failures remain failures; no generic mean or
 Python-documentation fallback may answer owned JSON. Preserve exact host binary,
 profile, image, deployment and fixture hashes with the central receipt.
+
+## Enclosing request admission
+
+The first native run retained a 51/53 result: both unchanged oversized-byte
+fixtures received HTTP413 `conversation_limit` before the modeling owner rather
+than the fixtures' expected owner refusal. The native release admits at most
+65536 bytes for the entire encoded `/query` envelope, including IDs and text.
+The modeling owner's 65536-byte text cap cannot be reached first in that profile.
+The original failure receipt remains evidence; no input or numerical gold changed.
+
+`--conversation-request-bytes` must match the actual native release configuration.
+Only the known `owned-byte-limit` invalid-input fixtures whose actual UTF-8
+encoded request exceeds that declared limit use the enclosing-boundary check.
+They must return HTTP413 `conversation_limit`, `state_may_have_changed:false`,
+and no answer/result. Other cases still require their original semantic outcome;
+an arbitrary HTTP413 cannot pass. The receipt counts these checks separately as
+`transport_boundary`; they are not modeling semantic successes. The ordinary host
+without this flag still requires the original HTTP200 owner `invalid_input`.
+
+To verify just the unchanged boundary inputs after recording that initial run:
+
+```sh
+python3 -B tools/usage/specialist/modeling/composed/qualify.py --url http://127.0.0.1:8765 --conversation-request-bytes 65536 --only-boundaries --run-id composed-native-boundary --out var/modeling-composed/native-boundary.json
+```
+
+After restarting the same host/state, reuse the initial receipt's already
+acknowledged successful replies without rerunning the mathematical panel:
+
+```sh
+python3 -B tools/usage/specialist/modeling/composed/qualify.py --url http://127.0.0.1:8765 --conversation-request-bytes 65536 --replay-acknowledged-only --replay-from var/modeling-composed/native-initial.json --out var/modeling-composed/native-acknowledged-restart.json
+```
+
+This mode permits prior failures only when each is precisely a validated known
+oversized enclosing-boundary record. It preserves the prior receipt and digest,
+excludes those uncommitted errors, and replays only correct HTTP200 completed
+acknowledgements. Immediate identical responses for errors may be recomputation;
+they never establish durable replay. Restart durable replay claims cover only
+the acknowledged completed replies.

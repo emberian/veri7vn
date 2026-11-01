@@ -45,12 +45,16 @@ def score(case, envelope):
             need('oracle' in r.get('response', '').lower(), 'identity describes Oracle')
             need('act:about' in r.get('path', '') or r.get('provenance', {}).get('kind') == 'self_description', 'core self provenance')
         else:
-            value = r.get('value')
             response = r.get('response', '').strip()
-            if not close(value, gold['value']):
-                # Accept a numeric answer, or explicit result after "is"/"="; never a mention among input rows.
-                token = re.escape(str(gold['value']))+r'(?:\.0+)?'
-                need(bool(re.search(r'(?:^'+token+r'\s*\.?$|(?:\bis\s+|=\s*)'+token+r'(?![\d.]))', response, re.I)), 'independent ordinary arithmetic result')
+            if 'value' in r:
+                need(close(r['value'], gold['value']), 'structured ordinary arithmetic result')
+            else:
+                # This one control asks for a mean: a sum or incidental numeral is not gold.
+                # Full tokens reject decimal, exponent and fraction continuations.
+                token = re.escape(str(gold['value']))+r'(?:\.0+)?[.,;!?]?'
+                pure = bool(re.fullmatch(token, response))
+                claims = re.findall(r'\b(?:arithmetic\s+)?mean\s*(?:is\b|=|:)\s*(\S+)', response, re.I)
+                need(pure or (bool(claims) and all(re.fullmatch(token, claim) for claim in claims)), 'independent explicit arithmetic mean result')
         return
     if kind == 'native_unsupported':
         need(r.get('status') == 'withheld' and r.get('path') == 'native:context>unsupported', 'outside prefix retains native owner')
@@ -122,6 +126,19 @@ def transport(base, tenant, raw, timeout):
     return status, data
 
 
+def enclosing_boundary(case_id, gold_kind, request, limit):
+    return (limit is not None and case_id.split('/')[-1] == 'owned-byte-limit'
+            and gold_kind == 'invalid' and len(request.encode('utf-8')) > limit)
+
+
+def check_boundary(status, envelope):
+    need(status == 413 and envelope.get('outcome') == 'error'
+         and envelope.get('error') == 'conversation_limit'
+         and envelope.get('state_may_have_changed') is False
+         and 'reply' not in envelope and 'result' not in envelope,
+         'uncommitted enclosing conversation admission failure')
+
+
 def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('--url', required=True)
@@ -132,27 +149,48 @@ def main():
     p.add_argument('--out', type=Path, required=True)
     p.add_argument('--timeout', type=float, default=30)
     p.add_argument('--run-id', default='modeling-composed-v1')
+    p.add_argument('--conversation-request-bytes', type=int, help='Actual enclosing native release request-byte limit; only known oversized invalid boundary cases use this.')
+    p.add_argument('--only-boundaries', action='store_true', help='Run only the unchanged known oversized boundary fixtures, without rerunning numerical cases.')
+    p.add_argument('--replay-acknowledged-only', action='store_true', help='Replay successful acknowledged records from an earlier receipt whose only failures were the declared uncommitted size boundary.')
     p.add_argument('--replay-from', type=Path, help='After an externally managed host restart, replay a prior receipt verbatim.')
     args=p.parse_args()
+    need(args.replay_from is None or args.out.resolve() != args.replay_from.resolve(), 'replay output must preserve original receipt')
     need(0 < args.timeout <= 120, 'bounded timeout')
+    need(args.conversation_request_bytes is None or 0 < args.conversation_request_bytes <= 2**20, 'bounded declared enclosing request bytes')
+    need(not args.only_boundaries or (args.conversation_request_bytes is not None and args.mode == 'panel' and not args.replay_from), 'boundary-only mode needs explicit enclosing limit')
+    need(not args.replay_acknowledged_only or (args.replay_from is not None and args.conversation_request_bytes is not None), 'acknowledged-only replay needs prior receipt and enclosing limit')
     need(bool(re.fullmatch(r'[A-Za-z0-9_-]{1,40}', args.run_id)), 'bounded run identifier')
     tenant=normalize_tenant(args.tenant); fixture=HERE/'panel.json'; panel=json.loads(fixture.read_text())
     rows=[]; failures=[]
     if args.replay_from:
         original=json.loads(args.replay_from.read_text())
-        need(original['tenant'] == tenant and not original['failures'], 'successful receipt and same tenant for exact replay')
+        need(original['tenant'] == tenant, 'same tenant for exact replay')
+        need(not original['failures'] or args.replay_acknowledged_only, 'successful receipt required unless acknowledged-only replay is explicit')
+        excluded=[]; acknowledged=[]
         for old in original['records']:
+            prior = events_exposure.strict_json(old['response'])
+            boundary = enclosing_boundary(old['id'], old.get('gold_kind'), old['request'], args.conversation_request_bytes)
+            if boundary:
+                check_boundary(old['http_status'], prior)
+                excluded.append(dict(id=old['id'],http_status=old['http_status'],scope='uncommitted enclosing admission error; excluded from durable replay claim',prior_correct=old.get('correct')))
+                continue
+            need(old.get('correct') is True and old['http_status'] == 200 and prior.get('outcome') == 'completed', 'only successfully acknowledged completed replies enter durable replay')
+            acknowledged.append(old)
+        need(set(original['failures']) <= {row['id'] for row in excluded}, 'prior failures must be exactly validated uncommitted boundary records')
+        for old in acknowledged:
             status, raw=transport(args.url,tenant,old['request'].encode(),args.timeout)
             good=status==old['http_status'] and raw.decode()==old['response']
             rows.append(dict(id=old['id'],exact_replay=good))
             if not good:failures.append(old['id'])
-        report=dict(scope='exact retry after externally managed restart',records=rows,failures=failures)
+        report=dict(scope='exact retry of acknowledged completed replies after externally managed restart',prior_receipt_sha256=hashlib.sha256(args.replay_from.read_bytes()).hexdigest(),records=rows,excluded_uncommitted=excluded,failures=failures)
     else:
         cases=[]
         for split in (('dev','heldout') if args.split=='both' else (args.split,)):
             cases.extend((split,case) for case in panel[split])
         if args.mode != 'panel':cases=[cases[0]]
         else:cases.extend(('control',case) for case in panel.get(args.controls+'_controls', []))
+        if args.only_boundaries:
+            cases=[(split,case) for split,case in cases if case['id']=='owned-byte-limit' and case['expect']['kind']=='invalid']
         for index,(split,case) in enumerate(cases):
             request=json.dumps(dict(request_id=args.run_id+'-'+str(index),conversation_id=args.run_id+'-'+str(index),text=case['q']),ensure_ascii=False,separators=(',',':'))
             started=time.monotonic();row=dict(id=split+'/'+case['id'],request=request,gold_kind=case['expect']['kind'])
@@ -161,14 +199,17 @@ def main():
                 row.update(http_status=status,response=raw.decode(),elapsed_ms=(time.monotonic()-started)*1000)
                 envelope=events_exposure.strict_json(raw)
                 row['asserted']=envelope.get('reply',{}).get('status')=='answered'
-                if args.mode=='profile-unavailable':
+                boundary=enclosing_boundary(row['id'],row['gold_kind'],request,args.conversation_request_bytes)
+                if args.mode=='panel' and boundary:
+                    check_boundary(status,envelope);row['verification_scope']='transport_boundary'
+                elif args.mode=='profile-unavailable':
                     need(status==503 and envelope.get('error')=='modeling_profile_unavailable', 'absent profile is execution failure HTTP503')
                 elif args.mode=='readonly':
                     need(status==200 and envelope.get('outcome')=='completed' and envelope.get('reply',{}).get('reason')=='conversation_transition_unsupported' and envelope['reply'].get('status')=='withheld', 'readonly transition refused')
                 else:
                     need(status==200, 'HTTP200 for semantic outcomes');score(case,envelope)
                 retry_status,retry_raw=transport(args.url,tenant,request.encode(),args.timeout)
-                need(retry_status==status and retry_raw==raw, 'immediate exact-byte retry')
+                need(retry_status==status and retry_raw==raw, 'immediate identical response (uncommitted errors may be recomputed)')
                 row['correct']=True
             except (ValueError,TypeError,KeyError,OSError,RecursionError) as error:
                 row.update(correct=False,error=str(error));failures.append(row['id'])
@@ -176,8 +217,8 @@ def main():
         # Standalone exclusion is an independent structural check with no HTTP calls.
         lane_controls={q:Organ(args.url,tenant).answer(q,'standalone-exclusion') is None for q in panel['standalone_controls']}
         failures.extend('standalone/'+q for q,good in lane_controls.items() if not good)
-        counts={'correct':sum(row['correct'] for row in rows),'wrong_assertions':sum(not row['correct'] and row.get('asserted',False) for row in rows),'false_yes_invalid':sum(row['gold_kind']=='invalid' and row.get('asserted',False) for row in rows)}
-        report=dict(scope=panel['composition'],counts=counts,mode=args.mode,fixture_sha256=hashlib.sha256(fixture.read_bytes()).hexdigest(),tenant=tenant,records=rows,standalone_controls=lane_controls,failures=failures)
+        counts={'correct':sum(row['correct'] and row.get('verification_scope')!='transport_boundary' for row in rows),'transport_boundary':sum(row['correct'] and row.get('verification_scope')=='transport_boundary' for row in rows),'wrong_assertions':sum(not row['correct'] and row.get('asserted',False) for row in rows),'false_yes_invalid':sum(row['gold_kind']=='invalid' and row.get('asserted',False) for row in rows)}
+        report=dict(scope=panel['composition'],counts=counts,mode=args.mode,conversation_request_bytes=args.conversation_request_bytes,fixture_sha256=hashlib.sha256(fixture.read_bytes()).hexdigest(),tenant=tenant,records=rows,standalone_controls=lane_controls,failures=failures)
     args.out.parent.mkdir(parents=True,exist_ok=True);args.out.write_text(json.dumps(report,indent=2)+'\n')
     print(json.dumps(dict(scope=report['scope'],requests=len(rows),failed=len(failures),receipt=str(args.out))))
     return int(bool(failures))

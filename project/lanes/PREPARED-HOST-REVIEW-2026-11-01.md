@@ -57,3 +57,19 @@ and process-tree cleanup against the admitted artifacts. Ordinary OS process
 and filesystem operations are not hard resource isolation. Artifact hashes
 require operator-protected immutable custody for the host lifetime; this code
 does not create a filesystem sandbox or shared Python object heaps.
+
+Follow-up: idle worker death is detected on use, eviction or close, not by an
+active supervisor liveness probe. The supervisor waits for an explicit retired
+slot; stdout EOF does not notify it. A dead idle generation can therefore retain
+its unreaped leader, guardian and any surviving group members until that slot is
+used or the pool closes. Its reader threads finish on EOF, or remain attached to
+that same bounded group if another member retains a pipe. This does not create
+additional generations or an unbounded accumulation: each configured slot still
+holds at most one such generation, and retirement kills its recorded group,
+reaps its leader and joins its readers before replacement. Health deliberately
+reports constructor-handshake readiness, not current liveness. The first Engine
+request using a dead idle generation can fail before replacement becomes ready;
+a readiness barrier or binding check alone does not detect that death. This is
+a bounded recovery limitation, not a source-review blocker. Prompt idle-death
+recovery remains a possible future improvement, with care to preserve the rule
+that the process group is signaled before the leader is reaped.

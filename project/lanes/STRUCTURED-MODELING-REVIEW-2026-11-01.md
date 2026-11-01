@@ -97,15 +97,56 @@ checks answered classification/runtime identity separately from the added
 conversational reason. Questions and mathematical gold were unchanged by this
 wire-shape correction. No blocking source issue remains in that correction.
 
+## Enclosing admission and replay follow-up
+
+The native conversation request-byte cap applies to the entire encoded query
+before the modeling owner runs. A larger host HTTP cap does not override it.
+The oversized fixture can therefore receive an uncommitted HTTP413 rather than
+the owner's HTTP200 invalid-input refusal. Keeping the existing admission and
+identity policy is correct; a smaller hashed replacement identity solely to
+force this test through admission would introduce an unnecessary new policy.
+
+The corrected runner recognizes that boundary only for the named oversized
+invalid fixture, with an explicit release limit and an actual encoded request
+larger than that limit. It requires `conversation_limit`, `outcome:error`,
+`state_may_have_changed:false`, and no reply/result. These cases are counted as
+transport boundaries separately from semantic correctness. Identical retries
+of them are described as potentially recomputed errors, not durable replay.
+
+Acknowledged-only restart replay validates all original records before making
+HTTP calls. Only previously correct HTTP200 completed replies are replayed;
+only the checked uncommitted size-boundary failures may be excluded. The new
+receipt records the original receipt digest and the exclusions' prior status,
+and cannot overwrite its source receipt. This preserves the original 51/53
+qualification record rather than turning it retroactively into 53/53.
+
+The ordinary-mean prose fallback now accepts sentence punctuation while requiring
+a complete numeric response or explicit mean claims. Every captured mean claim
+must match gold; incidental sums cannot supply the answer. A present structured
+value must itself be correct and cannot be overridden by prose. Full-token
+checking rejects continuations such as `70`, `7.5`, `7e1`, `7/2` and `7,000`.
+The final frozen version captures the whole nonwhitespace token and permits
+at most one trailing sentence punctuation mark (`.`, `,`, `;`, `!`, or `?`).
+These checks address the concrete false positives found during source review.
+The final boundary/replay and mean-token changes are source-cleared.
+
+Also inspected the later borrowed-declaration accessor: it selects the same
+configured profile and operation declaration without cloning all declarations.
+The opaque-binding test repair now creates a dispatched conversation before
+binding it and asserts that the binding exists. Neither change weakens the
+production ownership policy. No execution was performed by this reviewer.
+
 ## Reviewed source identity
 
 Production-source SHA256 at review close:
 
 - `native/oracle-host/src/modeling.rs`:
-  `c8e7afe67bcbac560b20745c6787219b48b0d73e6619ea74eb9304c2e0835f15`
+  `59c2ad92f8b2b1c8090c3e7667b2a859b744d3d570d54c490701e358f5e16ef2`
+- `native/oracle-host/src/pure.rs`:
+  `3750cf0a805b51d189727499f66b924eaf3614b35f2e6d3a91b5376c6766d668`
 - `native/oracle-host/src/service.rs`:
   `0f45c1ef4f4b7a7873e2399c7257502f31f2e1ba0e03327e02c88dfe2d00d428`
 - Fresh qualification scorer `tools/usage/specialist/modeling/composed/qualify.py`:
-  `2844daaeaa6e950b734408c4dd83135e7e71c859b535f05f00d16f834229cba4`
+  `d06cdf79ed30b4d74b7b7177b8d6274ceb87cbd54aadca078ad7a3e6b818ed60`
 
 Authored tests were read, not run. This lane changed only this review report.
