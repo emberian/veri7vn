@@ -14,6 +14,7 @@ pub mod front;
 pub mod http;
 pub mod journal;
 pub mod kernels;
+pub mod modeling;
 pub mod native;
 pub mod operations;
 pub mod pure;

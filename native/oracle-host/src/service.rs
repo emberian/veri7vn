@@ -284,7 +284,7 @@ impl Service {
     }
 
     pub fn routes(&self) -> Vec<String> {
-        let mut routes = Vec::new();
+        let mut routes = vec!["native:modeling".to_owned()];
         if self.native.as_ref().is_some_and(|n| n.reader_route) {
             routes.push("native:reader".to_owned());
         }
@@ -316,8 +316,9 @@ impl Service {
             "operation_discovery": {"protocol": "oracle-operations-v1", "list": "/operations",
                 "detail": "/operations/{operation_id}", "invoke": "/invoke", "state": "ready",
                 "counts": {"live_direct": self.registry.items.len(), "text_only": 0, "unavailable": 0}},
-            "query": {"routes": self.routes(), "groups": if self.native_conversation_profile {json!([["native:reader","organ:*"],["native:context"]])}else{json!([["native:reader", "organ:*"], ["engine"]])},
-                "rule": "first depth group whose routes take the question decides; agreement or refusal, never a pick",
+            "query": {"routes": self.routes(), "groups": if self.native_conversation_profile {json!([["native:modeling"],["native:reader","organ:*"],["native:context"]])}else{json!([["native:modeling"],["native:reader", "organ:*"], ["engine"]])},
+                "rule": "exact supplied-modeling prefix owns before depth groups; otherwise first depth group whose routes take the question decides; agreement or refusal, never a pick",
+                "supplied_modeling": {"prefix":crate::modeling::PREFIX,"profile":"statistics","owner":"native:modeling","operations":["statistics.calibration","statistics.events_exposure"],"available":self.registry.routes.get("statistics.calibration")==Some(&Route::Pure("statistics")),"readonly_v1":"explicit unsupported transition refusal; no Engine projection","ordinary":"answers only without prior Engine binding; modeling results do not carry into later Engine context"},
                 "agreement": {"text": "trimmed lowercase equality", "number": "within 0.5 percent with an identical explicit unit"}},
             "scope": "operator-admitted native operations, resident organs and a contained Engine; host-assigned tenant admission",
             "durable_conversations": !stateful.is_empty(), "durable_replay": true,
@@ -577,8 +578,9 @@ impl Service {
             );
         }
         // Retain possible opaque effects even if execution unwinds.
+        let mut modeling_owner = None;
         let turn = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            self.turn(tenant, &request, &context)
+            self.turn(tenant, &request, &context, &mut modeling_owner)
         }))
         .unwrap_or_else(|_| {
             Err(Failure::new(
@@ -654,9 +656,25 @@ impl Service {
         tenant: &str,
         request: &Value,
         context: &ExecutionContext,
+        modeling_owner: &mut Option<CheckedPureReply>,
     ) -> Result<Value, Failure> {
         check_context(context)?;
         let text = request["text"].as_str().unwrap_or("");
+        let modeling_transition_supported = !text.starts_with(crate::modeling::PREFIX)
+            || self
+                .journal
+                .conversation(tenant, request["conversation_id"].as_str().unwrap_or(""))?
+                .is_none();
+        if let Some(answer) = crate::modeling::answer(
+            text,
+            self.pure.as_deref(),
+            tenant,
+            context,
+            modeling_owner,
+            modeling_transition_supported,
+        ) {
+            return answer;
+        }
         let conversation = request["conversation_id"].as_str().unwrap_or("");
         let prefer = match self.journal.conversation(tenant, conversation)? {
             Some((worker, generation)) => {
@@ -1252,6 +1270,7 @@ impl Service {
         }
         let mut dispatched = false;
         let mut binding = None;
+        let mut modeling_owner = None;
         let turn = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             self.covered_turn(
                 tenant,
@@ -1261,6 +1280,7 @@ impl Service {
                 &context,
                 &mut dispatched,
                 &mut binding,
+                &mut modeling_owner,
             )
         }))
         .unwrap_or_else(|_| Err(Failure::plain(502, "runtime_error")));
@@ -1399,11 +1419,41 @@ impl Service {
         context: &ExecutionContext,
         dispatched: &mut bool,
         binding: &mut Option<(usize, u64)>,
+        modeling_owner: &mut Option<CheckedPureReply>,
     ) -> Result<Value, Failure> {
         let native = self.native.as_ref().expect("covered native");
         let text = request["text"].as_str().unwrap_or("");
         let conversation = request["conversation_id"].as_str().unwrap_or("");
         check_context(context)?;
+        if let Some(answer) = crate::modeling::answer(
+            text,
+            self.pure.as_deref(),
+            tenant,
+            context,
+            modeling_owner,
+            self.native_conversation_profile,
+        ) {
+            let mut body = answer?;
+            if self.native_conversation_profile && body["reply"]["status"] == "answered" {
+                native
+                    .runtime
+                    .conversation_native_command(
+                        candidate,
+                        core::native_conversation::NativeContextCommand::ResetTopic,
+                        budget,
+                    )
+                    .map_err(crate::native::conversation_failure)?;
+                native
+                    .runtime
+                    .conversation_native_reconcile_selection(candidate, budget)
+                    .map_err(crate::native::conversation_failure)?;
+                body["reply"]["native_context_transition"] =
+                    json!("cleared_unrepresentable_answer");
+            } else {
+                body["reply"]["native_context_transition"] = json!("preserved_refusal");
+            }
+            return Ok(body);
+        }
         let mut first = Vec::new();
         let mut proposal = None;
         if native.reader_route {
@@ -1906,3 +1956,7 @@ impl Service {
         )
     }
 }
+
+#[cfg(test)]
+#[path = "modeling_tests.rs"]
+mod modeling_tests;

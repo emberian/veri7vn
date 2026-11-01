@@ -180,6 +180,11 @@ impl Pure {
         profile.declarations.iter().find(|d| d["id"] == id)
     }
 
+    /// Borrow one configured operation's declaration without rebuilding catalogs.
+    pub(crate) fn operation_declaration(&self, profile: &str, id: &str) -> Option<&Value> {
+        self.declaration(self.profile(profile)?, id)
+    }
+
     pub fn invoke(
         &self,
         name: &str,

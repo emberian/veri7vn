@@ -1,0 +1,13 @@
+{
+  "scope": "Pre-execution authored independent explicit-owner composition qualification; not original gate admission",
+  "execution": "No builds, tests, HTTP queries or panel runs by this lane",
+  "sha256": {
+    "tools/usage/specialist/modeling/composed/panel.json": "e63fa2708c4c71dbd95238f468cb3734ac7b4c326e493df7c0712dd8b2c2584c",
+    "tools/usage/specialist/modeling/composed/qualify.py": "2844daaeaa6e950b734408c4dd83135e7e71c859b535f05f00d16f834229cba4",
+    "tools/usage/specialist/modeling/composed/README.md": "27d68055830cc2cdab17f32ba3b853c9bcf56565128729e44159c0ea3d5eaa59",
+    "tools/usage/events_exposure.py": "4902b5b46759b93fc60ccfdbfbfa84062b4e694e88c99365339b511d2306e7f5",
+    "tools/usage/hosted_reasoning.py": "e33f5dd4b61fc99b6fc960287d4ad8b514c4db1c3df48197d9a08e2f35de0d8f",
+    "tools/usage/specialist/modeling/organ_modeling.py": "4f082e39b3f47cb8e18d0dca56ca9ced0156be77386a0d71d6c10f0e25da60de",
+    "tools/usage/calibration.py": "cfabbc9991326f359cec3845af807340ded17bae36e80034cb9548d2d4323b35"
+  }
+}
