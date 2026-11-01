@@ -171,6 +171,17 @@ whose type cannot be retained clears it, preventing a later follow-up from using
 an obsolete value. New owners are initialized only for genuinely absent sessions;
 retained sessions with missing coverage require a fresh conversation.
 
+## Deliver a fitted model
+
+An explicit [supplied-model query](HOST.md#explicit-supplied-modeling) returns its
+checked structured result once, with the supplied declarations and provider
+metadata. It is not treated as a scalar merely because it contains numbers.
+In `native-v1`, an answered fit clears the prior entity/quantity anchor; a semantic
+refusal preserves that anchor. Operational failures do not advance the native
+conversation, and completed replies use the same atomic cursor/retry journal.
+Fitted-model follow-ups need a future typed model owner; arbitrary result JSON
+is not mined into hidden context.
+
 ## Revise evidence, then solve its snapshot
 
 With the logic feature and admitted routes, `logic.workspace` inserts or withdraws

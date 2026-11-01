@@ -1,5 +1,13 @@
 # Native capabilities
 
+The query front door also recognizes `Model supplied data: ` with an explicit
+calibration or events/exposure request. This owner runs before generic language
+routes and calls the existing statistics operations below. Invalid owned input
+cannot fall through. [Host semantics](HOST.md#explicit-supplied-modeling) describe
+profile availability, context transitions and operational failures; the
+[fresh composition panel](../../tools/usage/specialist/modeling/composed/README.md)
+keeps these results separate from the failed original core-first admission.
+
 The Rust host advertises operations admitted by its runtime configuration and
 compiled provider catalogs. Optional features must be compiled in and selected
 by the operator. The older Python service discovers its admitted extension's
@@ -84,6 +92,7 @@ real-data samples describe narrower results:
 | [100 retained reader questions](../evidence/2026-10-29-segment-reader-validation.json); [re-run with the arena and scalar-query changes](../evidence/2026-10-29-combined-qualification.json) | 36 correct, 4 refused, 60 unknown, 0 wrong or execution errors. Segment/nested composition adds interpretations, with no answer gain on this set. The combined re-run (Linux release, plus a macOS debug check) gives the same counts and the same outcome on all 100 questions. |
 | [New 16-question segment/nested acceptance cohort](../evidence/2026-10-29-targeted-composition.json); [re-run with the arena and scalar-query changes](../evidence/2026-10-29-combined-qualification.json) | First run failed acceptance: 1 correct, 7 unanswered, 4 expected declines, 4 byte-limit errors. After the arena and scalar-query changes, Linux release and macOS debug both give 2 correct, 8 unanswered, 6 expected declines, 0 wrong, 0 errors; the 8 unanswered are still misses (`answer_form`), so acceptance is not met. |
 | [Hosted/relocated appliance](../evidence/2026-10-29-stable-appliance-validation.json) | Durable HTTP and relocated package journeys passed on manufactured data. This does not qualify the full Oracle Engine or signed Mini integration. |
+| [Prepared host and modeling ownership](../evidence/2026-11-01-native-host-validation.json) | 39 unique Rust / 20 Python checks. Prepared composition 53/53 and all 53 replies exact after restart; real tenant eviction/replacement and old-reply replay pass. Native composition: 51 semantic/control successes, two separate ingress-boundary checks, 51 acknowledged replies exact after restart and seven context-transition calls. Fresh authored cases, not original Workbench admission or shipped specialist exams. |
 | [Native conversation and preparation checkpoint](../evidence/2026-10-31-native-route-validation.json) | 130 Rust / 46 Python checks; relocated provider 9/9, native conversation/restart 22/22, thermal 9/9. Fresh quantity panels 641/641, zero wrong/false yes. Prepared-U8 baselines complete, but original modeling composition is negative; see the [diagnosis](../../project/lanes/MODELING-ADMISSION-2026-10-31.md). |
 | [Coherent appliance checkpoint](../evidence/2026-10-31-coherent-native-validation.json) | 165 Rust / 43 Python checks; real relocated runtime, six providers and supported U8 handoff/recovery. Supplied modeling 28/28 and thermal revision 8/8; that admission run stopped after its real core baseline timed out. Reader cohorts retain prior answers/evidence. |
 | [31 October hosted consumer workflows](../evidence/2026-10-31-sol-wave-validation.json) | Calibration 16/16, thermal scenarios 9/9, sequence search 7/7 dev and 10/10 held-out, exact blends 4/4. No wrong answers or false acceptance in these manufactured supplied-data cases; separate from shipped specialist exams. |

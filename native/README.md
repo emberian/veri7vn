@@ -82,6 +82,13 @@ removes that startup obstruction in an isolated prepared-U8 mode and completes
 the original exam, with a negative result: core-first routes intercept the
 structured requests. It also qualifies the Engine-free native conversation
 journey and actual extracted units. These results add no fleet-wide score.
+The [host integration checkpoint](../project/lanes/NATIVE-HOST-2026-11-01.md)
+adds explicit modeling ownership before generic language routing and typed
+prepared-Engine configuration. Preparation and bounded replacement run outside
+query work; each process generation serves at most one tenant. Modeling results
+stay typed through checking and are encoded once, with no duplicate numerical
+payload or per-query catalog clone. The fresh composition panel and original
+core-first admission remain separate results.
 
 ## Use from Python
 

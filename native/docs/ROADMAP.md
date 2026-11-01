@@ -8,8 +8,11 @@ Mini receiving belongs to its hosting team.
 
 ## Current integration
 
-The native conversation, public preparation and prepared thermal changes are
-implemented and qualified through the [native-route checkpoint](../../project/lanes/NATIVE-ROUTE-2026-10-31.md).
+The [host integration checkpoint](../../project/lanes/NATIVE-HOST-2026-11-01.md)
+connects prepared public artifacts to the Rust worker pool and gives explicitly
+supplied models ownership before generic routing. The preceding
+[native-route checkpoint](../../project/lanes/NATIVE-ROUTE-2026-10-31.md) retains
+native conversations, extracted quantity delivery and reusable thermal work.
 The original modeling admission is negative, with its routing and scorer limits
 retained. Earlier results remain bound to their own artifacts.
 The [upstream ledger](../../project/lanes/NATIVE-UPSTREAM-CHECKPOINT-2026-10-31.md)
@@ -18,7 +21,8 @@ tracks publication separately from adoption.
 | Change | What works in source | Qualification boundary |
 | --- | --- | --- |
 | Native bounded conversations | One typed entity/quantity owner uses the existing atomic state/reply journal. `native-v1` excludes Engine configuration. Queries return the committed cursor for the next invocation. Refusals preserve context; newly answered but unrepresentable values clear obsolete context. | The 22-step actual image/extracted quantity journey passes, including returned cursor, restart and exact retry. No Python/Engine process appears in the observed subtree. No full Engine dialogue claim. |
-| Public preparation for Python | An isolated source-pinned U8 mode loads manufactured public reader tables and initializes required components before readiness. Missing/tampered artifacts refuse before serving. | Actual cold readiness was 29.59 seconds under the unchanged 120-second startup bound. All 28 new-source modeling baselines completed within the unchanged query limit. The original examiner completed with zero gain and two wrong core-first calibration answers per split; admission is negative. Production Rust-host adoption remains open. |
+| Public preparation for Python | The Rust host admits exact U8 source and public artifacts, prepares workers before serving and replaces tenant-owned generations outside query work. Used processes never cross tenant boundaries. | The current host checkpoint records live qualification and configured limits. Earlier isolated readiness was 29.59 seconds; that observation is not the new host’s launch time. Python heaps remain per worker. |
+| Explicit supplied modeling | The exact `Model supplied data: ` prefix owns calibration and events/exposure requests before generic routes. Existing typed statistics providers produce one checked payload. | Fresh independent composition cases are separate from the original negative core-first exam. Native whole-request admission and model semantic refusal are distinct boundaries. See the current checkpoint for actual results and replay. |
 | Reusable thermal computation | The existing prepared network now retains topology, indices, matrix and factors; repeated load/boundary scenarios rebuild the RHS and power evidence. | Focused equivalence and resource checks pass. The final hosted thermal panel passes 9/9. HTTP calls still prepare independently. |
 | Extracted quantity delivery | The actual SML protocol now carries units for supported numerical answers, using all 24 typed constructors. Temperature roles remain unsupported as context. | Fresh checked export, compiled constructor/wire checks and all six affected panels pass. Actual binary-to-conversation delivery, follow-ups, refusal preservation and restart pass. |
 
@@ -31,11 +35,11 @@ parity. Neither dataset establishes completeness about the world.
 
 | Area | Next useful change | Evidence needed |
 | --- | --- | --- |
-| Engine ownership and cost | Adopt the prepared-serving contract in typed Rust-host configuration: bind artifact identity/custody and prewarm before admitting queries. The current worker starts lazily, so readiness still competes with a first query deadline. Move further enumerated routes onto shared native/extracted resources; extend explicit owner transitions rather than importing arbitrary reply JSON. | Actual hosted cold admission, failure/replacement and restart against the new source. The isolated prepared worker result does not qualify this lifecycle, full Engine restoration or shared Python heaps. |
+| Engine ownership and cost | Prepared configuration and bounded worker replacement are implemented. Extend native/extracted route coverage and typed owner transitions; investigate idle-death notification and sustained tenant churn without recreating per-tenant public heaps. | The current host checkpoint covers cold admission, tenant eviction/replacement and restart. Sustained churn, idle-death notification, full Engine restoration and shared Python heaps need their own evidence. |
 | Reader coverage | Extend learned composition and relation/document consumers beyond current cohorts. Preserve every viable interpretation and requested quantity, including disagreements, qualifiers and date precision. | Independent counterexamples plus the affected shipped panels and original controls. Explicit snapshot zero is not proof of world completeness. |
 | Evidence retention | Separate active records, historical IDs, revisions, retry retention, bytes and work. The current 128-record/history policy remains. Full controlled replay is still the reference. | Old retries and forbidden ID reuse survive policy changes. Compaction needs an explicit retention contract; checkpoint receipts alone cannot reconstruct history. |
 | Prepared computations | Retain thermal factors across requests only under complete topology/conductance/boundary identity. Consider maintained dataflow or solver state when a real revisable consumer benefits. | Compare complete consumer costs with fresh execution. Sequence timings reversed with execution order in the prior experiment; use symmetric lifetimes and warmup before claiming a gain. |
-| Specialist integration | Connect admitted supplied-data clients to the upstream cascade with precise route ownership. Revisit extracted specialist pins and the recorded statistics-family lane leakage. Preserve the existing SML for a future space protocol. | Original six-criterion admission and independent mathematical/unit checks. The supplied-modeling adapter currently fails core-first admission: incidental JSON text triggers generic math/document routes. Its standalone lane-control scorer also needs separate composed-control gold before a fresh heldout exam. Historical acoustics/networking failures need exact current-profile reproduction before treatment as live defects. |
+| Specialist integration | Connect admitted supplied-data clients to the upstream cascade with precise route ownership. Revisit extracted specialist pins and the recorded statistics-family lane leakage. Preserve the existing SML for a future space protocol. | Original six-criterion admission and independent mathematical/unit checks. The original supplied-modeling core-first admission remains negative. A new native exact-prefix owner bypasses incidental generic routing; its fresh composition qualification is separate from the original gate and uses independent composed-control gold. Historical acoustics/networking failures need exact current-profile reproduction before treatment as live defects. |
 | Hosted resources and release evolution | Qualify sustained heavy/light tenant traffic, worker replacement, cancellation and resource custody; specify release-history migration. Public data stays shared and private journals stay separate. | Real process-tree memory and useful-call latency under fixed capacity. Cooperative in-process budgets are not hard RSS/CPU isolation; a prior 64-tenant run does not qualify every later artifact. |
 | Build receipt interoperability | Connect the `check-native` producer receipt to the standard native compiler's checked-export admission. It currently accepts managed `remote-build` receipts only. | Preserve complete proof-source and generated-export binding; do not relabel one producer's receipt as another's. |
 | Capability growth | Stronger biological/scientific models, selective extracted checking, relation/document reasoning and useful learned readouts remain open. | Explicit model premises and source coverage, checker scope where available, and independently held-out empirical accuracy otherwise. The tiny readout pilot's lack of useful coverage does not settle the broader opportunity. |
@@ -49,23 +53,22 @@ because the current package runs.
 
 ## Next integration decisions
 
-Prepared Engine hosting needs a worker lifecycle, not just three environment
-variables. `EnginePool::ask_inner` currently retires a process when its tenant
-changes, and `start_all` reserves capacity without starting processes. A warm
-pool therefore needs explicit unassigned-ready, assigned and retiring states.
-Only a never-assigned process may be claimed by a tenant; a process that has
-served private state cannot return to that public pool. Replacement readiness
-must have a bounded lifecycle budget outside admitted query work, with a clear
-busy/unavailable response when no ready capacity exists. Generation checks,
-exact retry and uncertain dispatch handling must survive this change. Public
-preparation removes repeated learning but does not share Python object heaps.
+The prepared pool now has explicit unassigned-ready, tenant-assigned and retiring
+lifetimes. Initial readiness and bounded replacement run outside query work.
+Remaining work includes idle-death notification, sustained mixed-tenant churn,
+fairness and process-tree memory. Host launch still takes over two minutes in
+the current journey, including full source admission; separate that cost from
+worker preparation before changing either mechanism. Health currently records constructor readiness;
+an idle death is detected on use, eviction or shutdown. Public preparation removes
+repeated learning but does not share Python object heaps or make private workers
+cheap to switch between tenants.
 
-The other immediate integration is typed delivery. Source-ID selection should
-reuse the admitted entity directly, while structured graph/science results need
-explicit eligible-result adapters into the native owner. Define quantity roles
-before adding temperature continuations. Keep provider identity and numerical
-origin through every step. These changes turn existing computations into useful
-conversations without expanding a collection of text-pattern exceptions.
+Typed delivery should next include direct source-ID selection and eligible
+structured graph/science results. A known source ID should not require another
+name lookup. Temperature points/differences and fitted-model handles need their
+own roles before supporting follow-ups; a model is not a scalar because its reply
+contains numbers. Retain provider identity, declared assumptions and numerical
+origin rather than parsing generic reply JSON back into hidden context.
 
 ## Shared-resource design constraints
 

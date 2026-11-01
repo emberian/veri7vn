@@ -273,13 +273,66 @@ Unsupported text does not call
 the Engine. Retained sessions without the checked native owner require a fresh
 conversation; missing old state is not interpreted as an empty one.
 
+### Explicit supplied modeling
+
+With the `statistics` profile enabled, `/query` recognizes the exact prefix
+`Model supplied data: ` followed by an object with `operation` and `arguments`.
+The supported operations are `statistics.calibration` and
+`statistics.events_exposure`; [complete examples and analytic checks](../../tools/usage/specialist/modeling/composed/README.md)
+show their required rows, units, assumptions, sampling declarations and predictions.
+The existing typed provider performs the computation under the query's resource
+budget. The reply includes one structured result, provider metadata and concise
+prose. It does not encode another copy of the result inside the prose.
+
+This prefix owns the request before reader, extracted-organ or Engine routing.
+Malformed or unsupported owned input is refused there; it cannot become a generic
+mean calculation or Python-documentation question. Missing statistics support and
+execution failures remain errors. Discovery reports the owner and availability.
+Ordinary unprefixed questions keep their existing routes.
+
+In `native-v1`, an answered model clears the old entity/quantity anchor because a
+complete fitted model is not a scalar antecedent. Semantic refusals preserve it;
+operational failures do not commit a turn. Exact query retry uses the existing
+journal. `readonly-v1` and ordinary conversations already bound to an Engine
+explicitly refuse this context transition before computation. Fresh ordinary
+conversations may use modeling, but results do not implicitly populate subsequent
+Python conversation state. Direct `/invoke` remains available independently.
+
 ### Public preparation for legacy Python
 
-The isolated [prepared-U8 proposal](../../tools/upstream/runtime_preparation/README.md)
-manufactures public reader tables once and requires synchronous component
-readiness before serving. It does not yet configure a production Rust-host Engine
-provider. Its source identity, executable-pickle custody and unchanged startup
-limits are separate from the Engine-free native profile above.
+The [prepared-U8 mode](../../tools/upstream/runtime_preparation/README.md)
+manufactures public reader tables once and initializes required components before
+serving. Configure the host with the exact admitted materialization and add:
+
+```sh
+  --engine-prepared-manifest /operator/public-reader/MANIFEST.json \
+  --engine-prepared-sha256 INDEPENDENTLY_ADMITTED_MANIFEST_SHA256
+```
+
+`make_config.py` requires both arguments. Configuration binds the artifact hash,
+source identity and replacement policy; it exposes no arbitrary environment
+passthrough. `--engine-replacement-attempts` defaults to 2 (range 1–8), and
+`--engine-replacement-backoff-ms` defaults to 1000 (range 1–60000).
+These are bounded readiness attempts per replacement, not query retries.
+
+A fixed supervisor for each configured slot prepares a never-assigned process.
+The executable waits for initial readiness before announcing its listening URL;
+library callers may observe `Starting` while preparation runs. The first tenant
+to claim a ready generation owns it permanently. Tenant eviction destroys that
+process, returns `Starting`, and schedules preparation outside query work. Used
+processes never return to the unassigned pool. Exhausted readiness attempts leave
+the slot unavailable until host restart; incoming requests cannot rearm it.
+Shutdown cancels preparation and reaps owned process groups and reader threads.
+
+Health reports preparation, unassigned-ready capacity and exhausted slots.
+Readiness records the constructor handshake; it is not a continuous liveness
+probe. An idle worker death is detected on use, eviction or shutdown, so its first
+caller may see an execution failure before replacement. Retention stays bounded
+to one generation per slot. The legacy configuration retains lazy startup. The prepared mode targets the
+pinned U8 materialization, not an arbitrary upstream revision. Public files remain
+shared, but each Engine process still has its own Python heap. Protect source,
+manifest and executable pickle payloads against writes throughout serving; hashes
+do not make untrusted pickles safe. The Engine-free native profile remains separate.
 
 ## Relocatable host package
 

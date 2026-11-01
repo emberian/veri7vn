@@ -49,7 +49,11 @@ identity/arithmetic answers; the raw false-yes totals must not be interpreted as
 new errors introduced by this specialist. The [diagnosis](../../../../project/lanes/MODELING-ADMISSION-2026-10-31.md)
 keeps these limitations distinct. The heldout exam is spent; future admission
 needs explicit route ownership, appropriate composed-control gold and a fresh
-independent heldout set. The earlier unprepared-U8 timeout remains retained.
+independent heldout set. The earlier unprepared-U8 timeout remains retained. A separate
+[native composition](composed/README.md) now gives the exact `Model supplied data: `
+prefix ownership before generic routes and uses fresh independent cases. It does
+not revise this original verdict; see the [host checkpoint](../../../../project/lanes/NATIVE-HOST-2026-11-01.md)
+for that distinct qualification.
 The panel is 14 dev and 14 separately authored heldout cases: five useful numeric
 answers, one exact-witness semantic refusal, four invalid-input refusals, and four
 out-of-lane controls per split. Gold is analytic: lines 1+2x and 5−2x, aggregate

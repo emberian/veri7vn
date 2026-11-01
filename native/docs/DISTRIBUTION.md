@@ -51,6 +51,13 @@ follow-ups with atomic state/reply recovery. This profile requires the native
 image and excludes Engine configuration. An admitted extracted quantity binary
 can supply numerical answers and their structured units without an Engine.
 
+For a prepared Engine, keep the admitted public reader artifact external too.
+The generated launcher accepts `--prepared-root /absolute/shared/public-reader`
+to relocate that exact manifest and payload pair. Packaging verifies their hashes
+with bounded streaming reads and does not copy the tables into the bundle.
+The host independently admits their source binding and initializes prepared
+workers before the executable announces readiness. See the [host lifecycle](HOST.md#public-preparation-for-legacy-python).
+
 Next create the measured `release-input.json`, package, relocate and launch using
 the commands below. Qualification applies only to the exact frozen artifact,
 configuration and external resources that were exercised.

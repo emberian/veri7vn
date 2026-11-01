@@ -1,0 +1,495 @@
+{
+  "schema": "native-host-validation-v1",
+  "recorded_utc": "2026-11-01T03:17:53.200206+00:00",
+  "status": "qualified_scoped_native_modeling_and_prepared_host",
+  "runtime_code_checkpoint": "1444ca3c7ad4dc21080a06903c8f1c60c03f5c99",
+  "qualification_code_checkpoint": "82bf523818ffe4ad061a92f0513d4b164594ed5f",
+  "source": {
+    "base_revision": "ab82d0baba2ed8794f2a57d45664256b1bf6a6cb",
+    "runtime_build_archive_sha256": "58a218db1b2d5efc777f93484aad31f7e9f404bbed488c0b1e2e2f6a63f46ae1",
+    "runtime_build_archive_remote": "/tank/lanes/o7-native-host-20261101/validated-source.tar",
+    "runtime_build_manifest": "var/native-host-20261101/validated-source.json",
+    "members": 730,
+    "post_build_source_hash_mismatches": 0,
+    "named_overlays": [
+      "var/native-host-20261101/final-overlays.json",
+      "var/native-host-20261101/fixture-repair.json"
+    ],
+    "validation_only_overlay": {
+      "files": {
+        "tools/usage/specialist/modeling/composed/qualify.py": "d06cdf79ed30b4d74b7b7177b8d6274ceb87cbd54aadca078ad7a3e6b818ed60",
+        "tools/usage/specialist/modeling/composed/README.md": "42a6cb85f5562765c3e5b68bf7e62b0589ff73348f2623fdd05818fbaab2b661",
+        "tools/usage/specialist/modeling/composed/freeze.json": "0e3c11d1436c0944fcd5f47328a4aeabf13e5050e98fa9ad982bdfcc64a5d45d"
+      },
+      "reason": "Validation-only enclosing admission boundary classification, acknowledged-only replay and corrected explicit mean scorer; no runtime/mathgold changes",
+      "source_review": "Astra/root current d06 source clear",
+      "original_receipts_preserved": true
+    },
+    "published_file_manifest": "var/native-host-20261101/published-source.json",
+    "scope": "The unchanged built runtime/archive and post-build validation runner are separately bound. The runner-only fixes did not rebuild or alter the selected binary. Source archive excludes stores, private state, caches and generated artifacts."
+  },
+  "checks": {
+    "rust_unique_passed": 39,
+    "rust_targets": {
+      "service_modeling_tests": 9,
+      "engine_prepared_lifecycle_tests": 3,
+      "engine_ownership": 4,
+      "config_identity": 6,
+      "conversation_host_tests": 17
+    },
+    "minimal_feature_build": "Same prefix-ownership case also passed with --no-default-features; duplicate case not added to unique count.",
+    "python_unique_passed": 20,
+    "python_targets": {
+      "test_host_make_config": 7,
+      "test_package_host": 13
+    },
+    "counting": "Repairs and repeated module runs deduplicated; HTTP controls and panels counted separately.",
+    "checker_self_controls": {
+      "passed": 12,
+      "record": "var/native-host-20261101/evidence/scorer-self-check.json",
+      "scope": "Pure mean-scorer controls, no Engine/provider calls."
+    },
+    "cargo": "Locked/offline, single designated hbox owner, CARGO_BUILD_JOBS=2, warm target /tank/lanes/o7-native-20261028/target. One all-provider release build after focused tests."
+  },
+  "artifacts": {
+    "host_sha256": "4eec7934174b28e6c708d9c855820b9461c93443e6d0cfbe5744dac7cf31fbaf",
+    "profile": "release",
+    "target": "x86_64-unknown-linux-gnu",
+    "enabled_pure_profiles": [
+      "reasoning",
+      "science",
+      "incremental",
+      "bio",
+      "statistics",
+      "logic"
+    ],
+    "archives": {
+      "native": {
+        "local_path": "/Users/ember/dev/o7vn/var/native-host-20261101/release/oracle-host-native-linux.tar.gz",
+        "bytes": 9936234,
+        "sha256": "8f21b527dda45431d2b0c53ce89dfef0d3e34e080754832c34dd5c5d68f59a18",
+        "remote_bundle": "/tank/lanes/o7-native-host-20261101/relocated native",
+        "launch_command": "python3 -I -B -S \"/tank/lanes/o7-native-host-20261101/relocated native/bin/oracle-host\" --state-root /tank/lanes/o7-native-host-20261101/new-native-operator-state --port 8765"
+      },
+      "prepared": {
+        "local_path": "/Users/ember/dev/o7vn/var/native-host-20261101/release/oracle-host-prepared-linux.tar.gz",
+        "bytes": 9089303,
+        "sha256": "031f3f299c533c0056b1b2129ecabf0d9b63388f2de991616fc3c3493ab318d6",
+        "remote_bundle": "/tank/lanes/o7-native-host-20261101/relocated prepared",
+        "launch_command": "python3 -I -B -S \"/tank/lanes/o7-native-host-20261101/relocated prepared/bin/oracle-host\" --state-root /tank/lanes/o7-native-host-20261101/new-prepared-operator-state --port 8765 --prepared-root /tank/lanes/o7-native-route-20261031/preparation/public-reader"
+      }
+    },
+    "native_manifest_sha256": "622ce83d5aad52994b2919473153ea6041d8889249dded9863dfe3b5a2de8725",
+    "prepared_manifest_sha256": "00747f582a135bb069fe756fe1513514f489037172fdc24d5c7c81ee79137af4",
+    "build_metadata": {
+      "source_revision": "1444ca3c7ad4dc21080a06903c8f1c60c03f5c99",
+      "source_archive": {
+        "path": "/tank/lanes/o7-native-host-20261101/validated-source.tar",
+        "sha256": "58a218db1b2d5efc777f93484aad31f7e9f404bbed488c0b1e2e2f6a63f46ae1"
+      },
+      "target": "x86_64-unknown-linux-gnu",
+      "features": [
+        "reasoning",
+        "science",
+        "incremental",
+        "bio",
+        "statistics",
+        "logic"
+      ],
+      "toolchain": {
+        "rustc": "rustc 1.100.0-nightly (0dfb098f3 2026-08-31)\nbinary: rustc\ncommit-hash: 0dfb098f3aeecbe38c2566ca090193280e7349e7\ncommit-date: 2026-08-31\nhost: x86_64-unknown-linux-gnu\nrelease: 1.100.0-nightly\nLLVM version: 23.1.0",
+        "cargo": "cargo 1.100.0-nightly (e8cb624d5 2026-08-22)"
+      },
+      "descriptors": {
+        "path": "/tank/lanes/o7-native-host-20261101/source/native/oracle-host/descriptors/pure.json",
+        "sha256": "7edb8ae544a889270c8701069fffed1ce1b2b0ede2382a87ee4cad982c7ffcf5"
+      }
+    },
+    "resource_limits": "Archives contain current host/helpers/solver and selected payloads; large source/image/prepared tables and Python environment remain independently hash-bound external resources. These are runnable Linux packages on the designated hbox, not data-complete archives."
+  },
+  "fresh_composed_modeling": {
+    "scope": "New independent explicit-prefix ownership fixtures; not the original Workbench six-criterion gate or shipped specialist score. No paired head-relative gain measured.",
+    "fixture_sha256": "e63fa2708c4c71dbd95238f468cb3734ac7b4c326e493df7c0712dd8b2c2584c",
+    "final_runner_sha256": "d06cdf79ed30b4d74b7b7177b8d6274ceb87cbd54aadca078ad7a3e6b818ed60",
+    "gold_unchanged": true,
+    "native": {
+      "semantic_and_native_control_successes": 51,
+      "original_requests": 53,
+      "original_failures": [
+        "dev/owned-byte-limit",
+        "heldout/owned-byte-limit"
+      ],
+      "wrong_assertions": 0,
+      "false_yes_invalid": 0,
+      "original_receipt": "var/native-host-20261101/evidence/live/native-panel.json",
+      "original_receipt_sha256": "7de43541cc2046df84c49b2cd856b7dca4a754ef64d994669c29b7ba4cb8d0cc",
+      "original_boundary_interpretation": "Both unchanged oversized requests correctly fail enclosing whole-raw-envelope core admission at64KiB with HTTP413 conversation_limit before the modeling owner. The original51/53 result remains untouched; no semantic score is retroactively rewritten.",
+      "separate_transport_boundary_checks": 2,
+      "boundary_receipt": "var/native-host-20261101/evidence/live/native-enclosing-boundaries.json",
+      "acknowledged_restart_replays": 51,
+      "replay_receipt": "var/native-host-20261101/evidence/live/native-acknowledged-replay.json",
+      "replay_scope": "Only prior correct HTTP200 completed records replayed; both uncommitted413 responses validated then excluded from durable replay claim.",
+      "cross_turn_calls": 7,
+      "cross_turn_receipt": "var/native-host-20261101/evidence/live/native-cross-turn.json",
+      "cross_turn": "Actual returned query cursor drives Observe42J; answered fit clears unrepresentable anchor; subsequent invalid model preserves freshly observed42J.",
+      "engine": "Not configured; health engine=null, native process observation retained."
+    },
+    "prepared_ordinary": {
+      "correct": 53,
+      "wrong_assertions": 0,
+      "false_yes_invalid": 0,
+      "transport_boundary": 0,
+      "semantic_byte_cap_cases": 2,
+      "controls": "50 supplied-model cases including invalid inputs plus3 independent legitimate Engine identity/arithmetic controls. Each request immediately retried byte-exact.",
+      "panel_receipt": "var/native-host-20261101/evidence/live-prepared-continuation/prepared-panel.json",
+      "acknowledged_restart_replays": 53,
+      "replay_receipt": "var/native-host-20261101/evidence/live-prepared-continuation/prepared-replay.json",
+      "opaque_bound_conversation": "Existing Engine-bound conversation refuses modeling before computation: completed/withheld/native:modeling/conversation_transition_unsupported, no result.",
+      "opaque_bound_receipt": "var/native-host-20261101/evidence/live-prepared-continuation/prepared-bound-model-refusal.json"
+    },
+    "profile_boundaries": {
+      "missing_statistics": "HTTP503 modeling_profile_unavailable; only statistics removed, other5 profiles and solver retained.",
+      "readonly": "HTTP200 completed withheld conversation_transition_unsupported; no Engine configured, matching regenerated native release.",
+      "calls": 2,
+      "receipts": [
+        "var/native-host-20261101/evidence/live/profile-unavailable.json",
+        "var/native-host-20261101/evidence/live/readonly.json"
+      ]
+    },
+    "old_spent_negative": "native/evidence/2026-10-31-native-route-validation.json and project/lanes/MODELING-ADMISSION-2026-10-31.md unchanged; no re-exam, tuned gold or retro-score."
+  },
+  "prepared_host_lifecycle": {
+    "status": "passed_actual_host_integration",
+    "public_source_appliance_sha256": "ba58f621eae7795bfa7a2799a9797b54c7ecf758130c7db6985fb3cb3bf61b9d",
+    "public_reader_manifest_sha256": "66de1cad2525d38c7583173cf93c5624bdddb5ad33fe94f68931378e2770763e",
+    "reuse": "Prior immutable source/public tables/Python environment reused; no re-manufacture or proof build.",
+    "configured_limits": {
+      "workers": 1,
+      "startup_ms_per_attempt": 120000,
+      "engine_turn_ms": 30000,
+      "host_query_ms": 5000,
+      "replacement_attempts": 2,
+      "replacement_backoff_ms": 1000,
+      "host_request_bytes": 1048576,
+      "host_reply_bytes": 2097152
+    },
+    "initial_launch_to_public_readiness_seconds": 134.87776794284582,
+    "restart_launch_to_public_readiness_seconds": 135.35548700019717,
+    "timing_scope": "Wall launch includes package and full materialization admission plus dependency preparation. It is distinct from the unchanged120-second per-attempt worker startup deadline. Outer custody watchdog270 seconds; query limit tightened to5 seconds, no enlarged query budget. These individual observations are not a speed benchmark.",
+    "first_actual_query_seconds": 0.5186148528009653,
+    "readiness": "Required standing_family/air/physics/facts synchronous before public readiness; all_capabilities_ready=false and ready_idle_scope=constructor_handshake_not_liveness_probe.",
+    "initial_health": "var/native-host-20261101/evidence/live-prepared-continuation/prepared-initial-health.json",
+    "claim_a": {
+      "record": "var/native-host-20261101/evidence/live-prepared-continuation/prepared-claim-a.json",
+      "bindings": [
+        [
+          "639f9c1dd948145c14658851055b9641146629727360907cc5372521c0f9cbb1",
+          "a",
+          0,
+          "1aded718e3cd236a24534b:1",
+          0
+        ]
+      ],
+      "exact_immediate_retry": true
+    },
+    "eviction": {
+      "record": "var/native-host-20261101/evidence/live-prepared-continuation/prepared-eviction-starting.json",
+      "http_status": 503,
+      "error": "backend_unavailable",
+      "retryable": true,
+      "dispatch": "No Engine query dispatched; same bytes/request ID retry admitted after readiness.",
+      "observed_seconds": 0.11496971361339092
+    },
+    "replacement": {
+      "record": "var/native-host-20261101/evidence/live-prepared-continuation/prepared-replacement-health.json",
+      "observed_readiness_wait_seconds": 12.010916668921709,
+      "outside_query_deadline": true,
+      "claim_b_record": "var/native-host-20261101/evidence/live-prepared-continuation/prepared-claim-b.json",
+      "bindings": [
+        [
+          "453cfb515a39fae9eab9461478a58a1444bc7e917dafc582b0e1aea8d9090b0c",
+          "b",
+          0,
+          "1aded718e3cd236a24534b:2",
+          0
+        ],
+        [
+          "639f9c1dd948145c14658851055b9641146629727360907cc5372521c0f9cbb1",
+          "a",
+          0,
+          "1aded718e3cd236a24534b:1",
+          0
+        ]
+      ],
+      "same_worker_index_distinct_generation": true,
+      "starts": 2,
+      "retired": 1
+    },
+    "stale_a": "New old-generation request409 conversation_reset_required; old completed A request still byte-exact after eviction and host restart.",
+    "stale_record": "var/native-host-20261101/evidence/live-prepared-continuation/prepared-stale-and-replay.json",
+    "failure_shutdown": "Synthetic bounded lifecycle tests separately cover two failed attempts without request rearming, worker error replacement, and cancellation/join during pre-ready sleep. Actual live gate covers successful replacement and graceful shutdown; no real source/artifact mutation or SIGKILL fault injection.",
+    "process_observation": {
+      "scope": "one owned subtree observation, not throughput or hard RSS bound",
+      "processes": [
+        {
+          "pid": 1760983,
+          "ppid": 1760978,
+          "threads": 7,
+          "rss_kib": 25976,
+          "args": "/tank/lanes/o7-native-host-20261101/relocated prepared/lib/oracle-host --config /tank/lanes/o7-native-host-20261101/prepared-live-state-continuation/.oracle-host-cheb8a4q.json"
+        },
+        {
+          "pid": 1769523,
+          "ppid": 1760983,
+          "threads": 48,
+          "rss_kib": 1176556,
+          "args": "/tank/lanes/o7-coherent-native-20261031/u8/venv/bin/python -B /tank/lanes/o7-native-host-20261101/relocated prepared/python/engine_worker.py --tip oracle_release_runtime_w574 --checkout /tank/lanes/o7-native-route-20261031/preparation/view --state /tank/lanes/o7-native-host-20261101/prepared-live-state-continuation/engine/worker-0-1aded718e3cd236a24534b-1"
+        },
+        {
+          "pid": 1769526,
+          "ppid": 1769523,
+          "threads": 1,
+          "rss_kib": 10372,
+          "args": "/tank/lanes/o7-coherent-native-20261031/u8/venv/bin/python -B -c import os,signal,socket,sys fd,group=map(int,sys.argv[1:]) if group<=1 or os.getpgrp()!=group or os.getpid()==group:  raise SystemExit('invalid guardian group') s=socket.socket(fileno=fd) try:  while s.recv(1): pass finally:  os.killpg(group,signal.SIGKILL)  10 1769523"
+        }
+      ]
+    },
+    "process_scope": "One owned subtree snapshot; actual numeric worker thread footprint retained, no oversubscription/throughput or hard RSS bound claimed.",
+    "known_limit": "Idle readiness is constructor-handshake state, not a current liveness probe. Arbitrary Engine private context is not exported/recovered; stale generation requires reset."
+  },
+  "preserved_failures": [
+    {
+      "scope": "unit fixture",
+      "record": "var/native-host-20261101/modeling.json",
+      "failure": "Opaque binding expected refusal but bind UPDATE had no row to update.",
+      "repair": "Test-only real prior dispatch/completion setup; exact failed case passed, production unchanged.",
+      "repair_record": "var/native-host-20261101/fixture-repair.json"
+    },
+    {
+      "scope": "native first live fixture expectation",
+      "record": "var/native-host-20261101/native-live.json",
+      "failure": "Correct enclosing413 ingress responses disagreed with semantic200 fixture expectation.",
+      "disposition": "Keep original51/53, separate native transport boundaries and ordinary owner-cap checks; no production/cap/identity or question/gold change."
+    },
+    {
+      "scope": "prepared first live scorer",
+      "record": "var/native-host-20261101/prepared-live.json",
+      "failure": "Correct Engine mean7 with sentenceperiod rejected by prose token regex.",
+      "raw_custody": "var/native-host-20261101/evidence/live/prepared-first-mean-journal-custody.json",
+      "first_ready_seconds": 133.86265712603927,
+      "disposition": "Actual correct reply retained; validation-only strict explicit-mean scorer repaired and adversarially checked. Fresh-state lifecycle continuation labeled separately."
+    }
+  ],
+  "commands": {
+    "host-build": {
+      "name": "host-build",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo build --locked --offline --manifest-path /tank/lanes/o7-native-host-20261101/source/native/Cargo.toml -p oracle-host --all-features'",
+      "exit": 0,
+      "elapsed_seconds": 37.65,
+      "finished_utc": "2026-11-01T02:52:47.926952+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-host-20261101/host-build.log",
+      "log_sha256": "6d93e9a065fce6100d3d71e63ecd49a22db5e0591a1154a6caecc4f99cebd9c4"
+    },
+    "modeling": {
+      "name": "modeling",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-native-host-20261101/source/native/Cargo.toml -p oracle-host --all-features --lib service::modeling_tests -- --test-threads=1 --nocapture'",
+      "exit": 101,
+      "elapsed_seconds": 89.851,
+      "finished_utc": "2026-11-01T02:54:32.455972+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-host-20261101/modeling.log",
+      "log_sha256": "4a7a1f7853b9fb40665eac022fb6980b10b7052b823bfcd5810a336445024dd3"
+    },
+    "pool-lifecycle": {
+      "name": "pool-lifecycle",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-native-host-20261101/source/native/Cargo.toml -p oracle-host --all-features --lib prepared_lifecycle_tests -- --test-threads=1 --nocapture'",
+      "exit": 0,
+      "elapsed_seconds": 6.226,
+      "finished_utc": "2026-11-01T02:54:38.744611+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-host-20261101/pool-lifecycle.log",
+      "log_sha256": "efcf5700f24c1130a93c052964a16727d0749f9d8cb18b44a978fc9255ad811f"
+    },
+    "engine-ownership": {
+      "name": "engine-ownership",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-native-host-20261101/source/native/Cargo.toml -p oracle-host --all-features --test engine_ownership -- --test-threads=1 --nocapture'",
+      "exit": 0,
+      "elapsed_seconds": 6.066,
+      "finished_utc": "2026-11-01T02:54:44.856299+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-host-20261101/engine-ownership.log",
+      "log_sha256": "d660de35b5ace17fcc1755253a891c674a5310c8ce4dc601eea3b42440a69cd2"
+    },
+    "config-identity": {
+      "name": "config-identity",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-native-host-20261101/source/native/Cargo.toml -p oracle-host --all-features --test config_identity -- --test-threads=1 --nocapture'",
+      "exit": 0,
+      "elapsed_seconds": 3.456,
+      "finished_utc": "2026-11-01T02:54:48.362292+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-host-20261101/config-identity.log",
+      "log_sha256": "227d42fe7d72b568586556894c13b4b8f8632ce14fd0acec88b4d8d3e7b30646"
+    },
+    "conversation": {
+      "name": "conversation",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-native-host-20261101/source/native/Cargo.toml -p oracle-host --all-features --lib conversation_host_tests -- --test-threads=1 --nocapture'",
+      "exit": 0,
+      "elapsed_seconds": 221.93,
+      "finished_utc": "2026-11-01T02:58:30.343321+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-host-20261101/conversation.log",
+      "log_sha256": "a05c487bd67ed904bee30a0f2c8a6e15f738f2ad38f8bb4098c3c04ebb3d4e90"
+    },
+    "modeling-minimal": {
+      "name": "modeling-minimal",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-native-host-20261101/source/native/Cargo.toml -p oracle-host --no-default-features --lib service::modeling_tests::modeling_prefix_is_owned_without_compiled_or_configured_provider -- --test-threads=1 --nocapture'",
+      "exit": 0,
+      "elapsed_seconds": 21.421,
+      "finished_utc": "2026-11-01T02:58:51.834094+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-host-20261101/modeling-minimal.log",
+      "log_sha256": "dc6f1c00184baeb240430da4966227af10c3ad2eee704ecd92d0503efb20368e"
+    },
+    "modeling-binding-fixed": {
+      "name": "modeling-binding-fixed",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo test --locked --offline --manifest-path /tank/lanes/o7-native-host-20261101/source/native/Cargo.toml -p oracle-host --all-features --lib service::modeling_tests::modeling_opaque_binding_refuses_before_computation_and_unavailable_preserves_cursor -- --exact --test-threads=1 --nocapture'",
+      "exit": 0,
+      "elapsed_seconds": 14.643,
+      "finished_utc": "2026-11-01T02:59:14.939772+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-host-20261101/modeling-binding-fixed.log",
+      "log_sha256": "7854799b4e2dd8fcf5b9f687058fa6454fc15483acd3e4da0f68325b58dd826a"
+    },
+    "python-make-config": {
+      "name": "python-make-config",
+      "command": "ssh hbox 'cd /tank/lanes/o7-native-host-20261101/source && python3 -B -m unittest discover -s tests/appliance -p test_host_make_config.py -v'",
+      "exit": 0,
+      "elapsed_seconds": 2.447,
+      "finished_utc": "2026-11-01T02:49:27.123879+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-host-20261101/python-make-config.log",
+      "log_sha256": "1b45036f8edb9461000c500650194f05da6adfbcdde806b6b7ab1bc8ddb1252b"
+    },
+    "python-package": {
+      "name": "python-package",
+      "command": "ssh hbox 'cd /tank/lanes/o7-native-host-20261101/source && python3 -B -m unittest discover -s tests/appliance -p test_package_host.py -v'",
+      "exit": 0,
+      "elapsed_seconds": 3.188,
+      "finished_utc": "2026-11-01T02:49:31.726070+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-host-20261101/python-package.log",
+      "log_sha256": "bfafa07f4505cf1a90dfe621a89d10137df47177b35f80525cfb834c3b439891"
+    },
+    "python-package-stream": {
+      "name": "python-package-stream",
+      "command": "ssh hbox 'cd /tank/lanes/o7-native-host-20261101/source && python3 -B -m unittest discover -s tests/appliance -p test_package_host.py -v'",
+      "exit": 0,
+      "elapsed_seconds": 3.631,
+      "finished_utc": "2026-11-01T02:52:18.392338+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-host-20261101/python-package-stream.log",
+      "log_sha256": "56b0d8cadcffb6d5aaf00370548ee55318967650e81a604d556e70d3543ee87d"
+    },
+    "host-release": {
+      "name": "host-release",
+      "command": "ssh hbox 'CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target cargo build --locked --offline --release --manifest-path /tank/lanes/o7-native-host-20261101/source/native/Cargo.toml -p oracle-host --all-features'",
+      "exit": 0,
+      "elapsed_seconds": 122.476,
+      "finished_utc": "2026-11-01T03:01:36.423102+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-host-20261101/host-release.log",
+      "log_sha256": "858d696ee7dfe508c56ca4eb5dd56e4d396ae1193b0de570350e6d145032d884"
+    },
+    "package-final": {
+      "name": "package-final",
+      "command": "ssh hbox 'python3 -B /tank/lanes/o7-native-host-20261101/assemble.py'",
+      "exit": 0,
+      "elapsed_seconds": 10.122,
+      "finished_utc": "2026-11-01T03:02:06.222850+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-host-20261101/package-final.log",
+      "log_sha256": "f388811146f3998f73a4ebf11c6d6eb822cda092e2e7e6ecdb79d08abb8440d1"
+    },
+    "native-live": {
+      "name": "native-live",
+      "command": "ssh hbox 'python3 -B /tank/lanes/o7-native-host-20261101/gates.py native'",
+      "exit": 1,
+      "elapsed_seconds": 7.775,
+      "finished_utc": "2026-11-01T03:02:51.837867+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-host-20261101/native-live.log",
+      "log_sha256": "0dc56037014937b99a5c0168e154650c39d2565e0753d6e54566666d4d8b93c3"
+    },
+    "prepared-live": {
+      "name": "prepared-live",
+      "command": "ssh hbox 'python3 -B /tank/lanes/o7-native-host-20261101/gates.py prepared'",
+      "exit": 1,
+      "elapsed_seconds": 136.837,
+      "finished_utc": "2026-11-01T03:06:33.956492+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-host-20261101/prepared-live.log",
+      "log_sha256": "96c4f66efc3c3ac0a22e13efca5d0837039d46368bfe24248a2b3a766f654981"
+    },
+    "native-resume": {
+      "name": "native-resume",
+      "command": "ssh hbox 'python3 -B /tank/lanes/o7-native-host-20261101/native_resume.py'",
+      "exit": 0,
+      "elapsed_seconds": 9.105,
+      "finished_utc": "2026-11-01T03:12:30.502996+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-host-20261101/native-resume.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "prepared-live-continuation": {
+      "name": "prepared-live-continuation",
+      "command": "ssh hbox 'python3 -B /tank/lanes/o7-native-host-20261101/prepared_continue.py'",
+      "exit": 0,
+      "elapsed_seconds": 290.823,
+      "finished_utc": "2026-11-01T03:15:17.155521+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-host-20261101/prepared-live-continuation.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "profile-boundaries": {
+      "name": "profile-boundaries",
+      "command": "ssh hbox 'python3 -B /tank/lanes/o7-native-host-20261101/boundaries.py'",
+      "exit": 0,
+      "elapsed_seconds": 4.909,
+      "finished_utc": "2026-11-01T03:13:38.502345+00:00",
+      "log": "/Users/ember/dev/o7vn/var/native-host-20261101/profile-boundaries.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "cleanup": {
+    "all_recorded_host_pids_absent": true,
+    "all_gate_asserted_worker_birth_identities_stopped": true,
+    "engine_pid_files": [],
+    "records": [
+      {
+        "record": "live/profile-unavailable-host.pid",
+        "pid": 1780191,
+        "exists": false
+      },
+      {
+        "record": "live/native-restarted.pid",
+        "pid": 1769074,
+        "exists": false
+      },
+      {
+        "record": "live/native-first.pid",
+        "pid": 1698184,
+        "exists": false
+      },
+      {
+        "record": "live/prepared-first.pid",
+        "pid": 1708155,
+        "exists": false
+      },
+      {
+        "record": "live/readonly-host.pid",
+        "pid": 1780469,
+        "exists": false
+      },
+      {
+        "record": "live-prepared-continuation/prepared-restarted.pid",
+        "pid": 1772425,
+        "exists": false
+      },
+      {
+        "record": "live-prepared-continuation/prepared-first.pid",
+        "pid": 1760983,
+        "exists": false
+      }
+    ]
+  },
+  "boundaries": [
+    "No original six-criterion admission, fleet score, theorem, full Engine coverage, speedup, throughput or hard RSS claim.",
+    "Native-v1 excludes Engine; ordinary prepared mode owns full Python process generations and does not preserve arbitrary private state across tenant eviction.",
+    "Large public pickle remains operator-trusted executable data under source/manifest custody, not proof authority.",
+    "External image, source inventory, venv and prepared resources are required; archives intentionally omit large stores."
+  ]
+}

@@ -3,7 +3,7 @@
 Current work is described in the [native roadmap](../native/docs/ROADMAP.md).
 The [capability catalog](../native/docs/CAPABILITIES.md) says what is callable;
 the [migration map](../native/docs/MIGRATION.md) names remaining Engine behavior.
-The [latest native checkpoint](lanes/NATIVE-ROUTE-2026-10-31.md) and
+The [latest native checkpoint](lanes/NATIVE-HOST-2026-11-01.md) and
 [upstream publication record](lanes/NATIVE-UPSTREAM-CHECKPOINT-2026-10-31.md)
 retain the implementation and execution evidence. Mini receiving belongs to its team.
 

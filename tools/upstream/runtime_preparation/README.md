@@ -1,7 +1,9 @@
 # Public reader preparation and explicit Engine readiness
 
 This prepared-serving mode targets the exact U8 source cut. It has passed
-isolated hbox qualification; production Rust-host adoption remains separate.
+isolated hbox qualification. The Rust host now admits the artifact through typed
+configuration and prepares tenant-owned workers before serving; see the
+[host contract](../../../native/docs/HOST.md#public-preparation-for-legacy-python).
 The [central receipt](../../../native/evidence/2026-10-31-native-route-validation.json)
 records 11 focused checks, one public-artifact manufacture, actual cold/warm
 worker calls and missing/tampered artifact refusals before readiness. Cold
@@ -147,17 +149,32 @@ A missing/tampered/version-mismatched artifact must fail startup before any quer
 not start learning. Then and only then consider the still-missing exact modeling
 core baselines and original six-criterion admission. No timeout becomes a decline.
 
-## Host adoption remains separate
+## Rust host integration
 
-The prepared source supports only the exact audited U8 w574 class. Its w573/w574 descendants have no constructor/preparation overrides; the w574 organ loader uses fields initialized before preparation. The fixed-class constructor call and completion marker cover both launcher and explicit-tip construction. Other prepared tips are refused.
+The prepared source supports only the exact audited U8 w574 class. Its w573/w574
+descendants have no constructor/preparation overrides; the w574 organ loader uses
+fields initialized before preparation. The fixed-class constructor call and
+completion marker cover both launcher and explicit-tip construction. Other
+prepared tips are refused.
 
-The source mode can be qualified against an isolated patched U8 launcher. It is
-**not yet integrated into the Rust host’s configuration or release identity**.
-The worker’s narrow guard rejects an unsupported explicit tip or missing actual constructor completion marker in the isolated mode; it does not itself admit an inherited environment. Adoption requires typed operator configuration for preparation mode, immutable
-artifact root and admitted manifest digest; inclusion in Engine/deployment/runtime
-identity and distribution external-resource custody; deliberate propagation to the
-actual child before launch; and structured readiness/error reporting. Do not rely
-on arbitrary inherited environment variables as an admitted production policy.
-The existing host’s worker-start path is lazy, so startup cost may still fall
-inside its first request deadline until that lifecycle is explicitly integrated.
-Mini actions, public authentication and full Engine recovery are outside this cut.
+The Rust host admits the source materialization and independently pinned public
+manifest through `engine.prepared`. Artifact identity and replacement policy
+participate in deployment identity. The launcher can relocate external public
+tables without copying them into the package. Only admitted configuration reaches
+the child after its environment is cleared; inherited environment variables do
+not select this mode.
+
+One supervisor per configured slot performs preparation outside query work.
+Initial readiness precedes the listening announcement. An unused ready generation
+can be assigned once; eviction retires its process and prepares a replacement.
+A process that held one tenant's private state is never assigned to another.
+Attempts and backoff are bounded; exhaustion remains unavailable until host
+restart. Shutdown cancels preparation, joins supervisors and reaps owned children.
+
+Constructor readiness does not prove continued liveness: idle death is detected
+on use, eviction or shutdown. Public files are shared; Python object heaps remain
+per process. Full Engine recovery, sustained mixed-tenant performance and
+compatibility with later upstream revisions remain separate work. The
+[host guide](../../../native/docs/HOST.md) documents configuration and the current
+[checkpoint](../../../project/lanes/NATIVE-HOST-2026-11-01.md) binds actual hosted
+qualification to its source and artifacts.

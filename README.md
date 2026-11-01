@@ -41,8 +41,10 @@ search and coordinate-preserving translation. New consumers connect
 [supplied-data modeling](tools/usage/specialist/modeling/README.md) to an explicit
 specialist interface, and [revised evidence](tools/usage/specialist/thermal-revision/README.md)
 to thermal decisions. The supplied modeling panel passes 28/28 and the thermal revision workflow 8/8;
-complete modeling admission is negative: the core-first cascade intercepts valid
-modeling requests before the specialist.
+the original core-first modeling admission is negative because generic routes
+intercept valid model requests. A separate [native query owner](tools/usage/specialist/modeling/composed/README.md)
+now reserves the exact `Model supplied data: ` prefix before those routes,
+with fresh independent composition cases.
 Their manufactured workflow cases
 are separate from the shipped specialist exams. A structured operation does not
 automatically become a natural-language specialist in the complete Oracle cascade.
@@ -73,10 +75,11 @@ sustained mixed-tenant qualification and release-history migration remain.
 The [roadmap](native/docs/ROADMAP.md) is the live plan; the
 [migration map](native/docs/MIGRATION.md) identifies remaining source consumers.
 
-The [current checkpoint](project/lanes/NATIVE-ROUTE-2026-10-31.md) records the
-Engine-free native journey, actual extracted quantity delivery, prepared thermal
-computation and isolated public-reader preparation for U8. It retains the negative
-modeling admission and the remaining host integration work.
+The [current checkpoint](project/lanes/NATIVE-HOST-2026-11-01.md) records native
+modeling ownership and prepared Python workers in the Rust host. The preceding
+[native-route checkpoint](project/lanes/NATIVE-ROUTE-2026-10-31.md) retains the
+Engine-free conversation journey, actual extracted quantity delivery, reusable
+thermal computation and original negative modeling admission.
 The [upstream ledger](project/lanes/NATIVE-UPSTREAM-CHECKPOINT-2026-10-31.md)
 tracks publication separately from adoption.
 Separate [design experiments](native/experiments/README.md) explore streaming
