@@ -149,3 +149,38 @@ roles must be complete, so a rate or product suffix cannot be dropped. Values
 are converted in the HOL kernel. See
 [energy-unit report](../../../project/lanes/C-physical-quantity-energy-units.md)
 for the current proof, panel and consumer status.
+
+## Optional numerical unit metadata
+
+The JSON driver adds `unit` only when the kernel answered with a stated number
+and the typed request has a supported linear scalar output. Existing `response`,
+`value`, `status`, `kind` and `path` fields keep their meaning and content. The
+unit comes from the recognized request and the existing HOL `unit_label`, not
+from reading the displayed answer. Density is kg/m3; forces N; stiffness N/m;
+periods s; frequency Hz; pressure Pa; submerged fractions 1; fuel calorific value
+MJ/kg. Requested mass, volume, conversion and energy targets keep their actual
+target unit. This metadata projection and the JSON framing are handwritten and
+untrusted. Exporting the existing `unit_label` adds no theorem claim.
+
+Both temperature points and temperature differences deliberately omit `unit`.
+The native-v1 scalar anchor has no field for their different affine roles, even
+when the target is kelvin. Their existing kinds, numbers and responses remain
+available, but they cannot become scalar continuation anchors through this
+metadata. Boolean replies, declines and unsupported requests also omit it.
+Approximate spring periods/frequencies retain their existing rounded numbers;
+adding s or Hz does not make those numbers exact physical measurements.
+
+After the central quantity session check and compilation, run the focused wire
+check against the new binary, optionally comparing an older binary's original
+fields:
+
+```
+python3 src/extract/quantity/unit_protocol_check.py --binary var/quantity/bin/quantity --baseline /path/to/previous/quantity
+```
+
+For typed constructor coverage independent of English recognition, emit the SML
+checks with `--emit-sml-checks` into lane scratch and place that file after
+`main.sml` in the central MLton build's MLB inputs. Run that check binary with
+stdin at EOF. This covers all request constructors, including legacy gauge and
+absolute pressure constructors that current English dispatch may not produce.
+The script itself performs no build. These checks are not specialist panel scores.

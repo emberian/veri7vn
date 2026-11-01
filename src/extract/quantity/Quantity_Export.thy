@@ -47,7 +47,7 @@ definition self_test :: bool where
 
 export_code reply_of answered reply_kind response stated answers mk_rat self_test
   integer_of_int nat_of_integer int_of_integer
-  lookup_unit unit_names material_order elements fluid_order solid_order fuel_order
+  lookup_unit unit_names unit_label material_order elements fluid_order solid_order fuel_order
   dens_vol_units dens_mass_units spring_disp_units spring_mass_units fluid_vol_units
   fuel_mass_units fuel_energy_units
   Lin Tmp U_kilogram U_cubic_metre U_metre U_kilowatt_hour U_megajoule
