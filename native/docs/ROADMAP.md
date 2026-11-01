@@ -20,11 +20,12 @@ tracks publication separately from adoption.
 
 | Change | What works in source | Qualification boundary |
 | --- | --- | --- |
-| Native bounded conversations | One typed entity/quantity owner uses the existing atomic state/reply journal. `native-v1` excludes Engine configuration. Queries return the committed cursor for the next invocation. Refusals preserve context; newly answered but unrepresentable values clear obsolete context. | The 22-step actual image/extracted quantity journey passes, including returned cursor, restart and exact retry. No Python/Engine process appears in the observed subtree. No full Engine dialogue claim. |
-| Public preparation for Python | The Rust host admits exact U8 source and public artifacts, prepares workers before serving and replaces tenant-owned generations outside query work. Used processes never cross tenant boundaries. | The current host checkpoint records live qualification and configured limits. Earlier isolated readiness was 29.59 seconds; that observation is not the new host’s launch time. Python heaps remain per worker. |
-| Explicit supplied modeling | The exact `Model supplied data: ` prefix owns calibration and events/exposure requests before generic routes. Existing typed statistics providers produce one checked payload. | Fresh independent composition cases are separate from the original negative core-first exam. Native whole-request admission and model semantic refusal are distinct boundaries. See the current checkpoint for actual results and replay. |
-| Reusable thermal computation | The existing prepared network now retains topology, indices, matrix and factors; repeated load/boundary scenarios rebuild the RHS and power evidence. | Focused equivalence and resource checks pass. The final hosted thermal panel passes 9/9. HTTP calls still prepare independently. |
-| Extracted quantity delivery | The actual SML protocol now carries units for supported numerical answers, using all 24 typed constructors. Temperature roles remain unsupported as context. | Fresh checked export, compiled constructor/wire checks and all six affected panels pass. Actual binary-to-conversation delivery, follow-ups, refusal preservation and restart pass. |
+| Native bounded conversations | One typed owner in the atomic state/reply journal holds entity/quantity anchors (including direct source-ID selection and distinct temperature point vs. difference roles) and retained fitted calibration models for follow-up evaluation. `native-v1` excludes Engine configuration. Queries return the committed cursor for the next invocation. Refusals preserve context; newly answered models clear scalar/entity anchors while retaining the model handle. | The 22-step actual image/extracted quantity journey plus unit/contract tests pass, including returned cursor, temperature role algebra, fitted-model evaluation, restart and exact retry. No full Engine dialogue claim. |
+| Public preparation for Python | The Rust host admits exact U8 source and public artifacts in parallel (reporting separate `source_admission_ms` and `store_admission_ms`), bounds native BLAS/OpenMP/Rayon threads in spawned Python workers, proactively detects and reaps idle worker deaths on stdout EOF, and replaces tenant-owned generations outside query work. Used processes never cross tenant boundaries. | Cold admission, proactive idle-death replacement, tenant eviction/replacement and restart pass. Python heaps remain per worker. |
+| Explicit supplied modeling | The exact `Model supplied data: ` prefix owns calibration and events/exposure requests before generic routes. Existing typed statistics providers produce one checked payload; in `native-v1`, calibration fits retain a typed model handle for `Evaluate that model at <y>` while clearing the scalar/entity anchor. | Fresh independent composition cases are separate from the original negative core-first exam. Native whole-request admission and model semantic refusal are distinct boundaries. |
+| Reusable thermal computation | Prepared networks retain topology, indices, matrix and factors; `PreparedThermalCache` reuses factorizations across hosted `science.thermal_scenarios` requests under complete topology/conductance/boundary identity with a separate memory budget and LRU eviction. | Focused equivalence, cross-request cache hit/eviction and resource checks pass. The hosted thermal panel passes 9/9. |
+| Extracted specialist transport | `KernelFamily` admits all 20 stateless SML specialist families in `src/extract/families.json` with per-family specialist allowlists, and `KernelExecutor` selects matching or empty slots before round-robin eviction so sequential multi-organ polling reuses warm residents. | Protocol, multi-organ resident reuse and allowlist checks pass; quantity carries all 24 typed unit constructors. |
+| Evidence retention & ISO dates | `RetentionPolicy` separates active records, historical IDs, revisions, retry payload window and byte budget while preserving retired tokens and withdrawn IDs against reuse. `lexicon.rs` recognizes 3-word normalized ISO dates (`YYYY MM DD` -> `YYYY-MM-DD`). | Contract tests verify separated retention bounds, forbidden ID/token reuse and lexical ISO date spans. |
 
 The admitted native KQA image has one birthplace edge for Walt Whitman, while
 U8's relation store has two. Moving a query between those datasets changes its
@@ -53,22 +54,22 @@ because the current package runs.
 
 ## Next integration decisions
 
-The prepared pool now has explicit unassigned-ready, tenant-assigned and retiring
-lifetimes. Initial readiness and bounded replacement run outside query work.
-Remaining work includes idle-death notification, sustained mixed-tenant churn,
-fairness and process-tree memory. Host launch still takes over two minutes in
-the current journey, including full source admission; separate that cost from
-worker preparation before changing either mechanism. Health currently records constructor readiness;
-an idle death is detected on use, eviction or shutdown. Public preparation removes
-repeated learning but does not share Python object heaps or make private workers
-cheap to switch between tenants.
+The prepared pool has explicit unassigned-ready, tenant-assigned and retiring
+lifetimes. Source and store admission hashes run in parallel with separate timing
+metrics (`source_admission_ms`, `store_admission_ms`), and initial worker
+preparation records `initial_preparation_ms`. Spawned Python workers bound native
+thread pools (`OMP_NUM_THREADS=1`, `OPENBLAS_NUM_THREADS=1`, `MKL_NUM_THREADS=1`,
+`RAYON_NUM_THREADS=1`), and stdout EOF immediately marks a worker dead and wakes
+the slot supervisor so idle crashes are reaped and replaced in the background.
+Public preparation removes repeated learning, though Python object heaps remain
+per worker process.
 
-Typed delivery should next include direct source-ID selection and eligible
-structured graph/science results. A known source ID should not require another
-name lookup. Temperature points/differences and fitted-model handles need their
-own roles before supporting follow-ups; a model is not a scalar because its reply
-contains numbers. Retain provider identity, declared assumptions and numerical
-origin rather than parsing generic reply JSON back into hidden context.
+Typed conversation state now supports direct source-ID selection (`Node::Id`,
+`NativeEntityQuery::ById`), distinct temperature point and temperature difference
+roles (`QuantityRole::TemperaturePoint`, `QuantityRole::TemperatureDifference`),
+and retained calibration models (`RetainedFittedModel::Calibration`) while keeping
+the scalar/entity anchor clear after a model fit. Next work should extend typed
+delivery to eligible structured graph/science results and multi-parameter models.
 
 ## Shared-resource design constraints
 

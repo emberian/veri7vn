@@ -264,14 +264,17 @@ roles, and not a claim that the image contains every fact in the world.
 
 Units are case-sensitive. Cost supports exact same-unit rates and the explicit
 J/kWh conversion; numerical operations retain the input's approximation origin.
-Acknowledgements and semantic refusals preserve the delivered anchor. A new
-answer whose type cannot be retained clears the old anchor and selection, so a
-later "that" cannot refer to an obsolete result. Extracted temperature answers
-currently take this path because the context does not represent temperature
-points separately from differences. Topic reset also clears both fields.
-Unsupported text does not call
-the Engine. Retained sessions without the checked native owner require a fresh
-conversation; missing old state is not interpreted as an empty one.
+Temperature quantities carry an explicit `QuantityRole` (`TemperaturePoint` vs.
+`TemperatureDifference`) supporting affine point conversion (`ConvertTemperature`),
+point shifting by a difference (`ShiftTemperature`), and point subtraction
+(`TemperatureDifferenceFrom`), while refusing affine point scaling or difference
+conversion as an absolute point. Acknowledgements and semantic refusals preserve
+the delivered anchor. A new answer whose type cannot be retained as a scalar or
+entity clears the old anchor and selection, so a later "that" cannot refer to an
+obsolete result. Topic reset also clears the anchor, selection and any retained
+fitted model. Unsupported text does not call the Engine. Retained sessions
+without the checked native owner require a fresh conversation; missing old state
+is not interpreted as an empty one.
 
 ### Explicit supplied modeling
 
@@ -291,12 +294,15 @@ execution failures remain errors. Discovery reports the owner and availability.
 Ordinary unprefixed questions keep their existing routes.
 
 In `native-v1`, an answered model clears the old entity/quantity anchor because a
-complete fitted model is not a scalar antecedent. Semantic refusals preserve it;
-operational failures do not commit a turn. Exact query retry uses the existing
-journal. `readonly-v1` and ordinary conversations already bound to an Engine
-explicitly refuse this context transition before computation. Fresh ordinary
-conversations may use modeling, but results do not implicitly populate subsequent
-Python conversation state. Direct `/invoke` remains available independently.
+complete fitted model is not a scalar antecedent; for `statistics.calibration`,
+it simultaneously installs a typed `RetainedFittedModel` handle supporting
+follow-up evaluation (`Evaluate that model at <y>` or `EvaluateModel`). Semantic
+refusals preserve prior context; operational failures do not commit a turn. Exact
+query retry uses the existing journal. `readonly-v1` and ordinary conversations
+already bound to an Engine explicitly refuse this context transition before
+computation. Fresh ordinary conversations may use modeling, but results do not
+implicitly populate subsequent Python conversation state. Direct `/invoke`
+remains available independently.
 
 ### Public preparation for legacy Python
 
@@ -324,15 +330,18 @@ processes never return to the unassigned pool. Exhausted readiness attempts leav
 the slot unavailable until host restart; incoming requests cannot rearm it.
 Shutdown cancels preparation and reaps owned process groups and reader threads.
 
-Health reports preparation, unassigned-ready capacity and exhausted slots.
-Readiness records the constructor handshake; it is not a continuous liveness
-probe. An idle worker death is detected on use, eviction or shutdown, so its first
-caller may see an execution failure before replacement. Retention stays bounded
-to one generation per slot. The legacy configuration retains lazy startup. The prepared mode targets the
-pinned U8 materialization, not an arbitrary upstream revision. Public files remain
-shared, but each Engine process still has its own Python heap. Protect source,
-manifest and executable pickle payloads against writes throughout serving; hashes
-do not make untrusted pickles safe. The Engine-free native profile remains separate.
+Health reports preparation, unassigned-ready capacity, exhausted slots and
+initial preparation timing (`initial_preparation_ms`). Spawned Python workers
+bound native BLAS/OpenMP/Rayon thread pools (`OMP_NUM_THREADS=1`, etc.), and
+stdout EOF immediately clears worker liveness (`alive`) and wakes the slot
+supervisor so idle worker deaths are reaped and replaced proactively in the
+background, as well as checked before slot assignment or use. Retention stays
+bounded to one generation per slot. The legacy configuration retains lazy startup.
+The prepared mode targets the pinned U8 materialization, not an arbitrary
+upstream revision. Public files remain shared, but each Engine process still has
+its own Python heap. Protect source, manifest and executable pickle payloads
+against writes throughout serving; hashes do not make untrusted pickles safe.
+The Engine-free native profile remains separate.
 
 ## Relocatable host package
 

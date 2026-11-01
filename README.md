@@ -15,8 +15,9 @@ intended algorithms are active work.
 
 Specialist repairs cover dropped signs, lost units, mistaken subjects and
 answers to the wrong requested quantity, including cases absent from the shipped
-tests. See the [specialist record](project/APPLIANCE-2026-10-26.md) and
-[current native work](native/docs/ROADMAP.md).
+tests. See the [specialist record](project/APPLIANCE-2026-10-26.md),
+[current native work](native/docs/ROADMAP.md), and archived lane history under
+`project/history/`.
 
 A proof establishes a particular statement about a computation. It can show
 that a result satisfies an equation or a decision follows from supplied rows.
@@ -64,14 +65,17 @@ commits delivered native state and exact HTTP replies together. It provides a
 bounded, source-pinned Engine adapter for supported entity and quantity follow-ups,
 acknowledgements and topic changes. A separate
 [native profile](native/docs/HOST.md#native-conversations-without-python) retains
-typed entities and quantities using the same transaction, with exact arithmetic
-and case-sensitive units. It accepts actual extracted quantity results and
-clears obsolete context when a new answer cannot be represented. The supported
-real-U8 journey passes handoff,
-refusal, restart and exact replay;
-it does not restore the complete Engine conversation. Each Engine worker belongs
-to one tenant per generation. Full Engine restoration, wider reader coverage,
-sustained mixed-tenant qualification and release-history migration remain.
+typed entities (by name or direct source ID), quantities (including distinct
+temperature points and temperature differences), and fitted calibration models
+using the same transaction, with exact rational arithmetic and case-sensitive
+units. It accepts actual extracted quantity results, supports follow-up model
+evaluation (`Evaluate that model at <y>`), and clears obsolete scalar/entity
+anchors when a new answer is not a scalar antecedent. The supported real-U8
+journey passes handoff, refusal, restart and exact replay; it does not restore
+the complete Engine conversation. Each Engine worker belongs to one tenant per
+generation, with bounded native thread pools and proactive idle-death reaping.
+Full Engine restoration, wider reader coverage, sustained mixed-tenant
+qualification and release-history migration remain.
 The [roadmap](native/docs/ROADMAP.md) is the live plan; the
 [migration map](native/docs/MIGRATION.md) identifies remaining source consumers.
 
@@ -197,9 +201,9 @@ answer to the assumptions and guarantees of its computation remains unfinished.
 |---|---|
 | `native/` | Rust runtime, optional providers, PyO3 bindings and service documentation |
 | `tools/appliance/`, `tools/oracle_components/` | HTTP serving, worker pools and operation adapters |
-| `project/PLAN.md`, `project/swarm/` | the plan; lane waves (`WAVE5.md`, `WAVE6.md`), the lane brief, the beyond-parity recipe (`BEYOND.md`) |
-| `project/lanes/*.md` | one handoff per lane: theorem statements, numbers, receipts, limits |
-| `project/scouts/` | GLM scout briefs, their reports, the triage logs (`TRIAGE-N.md`) |
+| `project/PLAN.md`, `project/lanes/` | active navigation, scoreboard and current checkpoints |
+| `project/history/` | archived lane reports, handoffs, reviews, scouts and wave briefs |
+| `project/scouts/native-2026-10-31/` | active native capability and literature synthesis |
 | `docs/parity/` | the board, the harness manual, dialogue mode |
 | `docs/oracle7/CORE.md` | what Oracle7 actually is, with file pointers and route shares |
 | `docs/assurance/` | the theorem-quality audit |

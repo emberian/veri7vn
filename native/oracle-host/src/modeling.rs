@@ -363,3 +363,29 @@ pub fn answer(
         Ok(body)
     })())
 }
+
+pub fn retained_model(
+    reply: &Value,
+) -> Option<oracle_runtime_core::native_conversation::RetainedFittedModel> {
+    if reply["status"] != "answered" || reply["supplied"]["operation"] != "statistics.calibration" {
+        return None;
+    }
+    let coeffs = reply["result"]["fit"]["coefficient_candidate"].as_array()?;
+    if coeffs.len() != 2 {
+        return None;
+    }
+    let intercept = coeffs[0].as_f64().filter(|x| x.is_finite())?;
+    let slope = coeffs[1].as_f64().filter(|x| x.is_finite())?;
+    let args = &reply["supplied"]["arguments"];
+    Some(
+        oracle_runtime_core::native_conversation::RetainedFittedModel::Calibration {
+            request: "pending".into(),
+            revision: 1,
+            intercept: intercept.to_string(),
+            slope: slope.to_string(),
+            x_unit: args["x_unit"].as_str()?.to_owned(),
+            response_unit: args["response_unit"].as_str()?.to_owned(),
+            direction: args["direction"].as_str()?.to_owned(),
+        },
+    )
+}

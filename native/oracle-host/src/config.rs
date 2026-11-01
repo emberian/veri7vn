@@ -246,7 +246,7 @@ pub fn is_hash(text: &str) -> bool {
 pub fn sha256_file(path: &Path) -> std::io::Result<String> {
     let mut file = std::fs::File::open(path)?;
     let mut hasher = Sha256::new();
-    let mut buffer = vec![0u8; 1 << 16];
+    let mut buffer = vec![0u8; 1 << 18];
     loop {
         let n = file.read(&mut buffer)?;
         if n == 0 {
@@ -409,6 +409,10 @@ pub fn deployment_identity(config: &Config, host_sha256: &str) -> Result<String,
 pub fn admit_engine_checkout(settings: &EngineConfig) -> Result<Value, ConfigError> {
     use std::collections::BTreeSet;
     use std::os::unix::fs::PermissionsExt;
+    use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
+    use std::sync::Mutex;
+    use std::time::Instant;
+    let total_started = Instant::now();
     absolute("engine.checkout", &settings.checkout)?;
     let Some(artifact) = &settings.materialization else {
         let head = git_head(&settings.checkout)?;
@@ -451,6 +455,8 @@ pub fn admit_engine_checkout(settings: &EngineConfig) -> Result<Value, ConfigErr
         .filter_map(|s| s["path"].as_str())
         .collect();
     let mut seen = BTreeSet::new();
+    let mut source_work = Vec::new();
+    let mut store_work = Vec::new();
     let mut dirs = vec![settings.checkout.clone()];
     let mut entries = 0usize;
     while let Some(dir) = dirs.pop() {
@@ -480,7 +486,8 @@ pub fn admit_engine_checkout(settings: &EngineConfig) -> Result<Value, ConfigErr
             let record = files
                 .get(&relative)
                 .ok_or_else(|| err(format!("materialization unlisted file: {relative}")))?;
-            if !kind.is_file() && !(kind.is_symlink() && stores.contains(relative.as_str())) {
+            let is_store = stores.contains(relative.as_str());
+            if !kind.is_file() && !(kind.is_symlink() && is_store) {
                 return Err(err(format!(
                     "materialization unsupported file type: {relative}"
                 )));
@@ -494,11 +501,16 @@ pub fn admit_engine_checkout(settings: &EngineConfig) -> Result<Value, ConfigErr
                 || record["size"].as_u64() != Some(metadata.len())
                 || record["executable"].as_bool()
                     != Some(metadata.permissions().mode() & 0o111 != 0)
-                || sha256_file(&path).map_err(|e| err(e.to_string()))? != hash
             {
                 return Err(err(format!("materialization file mismatch: {relative}")));
             }
-            seen.insert(relative);
+            seen.insert(relative.clone());
+            let item = (metadata.len(), relative, path, hash.to_owned());
+            if is_store {
+                store_work.push(item);
+            } else {
+                source_work.push(item);
+            }
         }
     }
     if seen.len() != files.len() || !files.keys().all(|name| seen.contains(name)) {
@@ -517,16 +529,70 @@ pub fn admit_engine_checkout(settings: &EngineConfig) -> Result<Value, ConfigErr
             return Err(err("invalid materialized specialist path"));
         }
     }
-    Ok(
-        json!({"mode": "materialized", "revision": settings.revision,
-        "receipt_sha256": artifact.sha256, "contents_verified": true, "files": files.len()}),
-    )
+    // Hash largest files first across a bounded 4-thread pool so multi-gigabyte
+    // external SQLite stores do not serialize behind small Python sources.
+    source_work.sort_by(|a, b| b.0.cmp(&a.0).then_with(|| a.1.cmp(&b.1)));
+    store_work.sort_by(|a, b| b.0.cmp(&a.0).then_with(|| a.1.cmp(&b.1)));
+    fn verify_batch(work: &[(u64, String, PathBuf, String)]) -> Result<u64, ConfigError> {
+        let started = Instant::now();
+        if work.is_empty() {
+            return Ok(0);
+        }
+        let next = AtomicUsize::new(0);
+        let failed = AtomicBool::new(false);
+        let failure: Mutex<Option<ConfigError>> = Mutex::new(None);
+        let threads = work.len().clamp(1, 4);
+        std::thread::scope(|scope| {
+            for _ in 0..threads {
+                scope.spawn(|| {
+                    while !failed.load(Ordering::Relaxed) {
+                        let idx = next.fetch_add(1, Ordering::Relaxed);
+                        let Some((_, relative, path, expected)) = work.get(idx) else {
+                            break;
+                        };
+                        let result = match sha256_file(path) {
+                            Ok(actual) if actual == *expected => Ok(()),
+                            Ok(_) => Err(err(format!("materialization file mismatch: {relative}"))),
+                            Err(e) => Err(err(e.to_string())),
+                        };
+                        if let Err(error) = result {
+                            failed.store(true, Ordering::Relaxed);
+                            let mut slot = failure.lock().unwrap_or_else(|e| e.into_inner());
+                            if slot.is_none() {
+                                *slot = Some(error);
+                            }
+                            break;
+                        }
+                    }
+                });
+            }
+        });
+        if let Some(error) = failure.into_inner().unwrap_or_else(|e| e.into_inner()) {
+            return Err(error);
+        }
+        Ok(started.elapsed().as_millis() as u64)
+    }
+    let source_admission_ms = verify_batch(&source_work)?;
+    let store_admission_ms = verify_batch(&store_work)?;
+    Ok(json!({
+        "mode": "materialized",
+        "revision": settings.revision,
+        "receipt_sha256": artifact.sha256,
+        "contents_verified": true,
+        "files": files.len(),
+        "source_files": source_work.len(),
+        "stores": store_work.len(),
+        "source_admission_ms": source_admission_ms,
+        "store_admission_ms": store_admission_ms,
+        "admission_ms": total_started.elapsed().as_millis() as u64
+    }))
 }
 
 /// After admit_engine_checkout, admit exact public artifact bytes before workers.
 /// The Python worker independently checks Python/options and source identity before decoding pickle.
 /// Admission is not a write lock: operator-protected immutable custody is required.
 pub fn admit_engine_prepared(settings: &EngineConfig) -> Result<Option<Value>, ConfigError> {
+    let started = std::time::Instant::now();
     let Some(prepared) = &settings.prepared else {
         return Ok(None);
     };
@@ -712,10 +778,13 @@ pub fn admit_engine_prepared(settings: &EngineConfig) -> Result<Option<Value>, C
     if names != expected {
         return Err(err("unexpected prepared artifact entry"));
     }
-    Ok(Some(
-        json!({"mode":"prepared_u8_w574", "manifest_sha256":artifact.sha256,
-        "materialization_sha256":source.sha256,"custody":"operator_protected_immutable"}),
-    ))
+    Ok(Some(json!({
+        "mode": "prepared_u8_w574",
+        "manifest_sha256": artifact.sha256,
+        "materialization_sha256": source.sha256,
+        "custody": "operator_protected_immutable",
+        "admission_ms": started.elapsed().as_millis() as u64
+    })))
 }
 
 pub fn read(path: &Path) -> Result<Config, ConfigError> {

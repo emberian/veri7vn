@@ -44,6 +44,7 @@ pub struct EngineCore {
     stopping: AtomicBool,
     spawn_gate: Mutex<()>,
     preparing: Vec<AtomicBool>,
+    initial_preparation_ms: AtomicU64,
     pub admission: Value,
     wake: Arc<Wake>,
     cancellation: Cancellation,
@@ -77,6 +78,7 @@ struct Slot {
     worker: Option<Worker>,
     starts: u64,
     deaths: u64,
+    last_prepare_ms: u64,
 }
 
 struct Worker {
@@ -85,10 +87,26 @@ struct Worker {
     pid: i32,
     stdin: ChildStdin,
     lines: Receiver<String>,
+    alive: Arc<AtomicBool>,
     is_ready: bool,
     runtime_readiness: Value,
     pid_file: PathBuf,
     readers: Vec<JoinHandle<()>>,
+}
+
+impl Worker {
+    fn is_alive(&mut self) -> bool {
+        if !self.alive.load(Ordering::Acquire) {
+            return false;
+        }
+        match self.child.try_wait() {
+            Ok(None) => true,
+            Ok(Some(_)) | Err(_) => {
+                self.alive.store(false, Ordering::Release);
+                false
+            }
+        }
+    }
 }
 
 /// A reply with the (worker, generation) that produced it, or why there is none
@@ -188,6 +206,7 @@ impl EnginePool {
                             worker: None,
                             starts: 0,
                             deaths: 0,
+                            last_prepare_ms: 0,
                         })
                     })
                     .collect(),
@@ -200,6 +219,7 @@ impl EnginePool {
                 preparing: (0..settings.workers)
                     .map(|_| AtomicBool::new(settings.prepared.is_some()))
                     .collect(),
+                initial_preparation_ms: AtomicU64::new(0),
                 admission,
             }),
             supervisors: Mutex::new(Vec::new()),
@@ -227,6 +247,7 @@ impl EnginePool {
         if self.config.prepared.is_none() {
             return Ok(());
         }
+        let started = Instant::now();
         loop {
             let epoch = *self.wake.epoch.lock().unwrap_or_else(|e| e.into_inner());
             if self.stopping.load(Ordering::Acquire) {
@@ -235,7 +256,8 @@ impl EnginePool {
             let mut pending = false;
             for slot in &self.slots {
                 match slot.try_lock() {
-                    Ok(slot) => {
+                    Ok(mut slot) => {
+                        Self::check_liveness(&mut slot);
                         if slot.exhausted {
                             return Err("engine preparation attempts exhausted".into());
                         }
@@ -245,6 +267,12 @@ impl EnginePool {
                 }
             }
             if !pending {
+                let _ = self.initial_preparation_ms.compare_exchange(
+                    0,
+                    started.elapsed().as_millis() as u64,
+                    Ordering::Release,
+                    Ordering::Relaxed,
+                );
                 return Ok(());
             }
             let guard = self.wake.epoch.lock().unwrap_or_else(|e| e.into_inner());
@@ -268,6 +296,7 @@ impl EngineCore {
                 break;
             }
             let mut slot = self.slots[index].lock().unwrap_or_else(|e| e.into_inner());
+            EnginePool::check_liveness(&mut slot);
             if slot.worker.is_none() && slot.replenish {
                 self.preparing[index].store(true, Ordering::Release);
                 slot.replenish = false;
@@ -284,6 +313,7 @@ impl EngineCore {
                     ) else {
                         break;
                     };
+                    let attempt_started = Instant::now();
                     let result = self
                         .spawn(&mut slot)
                         .map_err(|_| EngineError::Lost("engine_start_failed"))
@@ -296,6 +326,7 @@ impl EngineCore {
                             )
                         });
                     if result.is_ok() {
+                        slot.last_prepare_ms = attempt_started.elapsed().as_millis() as u64;
                         break;
                     }
                     EnginePool::retire(&mut slot);
@@ -371,6 +402,14 @@ impl EngineCore {
             .env("PYTHONDONTWRITEBYTECODE", "1")
             .env("PYTHONHASHSEED", "0")
             .env("PYTHONIOENCODING", "utf-8")
+            .env("OMP_NUM_THREADS", "1")
+            .env("OPENBLAS_NUM_THREADS", "1")
+            .env("MKL_NUM_THREADS", "1")
+            .env("VECLIB_MAXIMUM_THREADS", "1")
+            .env("NUMEXPR_NUM_THREADS", "1")
+            .env("BLIS_NUM_THREADS", "1")
+            .env("RAYON_NUM_THREADS", "1")
+            .env("TOKENIZERS_PARALLELISM", "false")
             .current_dir(&self.config.state)
             .process_group(0)
             .stdin(Stdio::piped())
@@ -421,6 +460,9 @@ impl EngineCore {
         let stderr = child.stderr.take().expect("piped");
         let (line_tx, lines) = mpsc::sync_channel(2);
         let frame_limit = self.config.reply_bytes;
+        let alive = Arc::new(AtomicBool::new(true));
+        let alive_for_stdout = alive.clone();
+        let wake_for_stdout = slot.wake.clone();
         let output_reader = std::thread::Builder::new()
             .name("engine-stdout".into())
             .spawn(move || {
@@ -446,6 +488,8 @@ impl EngineCore {
                         }
                     }
                 }
+                alive_for_stdout.store(false, Ordering::Release);
+                wake_for_stdout.notify();
             });
         let output_reader = match output_reader {
             Ok(reader) => reader,
@@ -498,6 +542,7 @@ impl EngineCore {
             pid,
             stdin,
             lines,
+            alive,
             is_ready: false,
             runtime_readiness: Value::Null,
             pid_file,
@@ -508,6 +553,15 @@ impl EngineCore {
 }
 
 impl EnginePool {
+    fn check_liveness(slot: &mut Slot) -> bool {
+        if slot.worker.as_mut().is_some_and(|w| !w.is_alive()) {
+            Self::retire(slot);
+            false
+        } else {
+            slot.worker.is_some()
+        }
+    }
+
     fn retire(slot: &mut Slot) {
         if let Some(mut worker) = slot.worker.take() {
             // Only the process group this host created, by the PID it recorded.
@@ -541,11 +595,12 @@ impl EnginePool {
             .slots
             .get(index)
             .ok_or(EngineError::Lost("conversation_reset_required"))?;
-        let slot = match mutex.try_lock() {
+        let mut slot = match mutex.try_lock() {
             Ok(slot) => slot,
             Err(TryLockError::Poisoned(p)) => p.into_inner(),
             Err(TryLockError::WouldBlock) => return Err(EngineError::Busy),
         };
+        Self::check_liveness(&mut slot);
         if slot.tenant.as_deref() != Some(tenant)
             || slot.generation != generation
             || slot.worker.is_none()
@@ -674,11 +729,12 @@ impl EnginePool {
         // owner. Never reuse a live Engine for a different tenant.
         for pass in 0..3 {
             for &index in &candidates {
-                let guard = match self.slots[index].try_lock() {
+                let mut guard = match self.slots[index].try_lock() {
                     Ok(g) => g,
                     Err(TryLockError::Poisoned(p)) => p.into_inner(),
                     Err(TryLockError::WouldBlock) => continue,
                 };
+                Self::check_liveness(&mut guard);
                 unavailable |= prepared && guard.worker.is_none();
                 if prefer.is_some()
                     || (pass == 0
@@ -831,9 +887,11 @@ impl EnginePool {
         let mut readiness = Vec::new();
         let mut unassigned = 0;
         let mut exhausted = 0;
+        let mut last_prepare_ms = Vec::new();
         for slot in &self.slots {
             match slot.try_lock() {
                 Ok(mut slot) => {
+                    Self::check_liveness(&mut slot);
                     exhausted += usize::from(slot.exhausted);
                     unassigned += usize::from(
                         slot.tenant.is_none() && slot.worker.as_ref().is_some_and(|w| w.is_ready),
@@ -846,11 +904,12 @@ impl EnginePool {
                     }
                     starts += slot.starts;
                     deaths += slot.deaths;
+                    last_prepare_ms.push(slot.last_prepare_ms);
                 }
                 Err(_) => busy += 1,
             }
         }
-        json!({"workers": self.slots.len(), "unassigned_ready": unassigned, "exhausted": exhausted, "preparing": self.preparing.iter().filter(|p| p.load(Ordering::Acquire)).count(), "replacement_policy": "bounded_attempts_then_unavailable_until_host_restart", "busy": busy, "ready_idle": ready, "ready_idle_scope": "constructor_handshake_not_liveness_probe", "runtime_readiness": readiness, "starts": starts, "retired": deaths, "lazy_start": self.config.prepared.is_none(), "tenant_isolation": "whole_process_generation", "state_export": false, "conversation_survives_eviction": false, "supported_conversation_protocol": "oracle-conversation-v1", "supported_conversation_scope": "explicit_source_pinned_adapter_routes_only", "legacy_engine_state_export": false})
+        json!({"workers": self.slots.len(), "unassigned_ready": unassigned, "exhausted": exhausted, "preparing": self.preparing.iter().filter(|p| p.load(Ordering::Acquire)).count(), "initial_preparation_ms": self.initial_preparation_ms.load(Ordering::Acquire), "slot_last_prepare_ms": last_prepare_ms, "replacement_policy": "bounded_attempts_then_unavailable_until_host_restart", "busy": busy, "ready_idle": ready, "ready_idle_scope": "constructor_handshake_not_liveness_probe", "liveness_probe": "stdout_eof_and_try_wait", "runtime_readiness": readiness, "starts": starts, "retired": deaths, "lazy_start": self.config.prepared.is_none(), "tenant_isolation": "whole_process_generation", "state_export": false, "conversation_survives_eviction": false, "supported_conversation_protocol": "oracle-conversation-v1", "supported_conversation_scope": "explicit_source_pinned_adapter_routes_only", "legacy_engine_state_export": false})
     }
 
     pub fn close(&self) {
@@ -1220,5 +1279,32 @@ for line in sys.stdin:
         assert!(!dir.path().join("state/worker-0.pid").exists());
         assert!(pool.supervisors.lock().unwrap().is_empty());
         assert_eq!(pool.start_all(), Err("engine stopping".into()));
+    }
+
+    #[test]
+    fn idle_worker_death_is_reaped_and_replaced_by_supervisor() {
+        let (dir, pool) = fixture("ready");
+        pool.start_all().unwrap();
+        assert_eq!(pool.health()["starts"], 1);
+        assert_eq!(pool.health()["unassigned_ready"], 1);
+        let pid_text = std::fs::read_to_string(dir.path().join("state/worker-0.pid")).unwrap();
+        let pid: i32 = pid_text.trim().parse().unwrap();
+        nix::sys::signal::killpg(
+            nix::unistd::Pid::from_raw(pid),
+            nix::sys::signal::Signal::SIGKILL,
+        )
+        .unwrap();
+        let until = Instant::now() + Duration::from_secs(2);
+        while pool.health()["retired"].as_u64().unwrap_or(0) < 1 && Instant::now() < until {
+            std::thread::sleep(Duration::from_millis(5));
+        }
+        pool.start_all().unwrap();
+        assert_eq!(pool.health()["retired"], 1);
+        assert_eq!(pool.health()["starts"], 2);
+        assert_eq!(pool.health()["unassigned_ready"], 1);
+        let (reply, _, generation) = pool.ask("t", "recall", "s", None).unwrap();
+        assert_eq!(reply["response"], "[]");
+        assert_eq!(generation, 2);
+        pool.close();
     }
 }

@@ -1435,13 +1435,15 @@ impl Service {
         ) {
             let mut body = answer?;
             if self.native_conversation_profile && body["reply"]["status"] == "answered" {
+                let command = match crate::modeling::retained_model(&body["reply"]) {
+                    Some(model) => {
+                        core::native_conversation::NativeContextCommand::InstallModel { model }
+                    }
+                    None => core::native_conversation::NativeContextCommand::ResetTopic,
+                };
                 native
                     .runtime
-                    .conversation_native_command(
-                        candidate,
-                        core::native_conversation::NativeContextCommand::ResetTopic,
-                        budget,
-                    )
+                    .conversation_native_command(candidate, command, budget)
                     .map_err(crate::native::conversation_failure)?;
                 native
                     .runtime
@@ -1728,6 +1730,7 @@ impl Service {
                             number: count.to_string(),
                             unit: "1".into(),
                             origin: core::session::NumericOrigin::ExactDecimal,
+                            role: core::native_conversation::QuantityRole::Scalar,
                         };
                         let anchor = ProviderQuantityAnchor::from_host_delivery(identity, quantity)
                             .map_err(crate::native::conversation_failure)?;
@@ -1767,6 +1770,7 @@ impl Service {
                         number: number.clone(),
                         unit: unit.clone(),
                         origin: core::session::NumericOrigin::DisplayedDecimal,
+                        role: core::native_conversation::QuantityRole::Scalar,
                     };
                     let anchor = ProviderQuantityAnchor::from_host_delivery(identity, quantity)
                         .map_err(crate::native::conversation_failure)?;
@@ -1895,13 +1899,86 @@ impl Service {
                 }
             }
         }
+        for prefix in ["evaluate that model at ", "predict with that model at "] {
+            if let Some(value) = normalized.strip_prefix(prefix) {
+                if NUMBER
+                    .get_or_init(|| {
+                        regex::Regex::new(&format!("^{NUMBER_PATTERN}$"))
+                            .expect("constant native number grammar")
+                    })
+                    .is_match(value)
+                {
+                    return self.native_command_reply(
+                        candidate,
+                        Command::EvaluateModel {
+                            value: value.into(),
+                        },
+                        budget,
+                    );
+                }
+            }
+        }
+        let trimmed = text.trim().trim_end_matches(['.', '?', '!']);
+        if trimmed
+            .to_ascii_lowercase()
+            .starts_with("convert that temperature to ")
+        {
+            let target_unit = trimmed["convert that temperature to ".len()..].trim();
+            if matches!(target_unit, "K" | "degC" | "C" | "degF" | "F") {
+                return self.native_command_reply(
+                    candidate,
+                    Command::ConvertTemperature {
+                        target_unit: target_unit.into(),
+                    },
+                    budget,
+                );
+            }
+        }
+        static SHIFT_TEMP: std::sync::OnceLock<regex::Regex> = std::sync::OnceLock::new();
+        static DIFF_TEMP: std::sync::OnceLock<regex::Regex> = std::sync::OnceLock::new();
+        if let Some(capture) = SHIFT_TEMP
+            .get_or_init(|| {
+                regex::Regex::new(&format!(
+                    r"^(?i:shift that temperature by) {NUMBER_PATTERN} (K|degC|C|degF|F)$"
+                ))
+                .expect("constant shift temp grammar")
+            })
+            .captures(trimmed)
+        {
+            return self.native_command_reply(
+                candidate,
+                Command::ShiftTemperature {
+                    delta: capture[1].into(),
+                    delta_unit: capture[2].into(),
+                },
+                budget,
+            );
+        }
+        if let Some(capture) = DIFF_TEMP
+            .get_or_init(|| {
+                regex::Regex::new(&format!(
+                    r"^(?i:temperature difference from) {NUMBER_PATTERN} (K|degC|C|degF|F)$"
+                ))
+                .expect("constant diff temp grammar")
+            })
+            .captures(trimmed)
+        {
+            return self.native_command_reply(
+                candidate,
+                Command::TemperatureDifferenceFrom {
+                    baseline: capture[1].into(),
+                    baseline_unit: capture[2].into(),
+                },
+                budget,
+            );
+        }
         let cost = COST.get_or_init(|| {
             regex::Regex::new(&format!(
                 r"^(?i:what does that cost at) \$?{NUMBER_PATTERN} (?i:per) (J|kWh)$"
             ))
             .expect("constant native cost grammar")
         });
-        if let Some(capture) = cost.captures(text.trim().trim_end_matches(['.', '?', '!'])) {
+        if let Some(capture) = cost.captures(trimmed) {
             let unit = &capture[2];
             return self.native_command_reply(
                 candidate,
@@ -1917,8 +1994,17 @@ impl Service {
                 predicate: "place of birth".into(),
             })
         } else {
-            let trimmed = text.trim().trim_end_matches(['.', '?', '!']);
-            if trimmed.to_ascii_lowercase().starts_with("find entity ") {
+            let lower = trimmed.to_ascii_lowercase();
+            if lower.starts_with("select entity id ") || lower.starts_with("find entity id ") {
+                let prefix_len = if lower.starts_with("select entity id ") {
+                    "select entity id ".len()
+                } else {
+                    "find entity id ".len()
+                };
+                let id = trimmed[prefix_len..].trim();
+                (!id.is_empty() && id.len() <= 256)
+                    .then(|| core::NativeEntityQuery::ById { id: id.into() })
+            } else if lower.starts_with("find entity ") {
                 let name = trimmed["find entity ".len()..].trim();
                 (!name.is_empty() && name.len() <= 512)
                     .then(|| core::NativeEntityQuery::Find { name: name.into() })

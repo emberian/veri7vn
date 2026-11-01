@@ -31,11 +31,16 @@ adds atomic delivered-state/HTTP-reply commits and a bounded Engine restoration
 adapter. The [coherent receipt](evidence/2026-10-31-coherent-native-validation.json)
 records real U8 handoff, restart, exact replay and semantic refusal continuation.
 The separate [native conversation profile](docs/HOST.md#native-conversations-without-python)
-uses typed entity/quantity anchors without constructing an Engine. Actual
-extracted numerical answers carry units into follow-ups; query replies expose
-the committed cursor for direct invocation. Refusals preserve the prior anchor,
-while newly answered but unrepresentable results clear it. Temperature points
-and differences are not yet eligible anchors.
+uses typed entity/quantity anchors and retained fitted models without constructing
+an Engine. Entities can be selected by canonical name or direct source ID (`id`).
+Quantities distinguish ordinary scalars from temperature points and temperature
+differences, supporting exact rational conversion (`ConvertTemperature`), interval
+shifts (`ShiftTemperature`) and point differences (`TemperatureDifferenceFrom`).
+Actual extracted numerical answers carry units into follow-ups; query replies
+expose the committed cursor for direct invocation. Answered calibration models
+clear the scalar/entity anchor while retaining a typed fitted-model handle for
+follow-up evaluation (`Evaluate that model at <y>`). Refusals preserve prior
+context.
 The Value-based library entry remains a compatibility adapter. Independent
 certificate, source and numerical checks still run.
 
@@ -226,12 +231,14 @@ receipt. An uncertain non-idempotent action is never automatically retried.
 The outbox is not a teaching, filesystem or network executor.
 
 `KernelExecutor` admits operator-supplied executable hashes once and supplies
-cheap tenant handles to a fixed resident process pool. The current audited
-protocols include acoustics, quantity and connected-MST checking. The MST path
-can admit compiler/proof receipts as described in the checker contract.
-Cancellation owns the child process
-group and joins its I/O threads before releasing capacity. This transport does
-not replace the extracted SML implementations, dispatcher acceptance or proofs.
+cheap tenant handles to a fixed resident process pool across all 20 stateless SML
+specialist families in `src/extract/families.json` plus connected-MST checking.
+Slot selection reuses a matching resident worker first, then claims an empty
+slot, and only evicts round-robin when all slots are occupied, avoiding sequential
+multi-organ thrashing. The MST path can admit compiler/proof receipts as described
+in the checker contract. Cancellation owns the child process group and joins its
+I/O threads before releasing capacity. This transport does not replace the
+extracted SML implementations, dispatcher acceptance or proofs.
 
 ## Build and evidence
 

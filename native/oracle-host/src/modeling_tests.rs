@@ -234,6 +234,18 @@ fn modeling_native_cursor_atomic_replay_restart_and_refusal_preservation() {
         inspect["reply"]["provenance"]["native_context"]["anchor"]["kind"],
         "empty"
     );
+    let evaluated = query(&restarted, "eval-after-restart", "Evaluate that model at 10");
+    assert_eq!(evaluated["reply"]["status"], "answered");
+    let eval_val = &evaluated["reply"]["provenance"]["native_context"]["anchor"]["value"];
+    assert_eq!(eval_val["unit"], "N");
+    assert_eq!(eval_val["origin"], "python_float");
+    let (num, den) = eval_val["number"]
+        .as_str()
+        .unwrap()
+        .split_once('/')
+        .unwrap();
+    let ratio = num.parse::<f64>().unwrap() / den.parse::<f64>().unwrap();
+    assert!((ratio - 21.0).abs() < 1e-12, "unexpected ratio {ratio}");
     restarted.close();
 }
 

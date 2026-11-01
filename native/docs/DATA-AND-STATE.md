@@ -176,11 +176,12 @@ retained sessions with missing coverage require a fresh conversation.
 An explicit [supplied-model query](HOST.md#explicit-supplied-modeling) returns its
 checked structured result once, with the supplied declarations and provider
 metadata. It is not treated as a scalar merely because it contains numbers.
-In `native-v1`, an answered fit clears the prior entity/quantity anchor; a semantic
-refusal preserves that anchor. Operational failures do not advance the native
-conversation, and completed replies use the same atomic cursor/retry journal.
-Fitted-model follow-ups need a future typed model owner; arbitrary result JSON
-is not mined into hidden context.
+In `native-v1`, an answered fit clears the prior entity/quantity anchor; for
+`statistics.calibration`, it also installs a typed `RetainedFittedModel` handle
+supporting follow-up evaluation (`Evaluate that model at <y>` or `EvaluateModel`
+in `context.native`). A semantic refusal preserves the prior anchor and model.
+Operational failures do not advance the native conversation, and completed
+replies use the same atomic cursor/retry journal.
 
 ## Revise evidence, then solve its snapshot
 
