@@ -37,7 +37,28 @@ public artifacts to the real Rust host and owns explicitly supplied modeling
 requests before generic routes. The original modeling exam remains negative;
 fresh composition and restart results have their own receipt.
 
+The [reviewed Gemini expansion](GEMINI-REVIEW-2026-11-01.md) is committed and
+pushed through `376d5b5`, with runtime repairs through `292e9e2`. It adds and
+repairs model follow-ups, numerical cache ownership, evidence retention,
+worker liveness/source verification and reader/kernel admission. Its receipt
+qualifies the exact source and retains failed attempts and profile limits.
+
 ## What upstream has received
+
+- [Reviewed native expansion](https://huggingface.co/psiloceyeben/oracle7-slim/discussions/5#6ae6f44f082bae174fd3e79e):
+  published `376d5b5`, 187 focused Rust / 39 Python tests, reader 39/100 with zero
+  wrong and all original 36 answers unchanged, native 16 exact restart replays
+  and five pure provider calls. Actual prepared idle-worker replacement and
+  old-reply replay passed; new Linux archives passed relocation verification.
+  The update separates four review areas and records the remaining Reader90
+  positive miss, baseline/prepared profile split, large Python heap and costly
+  startup. Read back exactly; body SHA256
+  `2cc2d5bce538c90d9afcbda8d1c74c6df3e2a170a1154e9b54513f910124622d`.
+  A focused #5/#10/#11 check found no new maintainer response on #5 or #10.
+  On #11, the maintainer is reviewing the binomial correction for 10.3.2 and
+  acknowledged the earlier direct-invoke reachability error. That is review
+  intent, not adoption or merge; this was not an all-contributions census.
+
 
 - [Prepared host and explicit modeling ownership](https://huggingface.co/psiloceyeben/oracle7-slim/discussions/5#6ae6afb1b14622bbcc7b3bcc):
   published `91ecba3`, 39 unique Rust / 20 Python checks, prepared composition

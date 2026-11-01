@@ -162,3 +162,9 @@ and lifecycle changes; typed model/state delivery; reusable numerical execution
 and evidence retention; reader/kernel coverage. Qualification must match each
 part's actual source and consumer. Do not report old receipts as new results or
 combine authored workflow checks into a shipped-specialist fleet score.
+
+The [reviewed expansion update](https://huggingface.co/psiloceyeben/oracle7-slim/discussions/5#6ae6f44f082bae174fd3e79e) now links the immutable `376d5b5`
+checkpoint, receipt and four corrective review areas. Its posted body was read
+back exactly. The [publication ledger](NATIVE-UPSTREAM-CHECKPOINT-2026-10-31.md)
+records the body digest and upstream response status. Publication does not mean
+acceptance or merge.
