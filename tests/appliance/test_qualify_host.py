@@ -108,3 +108,68 @@ class Qualification(unittest.TestCase):
             with patch.object(Q, 'urlopen', side_effect=[Response(caps), Response(health)]):
                 with self.assertRaisesRegex(ValueError, 'identity changed'):
                     Q.native_journey(root, 'http://127.0.0.1:54321', cases, 'a' * 64, 'after', checkpoint)
+
+    def test_dependent_invoke_uses_returned_query_version_without_mutating_plan(self):
+        step = {'endpoint': '/invoke', 'use_previous_query_version': True,
+                'body': {'request_id': 'next', 'conversation_id': 'same',
+                         'operation_id': 'context.native', 'arguments': {'command': {'op': 'clear'}}}}
+        original = Q.encoded(step)
+        resolved = Q.resolved_journey_body(step, {'outcome': 'completed', 'conversation_version': 37})
+        self.assertEqual(resolved['arguments']['expected_version'], 37)
+        self.assertEqual(Q.encoded(step), original)
+        for previous in (None, {}, {'outcome': 'error', 'conversation_version': 37},
+                         {'outcome': 'completed', 'conversation_version': True},
+                         {'outcome': 'completed', 'conversation_version': -1},
+                         {'outcome': 'completed', 'conversation_version': 2**63 - 1},
+                         {'outcome': 'completed', 'conversation_version': 2**64}):
+            with self.subTest(previous=previous), self.assertRaises(ValueError):
+                Q.resolved_journey_body(step, previous)
+        step['body']['arguments']['expected_version'] = 37
+        with self.assertRaises(ValueError):
+            Q.resolved_journey_body(step, {'outcome': 'completed', 'conversation_version': 37})
+
+    def test_query_to_invoke_checkpoints_resolved_request_bytes(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            config = Q.encoded({'conversation_profile': 'native-v1', 'native': {
+                'image_sha256': 'b' * 64, 'release': {'identity': 'c' * 64}}})
+            (root / 'host.template.json').write_bytes(config)
+            (root / 'MANIFEST.json').write_bytes(Q.encoded({'host_sha256': 'a' * 64,
+                'files': {'host.template.json': {'sha256': Q.digest(config)}}}))
+            cases = {'before': [
+                {'endpoint': '/query', 'body': {'request_id': 'q', 'conversation_id': 'same', 'text': 'source turn'},
+                 'expected': {'/reply/value': 6}},
+                {'endpoint': '/invoke', 'use_previous_query_version': True,
+                 'body': {'request_id': 'i', 'conversation_id': 'same', 'operation_id': 'context.native',
+                          'arguments': {'command': {'op': 'clear'}}},
+                 'expected': {'/reply/result/anchor/kind': 'empty'}}],
+                'after': [{'endpoint': '/query', 'body': {'request_id': 'next', 'conversation_id': 'same', 'text': 'continue'},
+                           'expected': {'/reply/anchor/kind': 'empty'}}]}
+            original = Q.encoded(cases)
+            caps = {'host': {'binary_sha256': 'a' * 64}, 'conversation_profile': {'id': 'native-v1'},
+                    'durable_operations': ['context.native'], 'providers': [{'provider_id': 'native', 'admission': {
+                        'image_sha256': 'b' * 64, 'release_identity': 'c' * 64, 'release_admitted': True}}]}
+            descriptor = {'availability': 'live_direct'}
+            query = {'outcome': 'completed', 'conversation_version': 37, 'reply': {'value': 6}}
+            invoked = {'outcome': 'completed', 'reply': {'result': {'anchor': {'kind': 'empty'}}}}
+            continued = {'outcome': 'completed', 'reply': {'anchor': {'kind': 'empty'}}}
+            responses = [caps, {'engine': None}, descriptor, query, invoked, invoked,
+                         caps, {'engine': None}, descriptor, invoked, continued]
+            requests = []
+            class Response:
+                def __init__(self, value): self.raw = Q.encoded(value)
+                def __enter__(self): return self
+                def __exit__(self, *args): pass
+                def read(self, *args): return self.raw
+            def opened(request, **kwargs):
+                requests.append(request.data)
+                return Response(responses.pop(0))
+            checkpoint = root / 'checkpoint.json'
+            with patch.object(Q, 'urlopen', side_effect=opened):
+                Q.native_journey(root, 'http://127.0.0.1:12345', cases, 'a' * 64, 'before', checkpoint)
+                Q.native_journey(root, 'http://127.0.0.1:54321', cases, 'a' * 64, 'after', checkpoint)
+            self.assertEqual(json.loads(requests[4])['arguments']['expected_version'], 37)
+            self.assertEqual(requests[4], requests[5])
+            self.assertEqual(requests[4], requests[9])
+            self.assertEqual(Q.encoded(cases), original)
+            self.assertEqual(responses, [])

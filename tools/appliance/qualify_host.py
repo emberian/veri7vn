@@ -127,6 +127,23 @@ def qualify(bundle, url, cases, tenant):
 
 
 
+
+def resolved_journey_body(step, previous_query):
+    """Resolve the one supported dependency without mutating the case plan."""
+    body = json.loads(encoded(step['body']))
+    flag = step.get('use_previous_query_version', False)
+    if not isinstance(flag, bool):
+        raise ValueError('use_previous_query_version must be boolean')
+    if flag:
+        if step['endpoint'] != '/invoke' or 'expected_version' in body.get('arguments', {}):
+            raise ValueError('dependent invoke must omit its literal expected_version')
+        version = (previous_query or {}).get('conversation_version')
+        if previous_query is None or previous_query.get('outcome') != 'completed' or type(version) is not int or not 0 <= version <= 2**63 - 2:
+            raise ValueError('dependent invoke needs an immediately preceding completed query version')
+        body['arguments']['expected_version'] = version
+    return body
+
+
 def native_journey(bundle, url, cases, tenant, phase, checkpoint):
     """Two-phase actual native-only consumer journey; central owns host restart.
 
@@ -203,6 +220,7 @@ def native_journey(bundle, url, cases, tenant, phase, checkpoint):
     identity = {'manifest_sha256': digest(manifest_data), 'cases_sha256': digest(encoded(cases)), 'tenant': tenant}
     checkpoint = clean_path(checkpoint)
     records = []
+    previous_query = None
     if phase == 'after':
         saved = json.loads(read_regular(checkpoint))
         if saved['identity'] != identity:
@@ -212,8 +230,11 @@ def native_journey(bundle, url, cases, tenant, phase, checkpoint):
         if retried != retained:
             raise ValueError('post-restart exact retry differs from retained acknowledgement')
         records.append({'restart_exact_replay_sha256': digest(retried)})
+        if saved['endpoint'] == '/query':
+            previous_query = json.loads(retried)
     for step in before if phase == 'before' else after:
-        raw_request = encoded(step['body'])
+        resolved_body = resolved_journey_body(step, previous_query)
+        raw_request = encoded(resolved_body)
         raw_reply = exchange(step['endpoint'], raw=raw_request)
         reply = json.loads(raw_reply)
         if reply.get('outcome') != 'completed':
@@ -221,7 +242,8 @@ def native_journey(bundle, url, cases, tenant, phase, checkpoint):
         for path, expected in step['expected'].items():
             if pointer(reply, path) != expected:
                 raise ValueError('journey independent assertion failed: ' + path)
-        records.append({'step': step, 'response': reply, 'response_sha256': digest(raw_reply)})
+        records.append({'step': step, 'resolved_body': resolved_body, 'response': reply, 'response_sha256': digest(raw_reply)})
+        previous_query = reply if step['endpoint'] == '/query' else None
     if phase == 'before':
         if exchange(step['endpoint'], raw=raw_request) != raw_reply:
             raise ValueError('same-launch exact retry differs from acknowledgement')

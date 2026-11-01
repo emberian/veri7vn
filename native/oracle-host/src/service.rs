@@ -1264,7 +1264,14 @@ impl Service {
             )
         }))
         .unwrap_or_else(|_| Err(Failure::plain(502, "runtime_error")));
-        let final_reply = turn.and_then(|body| {
+        let final_reply = turn.and_then(|mut body| {
+            if self.native_conversation_profile {
+                let version = candidate
+                    .revision()
+                    .checked_add(1)
+                    .ok_or_else(|| Failure::plain(503, "conversation_version_unavailable"))?;
+                body["conversation_version"] = json!(version);
+            }
             let encoded = wire::EncodedReply::encode(
                 200,
                 &body,
@@ -1805,7 +1812,9 @@ impl Service {
         if let Some(command) = command {
             return self.native_command_reply(candidate, command, budget);
         }
-        let number = r"([+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?)";
+        const NUMBER_PATTERN: &str = r"([+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?)";
+        static NUMBER: std::sync::OnceLock<regex::Regex> = std::sync::OnceLock::new();
+        static COST: std::sync::OnceLock<regex::Regex> = std::sync::OnceLock::new();
         for (prefix, divide) in [
             ("that times ", false),
             ("multiply that by ", false),
@@ -1813,8 +1822,11 @@ impl Service {
             ("divide that by ", true),
         ] {
             if let Some(value) = normalized.strip_prefix(prefix) {
-                if regex::Regex::new(&format!("^{number}$"))
-                    .expect("constant native number grammar")
+                if NUMBER
+                    .get_or_init(|| {
+                        regex::Regex::new(&format!("^{NUMBER_PATTERN}$"))
+                            .expect("constant native number grammar")
+                    })
                     .is_match(value)
                 {
                     return self.native_command_reply(
@@ -1833,10 +1845,12 @@ impl Service {
                 }
             }
         }
-        let cost = regex::Regex::new(&format!(
-            r"^(?i:what does that cost at) \$?{number} (?i:per) (J|kWh)$"
-        ))
-        .expect("constant native cost grammar");
+        let cost = COST.get_or_init(|| {
+            regex::Regex::new(&format!(
+                r"^(?i:what does that cost at) \$?{NUMBER_PATTERN} (?i:per) (J|kWh)$"
+            ))
+            .expect("constant native cost grammar")
+        });
         if let Some(capture) = cost.captures(text.trim().trim_end_matches(['.', '?', '!'])) {
             let unit = &capture[2];
             return self.native_command_reply(

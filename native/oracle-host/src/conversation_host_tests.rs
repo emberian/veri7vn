@@ -885,3 +885,37 @@ fn native_answered_reader_value_without_admitted_anchor_clears_prior_quantity() 
     );
     service.close();
 }
+
+#[test]
+fn native_query_exposes_committed_version_for_invoke_and_exact_old_replay() {
+    let (_directory, _config, service) = native_fixture();
+    let tenant = "a".repeat(64);
+    let first = native_query(&service, &tenant, "source", "Find entity Alice.");
+    let body = wire::parse(first.body()).unwrap();
+    assert_eq!(body["reply"]["status"], "answered");
+    let version = body["conversation_version"]
+        .as_i64()
+        .expect("committed query version");
+    assert_eq!(version, 1);
+    let invoke = service.invoke_encoded(&tenant, &native_observe("supplied", version, "12", "J"));
+    assert_eq!(invoke.status(), 200, "{:?}", wire::parse(invoke.body()));
+    assert_eq!(wire::parse(invoke.body()).unwrap()["reply"]["version"], 2);
+    let later = native_query(&service, &tenant, "ack", "Thanks!");
+    assert_eq!(
+        wire::parse(later.body()).unwrap()["conversation_version"],
+        3
+    );
+    let replay = native_query(&service, &tenant, "source", "Find entity Alice.");
+    assert_eq!(replay.body(), first.body());
+    assert_eq!(
+        wire::parse(replay.body()).unwrap()["conversation_version"],
+        1
+    );
+    let current = native_query(&service, &tenant, "current", "What was that?");
+    assert_eq!(
+        wire::parse(current.body()).unwrap()["conversation_version"],
+        4
+    );
+    assert_eq!(native_quantity(&current)["number"], "12");
+    service.close();
+}
