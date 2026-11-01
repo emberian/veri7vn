@@ -205,7 +205,7 @@ fn modeling_native_cursor_atomic_replay_restart_and_refusal_preservation() {
     assert_eq!(body["conversation_version"], 4);
     assert_eq!(
         body["reply"]["native_context_transition"],
-        "cleared_unrepresentable_answer"
+        "delivered_fitted_model"
     );
     assert_eq!(
         service.query_encoded(&tenant, &request).body(),
@@ -234,11 +234,15 @@ fn modeling_native_cursor_atomic_replay_restart_and_refusal_preservation() {
         inspect["reply"]["provenance"]["native_context"]["anchor"]["kind"],
         "empty"
     );
-    let evaluated = query(&restarted, "eval-after-restart", "Evaluate that model at 10");
+    let evaluated = query(
+        &restarted,
+        "eval-after-restart",
+        "Evaluate that model at 10",
+    );
     assert_eq!(evaluated["reply"]["status"], "answered");
     let eval_val = &evaluated["reply"]["provenance"]["native_context"]["anchor"]["value"];
     assert_eq!(eval_val["unit"], "N");
-    assert_eq!(eval_val["origin"], "python_float");
+    assert_eq!(eval_val["origin"], "displayed_decimal");
     let (num, den) = eval_val["number"]
         .as_str()
         .unwrap()
@@ -485,7 +489,10 @@ fn modeling_thermal_scenarios_delivers_temperature_point_anchor_for_affine_follo
         .split_once('/')
         .unwrap_or((val_diff["number"].as_str().unwrap(), "1"));
     let diff_ratio = num.parse::<f64>().unwrap() / den.parse::<f64>().unwrap();
-    assert!((diff_ratio - 50.0).abs() < 1e-9, "unexpected diff {diff_ratio}");
+    assert!(
+        (diff_ratio - 50.0).abs() < 1e-9,
+        "unexpected diff {diff_ratio}"
+    );
     service.close();
 }
 
@@ -585,7 +592,12 @@ fn modeling_admits_thermal_network_transient_linear_and_bio_alignment() {
         "delivered_typed_anchor"
     );
     assert_eq!(
-        service.pure.as_ref().unwrap().transient_cache_stats().misses,
+        service
+            .pure
+            .as_ref()
+            .unwrap()
+            .transient_cache_stats()
+            .misses,
         1
     );
     let trans_res2 = query(&service, "trans-2", &text(&transient));
@@ -693,7 +705,10 @@ fn modeling_admits_reasoning_and_richer_model_followups() {
         .split_once('/')
         .unwrap_or((slope_val["number"].as_str().unwrap(), "1"));
     let slope_ratio = s_num.parse::<f64>().unwrap() / s_den.parse::<f64>().unwrap();
-    assert!((slope_ratio - 2.0).abs() < 1e-12, "unexpected slope {slope_ratio}");
+    assert!(
+        (slope_ratio - 2.0).abs() < 1e-12,
+        "unexpected slope {slope_ratio}"
+    );
 
     let inv_res = query(&service, "cal-inv", "Invert that model at 11");
     assert_eq!(inv_res["reply"]["status"], "answered", "{inv_res}");
@@ -705,7 +720,10 @@ fn modeling_admits_reasoning_and_richer_model_followups() {
         .split_once('/')
         .unwrap_or((inv_val["number"].as_str().unwrap(), "1"));
     let inv_ratio = i_num.parse::<f64>().unwrap() / i_den.parse::<f64>().unwrap();
-    assert!((inv_ratio - 5.0).abs() < 1e-12, "unexpected inverse {inv_ratio}");
+    assert!(
+        (inv_ratio - 5.0).abs() < 1e-12,
+        "unexpected inverse {inv_ratio}"
+    );
 
     // 2. Shortest path delivers exact scalar anchor
     let sp = json!({
@@ -762,6 +780,10 @@ fn modeling_admits_reasoning_and_richer_model_followups() {
     let lp_res = query(&service, "lp-1", &text(&lp));
     assert_eq!(lp_res["reply"]["status"], "answered", "{lp_res}");
     let lp_var2 = query(&service, "lp-var2", "What is variable 2 of that model?");
+    assert_eq!(
+        lp_var2["reply"]["provenance"]["native_context"]["anchor"]["value"]["origin"],
+        "exact_decimal"
+    );
     assert_eq!(lp_var2["reply"]["status"], "answered", "{lp_var2}");
     assert_eq!(
         lp_var2["reply"]["provenance"]["native_context"]["anchor"]["value"]["number"],
@@ -781,7 +803,229 @@ fn modeling_admits_reasoning_and_richer_model_followups() {
     });
     let rxn_res = query(&service, "rxn-1", &text(&rxn));
     assert_eq!(rxn_res["reply"]["status"], "answered", "{rxn_res}");
-    assert_eq!(rxn_res["reply"]["result"]["coefficients"], json!(["2", "1", "2"]));
+    assert_eq!(
+        rxn_res["reply"]["result"]["coefficients"],
+        json!(["2", "1", "2"])
+    );
 
     service.close();
+}
+
+#[test]
+fn modeling_retention_bounds_and_delivery_identity_bind_complete_supplied_request() {
+    let mut reply = json!({"status":"answered","runtime_identity":"build:science",
+        "supplied":{"operation":"science.solve_linear","arguments":{"matrix":[[1]],"rhs":[1],"model":{"variable_units":["m"]}}},
+        "result":{"candidate":[1.0],"outcome":"consistent_unique_within_tolerance"}});
+    assert!(crate::modeling::retained_model(&reply).is_some());
+    let identity = crate::modeling::delivery_identity(&reply).unwrap();
+    reply["supplied"]["arguments"]["rhs"] = json!([2]);
+    assert_ne!(
+        identity,
+        crate::modeling::delivery_identity(&reply).unwrap()
+    );
+    reply["supplied"]["arguments"]["rhs"] = json!([1]);
+    reply["runtime_identity"] = json!("other-build:science");
+    assert_ne!(
+        identity,
+        crate::modeling::delivery_identity(&reply).unwrap()
+    );
+    reply["supplied"]["arguments"]["model"]["variable_units"] = json!(["m".repeat(257)]);
+    assert!(crate::modeling::retained_model(&reply).is_none());
+    reply["supplied"]["arguments"]["model"]["variable_units"] = json!(vec!["m".repeat(128); 64]);
+    reply["result"]["candidate"] = json!(vec![1.0; 64]);
+    assert!(crate::modeling::retained_model(&reply).is_none());
+    reply["supplied"]["arguments"]["model"]["variable_units"] = json!(["m"]);
+    reply["result"]["candidate"] = json!([1e200]);
+    assert!(crate::modeling::retained_model(&reply).is_none());
+}
+
+#[cfg(feature = "statistics")]
+#[test]
+fn modeling_unretainable_answer_delivers_without_poisoning_context() {
+    let (_dir, _config, service) = fixture(Some("native-v1"), true);
+    let prior = query(&service, "prior-fit", &text(&calibration()));
+    assert_eq!(
+        prior["reply"]["native_context_transition"],
+        "delivered_fitted_model"
+    );
+    let mut request = calibration();
+    request["arguments"]["x_unit"] = json!("u".repeat(257));
+    let answer = query(&service, "wide-unit", &text(&request));
+    assert_eq!(answer["reply"]["status"], "answered", "{answer}");
+    assert_eq!(
+        answer["reply"]["native_context_transition"],
+        "cleared_unrepresentable_answer"
+    );
+    let follow = query(&service, "wide-follow", "Evaluate that model at 10");
+    assert_eq!(follow["reply"]["status"], "withheld");
+    assert_eq!(
+        follow["reply"]["provenance"]["native_context"]["reason"],
+        "prior_model_unavailable"
+    );
+    service.close();
+}
+
+#[cfg(feature = "statistics")]
+#[test]
+fn modeling_ambiguous_temperature_model_clears_old_fit_without_rejecting_computation() {
+    let (_dir, _config, service) = fixture(Some("native-v1"), true);
+    let prior = query(&service, "prior-fit", &text(&calibration()));
+    assert_eq!(
+        prior["reply"]["native_context_transition"],
+        "delivered_fitted_model"
+    );
+    let mut request = calibration();
+    request["arguments"]["response_unit"] = json!("degC");
+    let answer = query(&service, "temperature-fit", &text(&request));
+    assert_eq!(answer["reply"]["status"], "answered", "{answer}");
+    assert_eq!(
+        answer["reply"]["native_context_transition"],
+        "cleared_unrepresentable_answer"
+    );
+    assert_eq!(
+        answer["reply"]["native_context_retention_reason"],
+        "temperature_role_unspecified"
+    );
+    let follow = query(&service, "old-fit-follow", "Evaluate that model at 10");
+    assert_eq!(follow["reply"]["status"], "withheld");
+    assert_eq!(
+        follow["reply"]["provenance"]["native_context"]["reason"],
+        "prior_model_unavailable"
+    );
+    service.close();
+}
+
+#[test]
+fn modeling_underdetermined_candidate_is_not_promoted_to_unqualified_variables() {
+    for outcome in [
+        "consistent_underdetermined_within_tolerance",
+        "least_squares_underdetermined_within_rank_policy",
+    ] {
+        let reply = json!({"status":"answered",
+            "supplied":{"operation":"science.solve_linear","arguments":{"model":{"variable_units":["m","m"]}}},
+            "result":{"candidate":[1.0,1.0],"outcome":outcome}});
+        assert!(crate::modeling::retained_model(&reply).is_none());
+        assert_eq!(
+            crate::modeling::retention_reason(&reply),
+            "model_not_unique"
+        );
+    }
+}
+
+#[test]
+fn modeling_unbounded_certificate_point_is_not_an_optimum() {
+    let reply = json!({"status":"answered",
+        "supplied":{"operation":"reasoning.optimize_linear"},
+        "result":{"status":"unbounded","certificate":{"point":["0"],"direction":["1"]}}});
+    assert!(crate::modeling::retained_model(&reply).is_none());
+}
+
+#[cfg(feature = "reasoning")]
+#[test]
+fn modeling_nonunique_lp_witness_scope_survives_arithmetic_and_restart() {
+    let dir = tempfile::tempdir().unwrap();
+    let source = dir.path().join("source.json");
+    let image = dir.path().join("image.sqlite");
+    std::fs::write(
+        &source,
+        json!({"concepts":{},"entities":{"Q1":{"name":"Alice","instanceOf":[],"relations":[]}}})
+            .to_string(),
+    )
+    .unwrap();
+    let receipt = core::build_image(&source, &image, 1_000_000, 100_000).unwrap();
+    let config: Config = serde_json::from_value(json!({
+        "schema":"oracle-host-v1","journal":dir.path().join("host.sqlite"),
+        "conversation_profile":"native-v1",
+        "native":{"image":image,"image_sha256":receipt.image_sha256,"state":dir.path().join("core.sqlite"),"reader_route":true},
+        "pure":{"profiles":["reasoning"]}
+    })).unwrap();
+    let service = Service::open(&config).unwrap();
+    let ratio = |value: &Value| {
+        let text = value.as_str().unwrap();
+        let (n, d) = text.split_once('/').unwrap_or((text, "1"));
+        n.parse::<f64>().unwrap() / d.parse::<f64>().unwrap()
+    };
+    for (id, operation) in [
+        ("optimal", "reasoning.optimize_linear"),
+        ("feasible", "reasoning.exact_linear_feasibility"),
+    ] {
+        // Every x in [0,1] is feasible; the zero objective makes all optimal.
+        // The exact checker certifies a witness, not a unique model variable.
+        let mut args = json!({"variables":["x"],"rows":[
+            {"id":"lower","coefficients":["-1"],"bound":"0"},
+            {"id":"upper","coefficients":["1"],"bound":"1"}
+        ]});
+        if id == "optimal" {
+            args["objective"] = json!(["0"]);
+        }
+        let fit = query(
+            &service,
+            &format!("{id}-fit"),
+            &text(&json!({"operation":operation,"arguments":args})),
+        );
+        assert_eq!(fit["reply"]["status"], "answered", "{fit}");
+        assert_eq!(
+            fit["reply"]["native_context_transition"],
+            "delivered_fitted_model"
+        );
+        let supplied_witness = ratio(&fit["reply"]["result"]["certificate"]["point"][0]);
+        assert!((0.0..=1.0).contains(&supplied_witness));
+        let coordinate = query(
+            &service,
+            &format!("{id}-coordinate"),
+            "What is variable 1 of that model?",
+        );
+        let context = &coordinate["reply"]["provenance"]["native_context"];
+        assert_eq!(context["value_scope"], "certified_witness_coordinate");
+        assert_eq!(context["anchor"]["value"]["origin"], "exact_decimal");
+        assert_eq!(
+            ratio(&context["anchor"]["value"]["number"]),
+            supplied_witness
+        );
+        assert!(coordinate["reply"]["response"]
+            .as_str()
+            .unwrap()
+            .starts_with("In the retained certified witness, variable 1 is "));
+        assert!(coordinate["reply"]["response"]
+            .as_str()
+            .unwrap()
+            .contains("Other valid witnesses may differ."));
+        let scaled = query(&service, &format!("{id}-scaled"), "That times 2");
+        let scaled_context = &scaled["reply"]["provenance"]["native_context"];
+        assert_eq!(
+            scaled_context["value_scope"],
+            "certified_witness_arithmetic"
+        );
+        assert_eq!(
+            ratio(&scaled_context["anchor"]["value"]["number"]),
+            2.0 * supplied_witness
+        );
+        assert_eq!(
+            scaled_context["delivery"]["source"],
+            context["delivery"]["source"]
+        );
+        assert!(scaled["reply"]["response"]
+            .as_str()
+            .unwrap()
+            .starts_with("From the retained certified witness:"));
+    }
+    service.close();
+    drop(service);
+    let restarted = Service::open(&config).unwrap();
+    let inspected = query(&restarted, "witness-after-restart", "What was that?");
+    assert_eq!(
+        inspected["reply"]["provenance"]["native_context"]["value_scope"],
+        "certified_witness_arithmetic"
+    );
+    assert!(inspected["reply"]["response"]
+        .as_str()
+        .unwrap()
+        .starts_with("From the retained certified witness:"));
+    query(&restarted, "witness-reset", "New topic");
+    let refused = query(&restarted, "after-witness-reset", "That times 2");
+    assert_eq!(refused["reply"]["status"], "withheld");
+    assert!(refused["reply"]["provenance"]["native_context"]
+        .get("value_scope")
+        .is_none());
+    restarted.close();
 }

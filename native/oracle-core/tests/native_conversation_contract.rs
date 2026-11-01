@@ -693,6 +693,8 @@ fn direct_entity_id_selection_and_retained_fitted_model_evaluation() {
                     x_unit: "m".into(),
                     response_unit: "N".into(),
                     direction: "forward_mean".into(),
+                    source: AnchorSource::Supplied,
+                    origin: NumericOrigin::DisplayedDecimal,
                 },
             },
             &b,
@@ -717,4 +719,184 @@ fn direct_entity_id_selection_and_retained_fitted_model_evaluation() {
     assert_eq!(r.quantity().unwrap().unit, "N");
     assert!(r.fitted_model.is_some());
     commit(&rt, c, b"{}", &b);
+}
+
+fn fitted_calibration() -> RetainedFittedModel {
+    RetainedFittedModel::Calibration {
+        request: "pending".into(),
+        revision: 1,
+        intercept: "1".into(),
+        slope: "2".into(),
+        x_unit: "m".into(),
+        response_unit: "N".into(),
+        direction: "forward_mean".into(),
+        source: AnchorSource::Provider {
+            identity: provider(),
+        },
+        origin: NumericOrigin::DisplayedDecimal,
+    }
+}
+
+#[test]
+fn fitted_model_provenance_survives_restore_but_not_new_delivery() {
+    let f = Fixture::new();
+    let rt = f.runtime();
+    let b = f.budget();
+    let mut c = begin(&rt, "model-delivery", &b);
+    initialize(&rt, &mut c, &b);
+    rt.conversation_deliver_model(&mut c, fitted_calibration(), provider(), &b)
+        .unwrap();
+    commit(&rt, c, b"{}", &b);
+    drop(rt);
+    let rt = f.runtime();
+    let mut c = begin(&rt, "slope", &b);
+    let slope = rt
+        .conversation_native_command(&mut c, NativeContextCommand::ModelSlope, &b)
+        .unwrap();
+    assert_eq!(slope.quantity().unwrap().number, "2/1");
+    assert_eq!(
+        slope.quantity().unwrap().origin,
+        NumericOrigin::DisplayedDecimal
+    );
+    assert_eq!(
+        slope.delivery.as_ref().unwrap().source,
+        AnchorSource::Provider {
+            identity: provider()
+        }
+    );
+    assert_eq!(
+        slope
+            .delivery
+            .as_ref()
+            .unwrap()
+            .derivation
+            .as_ref()
+            .unwrap()
+            .previous_request,
+        "model-delivery"
+    );
+    commit(&rt, c, b"{}", &b);
+    let mut c = begin(&rt, "invalid-variable", &b);
+    let before = state(&rt, &c, &b);
+    let refused = rt
+        .conversation_native_command(&mut c, NativeContextCommand::ModelVariable { index: 1 }, &b)
+        .unwrap();
+    assert_eq!(refused.status, NativeContextStatus::Withheld);
+    assert_eq!(state(&rt, &c, &b), before);
+    commit(&rt, c, b"{}", &b);
+    let mut c = begin(&rt, "new-quantity", &b);
+    let delivered = deliver(&rt, &mut c, "42", "J", NumericOrigin::ExactDecimal, &b);
+    assert!(delivered.fitted_model.is_none());
+    commit(&rt, c, b"{}", &b);
+    let mut c = begin(&rt, "old-model", &b);
+    let refused = rt
+        .conversation_native_command(
+            &mut c,
+            NativeContextCommand::EvaluateModel { value: "5".into() },
+            &b,
+        )
+        .unwrap();
+    assert_eq!(
+        refused.reason,
+        Some(NativeContextRefusal::PriorModelUnavailable)
+    );
+    assert_eq!(refused.quantity().unwrap().number, "42");
+}
+
+#[test]
+fn supplied_model_cannot_claim_host_delivery_and_exact_coordinates_remain_exact() {
+    let f = Fixture::new();
+    let rt = f.runtime();
+    let b = f.budget();
+    let mut c = begin(&rt, "supplied-model", &b);
+    initialize(&rt, &mut c, &b);
+    rt.conversation_native_command(
+        &mut c,
+        NativeContextCommand::InstallModel {
+            model: fitted_calibration(),
+        },
+        &b,
+    )
+    .unwrap();
+    commit(&rt, c, b"{}", &b);
+    let mut c = begin(&rt, "evaluate-supplied", &b);
+    let result = rt
+        .conversation_native_command(
+            &mut c,
+            NativeContextCommand::EvaluateModel { value: "5".into() },
+            &b,
+        )
+        .unwrap();
+    assert_eq!(result.delivery.unwrap().source, AnchorSource::Supplied);
+    commit(&rt, c, b"{}", &b);
+    let mut c = begin(&rt, "exact-model", &b);
+    let model = RetainedFittedModel::LinearSystem {
+        request: "pending".into(),
+        revision: 1,
+        candidates: vec!["1/3".into()],
+        variable_units: vec!["1".into()],
+        source: AnchorSource::Supplied,
+        origin: NumericOrigin::ExactDecimal,
+    };
+    rt.conversation_deliver_model(&mut c, model, provider(), &b)
+        .unwrap();
+    commit(&rt, c, b"{}", &b);
+    let mut c = begin(&rt, "exact-component", &b);
+    let result = rt
+        .conversation_native_command(&mut c, NativeContextCommand::ModelVariable { index: 1 }, &b)
+        .unwrap();
+    assert_eq!(result.quantity().unwrap().number, "1/3");
+    assert_eq!(
+        result.quantity().unwrap().origin,
+        NumericOrigin::ExactDecimal
+    );
+    assert_eq!(
+        result.delivery.unwrap().source,
+        AnchorSource::Provider {
+            identity: provider()
+        }
+    );
+}
+
+#[test]
+fn native_owner_restores_previous_wire_shapes_and_bounds_new_model_storage() {
+    let legacy: NativeContextState = serde_json::from_value(json!({
+        "owner":OWNER,"version":1,"anchor":{"kind":"empty"},"delivery":null,
+        "fitted_model":{"kind":"calibration","request":"fit","revision":1,
+            "intercept":"1","slope":"2","x_unit":"m","response_unit":"N","direction":"forward_mean"}
+    }))
+    .unwrap();
+    legacy.validate(1).unwrap();
+    let RetainedFittedModel::Calibration { source, origin, .. } = legacy.fitted_model.unwrap()
+    else {
+        panic!("calibration")
+    };
+    assert_eq!(source, AnchorSource::Supplied);
+    assert_eq!(origin, NumericOrigin::PythonFloat);
+    let old_scalar: NativeContextState = serde_json::from_value(json!({
+        "owner":OWNER,"version":1,"anchor":{"kind":"quantity","value":{"number":"3","unit":"J","origin":"exact_decimal"}},
+        "delivery":{"request":"old","revision":1,"source":{"kind":"supplied"},"derivation":null}
+    })).unwrap();
+    old_scalar.validate(1).unwrap();
+    assert_eq!(old_scalar.quantity().unwrap().role, QuantityRole::Scalar);
+    assert!(old_scalar.fitted_model.is_none());
+
+    let f = Fixture::new();
+    let rt = f.runtime();
+    let b = f.budget();
+    let mut c = begin(&rt, "overlarge-model", &b);
+    initialize(&rt, &mut c, &b);
+    let before = state(&rt, &c, &b);
+    let oversized = RetainedFittedModel::LinearSystem {
+        request: "pending".into(),
+        revision: 1,
+        candidates: vec!["1".into(); 64],
+        variable_units: vec!["u".repeat(160); 64],
+        source: AnchorSource::Supplied,
+        origin: NumericOrigin::ExactDecimal,
+    };
+    assert!(rt
+        .conversation_deliver_model(&mut c, oversized, provider(), &b)
+        .is_err());
+    assert_eq!(state(&rt, &c, &b), before);
 }

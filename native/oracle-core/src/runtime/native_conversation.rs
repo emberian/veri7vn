@@ -134,6 +134,9 @@ impl Runtime {
                 | NativeContextCommand::ShiftTemperature { .. }
                 | NativeContextCommand::TemperatureDifferenceFrom { .. }
                 | NativeContextCommand::EvaluateModel { .. }
+                | NativeContextCommand::InvertModel { .. }
+                | NativeContextCommand::ModelSlope
+                | NativeContextCommand::ModelVariable { .. }
         );
         let (state, reply) = crate::native_conversation::transition(
             candidate.revision(),
@@ -149,6 +152,28 @@ impl Runtime {
         {
             candidate.envelope.selection = SessionSelection::default();
         }
+        self.store_native_context(candidate, state, &budget)?;
+        Ok(reply)
+    }
+    /// Host-only provenance, separate from deserializable supplied commands.
+    pub fn conversation_deliver_model(
+        &self,
+        candidate: &mut ConversationCandidate,
+        model: RetainedFittedModel,
+        identity: ProviderIdentity,
+        budget: &Budget,
+    ) -> Result<NativeContextReply> {
+        let state = self.conversation_native_validate(candidate, budget)?;
+        let budget = budget.restricted_to(&self.image.limits)?;
+        let (state, reply) = crate::native_conversation::deliver_model(
+            candidate.revision(),
+            candidate.request_id(),
+            state,
+            model,
+            AnchorSource::Provider { identity },
+            &budget,
+        )?;
+        candidate.envelope.selection = SessionSelection::default();
         self.store_native_context(candidate, state, &budget)?;
         Ok(reply)
     }

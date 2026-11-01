@@ -1438,20 +1438,7 @@ impl Service {
                 if let Some(quantity) = crate::modeling::retained_thermal_quantity(&body["reply"])
                     .or_else(|| crate::modeling::retained_reasoning_quantity(&body["reply"]))
                 {
-                    let operation = body["reply"]["supplied"]["operation"]
-                        .as_str()
-                        .unwrap_or("science.thermal_scenarios");
-                    let artifact_sha = body["reply"]["result"]["network_identity"]
-                        .as_str()
-                        .or_else(|| body["reply"]["result"]["model_identity"].as_str())
-                        .and_then(|s| s.strip_prefix("sha256:"))
-                        .unwrap_or(&native.image_sha256);
-                    let identity =
-                        core::native_conversation::ProviderIdentity::from_host_delivery(
-                            operation,
-                            artifact_sha,
-                        )
-                        .map_err(crate::native::conversation_failure)?;
+                    let identity = crate::modeling::delivery_identity(&body["reply"])?;
                     let anchor =
                         core::native_conversation::ProviderQuantityAnchor::from_host_delivery(
                             identity, quantity,
@@ -1467,22 +1454,36 @@ impl Service {
                         .map_err(crate::native::conversation_failure)?;
                     body["reply"]["native_context_transition"] = json!("delivered_typed_anchor");
                 } else {
-                    let command = match crate::modeling::retained_model(&body["reply"]) {
-                        Some(model) => {
-                            core::native_conversation::NativeContextCommand::InstallModel { model }
-                        }
-                        None => core::native_conversation::NativeContextCommand::ResetTopic,
-                    };
-                    native
-                        .runtime
-                        .conversation_native_command(candidate, command, budget)
-                        .map_err(crate::native::conversation_failure)?;
+                    if let Some(model) = crate::modeling::retained_model(&body["reply"]) {
+                        native
+                            .runtime
+                            .conversation_deliver_model(
+                                candidate,
+                                model,
+                                crate::modeling::delivery_identity(&body["reply"])?,
+                                budget,
+                            )
+                            .map_err(crate::native::conversation_failure)?;
+                        body["reply"]["native_context_transition"] =
+                            json!("delivered_fitted_model");
+                    } else {
+                        native
+                            .runtime
+                            .conversation_native_command(
+                                candidate,
+                                core::native_conversation::NativeContextCommand::ResetTopic,
+                                budget,
+                            )
+                            .map_err(crate::native::conversation_failure)?;
+                        body["reply"]["native_context_transition"] =
+                            json!("cleared_unrepresentable_answer");
+                        body["reply"]["native_context_retention_reason"] =
+                            json!(crate::modeling::retention_reason(&body["reply"]));
+                    }
                     native
                         .runtime
                         .conversation_native_reconcile_selection(candidate, budget)
                         .map_err(crate::native::conversation_failure)?;
-                    body["reply"]["native_context_transition"] =
-                        json!("cleared_unrepresentable_answer");
                 }
             } else {
                 body["reply"]["native_context_transition"] = json!("preserved_refusal");
@@ -1849,7 +1850,7 @@ impl Service {
         command: core::native_conversation::NativeContextCommand,
         budget: &core::Budget,
     ) -> Result<Value, Failure> {
-        use core::native_conversation::{NativeAnchor, NativeContextStatus};
+        use core::native_conversation::{NativeAnchor, NativeContextStatus, NativeValueScope};
         let reply = self
             .native
             .as_ref()
@@ -1859,17 +1860,37 @@ impl Service {
             .map_err(crate::native::conversation_failure)?;
         let answered = matches!(reply.status, NativeContextStatus::Answered);
         let response = if !answered {
-            "This request needs a compatible retained native quantity.".into()
+            "This request needs compatible retained native context; see the refusal reason.".into()
         } else {
             match &reply.anchor {
-                NativeAnchor::Quantity { value } => format!(
-                    "{}{}{}",
-                    value.number,
-                    if value.unit.is_empty() { "" } else { " " },
-                    value.unit
-                ),
+                NativeAnchor::Quantity { value } => {
+                    let value_text = format!(
+                        "{}{}{}",
+                        value.number,
+                        if value.unit.is_empty() { "" } else { " " },
+                        value.unit
+                    );
+                    let coordinate = || {
+                        reply
+                            .delivery
+                            .as_ref()
+                            .and_then(|d| d.derivation.as_ref())
+                            .map(|d| d.operand.as_str())
+                            .unwrap_or("unknown")
+                    };
+                    match reply.value_scope {
+                        Some(NativeValueScope::CertifiedWitnessCoordinate) => format!("In the retained certified witness, variable {} is {value_text}. Other valid witnesses may differ.", coordinate()),
+                        Some(NativeValueScope::CertifiedWitnessArithmetic) => format!("From the retained certified witness: {value_text}. Other valid witnesses may yield different values."),
+                        Some(NativeValueScope::RetainedCandidateCoordinate) => format!("In the retained candidate, variable {} is {value_text}.", coordinate()),
+                        Some(NativeValueScope::RetainedCandidateArithmetic) => format!("From the retained candidate: {value_text}."),
+                        None => value_text,
+                    }
+                }
                 NativeAnchor::Entity { id } => format!("Retained native entity {id}."),
-                NativeAnchor::Empty => "No native entity or quantity is retained.".into(),
+                NativeAnchor::Empty if reply.fitted_model.is_some() => {
+                    "A fitted model is retained for model follow-ups.".into()
+                }
+                NativeAnchor::Empty => "No native entity, quantity or model is retained.".into(),
             }
         };
         Ok(

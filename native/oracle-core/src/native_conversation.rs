@@ -12,6 +12,8 @@ pub const OWNER: &str = "native_conversation_context";
 pub const OWNER_VERSION: u32 = 1;
 pub const OPERATION: &str = "context.native";
 pub const MAX_OWNER_BYTES: usize = 16384;
+/// Leave room for the selected quantity and its immediate derivation.
+pub const MAX_MODEL_BYTES: usize = MAX_OWNER_BYTES / 2;
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -132,6 +134,19 @@ pub enum AnchorSource {
     Supplied,
     Provider { identity: ProviderIdentity },
 }
+fn supplied_source() -> AnchorSource {
+    AnchorSource::Supplied
+}
+fn is_supplied_source(source: &AnchorSource) -> bool {
+    matches!(source, AnchorSource::Supplied)
+}
+fn is_legacy_model_origin(origin: &NumericOrigin) -> bool {
+    matches!(origin, NumericOrigin::PythonFloat)
+}
+fn legacy_model_origin() -> NumericOrigin {
+    // Older owner snapshots used this label for every fitted numerical result.
+    NumericOrigin::PythonFloat
+}
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Derivation {
@@ -161,16 +176,42 @@ pub enum RetainedFittedModel {
         x_unit: String,
         response_unit: String,
         direction: String,
+        #[serde(
+            default = "supplied_source",
+            skip_serializing_if = "is_supplied_source"
+        )]
+        source: AnchorSource,
+        #[serde(
+            default = "legacy_model_origin",
+            skip_serializing_if = "is_legacy_model_origin"
+        )]
+        origin: NumericOrigin,
     },
     LinearSystem {
         request: String,
         revision: i64,
         candidates: Vec<String>,
         variable_units: Vec<String>,
+        #[serde(
+            default = "supplied_source",
+            skip_serializing_if = "is_supplied_source"
+        )]
+        source: AnchorSource,
+        #[serde(
+            default = "legacy_model_origin",
+            skip_serializing_if = "is_legacy_model_origin"
+        )]
+        origin: NumericOrigin,
     },
 }
 impl RetainedFittedModel {
-    fn validate(&self, revision: i64) -> Result<()> {
+    pub fn validate(&self, revision: i64) -> Result<()> {
+        let source = match self {
+            Self::Calibration { source, .. } | Self::LinearSystem { source, .. } => source,
+        };
+        if let AnchorSource::Provider { identity } = source {
+            identity.validate()?;
+        }
         match self {
             Self::Calibration {
                 request,
@@ -180,6 +221,7 @@ impl RetainedFittedModel {
                 x_unit,
                 response_unit,
                 direction,
+                ..
             } => {
                 request_id(request)?;
                 if *model_rev < 1 || *model_rev > revision {
@@ -205,6 +247,7 @@ impl RetainedFittedModel {
                 revision: model_rev,
                 candidates,
                 variable_units,
+                ..
             } => {
                 request_id(request)?;
                 if *model_rev < 1 || *model_rev > revision {
@@ -488,7 +531,19 @@ pub enum NativeContextRefusal {
     PriorEntityUnavailable,
     RelationNotUnique,
     PriorModelUnavailable,
+    IncompatibleModelUnit,
 }
+/// Interpretation of a retained candidate coordinate or arithmetic on it.
+/// A certificate can establish feasibility/optimality without uniqueness.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum NativeValueScope {
+    CertifiedWitnessCoordinate,
+    CertifiedWitnessArithmetic,
+    RetainedCandidateCoordinate,
+    RetainedCandidateArithmetic,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct NativeContextReply {
@@ -499,6 +554,8 @@ pub struct NativeContextReply {
     pub delivery: Option<AnchorLineage>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub fitted_model: Option<RetainedFittedModel>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub value_scope: Option<NativeValueScope>,
     pub reason: Option<NativeContextRefusal>,
 }
 impl NativeContextReply {
@@ -509,6 +566,36 @@ impl NativeContextReply {
         }
     }
 }
+fn retained_value_scope(state: &NativeContextState) -> Option<NativeValueScope> {
+    if !matches!(state.anchor, NativeAnchor::Quantity { .. }) {
+        return None;
+    }
+    let RetainedFittedModel::LinearSystem {
+        request, source, ..
+    } = state.fitted_model.as_ref()?
+    else {
+        return None;
+    };
+    let delivery = state.delivery.as_ref()?;
+    if &delivery.source != source {
+        return None;
+    }
+    let derivation = delivery.derivation.as_ref()?;
+    let coordinate =
+        derivation.operation == "model_variable" && &derivation.previous_request == request;
+    if !coordinate && !matches!(derivation.operation.as_str(), "scale" | "divide" | "cost") {
+        return None;
+    }
+    let certified = matches!(source, AnchorSource::Provider { identity }
+        if matches!(identity.provider.as_str(), "reasoning.optimize_linear" | "reasoning.exact_linear_feasibility"));
+    Some(match (certified, coordinate) {
+        (true, true) => NativeValueScope::CertifiedWitnessCoordinate,
+        (true, false) => NativeValueScope::CertifiedWitnessArithmetic,
+        (false, true) => NativeValueScope::RetainedCandidateCoordinate,
+        (false, false) => NativeValueScope::RetainedCandidateArithmetic,
+    })
+}
+
 pub(crate) fn reply(
     state: &NativeContextState,
     revision: i64,
@@ -525,6 +612,7 @@ pub(crate) fn reply(
         anchor: state.anchor.clone(),
         delivery: state.delivery.clone(),
         fitted_model: state.fitted_model.clone(),
+        value_scope: retained_value_scope(state),
         reason,
     }
 }
@@ -569,12 +657,56 @@ pub(crate) fn deliver(
         .ok_or(Error::Limit("native revision"))?;
     let _memory = budget.reserve_memory(MAX_OWNER_BYTES * 4)?;
     state.anchor = anchor;
+    state.fitted_model = None;
     state.delivery = Some(AnchorLineage {
         request: request.into(),
         revision: next,
         source,
         derivation: None,
     });
+    state.validate(next)?;
+    budget.check()?;
+    let response = reply(&state, next, None);
+    Ok((state, response))
+}
+pub(crate) fn deliver_model(
+    revision: i64,
+    request: &str,
+    mut state: NativeContextState,
+    mut model: RetainedFittedModel,
+    source: AnchorSource,
+    budget: &Budget,
+) -> Result<(NativeContextState, NativeContextReply)> {
+    budget.spend(1)?;
+    request_id(request)?;
+    state.validate(revision)?;
+    let next = revision
+        .checked_add(1)
+        .ok_or(Error::Limit("native revision"))?;
+    let _memory = budget.reserve_memory(MAX_OWNER_BYTES * 8)?;
+    match &mut model {
+        RetainedFittedModel::Calibration {
+            request: r,
+            revision: v,
+            source: s,
+            ..
+        }
+        | RetainedFittedModel::LinearSystem {
+            request: r,
+            revision: v,
+            source: s,
+            ..
+        } => {
+            *r = request.into();
+            *v = next;
+            *s = source;
+        }
+    }
+    model.validate(next)?;
+    crate::query::encoded_size(&model, MAX_MODEL_BYTES)?;
+    state.anchor = NativeAnchor::Empty;
+    state.delivery = None;
+    state.fitted_model = Some(model);
     state.validate(next)?;
     budget.check()?;
     let response = reply(&state, next, None);
@@ -612,26 +744,15 @@ pub(crate) fn transition(
             state.delivery = None;
             state.fitted_model = None;
         }
-        NativeContextCommand::InstallModel { mut model } => {
-            match &mut model {
-                RetainedFittedModel::Calibration {
-                    request: mreq,
-                    revision: mrev,
-                    ..
-                }
-                | RetainedFittedModel::LinearSystem {
-                    request: mreq,
-                    revision: mrev,
-                    ..
-                } => {
-                    *mreq = request.into();
-                    *mrev = next;
-                }
-            }
-            model.validate(next)?;
-            state.anchor = NativeAnchor::Empty;
-            state.delivery = None;
-            state.fitted_model = Some(model);
+        NativeContextCommand::InstallModel { model } => {
+            return deliver_model(
+                revision,
+                request,
+                state,
+                model,
+                AnchorSource::Supplied,
+                budget,
+            );
         }
         NativeContextCommand::EvaluateModel { value } => {
             let x = rational(&value)?;
@@ -645,6 +766,8 @@ pub(crate) fn transition(
                         x_unit,
                         response_unit,
                         direction,
+                        source,
+                        origin,
                     } => {
                         let b0 = rational(&intercept)?;
                         let b1 = rational(&slope)?;
@@ -661,14 +784,14 @@ pub(crate) fn transition(
                                 value: NativeQuantity {
                                     number,
                                     unit,
-                                    origin: NumericOrigin::PythonFloat,
+                                    origin,
                                     role: QuantityRole::Scalar,
                                 },
                             };
                             state.delivery = Some(AnchorLineage {
                                 request: request.into(),
                                 revision: next,
-                                source: AnchorSource::Supplied,
+                                source,
                                 derivation: Some(Derivation {
                                     previous_request: mreq,
                                     previous_revision: mrev,
@@ -695,6 +818,8 @@ pub(crate) fn transition(
                 intercept,
                 slope,
                 x_unit,
+                source,
+                origin,
                 ..
             }) = state.fitted_model.clone()
             {
@@ -709,14 +834,14 @@ pub(crate) fn transition(
                         value: NativeQuantity {
                             number,
                             unit: x_unit,
-                            origin: NumericOrigin::PythonFloat,
+                            origin,
                             role: QuantityRole::Scalar,
                         },
                     };
                     state.delivery = Some(AnchorLineage {
                         request: request.into(),
                         revision: next,
-                        source: AnchorSource::Supplied,
+                        source,
                         derivation: Some(Derivation {
                             previous_request: mreq,
                             previous_revision: mrev,
@@ -737,6 +862,8 @@ pub(crate) fn transition(
                 slope,
                 x_unit,
                 response_unit,
+                source,
+                origin,
                 ..
             }) = state.fitted_model.clone()
             {
@@ -744,21 +871,32 @@ pub(crate) fn transition(
                 let number = ratio_text(&b1)?;
                 let unit = if x_unit == "1" {
                     response_unit
+                } else if x_unit.contains(['/', '*', ' ']) {
+                    format!("{response_unit}/({x_unit})")
                 } else {
                     format!("{response_unit}/{x_unit}")
                 };
+                if unit.len() > 256 {
+                    budget.check()?;
+                    let response = reply(
+                        &state,
+                        next,
+                        Some(NativeContextRefusal::IncompatibleModelUnit),
+                    );
+                    return Ok((state, response));
+                }
                 state.anchor = NativeAnchor::Quantity {
                     value: NativeQuantity {
                         number,
                         unit,
-                        origin: NumericOrigin::PythonFloat,
+                        origin,
                         role: QuantityRole::Scalar,
                     },
                 };
                 state.delivery = Some(AnchorLineage {
                     request: request.into(),
                     revision: next,
-                    source: AnchorSource::Supplied,
+                    source,
                     derivation: Some(Derivation {
                         previous_request: mreq,
                         previous_revision: mrev,
@@ -777,6 +915,8 @@ pub(crate) fn transition(
                 revision: mrev,
                 candidates,
                 variable_units,
+                source,
+                origin,
             }) = state.fitted_model.clone()
             {
                 if index == 0 || index > candidates.len() {
@@ -789,14 +929,14 @@ pub(crate) fn transition(
                         value: NativeQuantity {
                             number,
                             unit,
-                            origin: NumericOrigin::PythonFloat,
+                            origin,
                             role: QuantityRole::Scalar,
                         },
                     };
                     state.delivery = Some(AnchorLineage {
                         request: request.into(),
                         revision: next,
-                        source: AnchorSource::Supplied,
+                        source,
                         derivation: Some(Derivation {
                             previous_request: mreq,
                             previous_revision: mrev,
@@ -826,8 +966,8 @@ pub(crate) fn transition(
                     let current = rational(&value.number)?;
                     let kelvin = to_kelvin(&current, &value.unit, point)?;
                     let converted = from_kelvin(&kelvin, &target_unit, point)?;
-                    let scale = temp_scale_to_kelvin(&value.unit)?
-                        / temp_scale_to_kelvin(&target_unit)?;
+                    let scale =
+                        temp_scale_to_kelvin(&value.unit)? / temp_scale_to_kelvin(&target_unit)?;
                     let number = ratio_text(&converted)?;
                     let origin = value.origin.clone();
                     let role = value.role;
@@ -879,8 +1019,8 @@ pub(crate) fn transition(
                         reason = Some(NativeContextRefusal::BelowAbsoluteZero);
                     } else {
                         let shifted = from_kelvin(&kelvin, &value.unit, point)?;
-                        let scale = temp_scale_to_kelvin(&delta_unit)?
-                            / temp_scale_to_kelvin(&value.unit)?;
+                        let scale =
+                            temp_scale_to_kelvin(&delta_unit)? / temp_scale_to_kelvin(&value.unit)?;
                         let number = ratio_text(&shifted)?;
                         let unit = value.unit.clone();
                         let origin = value.origin.clone();
@@ -934,8 +1074,8 @@ pub(crate) fn transition(
                     let current = rational(&value.number)?;
                     let diff_kelvin = to_kelvin(&current, &value.unit, true)? - base_kelvin;
                     let diff_in_unit = from_kelvin(&diff_kelvin, &value.unit, false)?;
-                    let scale = temp_scale_to_kelvin(&baseline_unit)?
-                        / temp_scale_to_kelvin(&value.unit)?;
+                    let scale =
+                        temp_scale_to_kelvin(&baseline_unit)? / temp_scale_to_kelvin(&value.unit)?;
                     let number = ratio_text(&diff_in_unit)?;
                     let unit = value.unit.clone();
                     let origin = value.origin.clone();

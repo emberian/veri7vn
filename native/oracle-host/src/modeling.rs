@@ -5,6 +5,8 @@ use crate::{
     wire, Failure,
 };
 use oracle_execution::ExecutionContext;
+use oracle_runtime_core::native_conversation::{AnchorSource, ProviderIdentity};
+use oracle_runtime_core::session::NumericOrigin;
 use serde_json::{json, Value};
 
 pub const PREFIX: &str = "Model supplied data: ";
@@ -461,22 +463,17 @@ pub fn answer(
         if !transition_supported {
             return Ok(refusal("conversation_transition_unsupported","This conversation cannot replace its prior answer context without Engine projection. Use native-v1, or an ordinary conversation with no prior Engine binding."));
         }
-        let checked = match pure.invoke_checked(
-            profile,
-            operation,
-            &request["arguments"],
-            tenant,
-            context,
-        ) {
-            Ok(checked) => checked,
-            Err(failure) if failure.status == 400 => {
-                return Ok(refusal(
-                    "invalid_input",
-                    "Supplied arguments do not meet the declared modeling input contract.",
-                ));
-            }
-            Err(failure) => return Err(failure),
-        };
+        let checked =
+            match pure.invoke_checked(profile, operation, &request["arguments"], tenant, context) {
+                Ok(checked) => checked,
+                Err(failure) if failure.status == 400 => {
+                    return Ok(refusal(
+                        "invalid_input",
+                        "Supplied arguments do not meet the declared modeling input contract.",
+                    ));
+                }
+                Err(failure) => return Err(failure),
+            };
         // Delivery projection only: never decode this result back into a provider.
         let mut reply = serde_json::to_value(&checked)
             .map_err(|_| Failure::plain(502, "modeling_reply_invalid"))?;
@@ -665,12 +662,14 @@ pub fn retained_thermal_quantity(
         }
         _ => return None,
     };
-    Some(oracle_runtime_core::native_conversation::NativeQuantity {
+    let quantity = oracle_runtime_core::native_conversation::NativeQuantity {
         number: temp_k.to_string(),
         unit: "K".into(),
-        origin: oracle_runtime_core::session::NumericOrigin::PythonFloat,
+        origin: NumericOrigin::DisplayedDecimal,
         role: oracle_runtime_core::native_conversation::QuantityRole::TemperaturePoint,
-    })
+    };
+    quantity.validate().ok()?;
+    Some(quantity)
 }
 
 pub fn retained_reasoning_quantity(
@@ -686,17 +685,17 @@ pub fn retained_reasoning_quantity(
             }
             reply["result"]["distance"].as_str()?.to_owned()
         }
-        "graph.minimum_spanning_forest" => {
-            reply["result"]["total_weight"].as_str()?.to_owned()
-        }
+        "graph.minimum_spanning_forest" => reply["result"]["total_weight"].as_str()?.to_owned(),
         _ => return None,
     };
-    Some(oracle_runtime_core::native_conversation::NativeQuantity {
+    let quantity = oracle_runtime_core::native_conversation::NativeQuantity {
         number,
         unit: "1".into(),
         origin: oracle_runtime_core::session::NumericOrigin::ExactDecimal,
         role: oracle_runtime_core::native_conversation::QuantityRole::Scalar,
-    })
+    };
+    quantity.validate().ok()?;
+    Some(quantity)
 }
 
 pub fn retained_model(
@@ -705,7 +704,7 @@ pub fn retained_model(
     if reply["status"] != "answered" {
         return None;
     }
-    match reply["supplied"]["operation"].as_str()? {
+    let model = match reply["supplied"]["operation"].as_str()? {
         "statistics.calibration" => {
             let coeffs = reply["result"]["fit"]["coefficient_candidate"].as_array()?;
             if coeffs.len() != 2 {
@@ -723,10 +722,21 @@ pub fn retained_model(
                     x_unit: args["x_unit"].as_str()?.to_owned(),
                     response_unit: args["response_unit"].as_str()?.to_owned(),
                     direction: args["direction"].as_str()?.to_owned(),
+                    source: AnchorSource::Supplied,
+                    origin: NumericOrigin::DisplayedDecimal,
                 },
             )
         }
         "science.solve_linear" | "science.least_squares" => {
+            if !matches!(
+                reply["result"]["outcome"].as_str(),
+                Some(
+                    "consistent_unique_within_tolerance"
+                        | "least_squares_unique_within_rank_policy"
+                )
+            ) {
+                return None;
+            }
             let candidates: Vec<String> = reply["result"]["candidate"]
                 .as_array()?
                 .iter()
@@ -747,10 +757,19 @@ pub fn retained_model(
                     revision: 1,
                     candidates,
                     variable_units,
+                    source: AnchorSource::Supplied,
+                    origin: NumericOrigin::DisplayedDecimal,
                 },
             )
         }
         "reasoning.optimize_linear" | "reasoning.exact_linear_feasibility" => {
+            let status = reply["result"]["status"].as_str()?;
+            if (reply["supplied"]["operation"] == "reasoning.optimize_linear"
+                && status != "optimal")
+                || !matches!(status, "feasible" | "optimal")
+            {
+                return None;
+            }
             let point = reply["result"]["certificate"]["point"].as_array()?;
             let candidates: Vec<String> = point
                 .iter()
@@ -766,9 +785,67 @@ pub fn retained_model(
                     revision: 1,
                     candidates,
                     variable_units,
+                    source: AnchorSource::Supplied,
+                    origin: NumericOrigin::ExactDecimal,
                 },
             )
         }
         _ => None,
+    }?;
+    model.validate(1).ok()?;
+    if ambiguous_temperature_model(reply) {
+        return None;
     }
+    // Leave space for the host's provider identity, final request ID and revision.
+    let encoded = serde_json::to_vec(&model).ok()?;
+    if encoded.len() > oracle_runtime_core::native_conversation::MAX_MODEL_BYTES - 1024 {
+        return None;
+    }
+    Some(model)
+}
+
+fn ambiguous_temperature_model(reply: &Value) -> bool {
+    let temperature_unit =
+        |unit: &Value| matches!(unit.as_str(), Some("K" | "degC" | "C" | "degF" | "F"));
+    let args = &reply["supplied"]["arguments"];
+    match reply["supplied"]["operation"].as_str() {
+        Some("statistics.calibration") => {
+            temperature_unit(&args["x_unit"]) || temperature_unit(&args["response_unit"])
+        }
+        Some("science.solve_linear" | "science.least_squares") => args["model"]["variable_units"]
+            .as_array()
+            .is_some_and(|units| units.iter().any(temperature_unit)),
+        _ => false,
+    }
+}
+
+pub fn retention_reason(reply: &Value) -> &'static str {
+    if ambiguous_temperature_model(reply) {
+        "temperature_role_unspecified"
+    } else if matches!(
+        reply["result"]["outcome"].as_str(),
+        Some(
+            "consistent_underdetermined_within_tolerance"
+                | "least_squares_underdetermined_within_rank_policy"
+        )
+    ) {
+        "model_not_unique"
+    } else {
+        "no_bounded_unambiguous_anchor"
+    }
+}
+
+/// Complete supplied-model identity, including provider build and all options.
+/// This binds later arithmetic to the delivered computation, not to the graph image.
+pub fn delivery_identity(reply: &Value) -> Result<ProviderIdentity, Failure> {
+    let operation = reply["supplied"]["operation"]
+        .as_str()
+        .ok_or_else(|| Failure::plain(502, "modeling_reply_binding"))?;
+    let runtime = reply["runtime_identity"]
+        .as_str()
+        .ok_or_else(|| Failure::plain(502, "modeling_reply_binding"))?;
+    let bytes = wire::encode(&json!({"schema":"native-model-delivery-v1",
+        "runtime_identity":runtime,"supplied":reply["supplied"]}));
+    ProviderIdentity::from_host_delivery(operation, &crate::config::sha256_bytes(&bytes))
+        .map_err(crate::native::conversation_failure)
 }
