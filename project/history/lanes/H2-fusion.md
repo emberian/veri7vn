@@ -4,7 +4,7 @@ Lane H proved Oracle7's `network_v3` fusion planner in HOL over lane G's quantit
 reproduced 60 of Oracle7's 102 fusion answers on the core panel. The other 42 needed
 specialists that had no verified kernel. Lane H2 connects three more verified kernels to the
 planner: thermo (lane S06), carboncapture (lane S05) and planetary (lane S02).
-Files: `src/extract/fusion/` ([README](../../src/extract/fusion/README.md)) and `tools/fusion/`.
+Files: `src/extract/fusion/` ([README](../../../src/extract/fusion/README.md)) and `tools/fusion/`.
 
 ## Result
 

@@ -3,7 +3,7 @@
 Six shipped Oracle7 specialists (`geometry`, `geometry-v3`, `geometry-v4`, `statistics`,
 `statistics-v2`, `statistics-v3`) are one verified HOL kernel pair exported to Standard ML and
 compiled with the MLton inside Isabelle into one 599 KB binary, `var/geostats/bin/geostats`
-(not in git). Files and design: `src/extract/geostats/` ([README](../../src/extract/geostats/README.md)).
+(not in git). Files and design: `src/extract/geostats/` ([README](../../../src/extract/geostats/README.md)).
 
 ## Result on the shipped panels (`score.py`, `--specialist ID`)
 

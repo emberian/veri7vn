@@ -6,7 +6,7 @@ the MLton inside Isabelle into `var/climate/bin/climate` (620 KB, not committed)
 [answerer contract](../../../docs/contracts/answerer.md). `--specialist ID` asks one manifest's
 organ; without it the family is asked in the order airquality, carbonmat, coldchain-v2,
 climate, carboncapture. Handoff with theorem statements and numbers:
-[lane S05](../../../project/lanes/S05-climate.md).
+[lane S05](../../../project/history/lanes/S05-climate.md).
 
 | Part | File | Status |
 |---|---|---|
@@ -47,12 +47,12 @@ The complete schedule uses exact published nominal F/C thresholds without
 half-degree slack; above-limit checkpoint readings fail. Negative elapsed times are
 impossible; missing or ambiguous compound timing is underspecified. This does not
 judge a particular food safe. Exact checked complete-schedule evidence is in
-[the E report](../../../project/lanes/E-climate.md).
+[the E report](../../../project/history/lanes/E-climate.md).
 
 Partial cooling records now distinguish complete-schedule compliance from an
 explicit checkpoint-only question. A missing first or final time is not guessed:
 the kernel checks all compatible complete clocks and withholds when both passing
 and failing clocks fit. Explicit known earlier time is retained. This corrects
 23 inherited shipped assertions into visible valid-withheld results; see
-[the F report](../../../project/lanes/F-climate.md) for the independent laws,
+[the F report](../../../project/history/lanes/F-climate.md) for the independent laws,
 counts under unchanged official scorers, actual consumer checks and model limits.

@@ -9,7 +9,7 @@ question must agree, or the host refuses. It never picks between answers.
 
 The earlier appliance ran the Python Engine with native pieces inside it.
 The Rust host reverses that ownership, as [the shared runtime design](../../docs/design/shared-oracle-runtime.md)
-and [the 29 October direction](../../project/DIRECTION-2026-10-29.md) ask: the
+and [the 29 October direction](../../project/history/handoffs/DIRECTION-2026-10-29.md) ask: the
 native runtime hosts, and the Engine is one contained worker.
 
 ## What it serves

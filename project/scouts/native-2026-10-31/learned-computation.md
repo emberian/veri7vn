@@ -13,7 +13,7 @@ A learned readout can be a useful new computation even when we cannot write its 
 
 `native/oracle-host/src/native.rs` exposes `kqa.query` and `kqa.execute`; its reader adapter converts results to `front::Candidate`. `front.rs` arbitrates groups by agreement/refusal/unavailability, not confidence ranking. Therefore an empirical estimate must not silently become an ordinary sourced-fact candidate: its meaning and uncertainty need an explicit operation/result boundary. `tools/oracle_workbench/operations.py` is an existing structured supplied-data provider; `workbench.documents.query` quotes matching passages. It is a consumer precedent, not evidence of a native learned-operation provider already existing.
 
-The [27 October report](../../lanes/LITERATURE-NEUROSYMBOLIC-2026-10-27.md) already distinguishes readout utility, causal explanation and correctness, and proposes date estimation and typed parsing. This report adds discourse binding and utility-directed representation mining against the current native IR. None is claimed novel in the literature.
+The [27 October report](../../history/lanes/LITERATURE-NEUROSYMBOLIC-2026-10-27.md) already distinguishes readout utility, causal explanation and correctness, and proposes date estimation and typed parsing. This report adds discourse binding and utility-directed representation mining against the current native IR. None is claimed novel in the literature.
 
 ## 1. Compute a binding table from supplied notes
 

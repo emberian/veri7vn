@@ -2,7 +2,7 @@
 
 Six Oracle7 specialists are now HOL kernels in session `Veri7vn_Life`, exported to SML and compiled with
 the Isabelle-bundled MLton into one 740 KB binary, `var/life/bin/life` (not committed). Files:
-`src/extract/life/` ([README](../../src/extract/life/README.md)).
+`src/extract/life/` ([README](../../../src/extract/life/README.md)).
 
 ## Result on the shipped panels (lane A harness, `--split both`)
 

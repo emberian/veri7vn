@@ -8,7 +8,7 @@ authority. The query adapter is documented in
 New candidates use slim **10.1** at `c473d28914e480425adb29b4f7f42485b8cfb4e3`
 (`provision.py` `REVISION`). The latest local composition is **U8**: its
 [recipe](candidate-u8.recipe.json), [receipt](../../docs/deploy/appliance-2026-10-29.json)
-and [lane report](../../project/lanes/A1-APPLIANCE-TIP-2026-10-29.md) record what
+and [lane report](../../project/history/lanes/A1-APPLIANCE-TIP-2026-10-29.md) record what
 was built and exercised. Slim 10.1 already contains most of our 4.9 repairs
 (upstream took the correctness work into 10.0 and the usage, conversation,
 geometry, dates and Mars-year work into 10.1), so U8 applies only three patches,
@@ -98,7 +98,7 @@ geometry inputs, energy quantity roles and trailing calculation conditions.
 It changes the actual imported copies, including the admitted converter and all
 three math-organ versions. The usage patch does not change extracted binaries
 or grant fresh upstream admission. See
-[`project/USAGE-2026-10-26.md`](../../project/USAGE-2026-10-26.md) for original
+[`project/USAGE-2026-10-26.md`](../../project/history/handoffs/USAGE-2026-10-26.md) for original
 failures, measured outcomes and remaining limits.
 
 The next ordered patch is
@@ -109,7 +109,7 @@ That sidecar currently covers 200 entity/property pairs across 195 entities;
 uncovered date lookups decline rather than treating flattened timestamps as
 exact days. Runtime lookup needs no network. A current Space kernel requires the
 separate Earth-and-Space overlay; the Python patch alone does not replace it.
-See [`project/CONTINUE-2026-10-27.md`](../../project/CONTINUE-2026-10-27.md).
+See [`project/CONTINUE-2026-10-27.md`](../../project/history/handoffs/CONTINUE-2026-10-27.md).
 
 `smoke.py --runtime DIR --adapter DIR/adapter/serve.py --out NEW_DIRECTORY
 --patched` runs five real-engine queries, exact/conflicting retries, shutdown,

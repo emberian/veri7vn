@@ -102,7 +102,7 @@ must be explicit because they change rank, minimum norm or the fit objective.
 
 The RawValue repair passed all 17 contracts and two numerical unit tests on hbox. Heat-balance and spring-fit examples also passed through the combined PyO3 extension. No specialist-panel or hosted deployment claim.
 
-See [central validation](../../native/evidence/2026-10-29-validation.json).
+See [central validation](../../../native/evidence/2026-10-29-validation.json).
 
 ## Domain consumer: steady thermal networks
 

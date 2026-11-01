@@ -128,4 +128,4 @@ Specialist consumer integration and shipped-panel numbers remain outstanding.
 
 Fourteen dimensional contracts passed on hbox, including the partial-zero fallback. Root wired the module, dispatch, catalog metadata, PyO3 and actual host invocation.
 
-See [central validation](../../native/evidence/2026-10-29-validation.json).
+See [central validation](../../../native/evidence/2026-10-29-validation.json).

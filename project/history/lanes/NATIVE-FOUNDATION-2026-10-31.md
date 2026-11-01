@@ -2,7 +2,7 @@
 
 Ember authorized Astra workers to lay the groundwork, followed by Sol iteration.
 Scope: Oracle/veri7vn native architecture and host. No Mini changes. The preceding
-[research synthesis](../scouts/native-2026-10-31/README.md) retains specialist growth,
+[research synthesis](../../scouts/native-2026-10-31/README.md) retains specialist growth,
 source findings, primary literature and the proposed subsequent phases.
 
 ## Working contract
@@ -59,7 +59,7 @@ inputs and what costs they include. Review the combined contracts before broaden
 Independent Astra [source review](NATIVE-FOUNDATION-REVIEW-2026-10-31.md) found and
 resolved a local Image-limit bypass and incomplete rational-search accounting.
 Central validation is recorded in
-[the receipt](../../native/evidence/2026-10-31-foundation-validation.json).
+[the receipt](../../../native/evidence/2026-10-31-foundation-validation.json).
 Central validation completed: 260 distinct tests passed (14 execution, 67 core,
 149 providers, 30 host); four opt-in tests were ignored. All-six-provider Python
 interface compilation passed. The actual local HTTP host and clingo completed
@@ -79,7 +79,7 @@ No specialist-panel gain, release speedup or memory reduction is claimed.
 
 ## Next Sol iteration
 
-Continue from the [research phases](../scouts/native-2026-10-31/README.md), with
+Continue from the [research phases](../../scouts/native-2026-10-31/README.md), with
 architecture and useful computations developed together:
 
 1. Measure release workloads through the actual host: boundary allocation,

@@ -62,7 +62,7 @@ recovery remains separate work.
 | Artifacts/assistance | Managed source review and artifact foundations | Gap-to-example flow, editable code/tests, feedback policy, selected explanation/Film export and actual search-backed assistance |
 | Performance/deployment | Installed baseline, measured launcher and refinement work | Useful optimized backends, scale/tails/RSS/interference, clean upgrade, Linux, licensing and independent recipient use |
 
-The [coverage ledger](../docs/coverage/README.md) covers 305 manifests; full migration
+The [coverage ledger](../../../docs/coverage/README.md) covers 305 manifests; full migration
 completion remains unaccepted. Its 119 domain manifests map to 81 semantic
 profiles, encouraging shared families rather than duplicate implementations.
 Task counts measure organization, not completion percentage.
@@ -106,9 +106,9 @@ remain engineering work.
 
 ## Evidence and navigation
 
-[PLAN.md](PLAN.md) gives priorities and gates; [tasks.json](tasks.json) records
+[PLAN.md](../../PLAN.md) gives priorities and gates; [tasks.json](tasks.json) records
 owners/status and generates [BOARD.md](BOARD.md). [DECISIONS.md](DECISIONS.md)
-retains contracts/migrations. Consult the [residual matrix](../docs/coverage/classification/residual-matrix.md),
-[domain profiles](../docs/coverage/classification/domain-profiles.json),
+retains contracts/migrations. Consult the [residual matrix](../../../docs/coverage/classification/residual-matrix.md),
+[domain profiles](../../../docs/coverage/classification/domain-profiles.json),
 [workbench audit](../docs/workbench/audit/README.md) and
 [recipient rehearsal](../docs/handoff/recipient-rehearsal.md) for detailed scope.

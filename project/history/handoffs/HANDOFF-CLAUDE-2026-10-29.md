@@ -17,12 +17,12 @@ from it, and discuss adoption before spending another long cycle on integration.
 ## Start here
 
 - [Current work and backlog](NATIVE-EXPANSION-2026-10-29.md).
-- [Callable capabilities](../native/docs/CAPABILITIES.md).
-- [Four design experiments](../native/experiments/README.md) and
-  [Astra's source review](../native/experiments/REVIEW.md).
-- [Native hosting](../native/docs/RUNTIME-HOST.md),
-  [package](../native/docs/DISTRIBUTION.md),
-  [remaining Engine migration](../native/docs/MIGRATION.md).
+- [Callable capabilities](../../../native/docs/CAPABILITIES.md).
+- [Four design experiments](../../../native/experiments/README.md) and
+  [Astra's source review](../../../native/experiments/REVIEW.md).
+- [Native hosting](../../../native/docs/RUNTIME-HOST.md),
+  [package](../../../native/docs/DISTRIBUTION.md),
+  [remaining Engine migration](../../../native/docs/MIGRATION.md).
 
 The checkout is `/Users/ember/dev/o7vn`, branch `dev`, remote
 `github.com:emberian/veri7vn.git`. Before this handoff, HEAD was `dae7e48`, pushed.
@@ -104,7 +104,7 @@ limits. They are independent finite-image cases, not a fleet panel score.
 **Storage:** four diagnostic probes show eager flat fragment storage/dedup keys
 consume ~93% of the 2 MiB envelope before semantic admission. One cached region
 contains 1,290 fragments. This is not nested-product work or transient walker
-storage. See [diagnosis](../native/evidence/2026-10-29-composition-byte-diagnosis.json).
+storage. See [diagnosis](../../../native/evidence/2026-10-29-composition-byte-diagnosis.json).
 Proposed fix: exact step/program arena, thin region records, shared provenance,
 one viability record per program, flatten only at existing evaluator/output
 boundaries. Preserve every alternative, child-region witness and guard order;
@@ -117,7 +117,7 @@ plural branch. Combined with a mislabeled “Which calendar month follows March?
 Count example, it produces support 2 for Count under `which X1`, then conflicts
 with the entity answer-form guard. Do not fix this by dropping disagreeing results.
 
-The [source audit](lanes/NFORM-EVIDENCE-2026-10-29.md) has exact training indices,
+The [source audit](../lanes/NFORM-EVIDENCE-2026-10-29.md) has exact training indices,
 source hashes and a small general patch: try canonical plurals before aliases.
 Recovered before/after provenance confirms the legitimate album row moves to
 `which number of X1`. Eight portable regression methods are authored in

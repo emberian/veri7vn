@@ -14,7 +14,7 @@ z-scores, combinations, permutations, binomial probability). Same recipe as the 
 - `tables_check.py`: checks kinds, polygon names and decline sentences against the organs.
 - `score.py`: scores each specialist on its panel and compares with the shipped organ.
 
-Statements, results and reproduction: [lane S11 handoff](../../../project/lanes/S11-geometry-stats.md).
+Statements, results and reproduction: [lane S11 handoff](../../../project/history/lanes/S11-geometry-stats.md).
 
 ## Beyond the shipped versions (Codex, 18 October)
 

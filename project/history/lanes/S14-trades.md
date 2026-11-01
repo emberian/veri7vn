@@ -3,7 +3,7 @@
 Six Oracle7 specialists are one verified HOL kernel over typed trade requests, exported to
 Standard ML and compiled with the MLton inside Isabelle into one 811 KB binary
 (`var/trades/bin/trades`, not committed). Files: `src/extract/trades/`
-([README](../../src/extract/trades/README.md)).
+([README](../../../src/extract/trades/README.md)).
 
 ## Result on the shipped panels (right / wrong / valid withheld / false yes)
 

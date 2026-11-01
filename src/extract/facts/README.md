@@ -55,7 +55,7 @@ After these features, the following selection rules are proved:
 - `order_matters`, `literature_order_matters`: the order of the table is part of the specification.
 - `*_well_formed`: in every table, no guard is empty or repeated, so no row is dead by repetition.
 
-Statements are in the [lane handoff](../../../project/lanes/O19-facts.md).
+Statements are in the [lane handoff](../../../project/history/lanes/O19-facts.md).
 
 The tables are written as SML string literals because Isabelle's `STR ''...''` syntax admits no
 backslash. The ML only builds terms, and each constant is an ordinary definition
@@ -115,7 +115,7 @@ are bound separately in the native receipt; the proved theories match.
 
 Exact proof/native receipts, theorem statements, per-specialist review limits
 and remaining useful extensions are in
-[the continuation report](../../../project/lanes/C-symbolic-facts-humanities.md).
+[the continuation report](../../../project/history/lanes/C-symbolic-facts-humanities.md).
 
 ## Third packet
 
@@ -165,7 +165,7 @@ specialist and family mode. All 383 native/dispatcher/family policy assertions
 pass: pinned counts are 204 supported answers, 176 withheld-valid and three
 malformed-expression refusals. Another 38 explicit unsupported-scope probes
 withhold as expected. Exact statements, receipts and remaining limits are in
-[the source-field report](../../../project/lanes/F-symbolic-facts-fields.md).
+[the source-field report](../../../project/history/lanes/F-symbolic-facts-fields.md).
 
 A final bounded metadata dependency lets the dispatcher replay the same author
 question about a versioned poetry or literature source row. It emits a local

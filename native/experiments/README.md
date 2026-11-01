@@ -21,5 +21,5 @@ The production executor already uses SQL pushdown and shared subplans. A new
 representation must improve a real consumer while preserving its semantics;
 implementation language and the word “streaming” establish neither property.
 Keep the existing implementations as references when choosing a narrow next
-experiment. See the [current backlog](../../project/NATIVE-EXPANSION-2026-10-29.md)
+experiment. See the [current backlog](../../project/history/handoffs/NATIVE-EXPANSION-2026-10-29.md)
 for the work these prototypes do not replace.

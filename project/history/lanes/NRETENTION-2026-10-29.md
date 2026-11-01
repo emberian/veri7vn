@@ -67,7 +67,7 @@ are not silently rebound. No release migration is implemented here.
 ## Checks and outstanding work
 
 The central validator qualified code commit `77731632484d0c7129362dca150eb5310cb70233`
-against its frozen 140-source closure. The [stable appliance validation receipt](../../native/evidence/2026-10-29-stable-appliance-validation.json)
+against its frozen 140-source closure. The [stable appliance validation receipt](../../../native/evidence/2026-10-29-stable-appliance-validation.json)
 records extension SHA-256
 `f875fc2e217cbe5b7b4de196d546b717a105b28e9767b49905570f1893ae2a37`.
 

@@ -14,11 +14,11 @@ hashes and checks:
 
 | Candidate | Recipe | Receipt |
 | --- | --- | --- |
-| U5-v1 | [recipe](../../deploy/appliance/candidate-u5-v1.recipe.json) | [receipt](../../docs/deploy/appliance-u5-v1-2026-10-27.json) |
-| U5-v2 | [recipe](../../deploy/appliance/candidate-u5-v2.recipe.json) | [receipt](../../docs/deploy/appliance-u5-v2-2026-10-27.json) |
-| U6 | [recipe](../../deploy/appliance/candidate-u6.recipe.json) | [receipt](../../docs/deploy/appliance-u6-2026-10-27.json) |
-| U6-v2 | [recipe](../../deploy/appliance/candidate-u6-v2.recipe.json) | [receipt](../../docs/deploy/appliance-u6-v2-2026-10-27.json) |
-| U7 | [recipe](../../deploy/appliance/candidate-u7.recipe.json) | [receipt](../../docs/deploy/appliance-u7-2026-10-27.json) |
+| U5-v1 | [recipe](../../../deploy/appliance/candidate-u5-v1.recipe.json) | [receipt](../../../docs/deploy/appliance-u5-v1-2026-10-27.json) |
+| U5-v2 | [recipe](../../../deploy/appliance/candidate-u5-v2.recipe.json) | [receipt](../../../docs/deploy/appliance-u5-v2-2026-10-27.json) |
+| U6 | [recipe](../../../deploy/appliance/candidate-u6.recipe.json) | [receipt](../../../docs/deploy/appliance-u6-2026-10-27.json) |
+| U6-v2 | [recipe](../../../deploy/appliance/candidate-u6-v2.recipe.json) | [receipt](../../../docs/deploy/appliance-u6-v2-2026-10-27.json) |
+| U7 | [recipe](../../../deploy/appliance/candidate-u7.recipe.json) | [receipt](../../../docs/deploy/appliance-u7-2026-10-27.json) |
 
 U6 predates the cold-reset optimization and refusal of legacy root-level
 `requests.sqlite3`; U6-v2 includes both. U7 adds only lazy catalog loading from

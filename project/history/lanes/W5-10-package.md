@@ -2,7 +2,7 @@
 
 `var/organs/veri7vn-specialists-2026-10-17.tar.gz` (11,189,727 bytes, sha256 `04bb8edca8864f2f...`; not in git).
 Built from veri7vn dev, 18 committed families, 125 specialist folders. Layout and rules:
-[docs/handoff/organ-package.md](../../docs/handoff/organ-package.md). What he reads: `_veri7vn/README.md` in the
+[docs/handoff/organ-package.md](../../../docs/handoff/organ-package.md). What he reads: `_veri7vn/README.md` in the
 package (source `tools/organs/package_readme.md`).
 
 ## Contents

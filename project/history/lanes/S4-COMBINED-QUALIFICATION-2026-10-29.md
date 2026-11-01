@@ -1,7 +1,7 @@
 # S4: the arena and the scalar query, qualified together
 
 Lane S4-COMBINED-QUALIFICATION, 2026-10-29. Not committed; root commits. Consumer: root.
-Receipt: [`native/evidence/2026-10-29-combined-qualification.json`](../../native/evidence/2026-10-29-combined-qualification.json).
+Receipt: [`native/evidence/2026-10-29-combined-qualification.json`](../../../native/evidence/2026-10-29-combined-qualification.json).
 Raw runs: `var/s4-combined/` (macOS, and the Linux results fetched to `var/s4-combined/hbox/`) and
 `/tank/lanes/o7-native-20261029/qualification-combined/` on hbox.
 **Panel numbers: none.** The 116 questions are component checks on one finite image, not a panel score.

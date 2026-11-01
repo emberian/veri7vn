@@ -8,7 +8,7 @@ The [latest native checkpoint](lanes/NATIVE-HOST-2026-11-01.md) and
 retain the implementation and execution evidence. Mini receiving belongs to its team.
 
 The specialist scoreboard remains [BOARD.md](../docs/parity/BOARD.md), with
-scoped correctness repairs in [the appliance record](APPLIANCE-2026-10-26.md).
+scoped correctness repairs in [the appliance record](history/handoffs/APPLIANCE-2026-10-26.md).
 There is no consolidated current fleet score. Historical plans below are evidence
 of earlier decisions, not active lane assignments or current completion claims.
 The frozen revision-2 areas described below remain historical/read-only.
@@ -98,6 +98,6 @@ never embed another.
   non-engineer cannot follow is rewritten, not compressed.
 - Root commits named files often, including red checkpoints marked as such.
 
-[DECISIONS.md](DECISIONS.md) keeps the revision-2 decisions for reference.
-[VALIDATION.md](VALIDATION.md) and [REVIEW.md](REVIEW.md) describe the
+[DECISIONS.md](history/handoffs/DECISIONS.md) keeps the revision-2 decisions for reference.
+[VALIDATION.md](history/handoffs/VALIDATION.md) and [REVIEW.md](history/handoffs/REVIEW.md) describe the
 revision-2 state as of 2026-10-16 and are not updated further.

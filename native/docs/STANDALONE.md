@@ -119,7 +119,7 @@ Linux applies a virtual-address-space limit; macOS reports memory containment as
 unsupported. Neither is an RSS limit or filesystem/network sandbox. CPU limits
 apply to the whole resident worker lifetime, so eventual worker retirement can
 also occur during a call. A later call can create a replacement. The host must
-only admit trusted code. See [the pool contract](../../project/lanes/NNP-native-pool-2026-10-29.md).
+only admit trusted code. See [the pool contract](../../project/history/lanes/NNP-native-pool-2026-10-29.md).
 
 ## Independent qualification
 

@@ -1,7 +1,7 @@
 # Wave 6: make the theorems bind (from the A1 theorem audit, 2026-10-17)
 
 Lane A1 read all 2,234 theorem and lemma statements and sorted them by what they
-promise ([`docs/assurance/theorem-audit.md`](../../docs/assurance/theorem-audit.md)).
+promise ([`docs/assurance/theorem-audit.md`](../../../docs/assurance/theorem-audit.md)).
 Of the 1,725 that claim something, 1,079 (63%) bind the code to something
 independent of it, 471 (27%) restate the code, 15 are empty, 26 lean on a flag the
 untrusted fetch sets, and 134 are worked examples. Three sessions print PASS

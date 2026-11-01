@@ -2,7 +2,7 @@
 
 This board records the historical Oracle7 control comparisons below. Current
 veri7vn changes and scoped scores are tracked in
-[the Codex continuation](../../project/CODEX-2026-10-18.md). Matching a control's
+[the Codex continuation](../../project/history/handoffs/CODEX-2026-10-18.md). Matching a control's
 wrong answer is not a correctness goal; newly found semantic defects are repaired
 and reported separately from these unchanged historical measurements.
 

@@ -2,8 +2,8 @@
 
 Owner: root. Ember authorized a Rust serving runtime with PyO3 and Sol deputies,
 with shared resources and less work by construction. The destination is the
-complete appliance, not a parallel query demo. See the [architecture](../../docs/design/shared-oracle-runtime.md)
-and [source-grounded migration map](../../native/docs/MIGRATION.md).
+complete appliance, not a parallel query demo. See the [architecture](../../../docs/design/shared-oracle-runtime.md)
+and [source-grounded migration map](../../../native/docs/MIGRATION.md).
 
 ## Current implementation
 
@@ -45,13 +45,13 @@ is implemented and contract-tested, but its W574 consumer is still outstanding.
 
 ## Evidence and correctness boundaries
 
-The earlier [288-case relation/concept comparison](../../native/evidence/2026-10-28-linux.json)
-and [foundation validation](../../native/evidence/2026-10-28-validation.json)
-remain historical evidence for the first source/wheel. The [0.2 serving validation](../../native/evidence/2026-10-28-serving-validation.json)
+The earlier [288-case relation/concept comparison](../../../native/evidence/2026-10-28-linux.json)
+and [foundation validation](../../../native/evidence/2026-10-28-validation.json)
+remain historical evidence for the first source/wheel. The [0.2 serving validation](../../../native/evidence/2026-10-28-serving-validation.json)
 records 185 passing Rust checks, 17 Python checks and warnings-denied Clippy.
-The [233-program sample](../../native/evidence/2026-10-28-programs.json) has
+The [233-program sample](../../../native/evidence/2026-10-28-programs.json) has
 225 correct, zero wrong and eight withheld; it exercises all pinned operations.
-The [40-question whole-reader sample](../../native/evidence/2026-10-28-reader.json)
+The [40-question whole-reader sample](../../../native/evidence/2026-10-28-reader.json)
 has 17 correct, zero wrong, 23 unknown and zero operational errors. Indexed
 prefix search replaced exhaustive span subsets: the same sample previously had
 25 combination-limit errors. No limit was raised or alternative hidden.

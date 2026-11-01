@@ -22,7 +22,7 @@ The successful export scans 59 theorem roots with zero oracles. Six new laws sta
 - If useful-fuel-mass inversion answers, `mass × efficiency × NCV × 1000000 = requested joules`, and the mass is nonnegative.
 - `kernel (UnsupportedCondition c) = Decline (UnsupportedModel c)`.
 
-The exact statements and proof bodies are in [Quantity.thy](../../src/extract/quantity/Quantity.thy), named `hydrostatic_absolute_gauge`, `hydrostatic_nonnegative`, `hydrostatic_equivalent_inputs`, `useful_heat_fraction`, `useful_heat_inverse` and `unsupported_condition_declines`. No axioms or admitted proofs were added.
+The exact statements and proof bodies are in [Quantity.thy](../../../src/extract/quantity/Quantity.thy), named `hydrostatic_absolute_gauge`, `hydrostatic_nonnegative`, `hydrostatic_equivalent_inputs`, `useful_heat_fraction`, `useful_heat_inverse` and `unsupported_condition_declines`. No axioms or admitted proofs were added.
 
 First attempt `20261018T082849Z-946f59538731` failed because `values` was used as an Isar fact label despite being a reserved command. Second attempt `20261018T083646Z-c7d7689656ab` exposed two nonnegativity tactic residuals. The useful-heat proof was refactored into explicit numerator/denominator bounds and a separate inverse balance equality; its statements were not weakened.
 
@@ -56,7 +56,7 @@ Temperature point/difference regression remains 236/236 authored checks, with it
 
 ## Concrete controls and their sources
 
-The authored harness [model_inputs_check.py](../../src/extract/quantity/model_inputs_check.py) computes expectations with Python `Fraction`, independently of exported arithmetic. These 20 controls are tied to the equations and exact factors in the named laws above and the existing `scale`, `g0`, `density` and `ncv` tables; they are not an independent experimental validation of the physical reference values.
+The authored harness [model_inputs_check.py](../../../src/extract/quantity/model_inputs_check.py) computes expectations with Python `Fraction`, independently of exported arithmetic. These 20 controls are tied to the equations and exact factors in the named laws above and the existing `scale`, `g0`, `density` and `ncv` tables; they are not an independent experimental validation of the physical reference values.
 
 | Control | Expected result or boundary |
 |---|---|

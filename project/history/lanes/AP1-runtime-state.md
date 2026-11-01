@@ -1,6 +1,6 @@
 # AP1: move vessel state into the configured workspace — 2026-10-26
 
-Root integration, 26 October: included in the tracked appliance patch and the passing real-engine candidate. Proposed upstream in [HF slim #1](https://huggingface.co/psiloceyeben/oracle7-slim/discussions/1), not merged. See [batch results and remaining work](../APPLIANCE-2026-10-26.md). The lane evidence below describes its scoped checks before root integration.
+Root integration, 26 October: included in the tracked appliance patch and the passing real-engine candidate. Proposed upstream in [HF slim #1](https://huggingface.co/psiloceyeben/oracle7-slim/discussions/1), not merged. See [batch results and remaining work](../handoffs/APPLIANCE-2026-10-26.md). The lane evidence below describes its scoped checks before root integration.
 
 The first real stock appliance smoke exposed source-tree writes from vessel
 reception: `self_loop/vessels.json`, `vessels_events.jsonl`, and

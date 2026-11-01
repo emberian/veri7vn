@@ -1,6 +1,6 @@
 # Lane S02-space: orbits, planetary, spacecraft, spacecomms, astronomy x4 (handoff, 2026-10-17)
 
-Eight Oracle7 specialists are one verified HOL kernel (`src/extract/space/`, [README](../../src/extract/space/README.md)), exported to SML and compiled to one 719 KB binary `var/space/bin/space` (not committed). Session `Veri7vn_Space` (base `Veri7vn_Space_Base`), marker `VERI7VN_SPACE PASS`, check-native status `passed`, receipt `var/native-scaffold/sessions/17dc596567f0c27b/receipt.json`.
+Eight Oracle7 specialists are one verified HOL kernel (`src/extract/space/`, [README](../../../src/extract/space/README.md)), exported to SML and compiled to one 719 KB binary `var/space/bin/space` (not committed). Session `Veri7vn_Space` (base `Veri7vn_Space_Base`), marker `VERI7VN_SPACE PASS`, check-native status `passed`, receipt `var/native-scaffold/sessions/17dc596567f0c27b/receipt.json`.
 
 ## Numbers (own scorer per specialist, `tools/parity/harness.py --answerer "var/space/bin/space --specialist {id}" --split both`)
 

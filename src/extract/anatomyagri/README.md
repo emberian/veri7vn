@@ -28,7 +28,7 @@ VERI7VN_GENERATED=/path/from/successful/receipt/anatomyagri.ML sh src/extract/an
 PYTHONDONTWRITEBYTECODE=1 python3 src/extract/anatomyagri/score.py     # has an RSS guard
 ```
 The binary is under `var/anatomyagri/bin/` and is not committed. Results and statements:
-[lane handoff](../../../project/lanes/S10-anatomy-agri.md).
+[lane handoff](../../../project/history/lanes/S10-anatomy-agri.md).
 
 The numeric layout helpers (`digits`, `digit_lit`, `lit`, `strip_zeros`) and the
 Regex/Json SML come from the shared `Veri7vn_Commons` session and
@@ -47,13 +47,13 @@ The proved fit bound relates the returned count to the physical bed area.
 Anatomy handles inverted superlative questions and applies its table only in
 the human domain. Source facts and English interpretation remain untrusted.
 `capabilities.json` declares these limits for dispatch and packaging. Current
-work and receipts are in [C-anatomyagri](../../../project/lanes/C-anatomyagri.md).
+work and receipts are in [C-anatomyagri](../../../project/history/lanes/C-anatomyagri.md).
 
 The current C candidate scores 156/156 shipped items in both specialist and
 family dispatch, versus 154/156 for the re-evaluated shipped organs; all
 wrong and false-yes counts are zero on these panels. Three fresh seeds each
 score 156/156 and 23 targeted probes pass. See
-[C-anatomyagri](../../../project/lanes/C-anatomyagri.md) for assumptions,
+[C-anatomyagri](../../../project/history/lanes/C-anatomyagri.md) for assumptions,
 per-specialist numbers, the 54-theorem zero-oracle receipt and performance.
 
 ## Expected-stand seed planning
@@ -68,7 +68,7 @@ and hectare requests decline.
 The E artifact passes 156/156 shipped items and three fresh panels. All 66
 same-author policy checks pass; capability is 49 right and 17 valid requests
 withheld, with no wrong answers or false yes. See
-[the E report](../../../project/lanes/E-anatomyagri.md) for model statements,
+[the E report](../../../project/history/lanes/E-anatomyagri.md) for model statements,
 compiler binding and the remaining limits.
 
 

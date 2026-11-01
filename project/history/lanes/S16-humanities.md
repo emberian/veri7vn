@@ -2,7 +2,7 @@
 
 Seven shipped Oracle7 specialists are now verified HOL kernels, exported to Standard ML and
 compiled with the MLton inside Isabelle into one 629 KB binary, `var/humanities/bin/humanities`
-(not committed). Files: `src/extract/humanities/` ([README](../../src/extract/humanities/README.md)).
+(not committed). Files: `src/extract/humanities/` ([README](../../../src/extract/humanities/README.md)).
 Commit: `36f1fa4`.
 
 ## Result on the shipped panels

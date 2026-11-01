@@ -23,7 +23,7 @@ a panel touches routes through it.
 
 Until today nobody had recorded what upstream scores on the native reader's
 questions. Lane S3 ran both upstream paths on the same 116
-([receipt](../native/evidence/2026-10-29-upstream-reader-control.json)):
+([receipt](../../../native/evidence/2026-10-29-upstream-reader-control.json)):
 
 | Answerer, 100 retained questions | Correct | Refused | Unknown | Wrong |
 | --- | --- | --- | --- | --- |

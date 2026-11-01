@@ -6,7 +6,7 @@ read code, and spend less time repeating builds and benchmarks. The destination
 remains a coherent native appliance with useful specialists, explicit evidence
 and costs close to the computation itself. Mini is outside this batch.
 
-The preceding [checkpoint](NATIVE-UPSTREAM-CHECKPOINT-2026-10-31.md) is pushed and
+The preceding [checkpoint](../../lanes/NATIVE-UPSTREAM-CHECKPOINT-2026-10-31.md) is pushed and
 sent upstream. This plan follows direct source reading plus four Sol design
 follow-ups; it does not treat their hypotheses as measured bottlenecks.
 
@@ -35,7 +35,7 @@ current Date/quantity and empty-child refusals; changing those rules is a separa
 reviewed semantic change, not a side effect of replacing vectors with handles.
 
 Implementation and correctness are complete for this cycle. The
-[validation receipt](../../native/evidence/2026-10-31-native-cycle-validation.json)
+[validation receipt](../../../native/evidence/2026-10-31-native-cycle-validation.json)
 records 169 unique Rust tests, eight Python recovery cases, nine actual PyO3 calls,
 the runtime-only build, release HTTP LP/GLM and both real clingo modes, and a
 lost-acknowledgement host restart followed by exact replay and six-revision resume.
@@ -45,12 +45,12 @@ The initial failure, repair and a logic-mode harness correction remain recorded.
 
 Code is committed in three reviewable slices: `70f4ca5` (graph/control),
 `14ceb7d` (packed reader), and `64430c7` (typed host/recovery). The single
-[performance comparison](../../native/evidence/2026-10-31-native-cycle-performance.json)
+[performance comparison](../../../native/evidence/2026-10-31-native-cycle-performance.json)
 is complete: encoded-service LP/GLM/small-graph medians changed from 96/180/61
 to 49/85/27 microseconds; the 1,000-vertex chain changed from 2.35 to 1.96 ms.
 Matching semantic replies and response lengths were preserved. Reader latency
 remains about 55–56 ms on the retained question, and the tiny reader's conservative
-memory reservation increased. See [the boundary and limits](../../native/docs/PERFORMANCE.md#typed-service-packed-reader-and-graph-layout).
+memory reservation increased. See [the boundary and limits](../../../native/docs/PERFORMANCE.md#typed-service-packed-reader-and-graph-layout).
 All owned build, host and measurement processes are stopped. Pre-change artifacts remain pinned by
 `native/evidence/2026-10-31-native-expansion-validation.json`.
 

@@ -17,7 +17,7 @@ the local experiment directories described by the lane reports.
 | Inspect evidence claims | [Evidence inspector](evidence/README.md) |
 | Compare paraphrases and boundaries | [Reliability pack](reliability/README.md) |
 | Estimate file transfer time | [Workbench extension](specialist/README.md) |
-| Exercise corrections and follow-ups | [Conversation lane](../../project/lanes/U1-conversation.md) |
+| Exercise corrections and follow-ups | [Conversation lane](../../project/history/lanes/U1-conversation.md) |
 
 These are experimental caller tools and scoped repairs. Explicit local
 calculations are labelled separately from Oracle answers. A successful workflow
@@ -27,7 +27,7 @@ The repaired appliance from this batch is `var/usage-20261026/candidate-final`.
 Pass that directory with `--runtime` to use the repairs. The runner's default
 remains the original baseline so existing recorded experiments and the local
 Workbench extension keep their explicit deployment identity. See the
-[integrated results](../../project/USAGE-2026-10-26.md) and
+[integrated results](../../project/history/handoffs/USAGE-2026-10-26.md) and
 `integration-cases.json` for the final targeted replay.
 
 Run a small, sequential experiment against the packaged candidate:

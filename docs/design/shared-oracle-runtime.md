@@ -33,7 +33,7 @@ These were observations on a loaded host, not latency targets or measurements
 of 10.1, nor an attribution of all private memory to Python objects. SQLite
 caches and native buffers also contribute. Receipts live
 locally in `var/startup-profile/phase-{a,b,c,d}-receipt.json`; interpretation and
-previous experiments are in [U6 startup](../../project/lanes/U6-startup-profile.md).
+previous experiments are in [U6 startup](../../project/history/lanes/U6-startup-profile.md).
 The v7 32-tenant exercise used one Engine, not 32 simultaneous Engines. It showed
 bounded memory, not inexpensive tenant switching or complete state persistence.
 

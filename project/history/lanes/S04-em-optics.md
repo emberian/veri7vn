@@ -2,7 +2,7 @@
 
 Nine Oracle7 specialists are now one verified HOL kernel exported to SML and compiled into
 one 760 KB binary, `var/emoptics/bin/emoptics` (not in git). Files:
-`src/extract/emoptics/` ([README](../../src/extract/emoptics/README.md)).
+`src/extract/emoptics/` ([README](../../../src/extract/emoptics/README.md)).
 
 ## Result on the shipped panels
 

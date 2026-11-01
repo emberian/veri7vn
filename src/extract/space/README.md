@@ -25,7 +25,7 @@ eager runtime constant. That first continuation added no formulas or accepted an
 That continuation retained the existing 80-bit interval precision.
 
 Measured panels, authored probes and limitations are recorded in
-[the continuation report](../../../project/lanes/C-physical-mechanics-space.md).
+[the continuation report](../../../project/history/lanes/C-physical-mechanics-space.md).
 
 ## Signs, dimensions and physical domains
 
@@ -49,7 +49,7 @@ magnitudes in these models. The accepted communications laws bind nonnegative
 results to time times rate, time times light speed, and in-flight content.
 English role assignment remains untrusted.
 
-The [domain report](../../../project/lanes/C-physical-mechanics-space-next.md)
+The [domain report](../../../project/history/lanes/C-physical-mechanics-space-next.md)
 records proof status, actual measurements and remaining limits. Build scripts
 use immutable compiler-input capture. Requested astronomy output-unit
 conversion remains outstanding. Interval evaluation now tries 32-bit precision
@@ -58,7 +58,7 @@ enclosure. Either accepted branch satisfies the original error bound, and every
 successful 80-bit enclosure remains answerable. Near-equal Hohmann transfers
 exercise the fallback in the build-time self test.
 
-The [adaptive report](../../../project/lanes/F-physical-space-adaptive.md) records
+The [adaptive report](../../../project/history/lanes/F-physical-space-adaptive.md) records
 the actual native timings and comparisons. The decimal need not be identical
 to the 80-bit answer: both satisfy the proved numerical bound. An existing
 valid refusal for free-space path loss at 1 GHz over 1 km motivated the
@@ -101,4 +101,4 @@ periods or unexplained conditions. It uses table defaults only after the count
 and both planets are explicit. Conversion text shows twelve significant digits;
 the established numeric reply field retains six. English interpretation and
 supplied data remain unproved. Measurements and integration status are in
-[the native conversion report](../../../project/lanes/U2-mars-native.md).
+[the native conversion report](../../../project/history/lanes/U2-mars-native.md).

@@ -2,7 +2,7 @@
 
 The standalone Linux appliance now runs supported cross-provider conversations
 through restart, alongside the native providers and two supplied-data consumers.
-The [central receipt](../../native/evidence/2026-10-31-coherent-native-validation.json)
+The [central receipt](../../../native/evidence/2026-10-31-coherent-native-validation.json)
 records exact artifacts, source overlays, failures and execution scope. This is a
 usable checkpoint; complete Engine migration and modeling specialist admission
 remain open.
@@ -31,7 +31,7 @@ physics declines restore committed owners before returning a captured refusal.
 Source, codec, restoration and capture failures remain operational failures.
 Astra reviewed these seams and the reader/consumer contracts in the
 [state review](COHERENT-STATE-REVIEW-2026-10-31.md) and
-[reader review](COHERENT-READER-REVIEW-2026-10-31.md).
+[reader review](../../lanes/COHERENT-READER-REVIEW-2026-10-31.md).
 
 ## Actual results
 
@@ -63,7 +63,7 @@ still succeeds. No full KQA coverage or general Engine restoration is implied.
 Local Linux archive: `var/coherent-native-20261031/release/oracle-host-coherent-linux.tar.gz`.
 SHA256: `1634fa7eeb76da5eca1c3e4535888f1230cbc566e828e3b65160dd626d6fc5f1`.
 Host SHA256: `0bd5ea0c73348778387908ca2a5157ee79b41e1ea423f1c6589a50f3cf231289`.
-The [distribution guide](../../native/docs/DISTRIBUTION.md) explains native-only
+The [distribution guide](../../../native/docs/DISTRIBUTION.md) explains native-only
 use and external image, Engine and state configuration. The artifact is unsigned,
 nonhermetic and independent of Mini; no public service or Mini release was deployed.
 
@@ -99,7 +99,7 @@ raised. Head-relative DOMAIN/FALSEYES and complete six-criterion admission remai
 incomplete. The useful next fix is explicit bounded readiness and manufactured,
 source-bound shared reader artifacts, while moving the already enumerated routes
 to native/extracted kernels and direct shared-store adapters. Other remaining
-work is kept in the [live roadmap](../../native/docs/ROADMAP.md), including history
+work is kept in the [live roadmap](../../../native/docs/ROADMAP.md), including history
 policy, wider reader coverage, prepared computation and upstream adoption.
 
 The code and qualification were [shared upstream](https://huggingface.co/psiloceyeben/oracle7-slim/discussions/5#6ae6629d730eabe558c0fb89)

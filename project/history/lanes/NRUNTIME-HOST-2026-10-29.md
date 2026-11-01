@@ -8,7 +8,7 @@ reply journal contracts.
 
 ## Final qualified checkpoint
 
-The [stable appliance validation](../../native/evidence/2026-10-29-stable-appliance-validation.json)
+The [stable appliance validation](../../../native/evidence/2026-10-29-stable-appliance-validation.json)
 records the frozen index tree `1909f489dde610b76dacecae0aecb4a54c2bf2d2`, qualified
 code commit `77731632484d0c7129362dca150eb5310cb70233`, and final extension SHA-256
 `f875fc2e217cbe5b7b4de196d546b717a105b28e9767b49905570f1893ae2a37`.
@@ -126,7 +126,7 @@ Worker retirement removes only pool-owned snapshots, never the operator's
 persistent journal. Runtime children permit bounded per-file writes for that
 journal; pure-only children retain zero-write RLIMIT_FSIZE. This is not a total
 filesystem quota. Core state, session, journal-entry and retired-namespace bounds
-also apply. [Host-only namespace retirement](../../native/docs/RETENTION.md) is a
+also apply. [Host-only namespace retirement](../../../native/docs/RETENTION.md) is a
 separate explicit maintenance action. Its admitted admin operations never enter
 tenant HTTP discovery or dispatch.
 

@@ -131,16 +131,16 @@ platforms after removing timing. Earlier measured steady p50 is 0.41–0.48ms co
 so the 20ms cold-start target remains unmet. These standalone results do not
 claim completion of all six head-composition criteria.
 
-The [initial lane report](../../../project/lanes/C-symbolic-stores.md) contains
+The [initial lane report](../../../project/history/lanes/C-symbolic-stores.md) contains
 exact theorem statements, both fresh-seed comparisons, receipts, known limits
 and package/dispatcher integration results.
-The [counted-serving follow-up](../../../project/lanes/D-symbolic-stores.md)
+The [counted-serving follow-up](../../../project/history/lanes/D-symbolic-stores.md)
 records explicit sizes, finite portion-group validation, the warehouse reference
 repair, and their measured results.
 
-The [exact quantity-role follow-up](../../../project/lanes/E-symbolic-stores.md)
+The [exact quantity-role follow-up](../../../project/history/lanes/E-symbolic-stores.md)
 records shared numeric-token consumption, the repaired scientific-notation
 default-serving fault, final artifact bindings and independently calculated probes.
 
-The [whole-order follow-up](../../../project/lanes/F-symbolic-stores.md) records
+The [whole-order follow-up](../../../project/history/lanes/F-symbolic-stores.md) records
 quantity/item binding, unchanged-state refusals, transaction tests and its limits.

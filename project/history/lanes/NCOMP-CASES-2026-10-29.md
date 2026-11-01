@@ -134,7 +134,7 @@ to remove alternatives, elect a support winner or stop after a direct answer.
 
 ## Original frozen-cohort result
 
-The [retained targeted receipt](../../native/evidence/2026-10-29-targeted-composition.json) records exit 1 and `qualified: false`. The original script SHA-256 is `d87b77c5f19d0e01de7ceb8258eb69ea562ff889ee4cd53175bed17f76d56195`; the original cohort SHA-256 is `388810fd2d99c1f25e2e53b0e906e21669915c7836a8fd1524967d755862b853`. Questions, expected facts, artifacts and bounds have not changed after observing results.
+The [retained targeted receipt](../../../native/evidence/2026-10-29-targeted-composition.json) records exit 1 and `qualified: false`. The original script SHA-256 is `d87b77c5f19d0e01de7ceb8258eb69ea562ff889ee4cd53175bed17f76d56195`; the original cohort SHA-256 is `388810fd2d99c1f25e2e53b0e906e21669915c7836a8fd1524967d755862b853`. Questions, expected facts, artifacts and bounds have not changed after observing results.
 
 All 16 independent source expectations and learned-wording requirements passed before native execution. The old artifact produced ten unanswered positives and six expected declines. The new artifact produced one correct answer, seven unanswered positives with `answer_form`, four expected declines and four operational `composition bytes` errors. Neither artifact returned a wrong answer. The intended single-filter control also declined on both versions; its expected source fact remains unchanged.
 
@@ -160,7 +160,7 @@ gone: 2 correct, 6 expected declines, 8 unanswered, 0 wrong, 0 errors, against
 1, 4, 7, 0, 4 for the control. The eight unanswered positives still end in
 `answer_form`, so the cohort's positive questions are not met. The 100-question
 reader sample is unchanged at 36, 4, 60, 0, 0. Receipt:
-[combined qualification](../../native/evidence/2026-10-29-combined-qualification.json);
+[combined qualification](../../../native/evidence/2026-10-29-combined-qualification.json);
 report: [S4](S4-COMBINED-QUALIFICATION-2026-10-29.md).
 
 ## Diagnosis boundary
@@ -174,7 +174,7 @@ The byte-error mechanism is not yet established. All four failures involve `head
 
 ## Completed storage diagnosis
 
-The [four-case diagnostic](../../native/evidence/2026-10-29-composition-byte-diagnosis.json)
+The [four-case diagnostic](../../../native/evidence/2026-10-29-composition-byte-diagnosis.json)
 completed before handoff. Every failure occurs in region syntax, before semantic
 admission. Fragment storage plus active deduplication keys accounts for about
 1,951,000 bytes, roughly 93% of the unchanged 2 MiB envelope; units account for

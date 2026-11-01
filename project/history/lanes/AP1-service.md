@@ -1,6 +1,6 @@
 # AP1: private Oracle computation adapter — 2026-10-26
 
-Root integration: the bundled adapter now passes the five-query real-Engine candidate smoke, including retry/restart and unchanged runtime files. Earlier lane-only limits below are superseded by the [batch integration record](../APPLIANCE-2026-10-26.md) for those measured cases. Mini authority integration and deployment remain outstanding.
+Root integration: the bundled adapter now passes the five-query real-Engine candidate smoke, including retry/restart and unchanged runtime files. Earlier lane-only limits below are superseded by the [batch integration record](../handoffs/APPLIANCE-2026-10-26.md) for those measured cases. Mini authority integration and deployment remain outstanding.
 
 Implemented by the appliance-service lane. Root integrates and commits.
 

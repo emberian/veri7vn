@@ -15,7 +15,7 @@ It used the existing packaged Linux Python and root filesystem, with 26 links
 into that public-data mount; no large data copy or Mini Store mutation.
 
 The runner was `tools/usage/tenancy/pool_probe.py`, with source hashes in the
-[compact evidence](../../tools/usage/tenancy/u7-20261027-summary.json). It checked:
+[compact evidence](../../../tools/usage/tenancy/u7-20261027-summary.json). It checked:
 
 - 32 tenants completed different arithmetic questions using the same request
   and conversation IDs. All 32 exact retries returned identical bytes; all 32

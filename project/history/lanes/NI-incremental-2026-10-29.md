@@ -86,7 +86,7 @@ this implementation. See crate README for source links and boundaries.
 
 All ten semantics tests passed on hbox. The actual PyO3 call passed the support/cycle example. The 48-node/80-version benchmark matched every delta and answer but took 74.234 ms versus 7.556 ms for fresh BFS; no incremental speedup is claimed.
 
-See [central validation](../../native/evidence/2026-10-29-validation.json).
+See [central validation](../../../native/evidence/2026-10-29-validation.json).
 
 ## Second batch: fixed-root views and bounded strategy selection
 

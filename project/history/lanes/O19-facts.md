@@ -8,7 +8,7 @@ The tables hold 417 rows. Everything is exported to SML and compiled with Isabel
 MLton into one binary, `var/facts/bin/facts` (334,536 bytes, not in git). The binary
 speaks the answerer contract, with `--specialist ID` for one manifest. With no
 argument it asks the whole family in order.
-Files: `src/extract/facts/` ([README](../../src/extract/facts/README.md)).
+Files: `src/extract/facts/` ([README](../../../src/extract/facts/README.md)).
 
 ## Result on the shipped panels
 

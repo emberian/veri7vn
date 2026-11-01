@@ -1,6 +1,6 @@
 # AP1: record the reply actually delivered
 
-Root integration, 26 October: included in the tracked appliance patch and the passing real-engine candidate. Proposed upstream in [HF slim #1](https://huggingface.co/psiloceyeben/oracle7-slim/discussions/1), not merged. See [batch results and remaining work](../APPLIANCE-2026-10-26.md). The lane evidence below describes its scoped checks before root integration.
+Root integration, 26 October: included in the tracked appliance patch and the passing real-engine candidate. Proposed upstream in [HF slim #1](https://huggingface.co/psiloceyeben/oracle7-slim/discussions/1), not merged. See [batch results and remaining work](../handoffs/APPLIANCE-2026-10-26.md). The lane evidence below describes its scoped checks before root integration.
 
 26 October 2026. Source: Oracle7 slim `083e3a6c`, private contribution checkout
 `var/ap1-upstream-slim`. Owner: Codex `runtime_outcome_fix`. Root owns Git and

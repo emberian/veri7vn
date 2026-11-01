@@ -71,13 +71,13 @@ external effect executors remain. New hosted supplied-data workflow panels pass
 16 calibration, nine thermal-scenario, 17 sequence-search and four exact-blend
 cases, with no wrong answers or false acceptance. They are manufactured workflow
 cases, not results on the shipped specialist exams. Their source and limitations
-are linked from the [first Sol checkpoint](../project/lanes/NATIVE-SOL-WAVE-2026-10-31.md).
+are linked from the [first Sol checkpoint](../project/history/lanes/NATIVE-SOL-WAVE-2026-10-31.md).
 The [migration map](docs/MIGRATION.md) describes these gaps; the
 [roadmap](docs/ROADMAP.md) names the next work. Handwritten Rust contracts do not
 inherit Isabelle proofs. [Resident connected-MST checking](../src/extract/discrete-certificate/README.md)
 has its own theorem scope and receipt admission.
 
-The [coherent appliance checkpoint](../project/lanes/COHERENT-NATIVE-2026-10-31.md)
+The [coherent appliance checkpoint](../project/history/lanes/COHERENT-NATIVE-2026-10-31.md)
 adds supplied-data modeling (28/28 panel cases) and evidence-driven thermal
 revision (8/8 workflow checks). Its relocated release passed calls through all
 six pure providers, the data runtime and the real pinned Engine. That run stopped

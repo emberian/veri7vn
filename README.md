@@ -15,7 +15,7 @@ intended algorithms are active work.
 
 Specialist repairs cover dropped signs, lost units, mistaken subjects and
 answers to the wrong requested quantity, including cases absent from the shipped
-tests. See the [specialist record](project/APPLIANCE-2026-10-26.md),
+tests. See the [specialist record](project/history/handoffs/APPLIANCE-2026-10-26.md),
 [current native work](native/docs/ROADMAP.md), and archived lane history under
 `project/history/`.
 
@@ -142,7 +142,7 @@ interference with other routes, identity handling and latency.
 | Dialogue scorer | 236 of 237 recorded Oracle7 verdicts reproduced | this tests the scorer, not veri7vn's dialogue ability; the scout kernel itself scored 161/237 |
 
 Some recorded runs contain wrong answers. Family repairs do not establish a
-clean fleet result; the [18 October record](project/CODEX-2026-10-18.md)
+clean fleet result; the [18 October record](project/history/handoffs/CODEX-2026-10-18.md)
 explains the corrections and outstanding work from those runs.
 
 In the earlier fleet measurement, 19 binaries occupied 12 MiB on disk, started

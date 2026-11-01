@@ -3,7 +3,7 @@
 Oracle7's `network_v3` planner is now a function proved in Isabelle/HOL, and it is compiled into
 a standalone binary. The planner chains specialists through a pool of typed quantities, and
 lane G's verified quantity kernel supplies the specialists. Files: `src/extract/fusion/`
-([README](../../src/extract/fusion/README.md)) and `tools/fusion/`.
+([README](../../../src/extract/fusion/README.md)) and `tools/fusion/`.
 
 ## Result
 

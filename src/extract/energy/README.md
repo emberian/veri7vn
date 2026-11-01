@@ -47,7 +47,7 @@ an answer with no number; otherwise the value. `mk_exact`, `mk_pi`, `mk_fixed` a
 `mk_decline` say what each outcome means; each family states its defining equations on top
 (`carnot_law`, `gas_*_law`, `radiated_power_law`, `payback_law`, `runtime_law`, `ach_law`,
 `conduction_law`, `capacity_factor_law`, `wind_power_*_law`, `adc_code_law`, `battery_life_law`,
-and so on). Statements: [the handoff](../../../project/lanes/S06-energy.md).
+and so on). Statements: [the handoff](../../../project/history/lanes/S06-energy.md).
 
 Stated values are rounded with a proved bound (`num_dec_r_sound`): `%.4g` for thermo, `%.4g`
 below a million and whole above for home energy, and so on per organ (the `nfmt` layouts).

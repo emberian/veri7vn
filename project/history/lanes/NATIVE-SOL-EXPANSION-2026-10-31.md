@@ -104,6 +104,6 @@ representations and eliminating repeated work take priority over raising limits.
 
 The validated source and documentation are committed and pushed as `feca38a`.
 The immutable review cut is published in upstream discussion #5, and the plural
-comparison is posted to #10. The [upstream checkpoint](NATIVE-UPSTREAM-CHECKPOINT-2026-10-31.md)
+comparison is posted to #10. The [upstream checkpoint](../../lanes/NATIVE-UPSTREAM-CHECKPOINT-2026-10-31.md)
 records publication links, the separate binomial support correction and the
 remaining implementation queue.

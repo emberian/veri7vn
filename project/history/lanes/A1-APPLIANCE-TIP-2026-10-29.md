@@ -8,8 +8,8 @@ The appliance recipe built Oracle7 slim 4.9 plus our local repairs. It now
 builds slim **10.1** (`c473d28914e480425adb29b4f7f42485b8cfb4e3`, head
 `oracle_release_runtime_w574`). The new local candidate is **U8**, at
 `var/appliance-20261029/candidate-u8`, receipt
-[`docs/deploy/appliance-2026-10-29.json`](../../docs/deploy/appliance-2026-10-29.json),
-recipe [`deploy/appliance/candidate-u8.recipe.json`](../../deploy/appliance/candidate-u8.recipe.json).
+[`docs/deploy/appliance-2026-10-29.json`](../../../docs/deploy/appliance-2026-10-29.json),
+recipe [`deploy/appliance/candidate-u8.recipe.json`](../../../deploy/appliance/candidate-u8.recipe.json).
 
 The brief expected U4 v2 and nine patches. The newest 4.9 composition was in fact
 **U7** (signed version 7), with eight deploy patches, three geometry patches

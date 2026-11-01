@@ -131,7 +131,7 @@ On hbox, `CARGO_BUILD_JOBS=2` and the warm shared target ran:
 - The Python reasoning adapter contracts: 24 passed. These use a fake module and do not establish native mathematics.
 - Standalone service contracts with the actual immutable combined extension: 10 passed, no skips. The actual CLI journey launched, discovered and called the chemistry operation with Fe(II), Fe(III) and an explicit electron; it returned coefficients `[1,1,1]`. The service shut down and repeated the journey after fresh startup. Existing graph/science/incremental calls also passed.
 
-[The central receipt](../../native/evidence/2026-10-29-chemistry-validation.json)
+[The central receipt](../../../native/evidence/2026-10-29-chemistry-validation.json)
 retains commands, complete scoped logs, source hashes and extension hash
 `495f67dd6207cb23b11ccd98540acf89c74a726131cbe13ea7658e76f56e5d79`.
 The reused combined binary includes unfinished reader/runtime work. This

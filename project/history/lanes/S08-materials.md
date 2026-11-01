@@ -2,7 +2,7 @@
 
 Six specialists as one verified HOL kernel, exported to SML, compiled with MLton into
 `var/materials/bin/materials` (775,144 bytes, arm64, not committed; cold start 3.5 to 5.2 ms).
-Files: `src/extract/materials/` ([README](../../src/extract/materials/README.md)).
+Files: `src/extract/materials/` ([README](../../../src/extract/materials/README.md)).
 
 ## Result (own scorer of each shipped panel; right / wrong / valid withheld / false yes)
 

@@ -36,7 +36,7 @@ two tests do detect the defect; the other six pass on both and show the patch
 leaves those behaviors unchanged. No test or patch was edited.
 `outer_provenance.py --help` parses and exits 0; it was not run for real.
 
-Receipt: [plural-first regressions](../../native/evidence/2026-10-29-plural-first-regressions.json).
+Receipt: [plural-first regressions](../../../native/evidence/2026-10-29-plural-first-regressions.json).
 
 ## Changed files
 

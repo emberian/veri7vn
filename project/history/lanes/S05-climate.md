@@ -1,6 +1,6 @@
 # Lane S05-climate: carboncapture, airquality, climate, carbonmat, coldchain, coldchain-v2 (handoff, 2026-10-17)
 
-One verified HOL kernel (`src/extract/climate/`, [README](../../src/extract/climate/README.md)),
+One verified HOL kernel (`src/extract/climate/`, [README](../../../src/extract/climate/README.md)),
 session `Veri7vn_Climate` on `Veri7vn_Climate_Base`. Marker `VERI7VN_CLIMATE PASS theorems=79 oracles=0`
 (check-native status `passed`, receipt `var/native-scaffold/sessions/a189cc5b3e795fb9/receipt.json`).
 Binary `var/climate/bin/climate`, 619,816 bytes, cold start about 42 ms, MLton from Isabelle2026-RC1.

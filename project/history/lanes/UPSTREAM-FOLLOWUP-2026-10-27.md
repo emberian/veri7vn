@@ -43,7 +43,7 @@ versus fallthrough. They also report another A3 volume-as-length correction.
 
 The described date fallback renders non-first days from 1583 as exact dates,
 first days as months and 1 January as years. Digits cannot reconstruct discarded
-precision, calendar, qualifiers or rank. Keep the [source-bound importer](../../tools/usage/dates/README.md)
+precision, calendar, qualifiers or rank. Keep the [source-bound importer](../../../tools/usage/dates/README.md)
 contract and extend its coverage. Raw-literal inspection can be useful with
 metadata explicitly unknown; it must not silently establish date ordering or
 publication-year premises. This is policy feedback; unpublished v37d was not

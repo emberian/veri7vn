@@ -46,7 +46,7 @@ bounds the error at one part in a thousand, `spring_period_model` proves
 `T^2 k = 4 pi^2 m`, and `spring_frequency_model` proves `f T = 1`. The kernel declines as underspecified exactly when an amount is
 missing, as a mismatch exactly when the dimensions are wrong (metres to kilograms), and
 as impossible exactly when the input is impossible (below absolute zero, or a zero
-spring constant or stretch). Statements: [lane G handoff](../../../project/lanes/G-quantity.md).
+spring constant or stretch). Statements: [lane G handoff](../../../project/history/lanes/G-quantity.md).
 
 Stated values are rounded with a proved bound (`stated_dec_sound`). Conversions use ten
 significant digits, or the exact whole number with the exact fraction alongside, as
@@ -107,7 +107,7 @@ the same value within the scorer's tolerance. The current binary is 563,632 byte
 7.5 ms. The median time per question is under 0.2 ms, against a budget of 50 ms.
 The final continuation also passes 44 quantity/variant probes and every item in
 fresh panels generated with reserved seeds 2026101891 and 2026101892. Details:
-[continuation report](../../../project/lanes/C-physical-quantity-sound.md).
+[continuation report](../../../project/history/lanes/C-physical-quantity-sound.md).
 
 ## Exact numeral interpretation
 
@@ -117,7 +117,7 @@ including leading-dot decimals and Unicode minus. Malformed or over-limit
 numeric runs fall through; their suffixes are never treated as a different
 number. The role recognizer binds the resulting exact fractions to the physical
 request. This improves interpretation but does not make English parsing a proof.
-See [semantic continuation](../../../project/lanes/C-physical-quantity-sound-next.md)
+See [semantic continuation](../../../project/history/lanes/C-physical-quantity-sound-next.md)
 for domain-specific sign rules, panel results and remaining limitations.
 
 Explicit temperature differences use the checked `ConvertDelta` request and the
@@ -136,7 +136,7 @@ and checks the supplied quantities. Useful delivered fuel heat and its inverse
 fuel mass use a separate bounded delivery efficiency. Stated moisture, reference
 state changes and unread model conditions yield `unsupported_model` rather than
 silently reusing defaults. Existing constructors remain available to Fusion.
-See [the model-input report](../../../project/lanes/C-physical-quantity-model-inputs.md)
+See [the model-input report](../../../project/history/lanes/C-physical-quantity-model-inputs.md)
 for exact laws, scorer totals, bound native manifests and remaining capabilities.
 
 ## Energy unit completion
@@ -147,7 +147,7 @@ MJ differ by a billion, as do mWh and MWh. Spelled unit names remain case
 insensitive; ambiguous lowercase mj/mwh are withheld. Source and target unit
 roles must be complete, so a rate or product suffix cannot be dropped. Values
 are converted in the HOL kernel. See
-[energy-unit report](../../../project/lanes/C-physical-quantity-energy-units.md)
+[energy-unit report](../../../project/history/lanes/C-physical-quantity-energy-units.md)
 for the current proof, panel and consumer status.
 
 ## Optional numerical unit metadata

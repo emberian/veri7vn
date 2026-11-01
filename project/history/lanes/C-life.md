@@ -130,7 +130,7 @@ and performance win while that work proceeds separately.
 The D candidate supersedes the C executable above. It repairs the listed
 strand and CFU defects and matches distinct genetic loci by identity, allowing
 parents and target genotypes in different orders without accepting duplicates.
-All six specialists have a maintained [semantic gap ledger](../../src/extract/life/semantic-gaps.md).
+All six specialists have a maintained [semantic gap ledger](../../../src/extract/life/semantic-gaps.md).
 
 The exported `bio_input` normalizes template/coding role and 3-prime/5-prime
 direction. Binding statements prove that template input written 3-prime to

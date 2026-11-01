@@ -3,7 +3,7 @@
 Nine shipped Oracle7 specialists (`physics`, `physics-r2`, `physics-r3`, `mechanisms`, `mechanisms-v2`,
 `bodies-v2`, `sports`, `fleet`, `fluids-r2`) are now one verified HOL kernel, exported to Standard ML and
 compiled with the MLton inside Isabelle into one 654 KB binary that speaks the answerer contract.
-Files: `src/extract/mechanics/` ([README](../../src/extract/mechanics/README.md)).
+Files: `src/extract/mechanics/` ([README](../../../src/extract/mechanics/README.md)).
 
 ## Result on the shipped panels
 

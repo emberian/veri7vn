@@ -43,7 +43,7 @@ The shared quantity reader now consumes explicit unsupported density state
 conditions for `densities-r2`, and its base family supports typed hydrostatic
 inputs and useful fuel heat. The native build includes the shared measurement
 adapter and retains the derived recognizer as a distinct captured compiler input.
-See [the model-input report](../../../project/lanes/C-physical-quantity-model-inputs.md).
+See [the model-input report](../../../project/history/lanes/C-physical-quantity-model-inputs.md).
 
 ## Energy unit completion
 
@@ -53,5 +53,5 @@ MJ differ by a billion, as do mWh and MWh. Spelled unit names remain case
 insensitive; ambiguous lowercase mj/mwh are withheld. Source and target unit
 roles must be complete, so a rate or product suffix cannot be dropped. Values
 are converted in the HOL kernel. See
-[energy-unit report](../../../project/lanes/C-physical-quantity-energy-units.md)
+[energy-unit report](../../../project/history/lanes/C-physical-quantity-energy-units.md)
 for the current proof, panel and consumer status.

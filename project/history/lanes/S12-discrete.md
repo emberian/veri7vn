@@ -1,6 +1,6 @@
 # Lane S12-discrete: games-v3, logic-v3, dataformats, algorithms, calculus (handoff, 2026-10-17)
 
-Five specialists as one verified HOL family kernel, SML-exported, one 890,024-byte MLton binary `var/discrete/bin/discrete` (not committed; cold start 3-5 ms). Files: `src/extract/discrete/` ([README](../../src/extract/discrete/README.md)). Commits: kernel `3f7daa8`, recognizer and scoring in the follow-up commit.
+Five specialists as one verified HOL family kernel, SML-exported, one 890,024-byte MLton binary `var/discrete/bin/discrete` (not committed; cold start 3-5 ms). Files: `src/extract/discrete/` ([README](../../../src/extract/discrete/README.md)). Commits: kernel `3f7daa8`, recognizer and scoring in the follow-up commit.
 
 ## Result (lane's score.py and tools/parity/harness.py agree; right / wrong / valid withheld / false yes)
 

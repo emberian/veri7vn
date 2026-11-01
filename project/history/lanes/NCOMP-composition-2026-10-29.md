@@ -190,8 +190,8 @@ correct answer with a measured latency cost, not general reader parity.
 The gained answer, source case 10205, was independently checked against every
 relevant Matt Lucas education, public-university and University of Bristol
 qualifier candidate. Exact retained results, scope and artifact identities are
-in [language/chemistry reader evidence](../../native/evidence/2026-10-29-language-chemistry-reader.json)
-and [central domain validation](../../native/evidence/2026-10-29-language-chemistry-domains-validation.json).
+in [language/chemistry reader evidence](../../../native/evidence/2026-10-29-language-chemistry-reader.json)
+and [central domain validation](../../../native/evidence/2026-10-29-language-chemistry-domains-validation.json).
 No new theorem or specialist-panel score is claimed. The real Image/Runtime
 language consumer is integrated; segment/nested/fallback/analogy and clause/date
 coverage remain outstanding.

@@ -34,7 +34,7 @@ The next Ocean packet preserves full signed quantities, adds scalar-model
 physical feasibility, and distinguishes deep-water group velocity from phase
 velocity. The checked D candidate passes its panels and exact composed probes; the
 selected C delivery remains independently captured pending D integration. See
-[the D report](../../../project/lanes/D-earth.md) for exact state and model limits.
+[the D report](../../../project/history/lanes/D-earth.md) for exact state and model limits.
 
 Meteorology v2 adds the `meteorology-v2` specialist ID and makes it the default
 weather reader in the Earth family. The legacy `meteorology` ID uses the same

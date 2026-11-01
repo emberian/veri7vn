@@ -8,7 +8,7 @@ not an execution receipt or specialist admission.
 **Specialist panel numbers: none from this review.** No builds, tests, host
 requests or original examiner runs were performed. The original negative
 admission and its defective composed-control gold remain as recorded in
-[MODELING-ADMISSION-2026-10-31.md](MODELING-ADMISSION-2026-10-31.md).
+[MODELING-ADMISSION-2026-10-31.md](../../lanes/MODELING-ADMISSION-2026-10-31.md).
 
 ## What was checked
 

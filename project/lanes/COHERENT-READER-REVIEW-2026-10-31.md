@@ -1,7 +1,7 @@
 # Reader and supplied-model review, 31 October 2026
 
 Central execution after this source review is recorded in the
-[coherent checkpoint](COHERENT-NATIVE-2026-10-31.md) and its receipt.
+[coherent checkpoint](../history/lanes/COHERENT-NATIVE-2026-10-31.md) and its receipt.
 
 Reviewer: Astra reader/domain lane. Source review only: no builds, tests, commits
 or specialist panel runs. There are no new panel numbers or theorem claims.

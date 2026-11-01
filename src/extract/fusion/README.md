@@ -67,7 +67,7 @@ argument of the planner. The last theorem ties the actual nodes to lane G's kern
 | `surface_gravity_node`, `planet_weight_node` | On a body of M Earth masses and R Earth radii, gravity times R squared is 9.81 M, and weight times R squared is the mass times 9.81 M, both lane S02's kernel values as the planetary specialist states them. |
 | `fnode_lane_g` | The four lane G specialists are still lane G's nodes. |
 
-The exact statements are in the [lane H handoff](../../../project/lanes/H-fusion.md). The build
+The exact statements are in the [lane H handoff](../../../project/history/lanes/H-fusion.md). The build
 fails if any theorem in that list relies on an unchecked step, or if the self test fails
 (`Fusion_Export.thy`).
 
@@ -159,7 +159,7 @@ must copy `tools/fusion/numeric.py` beside `answerer.py`.
 
 The figures below are the earlier H/H2 capture. The current numeric and zero-
 magnitude repair, its selected proof inputs and actual checks are reported in
-[D-runtime-fusion](../../../project/lanes/D-runtime-fusion.md). In particular,
+[D-runtime-fusion](../../../project/history/lanes/D-runtime-fusion.md). In particular,
 domain-refusal wording now describes the model's restriction, and small nonzero
 answers are no longer rounded to zero before significant-digit formatting.
 
@@ -177,5 +177,5 @@ In that capture, the 12 questions that Oracle7's network refused as impossible
 (26 hours in a day, a negative fall height) were refused with the same text.
 There were no changed verdicts on the 26 specialist panels of the four families
 it called (2,701 items). Details are in the
-[lane H handoff](../../../project/lanes/H-fusion.md) and the
-[lane H2 handoff](../../../project/lanes/H2-fusion.md).
+[lane H handoff](../../../project/history/lanes/H-fusion.md) and the
+[lane H2 handoff](../../../project/history/lanes/H2-fusion.md).

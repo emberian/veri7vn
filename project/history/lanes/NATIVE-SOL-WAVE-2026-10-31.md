@@ -3,7 +3,7 @@
 Ember authorized Sol follow-up to the Astra foundation, with architecture,
 specialist consumers and measurement progressing together. Baseline foundation
 is `f0dfad7`; its pre-foundation comparison is `01b0fbd`. The
-[research synthesis](../scouts/native-2026-10-31/README.md) supplies source findings
+[research synthesis](../../scouts/native-2026-10-31/README.md) supplies source findings
 and literature. Mini work is outside scope.
 
 ## Ownership and execution

@@ -101,8 +101,8 @@ untrusted, and the joint reader currently binds Hz, m/s and Celsius.
 The folder `oracle7-organ/` wraps the binary as an Oracle7 specialist
 (`acoustics-veri7vn`). Exact theorem statements, source/native manifests,
 scoring receipts and remaining limits are in the
-[motion report](../../../project/lanes/C-physical-acoustic-motion.md).
-The earlier [continuation report](../../../project/lanes/C-physical-quantity-sound.md)
+[motion report](../../../project/history/lanes/C-physical-acoustic-motion.md).
+The earlier [continuation report](../../../project/history/lanes/C-physical-quantity-sound.md)
 records the previous temperature and inverse-frequency packet.
 
 ## Exact numeral interpretation
@@ -113,5 +113,5 @@ including leading-dot decimals and Unicode minus. Malformed or over-limit
 numeric runs fall through; their suffixes are never treated as a different
 number. The role recognizer binds the resulting exact fractions to the physical
 request. This improves interpretation but does not make English parsing a proof.
-See [semantic continuation](../../../project/lanes/C-physical-quantity-sound-next.md)
+See [semantic continuation](../../../project/history/lanes/C-physical-quantity-sound-next.md)
 for domain-specific sign rules, panel results and remaining limitations.

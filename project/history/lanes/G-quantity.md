@@ -4,7 +4,7 @@ Six shipped Oracle7 specialists (`densities`, `units`, `units-v3`, `springs`, `f
 `fuels`) are now one verified HOL kernel over a shared typed quantity. The kernel is
 exported to Standard ML and compiled with the MLton inside Isabelle into one 545 KB
 standalone binary that speaks the answerer contract. No Isabelle process runs when it
-answers. Files: `src/extract/quantity/` ([README](../../src/extract/quantity/README.md)).
+answers. Files: `src/extract/quantity/` ([README](../../../src/extract/quantity/README.md)).
 
 ## Result on the shipped panels
 

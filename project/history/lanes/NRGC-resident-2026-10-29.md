@@ -126,7 +126,7 @@ receipt-admitted acceptance scope. The final stable extension is
 `f875fc2e217cbe5b7b4de196d546b717a105b28e9767b49905570f1893ae2a37`.
 The 16 actual Python cases and the real Rust case were rerun against that final
 stable artifact. Source, compiler, proof and test bindings are retained in
-[the resident MST evidence](../../native/evidence/2026-10-29-resident-mst.json).
+[the resident MST evidence](../../../native/evidence/2026-10-29-resident-mst.json).
 No generated binary was replaced by the authoring lane. The prior v1 binary
 cannot serve v2 requests.
 

@@ -1,10 +1,10 @@
 # Native Oracle expansion: 29–31 October checkpoint
 
 Historical checkpoint, superseded for active priorities by the
-[native roadmap](../native/docs/ROADMAP.md) and for delivered capabilities by
-[the catalog](../native/docs/CAPABILITIES.md). The
-[completed cycle](lanes/NATIVE-NEXT-CYCLES-2026-10-31.md) and
-[upstream record](lanes/NATIVE-UPSTREAM-CHECKPOINT-2026-10-31.md) carry later results.
+[native roadmap](../../../native/docs/ROADMAP.md) and for delivered capabilities by
+[the catalog](../../../native/docs/CAPABILITIES.md). The
+[completed cycle](../lanes/NATIVE-NEXT-CYCLES-2026-10-31.md) and
+[upstream record](../../lanes/NATIVE-UPSTREAM-CHECKPOINT-2026-10-31.md) carry later results.
 Statements below about pending implementation, upstream status and selected
 artifacts describe this checkpoint; they are not a live status feed.
 
@@ -16,10 +16,10 @@ agent service, with scoped assurance where it helps.
 
 ## Current ownership and next development
 
-The [eleven-scout research synthesis](scouts/native-2026-10-31/README.md) now
+The [eleven-scout research synthesis](../../scouts/native-2026-10-31/README.md) now
 grounds these avenues in source and primary literature. Architecture and native
 host excellence are first-class deliverables alongside specialist capability.
-The [Astra foundation batch](lanes/NATIVE-FOUNDATION-2026-10-31.md) implements
+The [Astra foundation batch](../lanes/NATIVE-FOUNDATION-2026-10-31.md) implements
 typed calls across six provider profiles, inherited execution limits, bounded
 tenant admission and direct reader compilation. Its tracker and validation receipt
 separate source changes, checked behavior and remaining limits. Sol iteration
@@ -72,7 +72,7 @@ tenant-owned legacy workers, host-death cleanup, materialized-release admission,
 and a relocatable distribution. Mini has a staging adapter for that distribution
 and an explicit signed native-image resource. A supplied-evidence planning
 workflow consumes the hosted logic operations. The
-[batch receipt](../native/evidence/2026-10-31-host-validation.json) records the
+[batch receipt](../../../native/evidence/2026-10-31-host-validation.json) records the
 actual validation and limitations; no new fleet score follows from these checks.
 
 The combined actual native/kernel/U8 host passed the scoped route, tenant and
@@ -102,13 +102,13 @@ now exist, with macOS qualification. `algorithms-native` scores 18 right / 0
 false yes / 0 wrong out of 42 on each split; the composed dev run still has eight
 wrong fallback answers. No consolidated current fleet score exists.
 
-Start with [capabilities](../native/docs/CAPABILITIES.md),
-[host contract and limits](../native/docs/HOST.md), and
-[remaining Engine migration](../native/docs/MIGRATION.md).
+Start with [capabilities](../../../native/docs/CAPABILITIES.md),
+[host contract and limits](../../../native/docs/HOST.md), and
+[remaining Engine migration](../../../native/docs/MIGRATION.md).
 
 ## Upstream changed the next step
 
-The [live review](../native/evidence/2026-10-30-upstream-status.json) checked all
+The [live review](../../../native/evidence/2026-10-30-upstream-status.json) checked all
 10 slim discussions and five sibling PRs. They remain open. No new maintainer
 comment followed the 27 October reply in #5; Claude's 29 October update is the
 latest comment there at inspection. We then posted a correction to that update's
@@ -141,13 +141,13 @@ The 30 October source reading traced both host entry points, the Engine worker
 lifecycle, the older Python pools, core transactions and representative domain
 implementations. These are source findings, not new execution receipts.
 
-- The [core image](../native/oracle-core/src/image.rs) owns a bounded pool of
+- The [core image](../../../native/oracle-core/src/image.rs) owns a bounded pool of
   read-only SQLite connections, private temporary tables and per-tenant execution
   admission. Public data is shared; per-worker caches and request scratch still
-  cost memory. [Core turns](../native/oracle-core/src/runtime.rs) look up completed
+  cost memory. [Core turns](../../../native/oracle-core/src/runtime.rs) look up completed
   retries before acquiring an execution slot, evaluate against a session revision,
   then atomically commit the new session and reply. Preserve this boundary.
-- The [host query path](../native/oracle-host/src/service.rs) has a separate
+- The [host query path](../../../native/oracle-host/src/service.rs) has a separate
   journal and Engine-worker conversation binding. The baseline bound after
   execution and could forget a changed request on storage failure. The current
   implementation reserves conversation ownership and persists dispatch before
@@ -160,13 +160,13 @@ implementations. These are source findings, not new execution receipts.
   which structured context each provider consumes and returns before connecting
   follow-up questions. Session-name hashing alone does not establish isolation
   of the Engine's other mutable state; that state still needs an ownership audit.
-- [Pure calls](../native/oracle-host/src/pure.rs) run inside the host. An HTTP
+- [Pure calls](../../../native/oracle-host/src/pure.rs) run inside the host. An HTTP
   timeout retains the execution permit until the call ends, but cannot kill the
   thread. Reasoning and incremental calls do not receive the host cancel flag;
   they use their own budgets. Statistics explicitly identifies uninterruptible
   SVD work. Select containment per provider and propagate one request deadline.
 - Most new domain providers are structured operations, not question routes.
-  [The graph organ](../src/extract/graph-native/oracle7-organ/organ_algorithms_native.py)
+  [The graph organ](../../../src/extract/graph-native/oracle7-organ/organ_algorithms_native.py)
   demonstrates the missing connection: a conservative recognizer constructs a
   typed request and checks the returned answer against it. Keep that recognizer
   untrusted and retain useful direct operations beyond its language coverage.
@@ -294,15 +294,15 @@ one component do not qualify the whole Engine, appliance or specialist fleet.
 
 | Subject | Record |
 | --- | --- |
-| Initial graph, algebra and science providers | [Provider evaluation](../native/evidence/2026-10-29-reasoning.json) |
-| Incremental dependencies, including the small-workload slowdown | [Batch comparison](../native/evidence/2026-10-29-incremental.json), [rooted comparison](../native/evidence/2026-10-29-rooted-crossover.json) |
-| Shared worker memory and capacity | [Pool exercise](../native/evidence/2026-10-29-native-pool.json), [host validation](../native/evidence/2026-10-29-provider-host-validation.json) |
-| Exact chemistry | [Validation](../native/evidence/2026-10-29-chemistry-validation.json) |
-| Language, DNA and statistical providers | [Validation](../native/evidence/2026-10-29-language-chemistry-domains-validation.json) |
-| Shared lexical work and request refusals | [Validation](../native/evidence/2026-10-29-native-performance-validation.json), [paired reader timings](../native/evidence/2026-10-29-native-performance-reader.json) |
-| Durable service, retirement and distribution (`7773163`) | [Validation](../native/evidence/2026-10-29-stable-appliance-validation.json) |
-| Resident extracted graph checking | [MST receipt](../native/evidence/2026-10-29-resident-mst.json) |
-| Exact paths and worker reuse (`951a178`) | [Validation](../native/evidence/2026-10-29-graph-pure-validation.json) |
-| Expanded reader and refreshed package (`2fda9fe`) | [Validation](../native/evidence/2026-10-29-segment-reader-validation.json), [failed new cohort](../native/evidence/2026-10-29-targeted-composition.json) |
-| Standalone stable-model core (`259d7b9`) | [Validation](../native/evidence/2026-10-29-logic-validation.json), [solver build](../native/evidence/2026-10-29-clingo-build.json) |
-| Extracted statistics probability repair | [Geostats binding](../native/evidence/2026-10-29-geostats-binding.json) |
+| Initial graph, algebra and science providers | [Provider evaluation](../../../native/evidence/2026-10-29-reasoning.json) |
+| Incremental dependencies, including the small-workload slowdown | [Batch comparison](../../../native/evidence/2026-10-29-incremental.json), [rooted comparison](../../../native/evidence/2026-10-29-rooted-crossover.json) |
+| Shared worker memory and capacity | [Pool exercise](../../../native/evidence/2026-10-29-native-pool.json), [host validation](../../../native/evidence/2026-10-29-provider-host-validation.json) |
+| Exact chemistry | [Validation](../../../native/evidence/2026-10-29-chemistry-validation.json) |
+| Language, DNA and statistical providers | [Validation](../../../native/evidence/2026-10-29-language-chemistry-domains-validation.json) |
+| Shared lexical work and request refusals | [Validation](../../../native/evidence/2026-10-29-native-performance-validation.json), [paired reader timings](../../../native/evidence/2026-10-29-native-performance-reader.json) |
+| Durable service, retirement and distribution (`7773163`) | [Validation](../../../native/evidence/2026-10-29-stable-appliance-validation.json) |
+| Resident extracted graph checking | [MST receipt](../../../native/evidence/2026-10-29-resident-mst.json) |
+| Exact paths and worker reuse (`951a178`) | [Validation](../../../native/evidence/2026-10-29-graph-pure-validation.json) |
+| Expanded reader and refreshed package (`2fda9fe`) | [Validation](../../../native/evidence/2026-10-29-segment-reader-validation.json), [failed new cohort](../../../native/evidence/2026-10-29-targeted-composition.json) |
+| Standalone stable-model core (`259d7b9`) | [Validation](../../../native/evidence/2026-10-29-logic-validation.json), [solver build](../../../native/evidence/2026-10-29-clingo-build.json) |
+| Extracted statistics probability repair | [Geostats binding](../../../native/evidence/2026-10-29-geostats-binding.json) |

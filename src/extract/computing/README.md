@@ -85,11 +85,11 @@ fails when the current theories have not been checked; it never falls back to
 a stale local Isabelle heap.
 
 Continuation, panel results and remaining assumptions:
-[C computing continuation](../../../project/lanes/C-symbolic-computing.md) and
-[D model boundaries](../../../project/lanes/D-symbolic-computing.md), and
-[E unset mode bits](../../../project/lanes/E-symbolic-computing.md), and
-[F reference batches](../../../project/lanes/F-symbolic-computing.md).
-Historical baseline: [lane S15b handoff](../../../project/lanes/S15b-computing.md).
+[C computing continuation](../../../project/history/lanes/C-symbolic-computing.md) and
+[D model boundaries](../../../project/history/lanes/D-symbolic-computing.md), and
+[E unset mode bits](../../../project/history/lanes/E-symbolic-computing.md), and
+[F reference batches](../../../project/history/lanes/F-symbolic-computing.md).
+Historical baseline: [lane S15b handoff](../../../project/history/lanes/S15b-computing.md).
 Fresh-seed checks: `beyond.py`; explicit and SQLite differential probes:
 `probes.py`; capacity, UART units and reference/distribution boundaries:
 `d_probes.py`; unset-mode questions: `e_probes.py`; complete reference batches: `f_probes.py`. These are untrusted test programs and write only to a supplied

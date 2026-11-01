@@ -5,7 +5,7 @@ verified HOL kernel: element properties from PubChem's table, exact molar mass o
 grams and moles, percent composition, laboratory solutions (mass for a molarity, molarity, dilution, percent w/v) and
 radioactive decay (exp and log2 only through verified interval enclosures). Isabelle exports it to SML and the bundled
 MLton makes one standalone binary speaking the answerer contract (`--specialist ID` for one manifest's reading).
-Proofs and statements, the numbers per panel and the untrusted parts: [lane S07 handoff](../../../project/lanes/S07-chemistry.md).
+Proofs and statements, the numbers per panel and the untrusted parts: [lane S07 handoff](../../../project/history/lanes/S07-chemistry.md).
 Tables are generated (`emit_table.py`) and compared with the organ files by `tables_check.py`.
 
 Build: see the reproduction commands in the handoff. Result: every panel item the organ answers is right, 0 false yes.
@@ -27,7 +27,7 @@ predict whether a reaction occurs, its rate, equilibrium, or measured yield.
 The current reaction reader requires the explicit three-clause format. It does
 not infer missing coefficients or excess reactants, accept gram inputs or kg
 outputs. Different species spellings with equal element-count compositions are withheld as unresolved aliases/isomers; composition alone does not establish chemical species identity. Identically named catalysts and spectators remain in their inventory and do not constrain the net extent. Charged formulas and
-isomer identity are not supported. See [the reaction lane](../../../project/lanes/H-chemistry.md)
+isomer identity are not supported. See [the reaction lane](../../../project/history/lanes/H-chemistry.md)
 for checked statements, consumer scores and remaining limits.
 
 A present catalyst does not limit the stoichiometric extent:

@@ -28,7 +28,7 @@ PYTHONDONTWRITEBYTECODE=1 python3 -B tools/parity/harness.py --answerer var/mate
 
 Result: every item of every shipped panel is right, 0 wrong, 0 false yes, 0 disagreements
 with the organs (`water-r3` has no panel of its own; it is scored on `water`'s). Details in
-[the handoff](../../../project/lanes/S08-materials.md).
+[the handoff](../../../project/history/lanes/S08-materials.md).
 
 ## Linear-elastic inverse calculations
 

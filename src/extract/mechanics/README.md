@@ -38,7 +38,7 @@ inputs such as zero denominators, a ramp rising more than its length, and
 invalid baseball outs. The current domain work also checks nonnegative mass,
 geometry and elapsed time, integer event counts, and count relationships.
 Directed velocity, force and torque retain their signs. Statements:
-[lane S01 handoff](../../../project/lanes/S01-mechanics.md).
+[lane S01 handoff](../../../project/history/lanes/S01-mechanics.md).
 
 ## Build and run
 
@@ -63,7 +63,7 @@ wrong and zero false yes. No new formula or answer kind was needed.
 Build-time self tests still run but are no longer exported as an eager runtime
 constant. The build script accepts a checked remote export or an explicit
 `GENERATED_SML` path and preserves existing export directories. See the
-[continuation report](../../../project/lanes/C-physical-mechanics-space.md) for
+[continuation report](../../../project/history/lanes/C-physical-mechanics-space.md) for
 fresh seeds, 20 authored probes, timing and remaining scope limits.
 
 ## Dimensions and input domains
@@ -83,7 +83,7 @@ to the right fields. They do not prove an arbitrary English interpretation.
 
 The model also permits zero-distance fuel cost, zero-gravity weight, and
 on-base percentage with zero at-bats when the full denominator is positive.
-See the [domain and dimensions report](../../../project/lanes/C-physical-mechanics-space-next.md)
+See the [domain and dimensions report](../../../project/history/lanes/C-physical-mechanics-space-next.md)
 for the passed proof receipt, measurements, and limits. `build.sh` captures
 the actual MLton inputs in `var/mechanics/build/compile-inputs.json`; source
 hashes gathered after compilation are not used as evidence of those inputs.
@@ -103,7 +103,7 @@ through shared ExactNumeric and MeasuredInput. Compound rates, squared units
 and pound-force do not supply a mass. The accepted body-weight and kinetic-
 energy statements bind the result to the original magnitude and declared unit.
 Current proof and measured readiness are tracked in
-[the unit and performance report](../../../project/lanes/E-physical-mechanics-space.md).
+[the unit and performance report](../../../project/history/lanes/E-physical-mechanics-space.md).
 
 The fixed-property fluids reader explicitly refuses supplied density, gravity,
 surface pressure or extra state quantities through `unsupported_model`. It

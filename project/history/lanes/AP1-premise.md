@@ -1,6 +1,6 @@
 # Creator-premise correction, 26 October 2026
 
-Root integration, 26 October: included in the tracked appliance patch and the passing real-engine candidate. Proposed upstream in [HF slim #1](https://huggingface.co/psiloceyeben/oracle7-slim/discussions/1), not merged. See [batch results and remaining work](../APPLIANCE-2026-10-26.md). The lane evidence below describes its scoped checks before root integration.
+Root integration, 26 October: included in the tracked appliance patch and the passing real-engine candidate. Proposed upstream in [HF slim #1](https://huggingface.co/psiloceyeben/oracle7-slim/discussions/1), not merged. See [batch results and remaining work](../handoffs/APPLIANCE-2026-10-26.md). The lane evidence below describes its scoped checks before root integration.
 
 The upstream `premise_v3.owner` guard treated a possessive as a creator claim and
 compared the possessor's last name with the answer text. It could reject Walter

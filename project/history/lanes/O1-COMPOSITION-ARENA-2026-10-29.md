@@ -2,7 +2,7 @@
 
 Owner: lane O1-COMPOSITION-ARENA. Consumer: the native learned-language reader
 (`reader.rs` calls `composition::match_composed`). Evidence:
-[`native/evidence/2026-10-29-composition-arena.json`](../../native/evidence/2026-10-29-composition-arena.json).
+[`native/evidence/2026-10-29-composition-arena.json`](../../../native/evidence/2026-10-29-composition-arena.json).
 No specialist-panel numbers: this lane changes storage, not what the reader can read.
 
 ## What was wrong

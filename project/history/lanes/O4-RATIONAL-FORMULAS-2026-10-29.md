@@ -1,7 +1,7 @@
 # O4 rational formulas: `algebra.simplify_rational`
 
 Lane O4-RATIONAL-FORMULAS, 2026-10-29. No commit. Receipt:
-[`native/evidence/2026-10-29-rational-formulas.json`](../../native/evidence/2026-10-29-rational-formulas.json).
+[`native/evidence/2026-10-29-rational-formulas.json`](../../../native/evidence/2026-10-29-rational-formulas.json).
 
 **Panel numbers: none.** This lane changes no specialist answer path. The densities table below
 checks that the new operation reproduces three shipped answers. It is not a panel score.

@@ -8,7 +8,7 @@ Public images and stores, an optional pinned Engine checkout and Python
 environment, and every tenant journal/session remain outside the bundle. Supply
 a separate absolute `--state-root` at each deployment.
 
-The [31 October checkpoint](../../project/lanes/COHERENT-NATIVE-2026-10-31.md)
+The [31 October checkpoint](../../project/history/lanes/COHERENT-NATIVE-2026-10-31.md)
 records a current Linux archive and its relocated qualification through all six
 providers, the data runtime and supported real-U8 conversation routes.
 
@@ -341,7 +341,7 @@ records a passing actual relocated package journey on hbox for code commit
 `f875fc2e217cbe5b7b4de196d546b717a105b28e9767b49905570f1893ae2a37` and observed
 `API_VERSION` `0.2`. That journey exercised discovery, alignment, regression,
 supplied MST, graph query and exact durable reader retry after service restart.
-The [lane report](../../project/lanes/NDIST-2026-10-29.md) records the seven
+The [lane report](../../project/history/lanes/NDIST-2026-10-29.md) records the seven
 manufactured checks and retained archive details. The archive is
 `var/expanded-runtime-20261029/native-appliance-linux-x86_64.tar.gz`; its digest,
 payload manifest digest and remote directory are in the receipt. Manufacture

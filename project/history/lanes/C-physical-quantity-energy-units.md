@@ -50,7 +50,7 @@ Regression receipts cover 236/236 temperature point/difference checks (228 right
 
 ## Concrete controls
 
-The independent untrusted [energy_units_check.py](../../src/extract/quantity/energy_units_check.py) uses Python Fraction and a separate exact-factor table. The following controls cite that harness, the `scale`/`unit_names` tables and the kernel conversion laws above; they do not claim independent experimental measurements.
+The independent untrusted [energy_units_check.py](../../../src/extract/quantity/energy_units_check.py) uses Python Fraction and a separate exact-factor table. The following controls cite that harness, the `scale`/`unit_names` tables and the kernel conversion laws above; they do not claim independent experimental measurements.
 
 | Input | Expected result/boundary |
 |---|---|

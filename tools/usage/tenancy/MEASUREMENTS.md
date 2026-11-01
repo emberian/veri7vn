@@ -1,6 +1,6 @@
 # Linux tenant-pool measurements, 2026-10-27
 
-The subsequent [U7 qualification](../../../project/lanes/U7-tenancy-qualification.md)
+The subsequent [U7 qualification](../../../project/history/lanes/U7-tenancy-qualification.md)
 completed the 32-tenant workload with one resident worker, durable retries,
 conflict and stale-context refusals, bounded contention and clean restart/shutdown.
 Its 944 process samples saw at most one Engine; peak sampled PSS was 441,971 KiB

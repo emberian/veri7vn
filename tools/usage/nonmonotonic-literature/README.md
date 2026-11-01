@@ -19,6 +19,6 @@ no specialist-panel score and no Oracle runtime integration. It accepts one
 default per head, rejects recursive positive default dependencies and recomputes
 the full active view. It is not an ATMS, WFS or ASP solver.
 
-The [lane report](../../../project/lanes/LITERATURE-NONMONOTONIC-2026-10-27.md)
+The [lane report](../../../project/history/lanes/LITERATURE-NONMONOTONIC-2026-10-27.md)
 explains the source literature, ranked integration choices, proposed proof
 obligations and remaining consumer work.

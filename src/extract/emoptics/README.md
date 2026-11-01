@@ -91,12 +91,12 @@ in a fixed order. `capabilities.json` declares the inverse-lens additions to
 the shared dispatcher/package contract. Static theorem names in response
 metadata are references, not per-question proof certificates.
 
-See [the current lane report](../../../project/lanes/C-physical-emoptics.md) for
+See [the current lane report](../../../project/history/lanes/C-physical-emoptics.md) for
 build status, measured results and limits. The earlier S04 report is a useful
 baseline: optics and optics-v2 had 13 confident wrong held-out answers. The
 current report records the passed proof, bound native compiler inputs, all-right
 shipped panels and untouched fresh evaluation, plus the incomplete standalone
-six-criterion admission check. The [next model-contract report](../../../project/lanes/C-physical-emoptics-next.md)
+six-criterion admission check. The [next model-contract report](../../../project/history/lanes/C-physical-emoptics-next.md)
 records semantic counterexamples beyond those panels.
 
 `beyond_score.py` measures shipped panels and fresh seeded versions of the
@@ -114,7 +114,7 @@ panels, reserved evaluations and independent consumer checks. Four computable
 probe extensions still withhold and are counted separately from safe assertions.
 
 
-The [E optical report](../../../project/lanes/E-physical-emoptics.md) records the
+The [E optical report](../../../project/history/lanes/E-physical-emoptics.md) records the
 current medium/angle and counted-resistor packet. `check_optical_model.py` and
 `optical_fresh.py` exercise its physical values and source roles; safe-refusal
 assertions remain separate from capability counts. `circuit_count_probes.json`

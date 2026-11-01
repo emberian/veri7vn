@@ -4,7 +4,7 @@
 reviewed the combined design. Research produced no runtime changes, new panel
 scores or performance measurements. Ember subsequently authorized Astra workers
 to lay the architectural groundwork, with Sol iteration afterward. That work is
-tracked separately in [the foundation batch](../../lanes/NATIVE-FOUNDATION-2026-10-31.md).
+tracked separately in [the foundation batch](../../history/lanes/NATIVE-FOUNDATION-2026-10-31.md).
 Mini integration belongs to the Mini team.
 
 ## Architecture is a first-class deliverable

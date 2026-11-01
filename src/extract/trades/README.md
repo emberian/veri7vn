@@ -30,7 +30,7 @@ NIOSH lifting limit, board feet and rafters, knitting gauge and colour mixing.
 | English recognizer | `../commons/commons.sml`, `../commons/numeric.sml`, `recognizer.sml` | **untrusted**, hand-ported from the organs |
 | JSON framing | `main.sml` | **untrusted** |
 
-Statements and numbers: [lane S14 handoff](../../../project/lanes/S14-trades.md).
+Statements and numbers: [lane S14 handoff](../../../project/history/lanes/S14-trades.md).
 
 ## Build and run
 

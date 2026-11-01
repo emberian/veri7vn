@@ -4,11 +4,11 @@ The original native expansion is committed and pushed as `feca38a`. This is a ru
 review cut, not a claim that upstream has adopted the Rust runtime. Central
 validation passed 171 Rust and 142 Python checks, 99 new hosted workflow cases,
 durable evidence replay, and 256 bounded requests across 64 tenants in one host.
-See [the expansion tracker](NATIVE-SOL-EXPANSION-2026-10-31.md) for scope and
+See [the expansion tracker](../history/lanes/NATIVE-SOL-EXPANSION-2026-10-31.md) for scope and
 [the receipt](../../native/evidence/2026-10-31-native-expansion-validation.json)
 for actual execution results.
 
-The [following native cycle](NATIVE-NEXT-CYCLES-2026-10-31.md) is also committed
+The [following native cycle](../history/lanes/NATIVE-NEXT-CYCLES-2026-10-31.md) is also committed
 and pushed in `70f4ca5`, `14ceb7d` and `64430c7`, with validation in `0875b14`.
 It adds the typed encoded service path, packed reader composition, contiguous
 graph checking and resumable evidence clients. Its separate receipts record
@@ -16,7 +16,7 @@ graph checking and resumable evidence clients. Its separate receipts record
 Small service medians improved; reader latency did not show a resolved gain.
 These results do not replace the earlier expansion's evidence or its limits.
 
-The [coherent appliance checkpoint](COHERENT-NATIVE-2026-10-31.md) adds reader
+The [coherent appliance checkpoint](../history/lanes/COHERENT-NATIVE-2026-10-31.md) adds reader
 literal/count semantics, exact delivered conversation recovery, checked evidence
 restoration and the modeling/thermal consumers (`5fb1f1f`, `53540d2`, `9b1c921`).
 Its receipt records 165 Rust / 43 Python checks and the real relocated U8 journey.

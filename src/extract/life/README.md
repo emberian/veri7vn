@@ -54,7 +54,7 @@ PYTHONDONTWRITEBYTECODE=1 python3 src/extract/life/score.py     # organ cross-ch
 
 The current candidate scores 179/179 shipped items (previously 170/179),
 with zero wrong answers or false yes on these panels. Three fresh seeds also
-score 179/179 each. See [C-life](../../../project/lanes/C-life.md) for exact
+score 179/179 each. See [C-life](../../../project/history/lanes/C-life.md) for exact
 receipts, per-specialist results and known semantic gaps outside the panels.
 
 ## Beyond the original phrasing
@@ -72,7 +72,7 @@ into the answerer. The expensive numeric reply paths reuse their result instead 
 
 `beyond.py` reproduces fresh generator panels without writing to upstream;
 `probe.py` runs the same-author model probes. See the current work and receipts
-in [C-life](../../../project/lanes/C-life.md).
+in [C-life](../../../project/history/lanes/C-life.md).
 
 ## Strand and measured-quantity repair
 

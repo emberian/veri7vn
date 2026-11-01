@@ -65,7 +65,7 @@ claim. A native input refusal instead follows the shared HTTP withheld protocol.
 
 The central validator resolved Cargo.lock, built and tested on hbox with two
 Cargo jobs, and recorded the final results in the
-[validation receipt](../../native/evidence/2026-10-29-language-chemistry-domains-validation.json).
+[validation receipt](../../../native/evidence/2026-10-29-language-chemistry-domains-validation.json).
 No builds, tests, dependency downloads or commits were run by this host lane.
 
 | Focused check | Final result |
