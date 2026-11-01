@@ -1,0 +1,499 @@
+{
+  "schema": "native-route-validation-v1",
+  "recorded_utc": "2026-11-01T01:48:33.974155+00:00",
+  "status": "native_release_qualified_modeling_composition_negative",
+  "code_checkpoint": "75831a77fbfff477f33b015efa7958c295960cb0",
+  "source": {
+    "base_revision": "9f43c9ca50509218caac9ae757d2da302519b90b",
+    "archive_sha256": "cc5c425b9c40501a33eeba17efbebf31a7c46d94fcac83edc852aa627578e6f6",
+    "members": 755,
+    "manifest": "var/native-route-20261031/validated-source-final.json",
+    "remote_archive": "/tank/lanes/o7-native-route-20261031/validated-source-final.tar",
+    "authority": "Exact frozen file bytes plus approved overlays; base revision alone does not identify dirty candidate. Local final comparison differs only in eight intentional documentation files.",
+    "overlay_records": [
+      "var/native-route-20261031/core-fixture-overlay.json",
+      "var/native-route-20261031/cursor-overlay.json",
+      "var/native-route-20261031/final-cache-and-cursor-guard-overlay.json",
+      "var/native-route-20261031/host-anchor-overlay.json",
+      "var/native-route-20261031/host-fixture-import-overlay.json",
+      "var/native-route-20261031/preparation-derive-overlay.json",
+      "var/native-route-20261031/preparation-fixture-overlay.json",
+      "var/native-route-20261031/python-qualifier-overlay.json",
+      "var/native-route-20261031/qualifier-cursor-overlay.json",
+      "var/native-route-20261031/quantity-checker-overlay.json"
+    ]
+  },
+  "checks": {
+    "rust_unique_passed": 130,
+    "rust_targets": {
+      "core_native_conversation_contract": 10,
+      "core_runtime_conversation_contract": 9,
+      "core_runtime_conversation_lib": 1,
+      "core_runtime_context_contract": 4,
+      "core_runtime_language_contract": 5,
+      "core_runtime_release_contract": 5,
+      "core_session_contract": 11,
+      "host_conversation_host_tests": 17,
+      "host_conversation_recovery_tests": 4,
+      "host_encoded_reply_tests": 5,
+      "host_conversation_manifest": 2,
+      "host_native_extensions": 1,
+      "science_contracts": 17,
+      "science_prepared_thermal": 8,
+      "science_thermal": 17,
+      "science_thermal_scenarios": 14
+    },
+    "python_unique_passed": 46,
+    "python_targets": {
+      "conversation_adapter": 13,
+      "package_host": 11,
+      "qualify_host": 6,
+      "host_make_config": 5,
+      "preparation_artifacts": 8,
+      "worker_readiness": 3
+    },
+    "counting": "Unique test cases; repaired reruns and filtered subsets deduplicated. Consumer calls and panels counted separately.",
+    "minimal_host_no_default_features": "passed",
+    "build": "locked offline all-features release, warm target, CARGO_BUILD_JOBS=2; final targeted source mtime invalidation and identical before/after file hashes",
+    "build_record": "var/native-route-20261031/evidence-copy/stable-build-source.json"
+  },
+  "release": {
+    "local_archive": "/Users/ember/dev/o7vn/var/native-route-20261031/release/oracle-host-native-final-linux.tar.gz",
+    "archive_sha256": "d563182fe5e8eefe2c5c65374813564d476799a4425e31429e2916aecfe15b13",
+    "host_sha256": "1b244d511c0715bf9842ec122a8e720f51db342dbef42dca9297ce5f2c03d9d2",
+    "manifest_sha256": "e597994204e3971392516cc7855e568756b21e926f48990b373c557adb1b3e15",
+    "profile": "release",
+    "target": "x86_64-unknown-linux-gnu",
+    "remote_bundle": "/tank/lanes/o7-native-route-20261031/relocated native final",
+    "launch_command": "python3 -I -B -S \"/tank/lanes/o7-native-route-20261031/relocated native final/bin/oracle-host\" --state-root /tank/lanes/o7-native-route-20261031/new-operator-state --port 8765",
+    "resources": "Package references the hash-bound native image and operator-admitted solver/quantity artifacts on hbox; this small archive does not embed the large image.",
+    "provider_calls": 9,
+    "provider_qualification": "var/native-route-20261031/release/provider-qualification.json",
+    "native_journey": {
+      "status": "passed",
+      "before_steps": 7,
+      "after_steps": 15,
+      "controls": [
+        "exact same-launch retry",
+        "restart byte-exact retry",
+        "returned query cursor to invoke",
+        "real checked extracted quantity to native cost",
+        "displayed_decimal and supplied exact_decimal lineage",
+        "semantic refusal preserves anchor",
+        "temperature answer clears unrepresentable old anchor",
+        "source image unique entity and birthplace",
+        "three-name Shakespeare ambiguity preserves previous anchor",
+        "absent birthplace preserves selected entity",
+        "late old replay does not resurrect cleared owner"
+      ],
+      "before": "var/native-route-20261031/release/native-live/before.json",
+      "after": "var/native-route-20261031/release/native-live/after.json",
+      "late_replay": "var/native-route-20261031/release/native-live/late-replay.json",
+      "plan": "var/native-route-20261031/native-journey-plan.json",
+      "plan_sha256": "311709c3069996e34c94e439dee0efcd02909e29440ccd065db827d795469e4f"
+    },
+    "engine_exclusion": {
+      "configured_engine_rejected_before_effects": true,
+      "receipt": "var/native-route-20261031/release/early-engine-refusal.json",
+      "health_engine": null,
+      "process_observation": {
+        "scope": "one owned native-host subtree observation; no Engine configured and health engine=null; not a throughput or hard RSS bound",
+        "processes": [
+          {
+            "pid": 4066014,
+            "ppid": 4066013,
+            "threads": 7,
+            "rss_kib": 13788,
+            "args": "/tank/lanes/o7-native-route-20261031/relocated native final/lib/oracle-host --config /tank/lanes/o7-native-route-20261031/native-product-state/.oracle-host-ukka2p58.json"
+          },
+          {
+            "pid": 4066078,
+            "ppid": 4066014,
+            "threads": 1,
+            "rss_kib": 3232,
+            "args": "/tmp/oracle-kernel-1dCkMM --specialist springs"
+          }
+        ]
+      }
+    },
+    "owned_servers": "All owned host and worker probe processes stopped; no service installed.",
+    "cleanup_receipt": "var/native-route-20261031/release/cleanup.json",
+    "all_recorded_owned_hosts_stopped": true
+  },
+  "quantity": {
+    "binary_sha256": "d70030f8c79eaffeb29c863dcf372f2dcc41572491445428c264bf7aae3239b6",
+    "checked_export_sha256": "5829228c492bce22e799634be3c5209fdfcee772f41b2b564bd20e287a97d3ff",
+    "check_native": "passed through managed shared lock/systemd containment; one job, two threads, 900-second limit",
+    "check_receipt": "var/native-route-20261031/evidence-copy/quantity/check-native-receipt.json",
+    "compile_receipt": "var/native-route-20261031/evidence-copy/quantity/compile-receipt.json",
+    "wire_cases": 29,
+    "typed_constructor_checks": 24,
+    "matched_control": "Same fresh checked kernel, recognizer and framing; HEAD driver control versus new driver agrees on existing fields in all29 cases. Optional typed unit field is the change.",
+    "specialist_panels": {
+      "densities": {
+        "dev": {
+          "n": 51,
+          "right": 51,
+          "wrong": 0,
+          "withheld_valid": 0,
+          "false_yes": 0,
+          "fails": []
+        },
+        "heldout": {
+          "n": 51,
+          "right": 51,
+          "wrong": 0,
+          "withheld_valid": 0,
+          "false_yes": 0,
+          "fails": []
+        },
+        "family_agrees": true
+      },
+      "units": {
+        "dev": {
+          "n": 76,
+          "right": 76,
+          "wrong": 0,
+          "withheld_valid": 0,
+          "false_yes": 0,
+          "fails": []
+        },
+        "heldout": {
+          "n": 76,
+          "right": 76,
+          "wrong": 0,
+          "withheld_valid": 0,
+          "false_yes": 0,
+          "fails": []
+        },
+        "family_agrees": true
+      },
+      "units-v3": {
+        "dev": {
+          "n": 76,
+          "right": 76,
+          "wrong": 0,
+          "withheld_valid": 0,
+          "false_yes": 0,
+          "fails": []
+        },
+        "heldout": {
+          "n": 75,
+          "right": 75,
+          "wrong": 0,
+          "withheld_valid": 0,
+          "false_yes": 0,
+          "fails": []
+        },
+        "family_agrees": true
+      },
+      "springs": {
+        "dev": {
+          "n": 42,
+          "right": 42,
+          "wrong": 0,
+          "withheld_valid": 0,
+          "false_yes": 0,
+          "fails": []
+        },
+        "heldout": {
+          "n": 42,
+          "right": 42,
+          "wrong": 0,
+          "withheld_valid": 0,
+          "false_yes": 0,
+          "fails": []
+        },
+        "family_agrees": true
+      },
+      "fluids": {
+        "dev": {
+          "n": 34,
+          "right": 34,
+          "wrong": 0,
+          "withheld_valid": 0,
+          "false_yes": 0,
+          "fails": []
+        },
+        "heldout": {
+          "n": 34,
+          "right": 34,
+          "wrong": 0,
+          "withheld_valid": 0,
+          "false_yes": 0,
+          "fails": []
+        },
+        "family_agrees": true
+      },
+      "fuels": {
+        "dev": {
+          "n": 42,
+          "right": 42,
+          "wrong": 0,
+          "withheld_valid": 0,
+          "false_yes": 0,
+          "fails": []
+        },
+        "heldout": {
+          "n": 42,
+          "right": 42,
+          "wrong": 0,
+          "withheld_valid": 0,
+          "false_yes": 0,
+          "fails": []
+        },
+        "family_agrees": true
+      }
+    },
+    "limits": "No new HOL theorem for metadata; no full six-criterion admission or speed claim from these panel results. Producer-receipt interoperability remains follow-up."
+  },
+  "thermal": {
+    "hosted_panel": {
+      "right": 9,
+      "wrong": 0,
+      "false_yes": 0,
+      "execution_errors": 0
+    },
+    "actual_output": "var/native-route-20261031/independent-live/thermal-panel.stdout",
+    "matched_correctness": "Passed prepared_thermal repeated_rhs_and_boundary_changes_match_fresh_and_chain_truth: three matched fresh/retained scenarios with analytic chain and original-node balance checks.",
+    "limits": "No host cross-request cache or timing gain claim."
+  },
+  "prepared_u8": {
+    "status": "standalone_worker_qualified",
+    "parent_appliance_sha256": "97286fb824bb102a24ac9e7458fc8d8426212ad0bff2b585bd00d6e0462d00a5",
+    "source_appliance_sha256": "ba58f621eae7795bfa7a2799a9797b54c7ecf758130c7db6985fb3cb3bf61b9d",
+    "artifact_manifest_sha256": "66de1cad2525d38c7583173cf93c5624bdddb5ad33fe94f68931378e2770763e",
+    "boot_receipt": "var/native-route-20261031/evidence-copy/preparation/boot/results.json",
+    "controls": "Actual explicit-tip cold and warm query, missing artifact and tampered payload rejection; unchanged 120-second startup and30-second query limits; protected artifact unchanged, no private compilation fallback.",
+    "scope": "Required standing_family/air/physics/facts dependencies synchronous before ready; all_capabilities_ready remains false. Production Rust EnginePool has not adopted this mode or a warm pool state machine."
+  },
+  "modeling": {
+    "prepared_core_calls": {
+      "dev": 14,
+      "heldout": 14,
+      "http_errors": 0,
+      "old_partial_control_not_mixed": true
+    },
+    "raw_original_exam_receipt": "var/native-route-20261031/modeling-admission/receipt.json",
+    "verdicts": {
+      "dev": {
+        "id": "supplied-modeling-explicit",
+        "split": "dev",
+        "decision": "WOULD FAIL",
+        "reasons": [
+          "DOMAIN: gain 0, needs 3",
+          "WRONG: 2 answered wrong, cap 1"
+        ],
+        "n": 14,
+        "head": {
+          "ok": 6,
+          "fy": 2,
+          "wrong": 2
+        },
+        "with_specialist": {
+          "ok": 6,
+          "fy": 2,
+          "wrong": 2
+        },
+        "gain_needed": 3,
+        "core": {
+          "n": 924,
+          "taken": 0,
+          "cap": 9,
+          "examples": []
+        },
+        "self_ok": true,
+        "p50_ms": 0.0,
+        "budget_ms": 1000.0,
+        "fails": [
+          {
+            "q": "Model supplied data: {\"operation\":\"statistics.calibration\",\"arguments\":{\"x\":[0,1,2],\"response\":[1,3,5],\"x_name\":\"declared setting\",\"x_unit\":\"m\",\"response_unit\":",
+            "expected": "(decline)",
+            "got": "The mean is 19/8. sum is 19 over 8 values. 19 / 8 = 19/8. I checked it by a second method that agrees.",
+            "status": "answered",
+            "by": "core"
+          },
+          {
+            "q": "Model supplied data: {\"operation\":\"statistics.calibration\",\"arguments\":{\"x\":[0,1,2],\"response\":[1,3,5],\"x_name\":\"declared setting\",\"x_unit\":\"m\",\"response_unit\":",
+            "expected": "(decline)",
+            "got": "The mean is 19/7. sum is 19 over 7 values. 19 / 7 = 19/7. I checked it by a second method that agrees.",
+            "status": "answered",
+            "by": "core"
+          },
+          {
+            "q": "Model supplied data: {\"operation\":\"statistics.calibration\",\"arguments\":{\"x\":[-1,0,1],\"response\":[0,-1,4],\"x_name\":\"declared position\",\"x_unit\":\"m\",\"response_uni",
+            "expected": "(decline)",
+            "got": "That is a word problem. My exact operators read short forms (a sum, a mean, a choose, a linear equation) and this one took numbers out of a sentence it did not ",
+            "status": "withheld",
+            "by": "core"
+          },
+          {
+            "q": "Model supplied data: {\"operation\":\"statistics.events_exposure\",\"arguments\":{\"family\":\"grouped_binomial_logit\",\"method\":\"maximum_likelihood\",\"features\":[[],[]],\"",
+            "expected": "(decline)",
+            "got": "Python 3.12.3's statistics has no events_exposure, so I can't describe it. [python-r2]",
+            "status": "withheld",
+            "by": "core"
+          },
+          {
+            "q": "Model supplied data: {\"operation\":\"statistics.events_exposure\",\"arguments\":{\"family\":\"poisson_log\",\"method\":\"maximum_likelihood\",\"features\":[[],[]],\"intercept\":",
+            "expected": "(decline)",
+            "got": "Python 3.12.3's statistics has no events_exposure, so I can't describe it. [python-r2]",
+            "status": "withheld",
+            "by": "core"
+          },
+          {
+            "q": "Model supplied data: {\"operation\":\"statistics.events_exposure\",\"arguments\":{\"family\":\"poisson_log\",\"method\":\"maximum_likelihood\",\"features\":[[],[]],\"intercept\":",
+            "expected": "(decline)",
+            "got": "Python 3.12.3's statistics has no events_exposure, so I can't describe it. [python-r2]",
+            "status": "withheld",
+            "by": "core"
+          },
+          {
+            "q": "Who are you?",
+            "expected": "(decline)",
+            "got": "I am the Oracle, a compiler-learning model: a conversational system with no neural network anywhere in it. My grammar is a compiled inventory of constructions \u2014",
+            "status": "answered",
+            "by": "core"
+          },
+          {
+            "q": "What is the mean of 1, 2, 3?",
+            "expected": "(decline)",
+            "got": "The mean is 2. sum is 6 over 3 values. 6 / 3 = 2. I checked it by a second method that agrees.",
+            "status": "answered",
+            "by": "core"
+          }
+        ],
+        "files_sha": "485b075d866441755f042ffe41abdbae2420bddd17fc2cdbf08c0db51d50926c",
+        "panel_sha": "4a400b9aa21190509d2257a0e9d24345c39888087c25f5efa07cbac06abecc26",
+        "time": "2026-11-01T01:45:57Z",
+        "core_head": "oracle_release_runtime_w574"
+      },
+      "heldout": {
+        "id": "supplied-modeling-explicit",
+        "split": "heldout",
+        "decision": "NEGATIVE",
+        "reasons": [
+          "DOMAIN: gain 0, needs 3",
+          "WRONG: 2 answered wrong, cap 1"
+        ],
+        "n": 14,
+        "head": {
+          "ok": 5,
+          "fy": 3,
+          "wrong": 2
+        },
+        "with_specialist": {
+          "ok": 5,
+          "fy": 3,
+          "wrong": 2
+        },
+        "gain_needed": 3,
+        "core": {
+          "n": 924,
+          "taken": 0,
+          "cap": 9,
+          "examples": []
+        },
+        "self_ok": true,
+        "p50_ms": 0.0,
+        "budget_ms": 1000.0,
+        "fails": [
+          {
+            "q": "Model supplied data: {\"operation\":\"statistics.calibration\",\"arguments\":{\"x\":[-2,0,2],\"response\":[9,5,1],\"x_name\":\"declared setting\",\"x_unit\":\"m\",\"response_unit\"",
+            "expected": "(decline)",
+            "got": "The mean is 17/8. sum is 17 over 8 values. 17 / 8 = 17/8. I checked it by a second method that agrees.",
+            "status": "answered",
+            "by": "core"
+          },
+          {
+            "q": "Model supplied data: {\"operation\":\"statistics.calibration\",\"arguments\":{\"x\":[-2,0,2],\"response\":[9,5,1],\"x_name\":\"declared setting\",\"x_unit\":\"m\",\"response_unit\"",
+            "expected": "(decline)",
+            "got": "The mean is 15/8. sum is 15 over 8 values. 15 / 8 = 15/8. I checked it by a second method that agrees.",
+            "status": "answered",
+            "by": "core"
+          },
+          {
+            "q": "Model supplied data: {\"operation\":\"statistics.calibration\",\"arguments\":{\"x\":[-1,0,1],\"response\":[2,0,4],\"x_name\":\"declared position\",\"x_unit\":\"m\",\"response_unit",
+            "expected": "(decline)",
+            "got": "That is a word problem. My exact operators read short forms (a sum, a mean, a choose, a linear equation) and this one took numbers out of a sentence it did not ",
+            "status": "withheld",
+            "by": "core"
+          },
+          {
+            "q": "Model supplied data: {\"operation\":\"statistics.events_exposure\",\"arguments\":{\"family\":\"grouped_binomial_logit\",\"method\":\"maximum_likelihood\",\"features\":[[],[]],\"",
+            "expected": "(decline)",
+            "got": "Python 3.12.3's statistics has no events_exposure, so I can't describe it. [python-r2]",
+            "status": "withheld",
+            "by": "core"
+          },
+          {
+            "q": "Model supplied data: {\"operation\":\"statistics.events_exposure\",\"arguments\":{\"family\":\"poisson_log\",\"method\":\"maximum_likelihood\",\"features\":[[],[]],\"intercept\":",
+            "expected": "(decline)",
+            "got": "Python 3.12.3's statistics has no events_exposure, so I can't describe it. [python-r2]",
+            "status": "withheld",
+            "by": "core"
+          },
+          {
+            "q": "Model supplied data: {\"operation\":\"statistics.events_exposure\",\"arguments\":{\"family\":\"grouped_binomial_logit\",\"method\":\"maximum_likelihood\",\"features\":[[],[]],\"",
+            "expected": "(decline)",
+            "got": "Python 3.12.3's statistics has no events_exposure, so I can't describe it. [python-r2]",
+            "status": "withheld",
+            "by": "core"
+          },
+          {
+            "q": "Model supplied data: {\"operation\":\"statistics.calibration\",\"arguments\":{\"x\":[0,1,2],\"response\":[1,3,5],\"x_name\":\"declared setting\",\"x_unit\":\"m\",\"assumptions\":[\"",
+            "expected": "(decline)",
+            "got": "The mean is 15/7. sum is 15 over 7 values. 15 / 7 = 15/7. I checked it by a second method that agrees.",
+            "status": "answered",
+            "by": "core"
+          },
+          {
+            "q": "Who are you?",
+            "expected": "(decline)",
+            "got": "I am the Oracle, a compiler-learning model: a conversational system with no neural network anywhere in it. My grammar is a compiled inventory of constructions \u2014",
+            "status": "answered",
+            "by": "core"
+          },
+          {
+            "q": "What is the mean of 1, 2, 3?",
+            "expected": "(decline)",
+            "got": "The mean is 2. sum is 6 over 3 values. 6 / 3 = 2. I checked it by a second method that agrees.",
+            "status": "answered",
+            "by": "core"
+          }
+        ],
+        "files_sha": "485b075d866441755f042ffe41abdbae2420bddd17fc2cdbf08c0db51d50926c",
+        "panel_sha": "a0e0a9a69058b699fab51a2526b4dbdecdbb0ddfe8fe54fac080c868deb741ec",
+        "time": "2026-11-01T01:45:57Z",
+        "core_head": "oracle_release_runtime_w574"
+      }
+    },
+    "workbench_sha256": "86d8a4b1b1c649854e44785d9c1451dd39462ed1c9e4c7d3c070b5ae3c43fb18",
+    "general_panel_sha256": "ce5e2a62783b7a87ac2084933f634774cb2123ec94ad61bcc1e1cfca375478f6",
+    "admitted": false,
+    "interpretation": "Core-first composition gained no correct answers and retained wrong generic-mean core answers. Raw false-yes totals are contaminated by lane_control expecting abstention on legitimate core identity/mean answers; retain raw verdict, do not call those totals honest wrong-answer counts. Specialist numerical HTTP invocation in this examiner is not established. Direct provider/model math success is distinct from composed admission. Heldout is spent; no tuning or re-examination performed.",
+    "core_evidence_paths": [
+      "var/native-route-20261031/core-prepared-dev/results.jsonl",
+      "var/native-route-20261031/core-prepared-heldout/results.jsonl"
+    ],
+    "diagnosis_note": "project/lanes/MODELING-ADMISSION-2026-10-31.md"
+  },
+  "preserved_failures": [
+    "Core fixture retained three response guards: repaired explicit drops, production reservation unchanged.",
+    "Synthetic readiness fixture omitted required private VESSELS path: fixture repaired, production guard unchanged.",
+    "Host test ambiguous core import: qualified import repair only.",
+    "Quantity checker referenced hidden temperature constructors: lookup_unit repair, no repeated proof.",
+    "Historical old quantity binary mismatched current recognizer: preserved separately; matched same-kernel control passed.",
+    "Preparation boot harness assumed pickle suffix; corrected from manifest; valid/missing outcomes preserved, only remaining tamper executed.",
+    "Initial package SQL preflight assumed unique Shakespeare; actual three IDs retained, correct source ambiguity tested.",
+    "Native scratch provider plan omitted deciding route then assumed raw units-v3 path; exact host route assertion repaired, provider9 passed.",
+    "Native scratch wrong-case refusal expected nonexistent transition; full plan source audit repaired assertions without weakening numeric/source semantics.",
+    "Original modeling composition negative retained."
+  ],
+  "boundaries": [
+    "No theorem, fleet, throughput, hard RSS, or new benchmark claim.",
+    "Native-v1 uses source image semantics, not U8 relation parity; no Engine/Python fallback.",
+    "Prepared public Python artifact is source-bound untrusted serialization, not Mini authority.",
+    "Large stores, private state, corpora, generated heaps and binaries are not committed."
+  ]
+}

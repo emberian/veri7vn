@@ -28,8 +28,14 @@ those bytes through delivery. The `/query` journal retains those bytes for repla
 native stateful operations retain their exact core reply. The optional
 [conversation profile](docs/HOST.md#optional-supported-conversation-profile)
 adds atomic delivered-state/HTTP-reply commits and a bounded Engine restoration
-adapter. The [current receipt](evidence/2026-10-31-coherent-native-validation.json)
+adapter. The [coherent receipt](evidence/2026-10-31-coherent-native-validation.json)
 records real U8 handoff, restart, exact replay and semantic refusal continuation.
+The separate [native conversation profile](docs/HOST.md#native-conversations-without-python)
+uses typed entity/quantity anchors without constructing an Engine. Actual
+extracted numerical answers carry units into follow-ups; query replies expose
+the committed cursor for direct invocation. Refusals preserve the prior anchor,
+while newly answered but unrepresentable results clear it. Temperature points
+and differences are not yet eligible anchors.
 The Value-based library entry remains a compatibility adapter. Independent
 certificate, source and numerical checks still run.
 
@@ -69,10 +75,13 @@ has its own theorem scope and receipt admission.
 The [coherent appliance checkpoint](../project/lanes/COHERENT-NATIVE-2026-10-31.md)
 adds supplied-data modeling (28/28 panel cases) and evidence-driven thermal
 revision (8/8 workflow checks). Its relocated release passed calls through all
-six pure providers, the data runtime and the real pinned Engine. Complete
-modeling specialist admission remains incomplete: the original core baseline
-hit a 30-second cold-initialization timeout. These results add no fleet-wide
-score or new performance claim.
+six pure providers, the data runtime and the real pinned Engine. That run stopped
+at a 30-second cold-initialization timeout during modeling
+admission. The [next checkpoint](../project/lanes/NATIVE-ROUTE-2026-10-31.md)
+removes that startup obstruction in an isolated prepared-U8 mode and completes
+the original exam, with a negative result: core-first routes intercept the
+structured requests. It also qualifies the Engine-free native conversation
+journey and actual extracted units. These results add no fleet-wide score.
 
 ## Use from Python
 

@@ -231,6 +231,56 @@ Only declared store files may be symlinked. Keep the admitted tree and its side
 mounts under protected, read-only custody throughout serving. Git-only admission
 remains a development mode and does not verify working-tree contents.
 
+### Native conversations without Python
+
+`conversation_profile: "native-v1"` uses the same session transaction and exact
+HTTP reply journal, with one native delivered-answer owner. It requires a native
+image and state store. Engine configuration is rejected before resource admission;
+there is no Python fallback or implicit import of Python conversation state.
+Generate its release with `make_config.py --conversation-profile native-v1`.
+The [native-route receipt](../evidence/2026-10-31-native-route-validation.json)
+records the actual image/extracted-binary journey, direct invocation, exact retry
+and restart on the relocated Linux package.
+
+Every completed native-profile `/query` returns `conversation_version`. Pass it
+as the next dependent invocation's `expected_version`; an intervening turn
+causes a version conflict. Exact retries retain the original response and its
+original version, even after later turns.
+
+The owner retains an empty context, a reference to the selected entity, or a
+quantity with its unit, precision origin and producing request. `context.native`
+accepts explicit supplied observations, scale/divide/cost commands, acknowledgement,
+inspection and topic reset. Supplied values do not acquire provider provenance.
+Admitted reader and extracted-organ results can deliver typed anchors after
+arbitration; arbitrary operation replies do not become conversation context.
+
+Bounded text follow-ups include `Multiply that by 2`, `Divide that by 2`,
+`What does that cost at $0.20 per kWh?`, `Thanks`, and `New topic`.
+`Find entity <source name>` requires a unique source-name match;
+`What is the birthplace of that entity?` reads that selected entity's complete
+birthplace object set in the admitted image. Multiple objects withhold a unique
+answer. This is selection-based context, not Python's separate answer/subject/topic
+roles, and not a claim that the image contains every fact in the world.
+
+Units are case-sensitive. Cost supports exact same-unit rates and the explicit
+J/kWh conversion; numerical operations retain the input's approximation origin.
+Acknowledgements and semantic refusals preserve the delivered anchor. A new
+answer whose type cannot be retained clears the old anchor and selection, so a
+later "that" cannot refer to an obsolete result. Extracted temperature answers
+currently take this path because the context does not represent temperature
+points separately from differences. Topic reset also clears both fields.
+Unsupported text does not call
+the Engine. Retained sessions without the checked native owner require a fresh
+conversation; missing old state is not interpreted as an empty one.
+
+### Public preparation for legacy Python
+
+The isolated [prepared-U8 proposal](../../tools/upstream/runtime_preparation/README.md)
+manufactures public reader tables once and requires synchronous component
+readiness before serving. It does not yet configure a production Rust-host Engine
+provider. Its source identity, executable-pickle custody and unchanged startup
+limits are separate from the Engine-free native profile above.
+
 ## Relocatable host package
 
 Build the Rust binary for the receiving OS, then create a directory distribution:

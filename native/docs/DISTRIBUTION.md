@@ -46,6 +46,11 @@ Engine and extracted-organ arguments are described in [HOST.md](HOST.md).
 Engine configuration must name a pinned materialization receipt and a usable
 external Python environment. It is unnecessary for native-only operation.
 
+Add `--conversation-profile native-v1` for bounded native entity and quantity
+follow-ups with atomic state/reply recovery. This profile requires the native
+image and excludes Engine configuration. An admitted extracted quantity binary
+can supply numerical answers and their structured units without an Engine.
+
 Next create the measured `release-input.json`, package, relocate and launch using
 the commands below. Qualification applies only to the exact frozen artifact,
 configuration and external resources that were exercised.

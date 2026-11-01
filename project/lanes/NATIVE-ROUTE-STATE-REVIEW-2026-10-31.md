@@ -162,3 +162,25 @@ Reviewed service SHA-256:
 `ac4aeece25d775f88b6dc0e8f746f8f3e7cbddace3a8cf365d7a75c5b4ae5521`;
 host test SHA-256:
 `73e306c358420bc5d67bf79f0cbe810b2f130b572053ac5650d2ea4089c8be31`.
+
+## Query cursor for the next invocation
+
+Source-approved native-v1 query cursor addition: every successful query body gets
+outer `conversation_version` from checked candidate base revision plus one,
+before bounded encoding and the same atomic state/reply commit. This covers
+reader, organ and fallback replies. Existing completion/replay paths return the
+original bytes and original version; failures do not manufacture a committed
+turn. The authored regression uses a returned entity-query version for a stateful
+quantity invocation, then checks a later acknowledgement, the exact old query
+replay and a current inspection. No new state authority or readonly-v1 behavior.
+Reviewed service `c193245439e89196a6cdadd5f4bb18024740801f56d4f4c200c05ddedd3b1caa`
+and tests `cf829debacbade3d6907c1b7cf0bb043280f123be8159c0d33337be8db64bf50`.
+No tests or builds run by this reviewer.
+
+Final narrow source pass against `cb95203`: the two numeric/cost regexes now use
+process-wide `OnceLock<Regex>` initialization. Pattern bytes, capture indices,
+number normalization, case-sensitive `J`/`kWh` units and dispatch behavior are
+unchanged; only repeated compilation is removed. The other service diff is the
+already reviewed outer query cursor. Final service SHA-256 verified:
+`04e8154daa373f67b4f8a6046600b9df85566d19baa34d702d18b69643618b7a`.
+Source approved and held; no builds or tests run by this reviewer.

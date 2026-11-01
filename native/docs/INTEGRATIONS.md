@@ -4,8 +4,11 @@ The [capability catalog](CAPABILITIES.md) lists the operations that run today.
 Graph optimization, exact polynomial/dimensional rewriting, reaction balancing,
 numerical solving/fitting, thermal models, dependency batches, DNA alignment and
 regression have optional PyO3 and standalone HTTP consumers. Durable data/language
-hosting and relocatable packaging also run. These are not yet consumers of the
-full upstream specialist cascade, and have no new specialist-panel scores.
+hosting and relocatable packaging also run. The supplied-data modeling and
+evidence-driven thermal clients connect several
+of these operations. They are not installed throughout the upstream specialist
+cascade; their authored workflow panels are distinct from shipped specialist
+panels.
 
 ## Next specialist consumers
 
@@ -16,7 +19,7 @@ full upstream specialist cascade, and have no new specialist-panel scores.
 | `thermo`, `hvac`, `electrical`, `fluids-r2`, `labsolutions`, `statistics` | Connect typed models to existing linear/fitting/thermal providers. Preserve units, weighting, rank and original-row residuals; test rank loss, scaling, perturbations and model plausibility. |
 | `chemistry`, `chemistry-v3`, `labsolutions` | Feed the existing exact balancing operation complete supplied species/inventories. Test isotope/charge conservation, free coefficients and infeasible positive balances. Conservation does not establish reaction rate or feasibility. |
 | Relation readers, lessons and dependency planning | Turn finite batch dependencies into demand-driven maintained views only where measured workloads justify retained state. Test withdrawal, duplicate/alternative support, cycles and restart against fresh recomputation. |
-| Defaults and exception reasoning | Hosted query/enumeration, durable evidence revisions and restart recovery now run with an admitted solver. Connect revised evidence to a concrete calculation or planning consumer; improve checked restoration before introducing persistent solver state. The [current receipt](../evidence/2026-10-31-native-cycle-validation.json) covers actual solver and recovery paths; it does not establish full Engine dialogue or action authority. |
+| Defaults and exception reasoning | Hosted query/enumeration, durable evidence revisions and restart recovery run with an admitted solver. The [thermal revision consumer](../../tools/usage/specialist/thermal-revision/README.md) connects skeptical support, withdrawal and conflicts to numerical decisions. Solve/checkpoint reuse a checked owner restoration. Persistent solver state and a retention contract beyond the current bounded history remain; neither solver results nor recovery confer external action authority. |
 | Astronomy and geometry | Evaluate pinned ephemeris/frame/time and spatial libraries against explicit source coverage and boundary cases. Keep large data shared. Precise time arithmetic does not define a Mars calendar. |
 | Empirical readouts | Admit shared model artifacts and task-specific native inference. Record model/data versions, held-out accuracy, calibration and abstention before promotion. |
 

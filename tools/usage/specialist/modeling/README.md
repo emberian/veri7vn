@@ -35,11 +35,21 @@ hold no private modeling state and calls make no durable replay promise.
 Central qualification passed all 14 dev and 14 heldout supplied-panel cases,
 with zero wrong answers, false yes or execution failures. See the
 [receipt](../../../../native/evidence/2026-10-31-coherent-native-validation.json).
-Complete six-criterion admission remains incomplete: the real U8 baseline
-completed two dev questions, then timed out on the third under its unchanged
-30-second limit. A captured stack showed lazy standing-family initialization
-concurrent with background reader compilation. The timeout was not replaced by
-a decline; remaining baseline questions were not run.
+The subsequent [prepared-U8 examination](../../../../native/evidence/2026-10-31-native-route-validation.json)
+completed all 28 real core baselines and the unchanged original exam. Admission
+is **negative**: zero domain gain and two wrong calibration answers per split.
+Core-first composition selects generic mean calculations from numbers in the
+request JSON, or nonfillable Python-documentation refusals for GLM operation IDs,
+before this specialist can supply the requested result. Direct hosted panel
+success does not qualify that composition.
+
+The domain panel also contains standalone lane controls whose scorer expects
+abstention. Applied to complete core replies, that condition misclassifies valid
+identity/arithmetic answers; the raw false-yes totals must not be interpreted as
+new errors introduced by this specialist. The [diagnosis](../../../../project/lanes/MODELING-ADMISSION-2026-10-31.md)
+keeps these limitations distinct. The heldout exam is spent; future admission
+needs explicit route ownership, appropriate composed-control gold and a fresh
+independent heldout set. The earlier unprepared-U8 timeout remains retained.
 The panel is 14 dev and 14 separately authored heldout cases: five useful numeric
 answers, one exact-witness semantic refusal, four invalid-input refusals, and four
 out-of-lane controls per split. Gold is analytic: lines 1+2x and 5−2x, aggregate

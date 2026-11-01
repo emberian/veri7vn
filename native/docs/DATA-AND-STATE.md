@@ -136,6 +136,41 @@ client-supplied `observe` value is supplied data, not evidence that an Engine
 produced it. Restoring an exact scalar into Python's float cache refuses values
 that would round.
 
+## Retain a native entity or quantity
+
+The [native conversation profile](HOST.md#native-conversations-without-python)
+adds `context.native` under the same session and reply transaction. Its one
+delivered anchor is empty, a checked reference to the selected entity, or a
+quantity with its unit and precision origin. It does not replace the scalar
+owner above or import missing Python state.
+
+Completed native-profile queries return `conversation_version`, which supplies
+the next dependent invocation's `expected_version`. Replaying an old request
+returns its original version along with its exact original reply.
+
+A supplied initial quantity uses this operation's arguments:
+
+```json
+{
+  "expected_version": 0,
+  "command": {
+    "op": "observe",
+    "quantity": {"number": "3600000", "unit": "J", "origin": "exact_decimal"}
+  }
+}
+```
+
+The next command can be `{"op":"cost","rate":"0.20","per_unit":"kWh"}`
+with `expected_version: 1`. It produces an exact numerical cost of `1/5` dollars.
+Supplied observations remain labelled supplied. Only compiled provider delivery
+can attach an admitted provider identity; it cannot be claimed by adding fields
+to this command. Rounded Python or displayed-decimal origins survive arithmetic.
+
+Acknowledgements and refusals preserve the prior anchor. An answered result
+whose type cannot be retained clears it, preventing a later follow-up from using
+an obsolete value. New owners are initialized only for genuinely absent sessions;
+retained sessions with missing coverage require a fresh conversation.
+
 ## Revise evidence, then solve its snapshot
 
 With the logic feature and admitted routes, `logic.workspace` inserts or withdraws

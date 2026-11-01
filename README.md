@@ -28,8 +28,9 @@ much as the calculation.
 
 The [Rust host](native/docs/HOST.md) serves questions, operation discovery and
 direct computations independently of minidregg. It shares an immutable indexed
-image, keeps selected extracted kernels resident and contains the Python Oracle7
-Engine in a bounded worker pool. A relocatable package keeps public data and
+image and keeps selected extracted kernels resident. The optional Python Oracle7
+Engine runs in a bounded worker pool; the `native-v1` conversation profile excludes
+it entirely. A relocatable package keeps public data and
 private state outside its code payload. [Build and use it](native/README.md).
 
 The [capability catalog](native/docs/CAPABILITIES.md) describes callable graph,
@@ -40,7 +41,8 @@ search and coordinate-preserving translation. New consumers connect
 [supplied-data modeling](tools/usage/specialist/modeling/README.md) to an explicit
 specialist interface, and [revised evidence](tools/usage/specialist/thermal-revision/README.md)
 to thermal decisions. The supplied modeling panel passes 28/28 and the thermal revision workflow 8/8;
-complete modeling admission remains open after a real Engine baseline timeout.
+complete modeling admission is negative: the core-first cascade intercepts valid
+modeling requests before the specialist.
 Their manufactured workflow cases
 are separate from the shipped specialist exams. A structured operation does not
 automatically become a natural-language specialist in the complete Oracle cascade.
@@ -58,7 +60,12 @@ retries survive lost replies and restart. The optional
 [conversation profile](native/docs/HOST.md#optional-supported-conversation-profile)
 commits delivered native state and exact HTTP replies together. It provides a
 bounded, source-pinned Engine adapter for supported entity and quantity follow-ups,
-acknowledgements and topic changes. The supported real-U8 journey passes handoff,
+acknowledgements and topic changes. A separate
+[native profile](native/docs/HOST.md#native-conversations-without-python) retains
+typed entities and quantities using the same transaction, with exact arithmetic
+and case-sensitive units. It accepts actual extracted quantity results and
+clears obsolete context when a new answer cannot be represented. The supported
+real-U8 journey passes handoff,
 refusal, restart and exact replay;
 it does not restore the complete Engine conversation. Each Engine worker belongs
 to one tenant per generation. Full Engine restoration, wider reader coverage,
@@ -66,9 +73,10 @@ sustained mixed-tenant qualification and release-history migration remain.
 The [roadmap](native/docs/ROADMAP.md) is the live plan; the
 [migration map](native/docs/MIGRATION.md) identifies remaining source consumers.
 
-The [current checkpoint](project/lanes/COHERENT-NATIVE-2026-10-31.md) records
-165 Rust and 43 Python checks, actual relocated calls through every enabled
-provider, the supported conversation journey and the new consumer results.
+The [current checkpoint](project/lanes/NATIVE-ROUTE-2026-10-31.md) records the
+Engine-free native journey, actual extracted quantity delivery, prepared thermal
+computation and isolated public-reader preparation for U8. It retains the negative
+modeling admission and the remaining host integration work.
 The [upstream ledger](project/lanes/NATIVE-UPSTREAM-CHECKPOINT-2026-10-31.md)
 tracks publication separately from adoption.
 Separate [design experiments](native/experiments/README.md) explore streaming
