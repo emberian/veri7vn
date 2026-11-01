@@ -788,6 +788,9 @@ impl PreparedThermalCache {
         }
     }
 
+    /// The shared owner stores normalized base RHS values; its `identity()` is
+    /// that normalized input identity. The returned String binds this caller
+    /// to its complete original input, including base loads and temperatures.
     pub fn get_or_prepare(
         &self,
         network: &ThermalInput,
@@ -833,7 +836,7 @@ impl PreparedThermalCache {
             return Err(Error::Limit("thermal SVD scratch"));
         }
         let matrix_allowance = scratch_bytes + 8 * n * n * 8 + 128 * (n + network.links.len());
-        let _request_prep_guard = request_memory
+        let mut request_prep_guard = request_memory
             .map(|budget| {
                 budget
                     .reserve(matrix_allowance + 6 * encoded_length)
@@ -853,12 +856,16 @@ impl PreparedThermalCache {
         let template_identity = format!("sha256:{:x}", hash.finalize());
         {
             let mut entries = self.entries.lock().unwrap_or_else(|e| e.into_inner());
+            checkpoint(control)?;
             if let Some(pos) = entries
                 .iter()
                 .position(|(key, _)| key == &template_identity)
             {
                 let (key, prepared) = entries.remove(pos).expect("entry index");
                 entries.push_back((key, prepared.clone()));
+                if n + network.links.len() > limits.work.min(super::MAX_WORK) {
+                    return Err(Error::Limit("thermal topology work"));
+                }
                 if free > limits.rows.min(super::MAX_ROWS)
                     || free > limits.columns.min(super::MAX_COLUMNS)
                 {
@@ -877,7 +884,7 @@ impl PreparedThermalCache {
         }
         self.misses.fetch_add(1, Ordering::Relaxed);
         let prepared = loop {
-            match PreparedThermalNetwork::prepare(network, limits, control, Some(&self.memory)) {
+            match PreparedThermalNetwork::prepare(&template, limits, control, Some(&self.memory)) {
                 Ok(prepared) => break Arc::new(prepared),
                 Err(Error::Limit("shared thermal memory")) => {
                     let evicted = {
@@ -888,15 +895,18 @@ impl PreparedThermalCache {
                         self.evictions.fetch_add(1, Ordering::Relaxed);
                         continue;
                     }
-                    // Entry exceeds cache budget: prepare under request memory without caching.
-                    let uncached =
-                        PreparedThermalNetwork::prepare(network, limits, control, None)?;
+                    // Transfer the live preparation allowance to the uncached owner.
+                    // It must survive until the last returned Arc is dropped.
+                    let mut uncached =
+                        PreparedThermalNetwork::prepare(&template, limits, control, None)?;
+                    uncached._reservation = request_prep_guard.take();
                     return Ok((Arc::new(uncached), identity, false));
                 }
                 Err(other) => return Err(other),
             }
         };
         let mut entries = self.entries.lock().unwrap_or_else(|e| e.into_inner());
+        checkpoint(control)?;
         if let Some(pos) = entries
             .iter()
             .position(|(key, _)| key == &template_identity)

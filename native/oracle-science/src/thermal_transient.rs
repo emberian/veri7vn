@@ -165,6 +165,8 @@ struct Spatial {
     endpoints: Vec<(usize, usize)>,
     laplacian: Vec<Vec<f64>>,
     fixed_offsets: Vec<f64>,
+    // Custody follows every Arc reader, including readers of evicted entries.
+    _reservation: Option<MemoryReservation>,
 }
 impl Spatial {
     fn prepare(input: &TransientInput, limits: &Limits, control: &dyn WorkControl) -> Result<Self> {
@@ -280,6 +282,7 @@ impl Spatial {
             endpoints,
             laplacian,
             fixed_offsets,
+            _reservation: None,
         })
     }
 }
@@ -755,6 +758,16 @@ fn canonical_digest(value: &serde_json::Value, digest: &mut Sha256) -> Result<()
     Ok(())
 }
 fn spatial_identity(input: &TransientInput, limits: &Limits) -> Result<String> {
+    // serde_json maps nonfinite floats to null. A typed Some(NaN) boundary
+    // must not alias a validated free node (None) and bypass preparation.
+    if input.network.nodes.iter().any(|node| {
+        node.fixed_temperature_k
+            .is_some_and(|value| !value.is_finite() || value < 0.0)
+    }) {
+        return Err(Error::Invalid(
+            "fixed temperatures must be nonnegative finite kelvin".into(),
+        ));
+    }
     let mut digest = Sha256::new();
     digest.update(b"transient-spatial-v1");
     digest.update((limits.rows.min(crate::MAX_ROWS) as u64).to_be_bytes());
@@ -782,11 +795,6 @@ pub struct PreparedTransientCacheStats {
     pub evictions: u64,
 }
 
-struct CachedSpatial {
-    spatial: Arc<Spatial>,
-    _reservation: MemoryReservation,
-}
-
 /// Bounded cross-request cache of validated spatial Laplacian topologies for
 /// transient thermal models, keyed by canonical network + capacity + initial
 /// boundary identity.
@@ -794,7 +802,7 @@ pub struct PreparedTransientCache {
     max_entries: usize,
     max_bytes: usize,
     memory: MemoryBudget,
-    entries: Mutex<VecDeque<(String, Arc<CachedSpatial>)>>,
+    entries: Mutex<VecDeque<(String, Arc<Spatial>)>>,
     hits: AtomicU64,
     misses: AtomicU64,
     evictions: AtomicU64,
@@ -809,7 +817,7 @@ impl Default for PreparedTransientCache {
 impl PreparedTransientCache {
     pub fn new(max_entries: usize, max_bytes: usize) -> Self {
         let cap = max_entries.clamp(1, 256);
-        let bytes = max_bytes.clamp(64 * 1024, 64 * 1024 * 1024);
+        let bytes = max_bytes.min(64 * 1024 * 1024);
         Self {
             max_entries: cap,
             max_bytes: bytes,
@@ -840,25 +848,28 @@ impl PreparedTransientCache {
         limits: &Limits,
         control: &dyn WorkControl,
     ) -> Result<Arc<Spatial>> {
+        checkpoint(control)?;
         let key = spatial_identity(input, limits)?;
         if let Ok(mut guard) = self.entries.lock() {
+            checkpoint(control)?;
             if let Some(pos) = guard.iter().position(|(k, _)| *k == key) {
                 let (_, entry) = guard.remove(pos).expect("matched cache index");
-                let spatial = entry.spatial.clone();
+                let spatial = entry.clone();
                 guard.push_front((key, entry));
                 self.hits.fetch_add(1, Ordering::Relaxed);
                 return Ok(spatial);
             }
         }
         self.misses.fetch_add(1, Ordering::Relaxed);
-        let spatial = Arc::new(Spatial::prepare(input, limits, control)?);
+        let mut spatial = Spatial::prepare(input, limits, control)?;
         let n = input.network.nodes.len();
         let f = spatial.free.len();
-        let entry_bytes = 256 + n * 64 + f * f * 8 + input.network.links.len() * 32;
+        let entry_bytes = 512 + n * 128 + f * f * 8 + input.network.links.len() * 32;
         if let Ok(mut guard) = self.entries.lock() {
+            checkpoint(control)?;
             if let Some(pos) = guard.iter().position(|(k, _)| *k == key) {
                 let (_, entry) = guard.remove(pos).expect("matched cache index");
-                let existing = entry.spatial.clone();
+                let existing = entry.clone();
                 guard.push_front((key, entry));
                 return Ok(existing);
             }
@@ -879,16 +890,13 @@ impl PreparedTransientCache {
                 }
             };
             if let Some(res) = reservation {
-                guard.push_front((
-                    key,
-                    Arc::new(CachedSpatial {
-                        spatial: spatial.clone(),
-                        _reservation: res,
-                    }),
-                ));
+                spatial._reservation = Some(res);
+                let spatial = Arc::new(spatial);
+                guard.push_front((key, spatial.clone()));
+                return Ok(spatial);
             }
         }
-        Ok(spatial)
+        Ok(Arc::new(spatial))
     }
 }
 
@@ -1176,4 +1184,75 @@ pub fn thermal_transient_with_cache(
     cache: &PreparedTransientCache,
 ) -> Result<TransientResult> {
     run(input, limits, context, Some(context.memory()), Some(cache))
+}
+
+#[cfg(test)]
+mod cache_tests {
+    use super::*;
+    use std::sync::atomic::AtomicBool;
+
+    fn input() -> TransientInput {
+        #[derive(Deserialize)]
+        struct Example {
+            arguments: TransientInput,
+        }
+        serde_json::from_str::<Example>(include_str!("../examples/thermal-transient-heater.json"))
+            .unwrap()
+            .arguments
+    }
+
+    #[test]
+    fn eviction_keeps_spatial_bytes_charged_until_last_reader_drops() {
+        let cache = PreparedTransientCache::new(1, 1024 * 1024);
+        let control = AtomicBool::new(false);
+        let mut input = input();
+        let first = cache
+            .get_or_prepare(&input, &Limits::default(), &control)
+            .unwrap();
+        let first_bytes = cache.stats().live_bytes;
+        assert!(first_bytes > 0);
+        input.network.links[0].conductance_w_per_k = 4.0;
+        let second = cache
+            .get_or_prepare(&input, &Limits::default(), &control)
+            .unwrap();
+        assert_eq!(cache.stats().entries, 1);
+        assert_eq!(cache.stats().evictions, 1);
+        assert_eq!(cache.stats().live_bytes, first_bytes * 2);
+        assert_eq!(first.laplacian[0][0], 2.0);
+        assert_eq!(second.laplacian[0][0], 4.0);
+        drop(first);
+        assert_eq!(cache.stats().live_bytes, first_bytes);
+        drop(second);
+        assert_eq!(cache.stats().live_bytes, first_bytes);
+    }
+
+    #[test]
+    fn typed_nonfinite_boundary_cannot_alias_a_warm_free_node() {
+        let cache = PreparedTransientCache::new(2, 1024 * 1024);
+        let control = AtomicBool::new(false);
+        let mut input = input();
+        cache
+            .get_or_prepare(&input, &Limits::default(), &control)
+            .unwrap();
+        for value in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY] {
+            input.network.nodes[0].fixed_temperature_k = Some(value);
+            assert!(cache
+                .get_or_prepare(&input, &Limits::default(), &control)
+                .is_err());
+        }
+        assert_eq!(cache.stats().hits, 0);
+        assert_eq!(cache.stats().misses, 1);
+    }
+
+    #[test]
+    fn small_cache_budget_is_not_silently_enlarged() {
+        let cache = PreparedTransientCache::new(1, 1);
+        let spatial = cache
+            .get_or_prepare(&input(), &Limits::default(), &AtomicBool::new(false))
+            .unwrap();
+        assert_eq!(spatial.laplacian[0][0], 2.0);
+        assert_eq!(cache.stats().max_bytes, 1);
+        assert_eq!(cache.stats().entries, 0);
+        assert_eq!(cache.stats().live_bytes, 0);
+    }
 }

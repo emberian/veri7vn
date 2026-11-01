@@ -41,13 +41,17 @@ impl RetentionPolicy {
         }
     }
 
+    /// Compatibility with the original count-only API and its durable v1 events.
+    /// Callers opt into a serialized-byte bound with `uniform` or explicit fields.
+    pub const fn legacy(max_records: usize) -> Self {
+        Self {
+            max_bytes: usize::MAX,
+            ..Self::uniform(max_records)
+        }
+    }
+
     pub fn validate(&self) -> Result<(), Error> {
-        if self.max_active_records == 0
-            || self.max_historical_ids < self.max_active_records
-            || self.max_revisions == 0
-            || self.max_retained_retries == 0
-            || self.max_bytes == 0
-        {
+        if self.max_historical_ids < self.max_active_records || self.max_bytes == 0 {
             return Err(Error::Invalid("invalid workspace retention policy"));
         }
         Ok(())
@@ -61,6 +65,8 @@ pub struct RetentionMetrics {
     pub revisions: usize,
     pub retained_retries: usize,
     pub retired_tokens: usize,
+    /// Exact serialized StoredWorkspace bytes, including JSON escaping and framing.
+    /// This is not an estimate of the derived maps or process memory.
     pub estimated_bytes: usize,
 }
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -336,7 +342,7 @@ pub struct Workspace {
     current: Snapshot,
     retries: BTreeMap<String, (Revision, Commit)>,
     retry_order: VecDeque<String>,
-    retired_tokens: BTreeSet<String>,
+    retired_tokens: BTreeMap<String, Commit>,
     estimated_bytes: usize,
 }
 /// Owner-extension payload. Derived state is reconstructed and validated.
@@ -373,7 +379,7 @@ impl Workspace {
         Self::import_with_policy(
             stored,
             authenticated_scope,
-            &RetentionPolicy::uniform(max_records),
+            &RetentionPolicy::legacy(max_records),
         )
     }
     pub fn import_with_policy(
@@ -401,7 +407,7 @@ impl Workspace {
         Self::import_with_policy_and_control(
             stored,
             authenticated_scope,
-            &RetentionPolicy::uniform(max_records),
+            &RetentionPolicy::legacy(max_records),
             control,
         )
     }
@@ -421,6 +427,9 @@ impl Workspace {
             return Err(Error::Limit("workspace history"));
         }
         let mut workspace = Self::new(stored.scope)?;
+        if workspace.estimated_bytes > policy.max_bytes {
+            return Err(Error::Limit("workspace bytes"));
+        }
         for revision in stored.history {
             restore_checkpoint(
                 control,
@@ -439,9 +448,20 @@ impl Workspace {
         if scope.tenant.is_empty() || scope.workspace.is_empty() {
             return Err(Error::Invalid("workspace scope"));
         }
-        let estimated_bytes = 32usize
-            .saturating_add(scope.tenant.len())
-            .saturating_add(scope.workspace.len());
+        #[derive(Serialize)]
+        struct EmptyWorkspace<'a> {
+            version: u32,
+            scope: &'a ScopeKey,
+            history: &'a [Revision],
+        }
+        let estimated_bytes = bounded_serialized_len(
+            &EmptyWorkspace {
+                version: VERSION,
+                scope: &scope,
+                history: &[],
+            },
+            usize::MAX,
+        )?;
         Ok(Self {
             initial: scope.clone(),
             history: vec![],
@@ -453,7 +473,7 @@ impl Workspace {
             },
             retries: BTreeMap::new(),
             retry_order: VecDeque::new(),
-            retired_tokens: BTreeSet::new(),
+            retired_tokens: BTreeMap::new(),
             estimated_bytes,
         })
     }
@@ -463,7 +483,7 @@ impl Workspace {
         history: Vec<Revision>,
         max_records: usize,
     ) -> Result<Self, Error> {
-        Self::restore_with_policy(scope, history, &RetentionPolicy::uniform(max_records))
+        Self::restore_with_policy(scope, history, &RetentionPolicy::legacy(max_records))
     }
     pub fn restore_with_policy(
         scope: ScopeKey,
@@ -475,6 +495,9 @@ impl Workspace {
             return Err(Error::Limit("workspace history"));
         }
         let mut w = Self::new(scope)?;
+        if w.estimated_bytes > policy.max_bytes {
+            return Err(Error::Limit("workspace bytes"));
+        }
         for r in history {
             w.apply_with_policy(r, policy)?;
         }
@@ -491,7 +514,7 @@ impl Workspace {
         self.current.clone()
     }
     pub fn apply(&mut self, r: Revision, max_records: usize) -> Result<Commit, Error> {
-        self.apply_with_policy(r, &RetentionPolicy::uniform(max_records))
+        self.apply_with_policy(r, &RetentionPolicy::legacy(max_records))
     }
     pub fn apply_with_policy(
         &mut self,
@@ -508,10 +531,19 @@ impl Workspace {
                 ))
             };
         }
-        if self.retired_tokens.contains(&r.token) {
-            return Err(Error::Invalid(
-                "revision token reused after retry window eviction",
-            ));
+        if let Some(result) = self.retired_tokens.get(&r.token) {
+            // Only the duplicate retry payload is evicted. The authoritative
+            // committed event remains in history, so exact retry never expires.
+            let old = usize::try_from(result.revision - 1)
+                .ok()
+                .and_then(|index| self.history.get(index));
+            return if old == Some(&r) {
+                Ok(result.clone())
+            } else {
+                Err(Error::Invalid(
+                    "revision token reused with different content",
+                ))
+            };
         }
         if r.token.is_empty() {
             return Err(Error::Invalid("empty revision token"));
@@ -529,13 +561,16 @@ impl Workspace {
         {
             return Err(Error::Limit("workspace history"));
         }
-        let revision_bytes = serde_json::to_vec(&r)
-            .map(|bytes| bytes.len())
-            .map_err(|_| Error::Limit("workspace bytes"))?;
-        let next_bytes = self
-            .estimated_bytes
-            .checked_add(revision_bytes)
+        let framing_bytes = usize::from(!self.history.is_empty());
+        let available = policy
+            .max_bytes
+            .checked_sub(self.estimated_bytes)
+            .and_then(|bytes| bytes.checked_sub(framing_bytes))
             .ok_or(Error::Limit("workspace bytes"))?;
+        // A capped writer counts before cloning the event or derived snapshot;
+        // oversized strings cannot force a temporary encoded allocation.
+        let revision_bytes = bounded_serialized_len(&r, available)?;
+        let next_bytes = self.estimated_bytes + framing_bytes + revision_bytes;
         if next_bytes > policy.max_bytes {
             return Err(Error::Limit("workspace bytes"));
         }
@@ -608,17 +643,49 @@ impl Workspace {
         self.current = next;
         self.estimated_bytes = next_bytes;
         self.history.push(r.clone());
-        while self.retry_order.len() >= policy.max_retained_retries {
+        while self.retry_order.len() >= policy.max_retained_retries && !self.retry_order.is_empty()
+        {
             if let Some(evicted) = self.retry_order.pop_front() {
-                self.retries.remove(&evicted);
-                self.retired_tokens.insert(evicted);
+                if let Some((_, commit)) = self.retries.remove(&evicted) {
+                    self.retired_tokens.insert(evicted, commit);
+                }
             }
         }
         let token = r.token.clone();
-        self.retry_order.push_back(token.clone());
-        self.retries.insert(token, (r, result.clone()));
+        if policy.max_retained_retries == 0 {
+            self.retired_tokens.insert(token, result.clone());
+        } else {
+            self.retry_order.push_back(token.clone());
+            self.retries.insert(token, (r, result.clone()));
+        }
         Ok(result)
     }
+}
+
+/// Count serialized wire custody without allocating an encoded copy.
+fn bounded_serialized_len(value: &impl Serialize, limit: usize) -> Result<usize, Error> {
+    struct Counter {
+        bytes: usize,
+        limit: usize,
+    }
+    impl std::io::Write for Counter {
+        fn write(&mut self, bytes: &[u8]) -> std::io::Result<usize> {
+            if bytes.len() > self.limit.saturating_sub(self.bytes) {
+                return Err(std::io::Error::new(
+                    std::io::ErrorKind::Other,
+                    "workspace byte limit",
+                ));
+            }
+            self.bytes += bytes.len();
+            Ok(bytes.len())
+        }
+        fn flush(&mut self) -> std::io::Result<()> {
+            Ok(())
+        }
+    }
+    let mut counter = Counter { bytes: 0, limit };
+    serde_json::to_writer(&mut counter, value).map_err(|_| Error::Limit("workspace bytes"))?;
+    Ok(counter.bytes)
 }
 
 pub(crate) fn restore_checkpoint(

@@ -414,3 +414,108 @@ fn cross_request_prepared_cache_reuses_factors_and_bounds_entries() {
     assert_eq!(cache.stats().evictions, 1);
     drop((third, fourth));
 }
+
+#[test]
+fn oversized_cache_entry_keeps_request_custody_until_last_reader_drops() {
+    use oracle_execution::MemoryBudget;
+    let cache = PreparedThermalCache::new(1, 1);
+    let memory = MemoryBudget::new(4 * 1024 * 1024);
+    let control = AtomicBool::new(false);
+    let (prepared, _, hit) = cache
+        .get_or_prepare(&network(), &Limits::default(), &control, Some(&memory))
+        .unwrap();
+    assert!(!hit);
+    assert_eq!(cache.stats().entries, 0);
+    assert_eq!(cache.stats().live_bytes, 0);
+    assert!(memory.snapshot().live > 0);
+    let reader = prepared.clone();
+    drop(prepared);
+    near(
+        reader
+            .solve(
+                &scenario("retained", 10.0, 300.0),
+                &Limits::default(),
+                &control,
+            )
+            .unwrap()
+            .nodes[0]
+            .temperature_k
+            .unwrap(),
+        305.0,
+    );
+    assert!(memory.snapshot().live > 0);
+    drop(reader);
+    assert_eq!(memory.snapshot().live, 0);
+}
+
+#[test]
+fn cached_owner_does_not_reveal_a_previous_callers_base_rhs_identity() {
+    let cache = PreparedThermalCache::new(1, 4 * 1024 * 1024);
+    let control = AtomicBool::new(false);
+    let first_input = network();
+    let mut second_input = first_input.clone();
+    second_input.nodes[0].applied_heat_w = 12345.0;
+    second_input.nodes[1].fixed_temperature_k = Some(456.0);
+    let (first, first_id, _) = cache
+        .get_or_prepare(&first_input, &Limits::default(), &control, None)
+        .unwrap();
+    let (second, second_id, hit) = cache
+        .get_or_prepare(&second_input, &Limits::default(), &control, None)
+        .unwrap();
+    assert!(hit);
+    assert!(std::sync::Arc::ptr_eq(&first, &second));
+    assert_ne!(first_id, second_id);
+    let mut normalized = second_input;
+    for node in &mut normalized.nodes {
+        node.applied_heat_w = 0.0;
+        node.fixed_temperature_k = node.fixed_temperature_k.map(|_| 0.0);
+    }
+    let canonical =
+        PreparedThermalNetwork::prepare(&normalized, &Limits::default(), &control, None).unwrap();
+    assert_eq!(second.identity(), canonical.identity());
+    assert_ne!(second.identity(), first_id);
+}
+
+#[test]
+fn warm_cache_obeys_topology_limits_and_cold_result_evidence() {
+    let control = AtomicBool::new(false);
+    let cache = PreparedThermalCache::new(2, 4 * 1024 * 1024);
+    let (prepared, _, _) = cache
+        .get_or_prepare(&network(), &Limits::default(), &control, None)
+        .unwrap();
+    let direct =
+        PreparedThermalNetwork::prepare(&network(), &Limits::default(), &control, None).unwrap();
+    assert_eq!(
+        serde_json::to_value(
+            prepared
+                .solve(&scenario("x", 10.0, 300.0), &Limits::default(), &control)
+                .unwrap()
+        )
+        .unwrap(),
+        serde_json::to_value(
+            direct
+                .solve(&scenario("x", 10.0, 300.0), &Limits::default(), &control)
+                .unwrap()
+        )
+        .unwrap()
+    );
+    let mut strict = Limits::default();
+    strict.work = 1; // Cubic factor work is one, but two nodes plus one link is three.
+    assert!(cache
+        .get_or_prepare(&network(), &strict, &control, None)
+        .is_err());
+    assert!(PreparedThermalNetwork::prepare(&network(), &strict, &control, None).is_err());
+    strict = Limits::default();
+    strict.rows = 0;
+    assert!(cache
+        .get_or_prepare(&network(), &strict, &control, None)
+        .is_err());
+    strict = Limits::default();
+    strict.scratch_bytes = 0;
+    assert_eq!(
+        cache
+            .get_or_prepare(&network(), &strict, &control, None)
+            .is_err(),
+        PreparedThermalNetwork::prepare(&network(), &strict, &control, None).is_err()
+    );
+}

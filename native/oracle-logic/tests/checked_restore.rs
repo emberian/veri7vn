@@ -133,7 +133,10 @@ fn retention_policy_separates_active_records_historical_ids_revisions_and_retry_
         withdraw: vec![],
     };
     let c1 = workspace.apply_with_policy(r1.clone(), &policy).unwrap();
-    assert_eq!(workspace.apply_with_policy(r1.clone(), &policy).unwrap(), c1);
+    assert_eq!(
+        workspace.apply_with_policy(r1.clone(), &policy).unwrap(),
+        c1
+    );
 
     // Replacing active record "a" with "b" keeps active_records == 1 while historical_ids == 2.
     let r2 = Revision {
@@ -159,7 +162,7 @@ fn retention_policy_separates_active_records_historical_ids_revisions_and_retry_
         Err(Error::Invalid("record identity reused"))
     );
 
-    // Advancing past max_retained_retries evicts t1's payload but remembers t1 in retired_tokens.
+    // Evict the duplicate retry payload, while history preserves exact retry.
     let r3 = Revision {
         token: "t3".into(),
         expected_revision: 2,
@@ -171,9 +174,122 @@ fn retention_policy_separates_active_records_historical_ids_revisions_and_retry_
     assert_eq!(workspace.retention_metrics().retired_tokens, 1);
     assert_eq!(workspace.apply_with_policy(r2, &policy).unwrap(), c2);
     assert_eq!(
-        workspace.apply_with_policy(r1, &policy),
+        workspace.apply_with_policy(r1.clone(), &policy).unwrap(),
+        c1
+    );
+    let mut altered = r1.clone();
+    altered.expected_revision = 3;
+    assert_eq!(
+        workspace.apply_with_policy(altered, &policy),
         Err(Error::Invalid(
-            "revision token reused after retry window eviction"
+            "revision token reused with different content"
         ))
     );
+    let scope = workspace.scope().clone();
+    let mut restored = Workspace::import_with_policy(workspace.export(), &scope, &policy).unwrap();
+    assert_eq!(restored.apply_with_policy(r1.clone(), &policy).unwrap(), c1);
+    let smaller_window = RetentionPolicy {
+        max_retained_retries: 0,
+        ..policy
+    };
+    let mut restored =
+        Workspace::import_with_policy(workspace.export(), &scope, &smaller_window).unwrap();
+    assert_eq!(restored.retention_metrics().retained_retries, 0);
+    assert_eq!(restored.apply_with_policy(r1, &smaller_window).unwrap(), c1);
+}
+
+#[test]
+fn count_only_legacy_api_restores_large_committed_v1_events() {
+    let mut workspace = initial();
+    let mut event = revision("large", 0);
+    event.insert.push(Insert::Observation(Observation {
+        id: "id".into(),
+        source: "s".repeat(DEFAULT_MAX_BYTES + 1),
+        source_revision: "1".into(),
+        atom: "a".into(),
+    }));
+    let commit = workspace.apply(event.clone(), 128).unwrap();
+    let stored = workspace.export();
+    let scope = workspace.scope().clone();
+    let mut restored = Workspace::import(stored.clone(), &scope, 128).unwrap();
+    assert_eq!(restored.apply(event.clone(), 128).unwrap(), commit);
+    let control = CancelAt {
+        calls: AtomicUsize::new(0),
+        at: usize::MAX,
+    };
+    let mut checked =
+        Workspace::import_with_control(stored.clone(), &scope, 128, &control).unwrap();
+    assert_eq!(checked.apply(event, 128).unwrap(), commit);
+    assert!(matches!(
+        Workspace::import_with_policy(stored, &scope, &RetentionPolicy::default()),
+        Err(Error::Limit("workspace bytes"))
+    ));
+}
+
+#[test]
+fn byte_policy_counts_escaped_scope_event_and_exact_stored_framing() {
+    let scope = ScopeKey {
+        tenant: "\u{0001}".repeat(20),
+        workspace: "w\"\\".into(),
+    };
+    let mut workspace = Workspace::new(scope.clone()).unwrap();
+    let initial_bytes = serde_json::to_vec(&workspace.export()).unwrap().len();
+    assert_eq!(workspace.retention_metrics().estimated_bytes, initial_bytes);
+    let too_small = RetentionPolicy {
+        max_bytes: initial_bytes - 1,
+        ..RetentionPolicy::default()
+    };
+    assert!(matches!(
+        Workspace::import_with_policy(workspace.export(), &scope, &too_small),
+        Err(Error::Limit("workspace bytes"))
+    ));
+    let control = CancelAt {
+        calls: AtomicUsize::new(0),
+        at: usize::MAX,
+    };
+    assert!(matches!(
+        Workspace::import_with_policy_and_control(workspace.export(), &scope, &too_small, &control),
+        Err(Error::Limit("workspace bytes"))
+    ));
+    let first = revision("\u{0001}\"\\", 0);
+    let expected_bytes = initial_bytes + serde_json::to_vec(&first).unwrap().len();
+    let policy = RetentionPolicy {
+        max_bytes: expected_bytes,
+        ..RetentionPolicy::default()
+    };
+    assert!(matches!(
+        workspace.apply_with_policy(
+            first.clone(),
+            &RetentionPolicy {
+                max_bytes: expected_bytes - 1,
+                ..policy
+            }
+        ),
+        Err(Error::Limit("workspace bytes"))
+    ));
+    assert_eq!(workspace.checkpoint().revision, 0);
+    workspace.apply_with_policy(first, &policy).unwrap();
+    assert_eq!(
+        workspace.retention_metrics().estimated_bytes,
+        expected_bytes
+    );
+    assert_eq!(
+        serde_json::to_vec(&workspace.export()).unwrap().len(),
+        expected_bytes
+    );
+    workspace.apply(revision("second", 1), 128).unwrap();
+    assert_eq!(
+        workspace.retention_metrics().estimated_bytes,
+        serde_json::to_vec(&workspace.export()).unwrap().len()
+    );
+}
+
+#[test]
+fn zero_count_legacy_workspace_can_restore_empty_without_admitting_events() {
+    let workspace = initial();
+    let mut restored = Workspace::import(workspace.export(), workspace.scope(), 0).unwrap();
+    assert!(matches!(
+        restored.apply(revision("no-space", 0), 0),
+        Err(Error::Limit("workspace history"))
+    ));
 }
