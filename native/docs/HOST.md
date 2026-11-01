@@ -192,9 +192,14 @@ arithmetic, supported physical quantities, step-by-step physics lessons (`teach 
 over retained `_last_physics`), `relation_spec_v1` and `relation_spec_v2` forward
 and inverse entity relations, cited atmospheric data (`air`), grounded reader90
 queries (`facts`), optional `oracle_native.Image` (`read_whole`) fallback, explicit
-topic changes, acknowledgements and per-session state eviction (`evict`). It does
-not call arbitrary `eng.chat` under a restoration guarantee. Physics routes require
-their source organ to be ready.
+topic changes and acknowledgements. The worker protocol also has per-session
+`evict`, but the Rust host does not call it; this is not yet a bound on retained
+Python session memory. Relation routes honor each source reader's domain and
+dropped phrases. Lessons verify their source and final-value agreement; they do
+not provide an independent equation proof. This adapter pins the original U8
+materialization and does not admit the separately patched prepared-U8 source.
+It does not call arbitrary `eng.chat` under a restoration guarantee. Physics
+routes require their source organ to be ready.
 
 Only delivered answers update supported context. Native entity projection requires
 the operator's explicit `conversation_entity_namespace: "wikidata"`; a Q-prefixed
@@ -288,8 +293,9 @@ The supported operations are `statistics.calibration`, `statistics.events_exposu
 `science.solve_linear`, `science.least_squares`, `bio.align_pairwise`,
 `reasoning.optimize_linear`, `reasoning.exact_linear_feasibility`,
 `graph.shortest_path`, `graph.minimum_spanning_forest` and `chemistry.balance_reaction`;
-[complete examples and analytic checks](../../tools/usage/specialist/modeling/composed/README.md)
-show their required rows, units, assumptions, sampling declarations and predictions.
+[statistics examples and analytic checks](../../tools/usage/specialist/modeling/composed/README.md)
+show explicit rows, units, assumptions, sampling declarations and predictions.
+Other operations retain their declared provider schemas and limits.
 The existing typed provider performs the computation under the query's resource
 budget. The reply includes one structured result, provider metadata and concise
 prose. It does not encode another copy of the result inside the prose.
@@ -301,6 +307,7 @@ execution failures remain errors. Discovery reports the owner and availability.
 Ordinary unprefixed questions keep their existing routes.
 
 In `native-v1`:
+
 - Single-free-node thermal networks, single-scenario `science.thermal_scenarios`
   and `science.thermal_transient` runs deliver their solved or final kelvin
   temperature as a `QuantityRole::TemperaturePoint` anchor for affine temperature
@@ -313,6 +320,19 @@ In `native-v1`:
 - `science.solve_linear`, `science.least_squares`, `reasoning.optimize_linear` and
   `reasoning.exact_linear_feasibility` clear the scalar/entity anchor and install
   `RetainedFittedModel::LinearSystem`, supporting `What is variable <k> of that model?`.
+
+Retained models preserve provider identity and numerical origin. Optimization
+requires an optimum; an unbounded certificate's starting point is not an optimum.
+LP variable follow-ups identify coordinates of the retained certified witness;
+optimality or feasibility does not establish that every witness has those values.
+Subsequent scalar arithmetic preserves that witness scope.
+Underdetermined numerical solutions, unspecified temperature roles and oversized
+models remain valid full answers where the provider allows them, but do not install
+a persistent model. The reply explains why retention was skipped and clears the
+old model. Model follow-ups retain their evidence; later unrelated deliveries
+cannot leave that model as hidden context. Public supplied-model commands cannot
+claim provider delivery provenance.
+
 Semantic refusals preserve prior context; operational failures do not commit a turn. Exact
 query retry uses the existing journal. `readonly-v1` and ordinary conversations
 already bound to an Engine explicitly refuse this context transition before
@@ -349,9 +369,12 @@ Shutdown cancels preparation and reaps owned process groups and reader threads.
 Health reports preparation, unassigned-ready capacity, exhausted slots and
 initial preparation timing (`initial_preparation_ms`). Spawned Python workers
 bound native BLAS/OpenMP/Rayon thread pools (`OMP_NUM_THREADS=1`, etc.), and
-stdout EOF immediately clears worker liveness (`alive`) and wakes the slot
-supervisor so idle worker deaths are reaped and replaced proactively in the
-background, as well as checked before slot assignment or use. Retention stays
+stdout EOF clears worker liveness and wakes the slot supervisor. On supported
+platforms, a non-reaping `waitid` check also detects a dead leader when descendants
+hold stdout open. Cleanup signals the owned process group before reaping its
+leader. macOS uses EOF detection; a descendant holding the pipe can defer detection
+until a turn fails. Health reports the active mechanism. Slot assignment and use
+also check liveness. Retention stays
 bounded to one generation per slot. The legacy configuration retains lazy startup.
 The prepared mode targets the pinned U8 materialization, not an arbitrary
 upstream revision. Public files remain shared, but each Engine process still has

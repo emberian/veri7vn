@@ -1,0 +1,1454 @@
+{
+  "schema": "gemini-review-validation-v1",
+  "recorded_utc": "2026-11-01T08:10:07.485699+00:00",
+  "status": "qualified_frozen_native_and_ordinary_prepared_profiles_with_explicit_readonly_reader_gap",
+  "source": {
+    "revision": "292e9e202a3ebd149bcf9aa35b916ae9b3a7ae5a",
+    "initial_archive_sha256": "69bc7190180ea6f9dd4245dc5a0aeabbc157672d137e0daaadb498ef0d186ea8",
+    "final_archive_sha256": "e5a48ab4a28e9a10cdea5af1cc6cec4b8d76ed9f08864dd9447d376e378b42b8",
+    "final_archive": "var/gemini-review-20261101/validation/validated-source.tar",
+    "remote_archive": "/tank/lanes/o7-gemini-review-20261101/validated-source.tar",
+    "members": 732,
+    "inventory": "var/gemini-review-20261101/validation/evidence/sealed-source.json",
+    "ancestry_byte_comparison": "var/gemini-review-20261101/validation/ancestry-byte-comparison.json",
+    "tracked_files_compared": 732,
+    "differences_from_revision": [],
+    "overlays": [
+      "var/gemini-review-20261101/validation/source-closure-overlay.json",
+      "var/gemini-review-20261101/validation/registry-fixture-overlay.json",
+      "var/gemini-review-20261101/validation/reader-registry-repair.json",
+      "var/gemini-review-20261101/validation/adapter-source-pin-repair.json",
+      "var/gemini-review-20261101/validation/model-witness-scope.json"
+    ],
+    "documentation": "Root final editorial changes follow the frozen source; no final documentation overlay is represented as rebuilt runtime."
+  },
+  "host": {
+    "path": "/tank/lanes/o7-gemini-review-20261101/artifacts/oracle-host",
+    "sha256": "56e716d096ee811d0defcbb1d360b15ba2f5740cc60ad7a88a207e922807a531",
+    "bytes": 20901712
+  },
+  "execution_controls": {
+    "host": "hbox",
+    "cargo_build_jobs": 2,
+    "cargo_target_dir": "/tank/lanes/o7-native-20261028/target",
+    "cargo_flags": [
+      "--locked",
+      "--offline"
+    ],
+    "test_threads": 1,
+    "sequential_cargo_owner_lock": "/tank/lanes/o7-native-20261028/gemini-central-validation.lock",
+    "source_and_artifacts": "Fresh owned directory only. Prior source, receipts, images, public tables and upstream remained immutable. No Isabelle build or 20-family extracted-kernel rebuild."
+  },
+  "focused_checks": {
+    "rust_unique_passed": 187,
+    "python_unique_passed": 39,
+    "rust_groups": {
+      "composition_contract": 13,
+      "kernel_contract": 15,
+      "lexicon_contract": 19,
+      "segments_contract": 38,
+      "native_conversation_contract": 15,
+      "runtime_conversation_contract": 9,
+      "host_modeling": 18,
+      "host_execution_inheritance": 3,
+      "host_prepared_lifecycle": 4,
+      "host_config_identity": 6,
+      "host_revisions_owner_contract": 5,
+      "logic_checked_restore": 7,
+      "science_thermal_scenarios": 18,
+      "science_thermal_transient": 14,
+      "science_transient_cache_internal": 3
+    },
+    "python_groups": {
+      "conversation_adapter": 22,
+      "host_make_config": 10,
+      "specialist_coverage": 7
+    },
+    "counting": "Unique final passing tests; initial failures and necessary targeted repair checks are retained without counting duplicates. Reader100 execution is separately reported. Existing externally supplied real extracted-kernel tests stayed ignored; manufactured protocol tests are not new artifact or theorem receipts."
+  },
+  "reader100": {
+    "status": "passed_actual_release_control_once",
+    "items": 100,
+    "answered_correct": 39,
+    "answered_wrong": 0,
+    "refused_or_ambiguous": 6,
+    "unknown": 55,
+    "execution_errors": 0,
+    "previous_committed_control": 36,
+    "newly_answered_source_indices": [
+      10958,
+      7393,
+      11707
+    ],
+    "image_sha256": "8fcb1db9a08e234179f66ea9e032d2633b38cdcb902f4c95d1ba2c2d49c842f4",
+    "cases_sha256": "9089a3c9f5bdee2cb916ad775b41b4631f91d35393e26e9a376eb7bb0a863d15",
+    "limits": {
+      "workers": 2,
+      "timeout_ms": 1000,
+      "fuel": 10000000
+    },
+    "consumer": "Release Image::read_whole; Runtime::read_whole directly forwards to the same Image call. Full original100 dataset questions, gold and replies retained; no resampling or deadline relaxation.",
+    "observations": "var/gemini-review-20261101/validation/reader100-observations.json",
+    "source_audit": "var/gemini-review-20261101/reader-named-gains-source-audit.json",
+    "scope": "Finite retained dataset text control. Source-backed new readings do not establish external-world completeness or a shipped specialist score.",
+    "original36_comparison": {
+      "unchanged_answers": 36,
+      "removed_answers": 0,
+      "changed_answers": 0,
+      "added_source_indices": [
+        7393,
+        10958,
+        11707
+      ],
+      "previous_observations_sha256": "20eccd1b571b035ca30c76f8710c740ea5603d45343bd8bad34b04809d983f94",
+      "comparison": "Compared previous outcome=answered_correct answer.text to actual current replies by unchanged source_index; all original36 answers are identical."
+    },
+    "selected_source_evidence": [
+      {
+        "source_index": 10958,
+        "question": "What is the connection between The Grifters to National Society of Film Critics Award for Best Film?",
+        "gold": "nominated for",
+        "answer": "nominated for",
+        "distinct_answers": [
+          "nominated for"
+        ],
+        "successful_readings": 10,
+        "distinct_programs": [
+          [
+            {
+              "dependencies": [],
+              "function": "Find",
+              "inputs": [
+                "The Grifters"
+              ]
+            },
+            {
+              "dependencies": [],
+              "function": "Find",
+              "inputs": [
+                "National Society of Film Critics Award for Best Film"
+              ]
+            },
+            {
+              "dependencies": [
+                0,
+                1
+              ],
+              "function": "QueryRelation",
+              "inputs": []
+            }
+          ]
+        ],
+        "source_result": {
+          "coverage": "complete_relative_to_image",
+          "entities": [
+            "Q304488"
+          ],
+          "facts": [],
+          "image": "8fcb1db9a08e234179f66ea9e032d2633b38cdcb902f4c95d1ba2c2d49c842f4",
+          "value": {
+            "candidate": {
+              "type": "string",
+              "value": "nominated for"
+            },
+            "display": "nominated for",
+            "evidence": [
+              {
+                "direction": "forward",
+                "object": "Q1720784",
+                "predicate": "nominated for",
+                "qualifiers": {},
+                "subject": "Q304488"
+              }
+            ],
+            "status": "unique"
+          }
+        },
+        "unsupported_programs": 0,
+        "ambiguous_executions": 0,
+        "independent_source_check": "Every successful reading agrees with independently inspected immutable SQL source: relation targets/qualifiers and exact date association. Stored-image scope only."
+      },
+      {
+        "source_index": 7393,
+        "question": "Where was the film whose official website is http://www.janeeyremovie.com published on 2011-12-01?",
+        "gold": "Germany",
+        "answer": "Germany",
+        "distinct_answers": [
+          "Germany"
+        ],
+        "successful_readings": 6,
+        "distinct_programs": [
+          [
+            {
+              "dependencies": [],
+              "function": "FindAll",
+              "inputs": []
+            },
+            {
+              "dependencies": [
+                0
+              ],
+              "function": "FilterStr",
+              "inputs": [
+                "official website",
+                "http://www.janeeyremovie.com"
+              ]
+            },
+            {
+              "dependencies": [
+                1
+              ],
+              "function": "FilterConcept",
+              "inputs": [
+                "film"
+              ]
+            },
+            {
+              "dependencies": [
+                2
+              ],
+              "function": "QueryAttrQualifier",
+              "inputs": [
+                "publication date",
+                "2011-12-01",
+                "place of publication"
+              ]
+            }
+          ],
+          [
+            {
+              "dependencies": [],
+              "function": "FindAll",
+              "inputs": []
+            },
+            {
+              "dependencies": [
+                0
+              ],
+              "function": "FilterConcept",
+              "inputs": [
+                "film"
+              ]
+            },
+            {
+              "dependencies": [
+                1
+              ],
+              "function": "FilterStr",
+              "inputs": [
+                "official website",
+                "http://www.janeeyremovie.com"
+              ]
+            },
+            {
+              "dependencies": [
+                2
+              ],
+              "function": "QueryAttrQualifier",
+              "inputs": [
+                "publication date",
+                "2011-12-01",
+                "place of publication"
+              ]
+            }
+          ]
+        ],
+        "source_result": {
+          "coverage": "complete_relative_to_image",
+          "entities": [
+            "Q258979"
+          ],
+          "facts": [],
+          "image": "8fcb1db9a08e234179f66ea9e032d2633b38cdcb902f4c95d1ba2c2d49c842f4",
+          "value": {
+            "candidate": {
+              "type": "string",
+              "value": "Germany"
+            },
+            "display": "Germany",
+            "evidence": [
+              {
+                "key": "publication date",
+                "position": 1,
+                "qualifiers": {
+                  "place of publication": [
+                    {
+                      "type": "string",
+                      "value": "Germany"
+                    }
+                  ]
+                },
+                "subject": "Q258979",
+                "value": {
+                  "type": "date",
+                  "value": "2011/12/1"
+                }
+              }
+            ],
+            "status": "unique"
+          }
+        },
+        "unsupported_programs": 0,
+        "ambiguous_executions": 0,
+        "independent_source_check": "Every successful reading agrees with independently inspected immutable SQL source: relation targets/qualifiers and exact date association. Stored-image scope only."
+      },
+      {
+        "source_index": 11707,
+        "question": "When did Crazy Heart receive the Los Angeles Film Critics Association Award for Best Actor?",
+        "gold": "2009",
+        "answer": "2009",
+        "distinct_answers": [
+          "2009"
+        ],
+        "successful_readings": 2,
+        "distinct_programs": [
+          [
+            {
+              "dependencies": [],
+              "function": "Find",
+              "inputs": [
+                "Crazy Heart"
+              ]
+            },
+            {
+              "dependencies": [],
+              "function": "Find",
+              "inputs": [
+                "Los Angeles Film Critics Association Award for Best Actor"
+              ]
+            },
+            {
+              "dependencies": [
+                0,
+                1
+              ],
+              "function": "QueryRelationQualifier",
+              "inputs": [
+                "award received",
+                "point in time"
+              ]
+            }
+          ]
+        ],
+        "source_result": {
+          "coverage": "complete_relative_to_image",
+          "entities": [
+            "Q1128750"
+          ],
+          "facts": [],
+          "image": "8fcb1db9a08e234179f66ea9e032d2633b38cdcb902f4c95d1ba2c2d49c842f4",
+          "value": {
+            "candidate": {
+              "type": "year",
+              "value": 2009
+            },
+            "display": "2009",
+            "evidence": [
+              {
+                "direction": "forward",
+                "object": "Q503034",
+                "predicate": "award received",
+                "qualifiers": {
+                  "point in time": [
+                    {
+                      "type": "year",
+                      "value": 2009
+                    }
+                  ],
+                  "winner": [
+                    {
+                      "type": "string",
+                      "value": "Jeff Bridges"
+                    }
+                  ]
+                },
+                "subject": "Q1128750"
+              }
+            ],
+            "status": "unique"
+          }
+        },
+        "unsupported_programs": 0,
+        "ambiguous_executions": 0,
+        "independent_source_check": "Every successful reading agrees with independently inspected immutable SQL source: relation targets/qualifiers and exact date association. Stored-image scope only."
+      }
+    ]
+  },
+  "native_http": {
+    "status": "passed_final_reviewed_continuation",
+    "distinct_query_acknowledgments": 16,
+    "byte_exact_query_replays_after_final_restart": 16,
+    "pure_invocations": 5,
+    "engine": null,
+    "receipt": "var/gemini-review-20261101/validation/evidence/native-live-reviewed/completed.json",
+    "runner_review": "var/gemini-review-20261101/validation/native-runner-review.json",
+    "fitted_model": {
+      "analytic_model": "y=2*x+1, x:m, response:N",
+      "evaluation_at_10": 21,
+      "inverse_at_11": 5,
+      "slope": 2,
+      "slope_unit": "N/m",
+      "origin": "displayed_decimal",
+      "contracts": "Provider lineage retained; invalid fit preserves previous owner; unrelated thermal answer clears old fit; model survives restart. Refit with ambiguous degC point/difference role still answers computation but clears unrepresentable retained owner."
+    },
+    "temperature": {
+      "delivered_kelvin_point": 325,
+      "converted_celsius_point": 51.85,
+      "shifted_celsius_point": 61.85,
+      "difference_celsius": 50,
+      "converted_fahrenheit_difference": 90,
+      "origin": "displayed_decimal"
+    },
+    "cache_calls": {
+      "steady": "Repeated same operator returns equal result evidence at325K; conductance2\u21924 changes network/template/operator identity and yields312.5K.",
+      "transient": "Two equal result payloads for supplied heater example; body/sink order and final20s guarded; final body temperature within0.01K of300+10*(1-exp(-2))*exp(-2).",
+      "hit_scope": "Public result payload omits cross-request cache-hit flags. Focused typed tests and host modeling tests establish hit/miss/retained-byte behavior; HTTP exercises actual provider cache paths without treating repeated equality as a cache-hit measurement.",
+      "replay_scope": "Pure invokes are completed answered computation with durable_replay=false; no pure-call durable replay claim."
+    }
+  },
+  "ordinary_prepared_host": {
+    "status": "passed_one_actual_launch_and_idle_death_journey",
+    "public_source_appliance_sha256": "ba58f621eae7795bfa7a2799a9797b54c7ecf758130c7db6985fb3cb3bf61b9d",
+    "public_reader_manifest_sha256": "66de1cad2525d38c7583173cf93c5624bdddb5ad33fe94f68931378e2770763e",
+    "limits": {
+      "workers": 1,
+      "startup_ms_per_attempt": 120000,
+      "engine_turn_ms": 30000,
+      "host_query_ms": 5000,
+      "replacement_attempts": 2,
+      "replacement_backoff_ms": 1000
+    },
+    "launch_to_public_ready_seconds": 121.62275689840317,
+    "dependency_preparation_ms": 12749,
+    "remaining_startup_scope": "Launch time minus dependency preparation includes source/materialization admission and host setup; these phases were not independently timed. Single observations are not speed or hard memory bounds.",
+    "initial_owned_subtree": {
+      "scope": "single owned subtree observation, no memory/throughput bound",
+      "processes": [
+        {
+          "pid": 3894485,
+          "ppid": 3894484,
+          "threads": 7,
+          "rss_kib": 32732,
+          "args": "/tank/lanes/o7-gemini-review-20261101/artifacts/oracle-host --config /tank/lanes/o7-gemini-review-20261101/prepared-live/config.json"
+        },
+        {
+          "pid": 3898392,
+          "ppid": 3894485,
+          "threads": 2,
+          "rss_kib": 1176988,
+          "args": "/tank/lanes/o7-coherent-native-20261031/u8/venv/bin/python -B /tank/lanes/o7-gemini-review-20261101/source/tools/appliance/engine_worker.py --tip oracle_release_runtime_w574 --checkout /tank/lanes/o7-native-route-20261031/preparation/view --state /tank/lanes/o7-gemini-review-20261101/prepared-live/engine/worker-0-3b6cd518e3dcc7ed212eef-1"
+        },
+        {
+          "pid": 3898395,
+          "ppid": 3898392,
+          "threads": 1,
+          "rss_kib": 10556,
+          "args": "/tank/lanes/o7-coherent-native-20261031/u8/venv/bin/python -B -c import os,signal,socket,sys fd,group=map(int,sys.argv[1:]) if group<=1 or os.getpgrp()!=group or os.getpid()==group:  raise SystemExit('invalid guardian group') s=socket.socket(fileno=fd) try:  while s.recv(1): pass finally:  os.killpg(group,signal.SIGKILL)  10 3898392"
+        }
+      ]
+    },
+    "idle_failure": {
+      "initial_signal": "SIGTERM",
+      "initial_result": "Python process stayed alive during shutdown, so this was not an exited-worker liveness case.",
+      "actual_death_signal": "SIGKILL",
+      "action": "Only the recorded owned PID3898392 with matching /proc birth936618485 was killed.",
+      "evidence": "var/gemini-review-20261101/validation/evidence/prepared-live/actual-idle-death-injection.json",
+      "replacement_observed_after_actual_kill_seconds": 0.07373762130737305,
+      "observer_scope": "One observed file-publication interval, not a latency guarantee. The115.3858s interval in idle-replacement-started.json includes the preceding SIGTERM grace period and is not liveness latency.",
+      "no_health_or_query_trigger": "A distinct replacement PID appeared before any health/start/query call."
+    },
+    "journey": "Mean7; actual idle worker death; automatic fresh generation; new tenant mean7; prior generation409 reset; byte-exact old acknowledgment replay; graceful host shutdown and complete owned process cleanup.",
+    "receipt": "var/gemini-review-20261101/validation/evidence/prepared-live/completed.json",
+    "readiness_scope": "Prepared required standing_family/air/physics/facts constructor readiness, not all Engine capability coverage or continued idle liveness guarantee."
+  },
+  "readonly_adapter": {
+    "status": "qualified_finite_paths_with_unqualified_reader90_positive",
+    "source_appliance_sha256": "97286fb824bb102a24ac9e7458fc8d8426212ad0bff2b585bd00d6e0462d00a5",
+    "profile_boundary": "Actual direct JSONL worker used immutable unpatched baseline U8. Adapter pins do not admit the prepared patched source; ordinary prepared-host evidence above does not qualify readonly conversations.",
+    "readiness": "Baseline constructor-ready announces before async air/physics/facts finish. Source-aware bounded constructor observations preceded finite semantic controls; no claim of first-ready path availability.",
+    "physics": "Source grammar WHEN/THE/IS case mass2kg,acceleration3m/s\u00b2 delivered6N; lesson displayed source formula, topic refusal preserved previous snapshot, and explicit typed projection cleared the old lesson. Five control records under adapter-live-continuation.",
+    "remaining_actual_controls": [
+      {
+        "label": "capital",
+        "passed": true,
+        "expected": "source aliases do not identify one subject",
+        "status": "withheld",
+        "path": "adapter:withheld>subject_not_unique"
+      },
+      {
+        "label": "currency",
+        "passed": true,
+        "expected": "unanchored Denmark aliases remain ambiguous",
+        "status": "withheld",
+        "path": "adapter:withheld>relation_declined"
+      },
+      {
+        "label": "dropped-currency",
+        "passed": false,
+        "expected": "source countries2 explicitly drops this pattern",
+        "status": "withheld",
+        "path": "adapter:withheld>route_unsupported"
+      },
+      {
+        "label": "inverse-capital",
+        "passed": true,
+        "expected": "source candidates and inverse subjects are nonunique",
+        "status": "withheld",
+        "path": "adapter:withheld>subject_not_unique"
+      },
+      {
+        "label": "air",
+        "passed": true,
+        "expected": "source co2_annmean_mlo.csv row110:2024,424.61ppm",
+        "status": "answered",
+        "path": "organ:air>cited"
+      },
+      {
+        "label": "facts-positive",
+        "passed": false,
+        "expected": "exact training-row integration control and KB Q6773095 occupationQ131524+website",
+        "status": "withheld",
+        "path": "adapter:withheld>route_unsupported"
+      },
+      {
+        "label": "facts-absent-moons",
+        "passed": true,
+        "expected": "Mars aliases ambiguous; source subset has no complete moon relation coverage",
+        "status": "withheld",
+        "path": "adapter:withheld>route_unsupported"
+      },
+      {
+        "label": "arithmetic",
+        "passed": true,
+        "expected": "exact2+3=5",
+        "status": "answered",
+        "path": "compute:verified"
+      }
+    ],
+    "remaining_attempt_exit": 1,
+    "classification": "Initial remaining harness expected a particular dropped-pattern refusal code and one source-known website answer. Actual dropped wording was safely withheld as route_unsupported; exact source training row was also withheld. These failures remain unchanged, not retro-counted as a passing8/8.",
+    "reader_gap": {
+      "question": "What is the official website of the entrepreneur Mars?",
+      "source_gold": "http://www.madinsanity.com",
+      "actual_status": "withheld",
+      "actual_reason": "route_unsupported",
+      "qualification": "Unqualified positive; source train membership does not imply an admitted Reader90 template. facts object was loaded, background_error=null, and facts.ask returned None; no protocol/readiness/source-pin failure or prompt retry.",
+      "receipt": "var/gemini-review-20261101/validation/evidence/adapter-live-remaining/facts-source-training-control.json"
+    },
+    "observed_positives": "Atmospheric CO2 in2024=424.61ppm with source citation; arithmetic2+3=5.",
+    "honest_declines": "Unanchored Denmark/Copenhagen aliases are nonunique. Mars moon facts are absent from this source subset; no source-absence zero-count answer was accepted."
+  },
+  "distribution": {
+    "packages": [
+      {
+        "label": "native",
+        "package_command": [
+          "python3",
+          "-B",
+          "/tank/lanes/o7-gemini-review-20261101/source/tools/appliance/package_host.py",
+          "--host",
+          "/tank/lanes/o7-gemini-review-20261101/artifacts/oracle-host",
+          "--sha256",
+          "56e716d096ee811d0defcbb1d360b15ba2f5740cc60ad7a88a207e922807a531",
+          "--config",
+          "/tank/lanes/o7-gemini-review-20261101/native-live-reviewed/config.json",
+          "--release-input",
+          "/tank/lanes/o7-gemini-review-20261101/release-input/release.json",
+          "--output",
+          "/tank/lanes/o7-gemini-review-20261101/assembled-native",
+          "--archive",
+          "/tank/lanes/o7-gemini-review-20261101/release/oracle-host-native-linux.tar.gz"
+        ],
+        "package": {
+          "archive": {
+            "path": "/tank/lanes/o7-gemini-review-20261101/release/oracle-host-native-linux.tar.gz",
+            "sha256": "5d36955d470277cee3993ce3fa7e070e3628e89a47b775fcf83f5f8d87734b60"
+          },
+          "manifest_sha256": "ede82c58de0e9a205f797cab35268b6d32fe12c552b146a56e326511ec457073",
+          "output": "/tank/lanes/o7-gemini-review-20261101/assembled-native"
+        },
+        "archive_sha256": "5d36955d470277cee3993ce3fa7e070e3628e89a47b775fcf83f5f8d87734b60",
+        "archive_bytes": 10078278,
+        "verify_command": [
+          "python3",
+          "-I",
+          "-B",
+          "-S",
+          "/tank/lanes/o7-gemini-review-20261101/relocated native/bin/oracle-host",
+          "--state-root",
+          "/tank/lanes/o7-gemini-review-20261101/unlaunched-verified-native",
+          "--verify"
+        ],
+        "verification": {
+          "verified": true,
+          "schema": "oracle-host-distribution-v1",
+          "scope": "payload and named external file hashes; host admits Engine receipt files at startup"
+        },
+        "relocated_directory": "/tank/lanes/o7-gemini-review-20261101/relocated native",
+        "host_sha256": "56e716d096ee811d0defcbb1d360b15ba2f5740cc60ad7a88a207e922807a531",
+        "local_archive": "var/gemini-review-20261101/release/oracle-host-native-linux.tar.gz"
+      },
+      {
+        "label": "prepared",
+        "package_command": [
+          "python3",
+          "-B",
+          "/tank/lanes/o7-gemini-review-20261101/source/tools/appliance/package_host.py",
+          "--host",
+          "/tank/lanes/o7-gemini-review-20261101/artifacts/oracle-host",
+          "--sha256",
+          "56e716d096ee811d0defcbb1d360b15ba2f5740cc60ad7a88a207e922807a531",
+          "--config",
+          "/tank/lanes/o7-gemini-review-20261101/prepared-live/config.json",
+          "--release-input",
+          "/tank/lanes/o7-gemini-review-20261101/release-input/release.json",
+          "--output",
+          "/tank/lanes/o7-gemini-review-20261101/assembled-prepared",
+          "--archive",
+          "/tank/lanes/o7-gemini-review-20261101/release/oracle-host-prepared-linux.tar.gz"
+        ],
+        "package": {
+          "archive": {
+            "path": "/tank/lanes/o7-gemini-review-20261101/release/oracle-host-prepared-linux.tar.gz",
+            "sha256": "1d17e20484ecb7c1b1beb9a0df73a622dccf20464a17ba4a1cf961d590d9dd4a"
+          },
+          "manifest_sha256": "672f8794b09b2d2b9d25ae9dcc921b25511dab042de61feb501804cd0e863cbb",
+          "output": "/tank/lanes/o7-gemini-review-20261101/assembled-prepared"
+        },
+        "archive_sha256": "1d17e20484ecb7c1b1beb9a0df73a622dccf20464a17ba4a1cf961d590d9dd4a",
+        "archive_bytes": 9238546,
+        "verify_command": [
+          "python3",
+          "-I",
+          "-B",
+          "-S",
+          "/tank/lanes/o7-gemini-review-20261101/relocated prepared/bin/oracle-host",
+          "--state-root",
+          "/tank/lanes/o7-gemini-review-20261101/unlaunched-verified-prepared",
+          "--verify",
+          "--prepared-root",
+          "/tank/lanes/o7-native-route-20261031/preparation/public-reader"
+        ],
+        "verification": {
+          "verified": true,
+          "schema": "oracle-host-distribution-v1",
+          "scope": "payload and named external file hashes; host admits Engine receipt files at startup"
+        },
+        "relocated_directory": "/tank/lanes/o7-gemini-review-20261101/relocated prepared",
+        "host_sha256": "56e716d096ee811d0defcbb1d360b15ba2f5740cc60ad7a88a207e922807a531",
+        "local_archive": "var/gemini-review-20261101/release/oracle-host-prepared-linux.tar.gz"
+      }
+    ],
+    "local_archive_directory": "var/gemini-review-20261101/release",
+    "source_archive_sha256": "e5a48ab4a28e9a10cdea5af1cc6cec4b8d76ed9f08864dd9447d376e378b42b8",
+    "same_host_sha256": "56e716d096ee811d0defcbb1d360b15ba2f5740cc60ad7a88a207e922807a531",
+    "qualification": "Actual journeys used the identical binary/config inputs before packaging. Both relocated directories passed --verify payload and named external resource hashes; no extra host journey or service installation. External image, U8 source, Python environment and prepared public resources stay external. Ordinary prepared profile has no readonly adapter capability claim."
+  },
+  "preserved_failures": [
+    {
+      "record": "var/gemini-review-20261101/validation/focused-matrix.json",
+      "kind": "validator source inventory",
+      "failure": "Compile-time main.sml include omitted; first compile101 before tests.",
+      "resolution": "Named unchanged discrete-certificate closure overlay."
+    },
+    {
+      "record": "var/gemini-review-20261101/validation/focused-after-closure.json",
+      "kind": "validator source inventory",
+      "failure": "New test compile-time families.json include omitted; compile101 before tests.",
+      "resolution": "Named unchanged registry fixture overlay; all external compile includes audited."
+    },
+    {
+      "record": "var/gemini-review-20261101/validation/evidence/checks-complete-closure/core-reader.json",
+      "kind": "new registry test",
+      "failure": "Expected20 families but registry has21 including stateful stores.",
+      "resolution": "Compared explicit stateless family identity set, rejected state_flag inference; exact current test passed."
+    },
+    {
+      "record": "var/gemini-review-20261101/validation/registry-repaired.json",
+      "kind": "validator Cargo freshness",
+      "failure": "Repair tar epoch mtimes caused reuse of old failing test binary.",
+      "resolution": "Stamped only changed files; correct narrow recompilation passed. Later overlays have current mtimes."
+    },
+    {
+      "record": "var/gemini-review-20261101/validation/evidence/checks-independent/python-adapter.json",
+      "kind": "source digest cache",
+      "failure": "Same-size edit with restored mtime did not change ctime on actual hbox filesystem; metadata cache missed changed bytes.",
+      "resolution": "Hash current bytes on each source check; final adapter22/22 includes deterministic identical-stat regression.",
+      "probe": "var/gemini-review-20261101/validation/metadata-probe.json"
+    },
+    {
+      "record": "var/gemini-review-20261101/validation/model-witness-scope-test.json",
+      "kind": "validator recorder",
+      "failure": "One new witness test passed; recorder then refused overwrite of same-named overlay JSON.",
+      "resolution": "Overlay and log preserved, separate record notes absent elapsed timer; no test rerun."
+    },
+    {
+      "record": "var/gemini-review-20261101/validation/native-live.json",
+      "kind": "validator floating-point expectation",
+      "failure": "Correct10.999999999999998 and14.999999999999998 fit estimates rejected by exact float equality.",
+      "resolution": "Unchanged query/gold, independent1e-10 tolerance; existing acknowledgment replayed from same journal."
+    },
+    {
+      "record": "var/gemini-review-20261101/validation/native-live-continuation.json",
+      "kind": "validator wire expectation",
+      "failure": "Correct nested prior_model_unavailable refusal inspected at wrong top-level path.",
+      "resolution": "Model owner audited entire remaining harness; unchanged already-acknowledged prefix reused from same journal, final16ack replay passed."
+    },
+    {
+      "record": "var/gemini-review-20261101/validation/adapter-live.json",
+      "kind": "validator synthetic wording",
+      "failure": "Synthetic FORCE FOR wording is outside real grow60 WHEN grammar.",
+      "resolution": "Preserved refusal; one source-derived6N case after constructor completion passed."
+    },
+    {
+      "record": "var/gemini-review-20261101/validation/adapter-live-continuation.json",
+      "kind": "validator source coverage expectation",
+      "failure": "Unanchored Denmark capital expected positive but source aliases are nonunique.",
+      "resolution": "Actual refusal preserved, source-audited remaining cases retained honest declines."
+    },
+    {
+      "record": "var/gemini-review-20261101/validation/adapter-live-remaining.json",
+      "kind": "unqualified readonly Reader90 positive and refusal-code expectation",
+      "failure": "Exact source-known website training row withheld; dropped-currency safely withheld under route_unsupported instead of expected relation_declined.",
+      "resolution": "No product change, scorer rerun or new prompts. Narrower actual capability boundary retained."
+    }
+  ],
+  "commands": [
+    {
+      "name": "core-reader",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "--manifest-path",
+        "/tank/lanes/o7-gemini-review-20261101/source/native/Cargo.toml",
+        "-p",
+        "oracle-runtime-core",
+        "--test",
+        "kernel_contract",
+        "--test",
+        "lexicon_contract",
+        "--test",
+        "segments_contract",
+        "--test",
+        "composition_contract",
+        "--",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "exit": 101,
+      "elapsed_seconds": 5.996,
+      "finished_utc": "2026-11-01T07:42:52.914975+00:00",
+      "log": "/tank/lanes/o7-gemini-review-20261101/checks/core-reader.log",
+      "log_sha256": "b4b84f52238de5e573748f74bb3c7f1c0f6d4ab8d6b05cf710b3ef31c4fbf7d0",
+      "local_log": "var/gemini-review-20261101/validation/evidence/checks/core-reader.log"
+    },
+    {
+      "name": "core-reader",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "--manifest-path",
+        "/tank/lanes/o7-gemini-review-20261101/source/native/Cargo.toml",
+        "-p",
+        "oracle-runtime-core",
+        "--test",
+        "kernel_contract",
+        "--test",
+        "lexicon_contract",
+        "--test",
+        "segments_contract",
+        "--test",
+        "composition_contract",
+        "--",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "exit": 101,
+      "elapsed_seconds": 10.394,
+      "finished_utc": "2026-11-01T07:43:31.884578+00:00",
+      "log": "/tank/lanes/o7-gemini-review-20261101/checks-after-closure/core-reader.log",
+      "log_sha256": "7a71dc83670f6cabd5bab1f2be6e626529782d77418bb64df6b6dd242c73e7d5",
+      "local_log": "var/gemini-review-20261101/validation/evidence/checks-after-closure/core-reader.log"
+    },
+    {
+      "name": "core-reader",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "--manifest-path",
+        "/tank/lanes/o7-gemini-review-20261101/source/native/Cargo.toml",
+        "-p",
+        "oracle-runtime-core",
+        "--test",
+        "kernel_contract",
+        "--test",
+        "lexicon_contract",
+        "--test",
+        "segments_contract",
+        "--test",
+        "composition_contract",
+        "--",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "exit": 101,
+      "elapsed_seconds": 2.032,
+      "finished_utc": "2026-11-01T07:43:47.430251+00:00",
+      "log": "/tank/lanes/o7-gemini-review-20261101/checks-complete-closure/core-reader.log",
+      "log_sha256": "a8935a03aea1acef9e54740bfedc18a8133c6f21824ea0ccce9b397e79f55664",
+      "local_log": "var/gemini-review-20261101/validation/evidence/checks-complete-closure/core-reader.log"
+    },
+    {
+      "name": "core-conversation",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "--manifest-path",
+        "/tank/lanes/o7-gemini-review-20261101/source/native/Cargo.toml",
+        "-p",
+        "oracle-runtime-core",
+        "--test",
+        "native_conversation_contract",
+        "--test",
+        "runtime_conversation_contract",
+        "--",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 1.159,
+      "finished_utc": "2026-11-01T07:44:41.090582+00:00",
+      "log": "/tank/lanes/o7-gemini-review-20261101/checks-independent/core-conversation.log",
+      "log_sha256": "085a19472b0a5fc8bbed4e2d7b57898f60dd27782ba928ba29d99bb33cb1dd8c",
+      "local_log": "var/gemini-review-20261101/validation/evidence/checks-independent/core-conversation.log"
+    },
+    {
+      "name": "host-modeling",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "--manifest-path",
+        "/tank/lanes/o7-gemini-review-20261101/source/native/Cargo.toml",
+        "-p",
+        "oracle-host",
+        "--all-features",
+        "--lib",
+        "modeling_tests::",
+        "--",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 134.731,
+      "finished_utc": "2026-11-01T07:46:55.822053+00:00",
+      "log": "/tank/lanes/o7-gemini-review-20261101/checks-independent/host-modeling.log",
+      "log_sha256": "279a92a5f5b6034518d20f49716105500776bb093abcb7e4800ab58dc1fe3bc0",
+      "local_log": "var/gemini-review-20261101/validation/evidence/checks-independent/host-modeling.log"
+    },
+    {
+      "name": "host-execution",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "--manifest-path",
+        "/tank/lanes/o7-gemini-review-20261101/source/native/Cargo.toml",
+        "-p",
+        "oracle-host",
+        "--all-features",
+        "--lib",
+        "engine::execution_inheritance_tests",
+        "--",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 0.078,
+      "finished_utc": "2026-11-01T07:46:55.900273+00:00",
+      "log": "/tank/lanes/o7-gemini-review-20261101/checks-independent/host-execution.log",
+      "log_sha256": "b82f4f4015b7165b6b7376319f9e6b1ca2771faa6d235a920017dc8b8031d12a",
+      "local_log": "var/gemini-review-20261101/validation/evidence/checks-independent/host-execution.log"
+    },
+    {
+      "name": "host-lifecycle",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "--manifest-path",
+        "/tank/lanes/o7-gemini-review-20261101/source/native/Cargo.toml",
+        "-p",
+        "oracle-host",
+        "--all-features",
+        "--lib",
+        "engine::prepared_lifecycle_tests",
+        "--",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 1.037,
+      "finished_utc": "2026-11-01T07:46:56.937392+00:00",
+      "log": "/tank/lanes/o7-gemini-review-20261101/checks-independent/host-lifecycle.log",
+      "log_sha256": "c1a04ef65807bb8d6558d45f3a8b8085939bffc415b750752828d689484c51be",
+      "local_log": "var/gemini-review-20261101/validation/evidence/checks-independent/host-lifecycle.log"
+    },
+    {
+      "name": "host-identities",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "--manifest-path",
+        "/tank/lanes/o7-gemini-review-20261101/source/native/Cargo.toml",
+        "-p",
+        "oracle-host",
+        "--all-features",
+        "--test",
+        "config_identity",
+        "--test",
+        "revisions_owner_contract",
+        "--",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 5.655,
+      "finished_utc": "2026-11-01T07:47:02.592655+00:00",
+      "log": "/tank/lanes/o7-gemini-review-20261101/checks-independent/host-identities.log",
+      "log_sha256": "245a86fda09298f68612e6b9cefa720867483c7a8d41b3b47a0506b6fe85166f",
+      "local_log": "var/gemini-review-20261101/validation/evidence/checks-independent/host-identities.log"
+    },
+    {
+      "name": "logic-restore",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "--manifest-path",
+        "/tank/lanes/o7-gemini-review-20261101/source/native/Cargo.toml",
+        "-p",
+        "oracle-logic",
+        "--test",
+        "checked_restore",
+        "--",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 2.196,
+      "finished_utc": "2026-11-01T07:47:04.789072+00:00",
+      "log": "/tank/lanes/o7-gemini-review-20261101/checks-independent/logic-restore.log",
+      "log_sha256": "faadedcf4857242e8245a8f4c0030a06307ab5f9b43b2e4918029280ae52fb83",
+      "local_log": "var/gemini-review-20261101/validation/evidence/checks-independent/logic-restore.log"
+    },
+    {
+      "name": "science-cache",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "--manifest-path",
+        "/tank/lanes/o7-gemini-review-20261101/source/native/Cargo.toml",
+        "-p",
+        "oracle-science",
+        "--test",
+        "thermal_scenarios",
+        "--test",
+        "thermal_transient",
+        "--",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 12.151,
+      "finished_utc": "2026-11-01T07:47:16.939973+00:00",
+      "log": "/tank/lanes/o7-gemini-review-20261101/checks-independent/science-cache.log",
+      "log_sha256": "a3ec13b575a6b2fcf98668ca8ad2b16c492736ddead770806a2e9ff16ad68870",
+      "local_log": "var/gemini-review-20261101/validation/evidence/checks-independent/science-cache.log"
+    },
+    {
+      "name": "science-transient-cache",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "--manifest-path",
+        "/tank/lanes/o7-gemini-review-20261101/source/native/Cargo.toml",
+        "-p",
+        "oracle-science",
+        "--lib",
+        "thermal_transient::cache_tests",
+        "--",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 1.108,
+      "finished_utc": "2026-11-01T07:47:18.048012+00:00",
+      "log": "/tank/lanes/o7-gemini-review-20261101/checks-independent/science-transient-cache.log",
+      "log_sha256": "bd9f3ff2d8c575a7e1867e2e794b63af479f8219935133c728810c15413bc072",
+      "local_log": "var/gemini-review-20261101/validation/evidence/checks-independent/science-transient-cache.log"
+    },
+    {
+      "name": "python-adapter",
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tools/appliance/tests",
+        "-p",
+        "test_conversation_adapter.py",
+        "-v"
+      ],
+      "exit": 1,
+      "elapsed_seconds": 0.248,
+      "finished_utc": "2026-11-01T07:47:18.296204+00:00",
+      "log": "/tank/lanes/o7-gemini-review-20261101/checks-independent/python-adapter.log",
+      "log_sha256": "65a11f5fed9d02c220046e15d2798a5ecebc4a95c72b2efc35ec3a79096d33df",
+      "local_log": "var/gemini-review-20261101/validation/evidence/checks-independent/python-adapter.log"
+    },
+    {
+      "name": "registry-repaired",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "--manifest-path",
+        "/tank/lanes/o7-gemini-review-20261101/source/native/Cargo.toml",
+        "-p",
+        "oracle-runtime-core",
+        "--test",
+        "kernel_contract",
+        "registry_specialist_wire_names_and_allowlists_agree",
+        "--",
+        "--exact",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "exit": 101,
+      "elapsed_seconds": 0.112,
+      "finished_utc": "2026-11-01T07:48:06.121466+00:00",
+      "log": "/tank/lanes/o7-gemini-review-20261101/checks-registry-repaired/registry-repaired.log",
+      "log_sha256": "f5df1f967f320c0563f5a4bef19233a8601d4a4e60e3f4c1fad33f27dfca4de1",
+      "local_log": "var/gemini-review-20261101/validation/evidence/checks-registry-repaired/registry-repaired.log"
+    },
+    {
+      "name": "registry-repaired",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "--manifest-path",
+        "/tank/lanes/o7-gemini-review-20261101/source/native/Cargo.toml",
+        "-p",
+        "oracle-runtime-core",
+        "--test",
+        "kernel_contract",
+        "registry_specialist_wire_names_and_allowlists_agree",
+        "--",
+        "--exact",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 0.656,
+      "finished_utc": "2026-11-01T07:48:55.846246+00:00",
+      "log": "/tank/lanes/o7-gemini-review-20261101/checks-registry-current/registry-repaired.log",
+      "log_sha256": "e6b6df5e2d915438568092538383849ffad27dc0c94764320dbceec665856f96",
+      "local_log": "var/gemini-review-20261101/validation/evidence/checks-registry-current/registry-repaired.log"
+    },
+    {
+      "name": "lexicon-segments",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "--manifest-path",
+        "/tank/lanes/o7-gemini-review-20261101/source/native/Cargo.toml",
+        "-p",
+        "oracle-runtime-core",
+        "--test",
+        "lexicon_contract",
+        "--test",
+        "segments_contract",
+        "--",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 0.66,
+      "finished_utc": "2026-11-01T07:48:56.506743+00:00",
+      "log": "/tank/lanes/o7-gemini-review-20261101/checks-registry-current/lexicon-segments.log",
+      "log_sha256": "37b5fefc715d53079777cdb204dc36bf587f378ac6d699b3b37f4496c4d25d9c",
+      "local_log": "var/gemini-review-20261101/validation/evidence/checks-registry-current/lexicon-segments.log"
+    },
+    {
+      "name": "python-config",
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests/appliance",
+        "-p",
+        "test_host_make_config.py",
+        "-v"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 0.067,
+      "finished_utc": "2026-11-01T07:48:56.573746+00:00",
+      "log": "/tank/lanes/o7-gemini-review-20261101/checks-registry-current/python-config.log",
+      "log_sha256": "199b2c95602f4e7b328bc2eb767c77083dcce779c688dfd89d07c668e426115a",
+      "local_log": "var/gemini-review-20261101/validation/evidence/checks-registry-current/python-config.log"
+    },
+    {
+      "name": "python-coverage",
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tools/dev",
+        "-p",
+        "test_specialist_coverage.py",
+        "-v"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 0.136,
+      "finished_utc": "2026-11-01T07:48:56.710174+00:00",
+      "log": "/tank/lanes/o7-gemini-review-20261101/checks-registry-current/python-coverage.log",
+      "log_sha256": "6f93dd41395808854b9f7ac0d34d205b7c5ab2238d35008205bb7523ff9df391",
+      "local_log": "var/gemini-review-20261101/validation/evidence/checks-registry-current/python-coverage.log"
+    },
+    {
+      "name": "adapter-repaired",
+      "command": [
+        "ssh",
+        "hbox",
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "/tank/lanes/o7-gemini-review-20261101/source/tools/appliance/tests",
+        "-p",
+        "test_conversation_adapter.py",
+        "-v"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 1.344,
+      "finished_utc": "2026-11-01T07:49:18.490575+00:00",
+      "log": "/Users/ember/dev/o7vn/var/gemini-review-20261101/validation/adapter-repaired.log",
+      "log_sha256": "5c2d164108f632352c7d17f9ebff1c17b56f661cd62e373392c692d45f0c9601"
+    },
+    {
+      "name": "host-release",
+      "command": [
+        "ssh",
+        "hbox",
+        "env",
+        "CARGO_BUILD_JOBS=2",
+        "CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target",
+        "flock",
+        "/tank/lanes/o7-native-20261028/gemini-central-validation.lock",
+        "cargo",
+        "build",
+        "--locked",
+        "--offline",
+        "--release",
+        "--manifest-path",
+        "/tank/lanes/o7-gemini-review-20261101/source/native/Cargo.toml",
+        "-p",
+        "oracle-host",
+        "--all-features"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 108.897,
+      "finished_utc": "2026-11-01T07:52:58.289076+00:00",
+      "log": "/Users/ember/dev/o7vn/var/gemini-review-20261101/validation/host-release.log",
+      "log_sha256": "59f1f55ad045ddf22b4848d7db97ccb46b41637733796719df6b80e527eec8f7"
+    },
+    {
+      "name": "reader100-release",
+      "command": [
+        "ssh",
+        "hbox",
+        "env",
+        "CARGO_BUILD_JOBS=2",
+        "CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target",
+        "O1_IMAGE=/tank/lanes/o7-native-20261028/data/reader-image-v3.sqlite",
+        "O1_RECEIPT=/tank/lanes/o7-native-20261028/data/reader-image-v3-receipt.json",
+        "O1_CASES_FILE=/tank/lanes/o7-sol-validation-20261031/retained100.json",
+        "flock",
+        "/tank/lanes/o7-native-20261028/gemini-central-validation.lock",
+        "cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "--release",
+        "--manifest-path",
+        "/tank/lanes/o7-gemini-review-20261101/source/native/Cargo.toml",
+        "-p",
+        "oracle-runtime-core",
+        "--test",
+        "composition_contract",
+        "reader100_retained_control_evaluation",
+        "--",
+        "--exact",
+        "--ignored",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 48.74,
+      "finished_utc": "2026-11-01T07:56:31.681137+00:00",
+      "log": "/Users/ember/dev/o7vn/var/gemini-review-20261101/validation/reader100-release.log",
+      "log_sha256": "f312df3381a1d35847811debafd174293d0b7f79bbc46239b6181caeacac5df1"
+    },
+    {
+      "name": "adapter-live",
+      "command": [
+        "ssh",
+        "hbox",
+        "python3",
+        "-B",
+        "/tank/lanes/o7-gemini-review-20261101/adapter_live.py"
+      ],
+      "exit": 1,
+      "elapsed_seconds": 16.088,
+      "finished_utc": "2026-11-01T07:50:08.232735+00:00",
+      "log": "/Users/ember/dev/o7vn/var/gemini-review-20261101/validation/adapter-live.log",
+      "log_sha256": "e5ee7876ad88d63025df06165d86b10f9ed5f7756cf4b37b7b44e3d5c82749b7"
+    },
+    {
+      "name": "adapter-live-continuation",
+      "command": [
+        "ssh",
+        "hbox",
+        "python3",
+        "-B",
+        "/tank/lanes/o7-gemini-review-20261101/adapter_continue.py"
+      ],
+      "exit": 1,
+      "elapsed_seconds": 55.106,
+      "finished_utc": "2026-11-01T07:52:54.423792+00:00",
+      "log": "/Users/ember/dev/o7vn/var/gemini-review-20261101/validation/adapter-live-continuation.log",
+      "log_sha256": "00343713d6513115f93920f506a7e8fd0f6db3b651d806d17160a566142272c3"
+    },
+    {
+      "name": "adapter-live-remaining",
+      "command": [
+        "ssh",
+        "hbox",
+        "python3",
+        "-B",
+        "/tank/lanes/o7-gemini-review-20261101/adapter_remaining.py"
+      ],
+      "exit": 1,
+      "elapsed_seconds": 63.222,
+      "finished_utc": "2026-11-01T08:04:02.890682+00:00",
+      "log": "/Users/ember/dev/o7vn/var/gemini-review-20261101/validation/adapter-live-remaining.log",
+      "log_sha256": "ba818f098a77636ed0e6859147e3f8a5dc7acaf7e35623a477b58a78870f9a3b"
+    },
+    {
+      "name": "native-live",
+      "command": [
+        "ssh",
+        "hbox",
+        "python3",
+        "-B",
+        "/tank/lanes/o7-gemini-review-20261101/native_live.py"
+      ],
+      "exit": 1,
+      "elapsed_seconds": 4.105,
+      "finished_utc": "2026-11-01T07:53:08.772064+00:00",
+      "log": "/Users/ember/dev/o7vn/var/gemini-review-20261101/validation/native-live.log",
+      "log_sha256": "1af275cec9ecfd8870ad92af1bb1d74db129a7a5b4ff207d5cc4a246da4708fb"
+    },
+    {
+      "name": "native-live-continuation",
+      "command": [
+        "ssh",
+        "hbox",
+        "python3",
+        "-B",
+        "/tank/lanes/o7-gemini-review-20261101/native_continue.py"
+      ],
+      "exit": 1,
+      "elapsed_seconds": 2.567,
+      "finished_utc": "2026-11-01T07:54:12.229173+00:00",
+      "log": "/Users/ember/dev/o7vn/var/gemini-review-20261101/validation/native-live-continuation.log",
+      "log_sha256": "dcbde6d87ddfbe0c0088d1115b03e635858dffeffe3079f6cf4aee90657e8efe"
+    },
+    {
+      "name": "native-live-reviewed",
+      "command": [
+        "ssh",
+        "hbox",
+        "python3",
+        "-B",
+        "/tank/lanes/o7-gemini-review-20261101/native_reviewed.py"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 2.613,
+      "finished_utc": "2026-11-01T08:02:07.935719+00:00",
+      "log": "/Users/ember/dev/o7vn/var/gemini-review-20261101/validation/native-live-reviewed.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "prepared-live",
+      "command": [
+        "ssh",
+        "hbox",
+        "python3",
+        "-B",
+        "/tank/lanes/o7-gemini-review-20261101/prepared_live.py"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 252.266,
+      "finished_utc": "2026-11-01T08:01:18.777257+00:00",
+      "log": "/Users/ember/dev/o7vn/var/gemini-review-20261101/validation/prepared-live.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "package-final",
+      "command": [
+        "ssh",
+        "hbox",
+        "python3",
+        "-B",
+        "/tank/lanes/o7-gemini-review-20261101/package_final.py"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 7.59,
+      "finished_utc": "2026-11-01T08:06:28.199278+00:00",
+      "log": "/Users/ember/dev/o7vn/var/gemini-review-20261101/validation/package-final.log",
+      "log_sha256": "74605c84b604302e344e473dc4863c8f3170e27fb6598aded03dd901ce0e0dfa"
+    },
+    {
+      "name": "model-witness-scope-test",
+      "command": [
+        "ssh",
+        "hbox",
+        "env",
+        "CARGO_BUILD_JOBS=2",
+        "CARGO_TARGET_DIR=/tank/lanes/o7-native-20261028/target",
+        "flock",
+        "/tank/lanes/o7-native-20261028/gemini-central-validation.lock",
+        "cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "--manifest-path",
+        "/tank/lanes/o7-gemini-review-20261101/source/native/Cargo.toml",
+        "-p",
+        "oracle-host",
+        "--all-features",
+        "--lib",
+        "service::modeling_tests::modeling_nonunique_lp_witness_scope_survives_arithmetic_and_restart",
+        "--",
+        "--exact",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "test_exit": 0,
+      "runner_exit": 1,
+      "elapsed_seconds": null,
+      "custody_note": "Focused Cargo command completed one test successfully; recorder then refused to overwrite identically named overlay JSON. Original overlay preserved; no test rerun. Elapsed timer not retained.",
+      "log": "/Users/ember/dev/o7vn/var/gemini-review-20261101/validation/model-witness-scope.log",
+      "log_sha256": "c8ce179d84eeb2299d949634a22ea36e5daa47ba52be80e275b88bb628cb65c5"
+    }
+  ],
+  "cleanup": {
+    "all_recorded_pids_absent": true,
+    "recorded": [
+      {
+        "record": "prepared-live/host.pid",
+        "pid": 3894485,
+        "proc_exists": false
+      },
+      {
+        "record": "adapter-live-remaining/worker.pid",
+        "pid": 3908834,
+        "proc_exists": false
+      },
+      {
+        "record": "adapter-live-continuation/worker.pid",
+        "pid": 3879730,
+        "proc_exists": false
+      },
+      {
+        "record": "adapter-live/worker.pid",
+        "pid": 3875034,
+        "proc_exists": false
+      },
+      {
+        "record": "native-live-reviewed/replay-restarted.pid",
+        "pid": 3906852,
+        "proc_exists": false
+      },
+      {
+        "record": "native-live-reviewed/first.pid",
+        "pid": 3906792,
+        "proc_exists": false
+      },
+      {
+        "record": "native-live/first.pid",
+        "pid": 3882931,
+        "proc_exists": false
+      },
+      {
+        "record": "native-live-continuation/first.pid",
+        "pid": 3886240,
+        "proc_exists": false
+      },
+      {
+        "record": "native-live-continuation/restarted.pid",
+        "pid": 3886266,
+        "proc_exists": false
+      }
+    ],
+    "prepared_owned_birth_identities_remaining": [],
+    "prepared_worker_pid_files": [],
+    "scope": "Only owned recorded process identities; no global process termination"
+  },
+  "shipped_specialist_panels": {
+    "new_panel_numbers": null,
+    "statement": "No new shipped specialist six-criterion panel or fleet score was run. Reader100 and authored workflow checks are separate finite controls."
+  },
+  "theorem_claims": [],
+  "boundaries": [
+    "No new Isabelle theorem, universal zero-wrong claim, original spent modeling-exam admission, full Engine restoration, Mini qualification, throughput/speedup or hard RSS bound.",
+    "Handwritten native implementations, shims, adapters and qualification runners are untrusted. Source rows establish facts relative to pinned data, not absent-world or complete-source coverage.",
+    "Prepared source/public-table artifact reused without modification. Readonly adapter stays baseline-only; Reader90 source-known website positive remains unqualified.",
+    "Old directories, archives, initial failures and receipts remain intact; only recorded owned process PIDs/birth identities were terminated."
+  ]
+}

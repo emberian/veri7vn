@@ -178,10 +178,22 @@ checked structured result once, with the supplied declarations and provider
 metadata. It is not treated as a scalar merely because it contains numbers.
 In `native-v1`, an answered fit clears the prior entity/quantity anchor; for
 `statistics.calibration`, it also installs a typed `RetainedFittedModel` handle
-supporting follow-up evaluation (`Evaluate that model at <y>` or `EvaluateModel`
+supporting follow-up evaluation (`Evaluate that model at <x>` or `EvaluateModel`
 in `context.native`). A semantic refusal preserves the prior anchor and model.
 Operational failures do not advance the native conversation, and completed
-replies use the same atomic cursor/retry journal.
+replies use the same atomic cursor/retry journal. Bounded eligible linear results
+also support variable extraction. Retention preserves the provider and number
+origin; exact rational results do not become floating-point claims. A model whose
+size or semantics cannot be retained still returns its complete checked result,
+with a reason for skipping retention, and clears any older fitted model.
+
+Evidence workspaces expose separate limits for active records, historical IDs,
+revisions, duplicate retry payloads and serialized history bytes. Evicting a
+redundant retry payload does not expire an acknowledged result: retained history
+and commit metadata still recover exact retries and reject altered token reuse.
+Byte limits count escaped JSON and framing, not process memory. Legacy count-only
+APIs retain their prior admission contract; explicit policies opt into the new
+byte bound. This separates limits but does not compact authoritative history.
 
 ## Revise evidence, then solve its snapshot
 

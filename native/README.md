@@ -50,7 +50,10 @@ KB digest. It executes whole templates, exact fragment/outer composition,
 Consumed children must run and, by default, be nonempty; successful interpretations
 must agree. An explicit [supplied-snapshot count](docs/DATA-AND-STATE.md#count-matching-records-in-an-explicit-snapshot)
 can count an empty live input without claiming source completeness. Dead stages
-and omitted child obligations remain strict. Serving neither learns nor unpickles. The release comparison retains 36 correct answers on the 100-question control.
+and omitted child obligations remain strict. Serving neither learns nor unpickles. The earlier release comparison retained 36 correct answers on the 100-question control.
+The [reviewed expansion](../project/lanes/GEMINI-REVIEW-2026-11-01.md) reaches 39 correct
+with zero wrong under the same limits, image and questions; its receipt retains
+all replies and source evidence for the three gains.
 A repaired plural-first grammar export raises the targeted 16-question cohort
 from two correct answers to ten, with six expected declines. Both release runs
 have zero wrong answers and execution errors at the same one-second limit.
@@ -93,7 +96,10 @@ prepared-Engine configuration. Preparation and bounded replacement run outside
 query work; each process generation serves at most one tenant. Modeling results
 stay typed through checking and are encoded once, with no duplicate numerical
 payload or per-query catalog clone. The fresh composition panel and original
-core-first admission remain separate results.
+core-first admission remain separate results. The later
+[expansion review](../project/lanes/GEMINI-REVIEW-2026-11-01.md) qualifies richer
+model owners, numerical reuse, evidence retention and worker recovery, and records
+the fixes required before those changes were ready to share.
 
 ## Use from Python
 
@@ -231,11 +237,12 @@ receipt. An uncertain non-idempotent action is never automatically retried.
 The outbox is not a teaching, filesystem or network executor.
 
 `KernelExecutor` admits operator-supplied executable hashes once and supplies
-cheap tenant handles to a fixed resident process pool across all 20 stateless SML
+cheap tenant handles to a fixed resident process pool for the stateless SML
 specialist families in `src/extract/families.json` plus connected-MST checking.
+The stateful stores protocol is excluded.
 Slot selection reuses a matching resident worker first, then claims an empty
-slot, and only evicts round-robin when all slots are occupied, avoiding sequential
-multi-organ thrashing. The MST path can admit compiler/proof receipts as described
+slot, and only evicts round-robin when all slots are occupied. Repeated calls
+reuse residents while the required families fit within configured capacity. The MST path can admit compiler/proof receipts as described
 in the checker contract. Cancellation owns the child process group and joins its
 I/O threads before releasing capacity. This transport does not replace the
 extracted SML implementations, dispatcher acceptance or proofs.

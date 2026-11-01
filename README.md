@@ -51,11 +51,12 @@ are separate from the shipped specialist exams. A structured operation does not
 automatically become a natural-language specialist in the complete Oracle cascade.
 
 The native reader supports the pinned KQA program vocabulary, learned templates
-and bounded composition. It retains 36 correct answers on the original
-100-question control. A repaired plural-first export improves the targeted
+and bounded composition. The [reviewed expansion](project/lanes/GEMINI-REVIEW-2026-11-01.md)
+raises the original 100-question control from 36 to 39 correct, with zero wrong
+answers under unchanged limits. A repaired plural-first export improves the targeted
 16-question cohort from two to ten correct, with six expected declines and no
-wrong answers or execution errors in those release runs. The latest representation
-changes preserve both cohorts' answers and evidence. Coverage and performance
+wrong answers or execution errors in those release runs. Those cohort results
+have separate source-bound receipts. Coverage and performance
 limits are in the catalog and [performance report](native/docs/PERFORMANCE.md).
 
 Native sessions persist selections, explicit scalar state and revisable evidence;
@@ -79,8 +80,10 @@ qualification and release-history migration remain.
 The [roadmap](native/docs/ROADMAP.md) is the live plan; the
 [migration map](native/docs/MIGRATION.md) identifies remaining source consumers.
 
-The [current checkpoint](project/lanes/NATIVE-HOST-2026-11-01.md) records native
-modeling ownership and prepared Python workers in the Rust host. The preceding
+The [current review](project/lanes/GEMINI-REVIEW-2026-11-01.md) records richer
+model follow-ups, cache reuse, evidence retention, worker recovery and reader
+coverage. The [previous host checkpoint](project/lanes/NATIVE-HOST-2026-11-01.md)
+records initial modeling ownership and prepared Python workers. The preceding
 [native-route checkpoint](project/lanes/NATIVE-ROUTE-2026-10-31.md) retains the
 Engine-free conversation journey, actual extracted quantity delivery, reusable
 thermal computation and original negative modeling admission.
