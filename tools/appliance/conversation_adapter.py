@@ -516,6 +516,29 @@ class Adapter:
             if physics is not None:
                 for module in (physics.G, physics.G.R, physics.G.systems, sys.modules[type(physics).__module__]):
                     self.verify_module(module)
+            air = getattr(self.runtime, "_organs", {}).get("air")
+            if air is not None:
+                for module in (sys.modules[type(air).__module__], sys.modules[type(air.v).__module__]):
+                    self.verify_module(module)
+                air_words = getattr(air, "WORDS", ("carbon", "co2", "methane", "ch4", "atmosphere", "the air", "greenhouse"))
+                if any(w in resolved.lower() for w in air_words):
+                    raw_air = air.ask(resolved)
+                    if type(raw_air) is dict and raw_air.get("status") == "declined" and type(raw_air.get("why")) is str:
+                        raise SemanticWithheld("air_declined", raw_air["why"])
+                    if type(raw_air) is dict and raw_air.get("status") == "answered":
+                        cited = (raw_air.get("show") or {}).get("cited") or []
+                        first_cite = cited[0] if cited else {}
+                        resp = "%s (NOAA, %s, row %s.)" % (
+                            raw_air["answer"], first_cite.get("file", "?"), first_cite.get("line", "?")
+                        )
+                        self.precision = {}
+                        st.q = resolved; st.result = None; st.solved = {}
+                        self.runtime._conversation_contexts[sid] = deepcopy(st)
+                        self.runtime._last_value.pop(sid, None)
+                        self.runtime._pending_conversion.pop(sid, None)
+                        reply = {"status": "answered", "response": resp, "path": "organ:air>cited",
+                                 "provenance": {"organ": "air", "cited": cited, "adapter": ADAPTER}}
+                        return self._resolved(reply, question, resolved)
             teach = re.fullmatch(
                 r"\s*(?:(?:please|ok(?:ay)?|now|and)[,]?\s+)?(?:teach me(?: that| this| how(?: you got (?:that|it)| to do it)?)?|"
                 r"show me how(?: you got (?:that|it)| to do it)?|"
@@ -701,6 +724,34 @@ class Adapter:
                 reply = {"status": "answered", "response": answer_label + ".", "path": "adapter:relation_store",
                          "provenance": {"kind": "typed_relation", "subject": entity(st.subj, True), "answer": entity(st.ans, False), "property": "wd:P" + str(prop), "adapter": ADAPTER}}
                 return self._resolved(reply, question, resolved)
+            facts = getattr(self.runtime, "_organs", {}).get("facts")
+            if facts is not None:
+                for module in (sys.modules[type(facts).__module__], facts.R7, facts.K):
+                    self.verify_module(module)
+                raw_facts = facts.ask(resolved)
+                if type(raw_facts) is dict and raw_facts.get("status") == "declined" and type(raw_facts.get("why")) is str:
+                    raise SemanticWithheld("facts_disagree", raw_facts["why"])
+                if type(raw_facts) is dict and raw_facts.get("status") == "answered":
+                    prog = (raw_facts.get("show") or {}).get("program") or []
+                    for step in prog:
+                        if step.get("function") == "Find" and step.get("inputs"):
+                            name = str(step["inputs"][0])
+                            if name[:1].isupper() and name not in resolved and name.lower() in resolved.lower():
+                                raise SemanticWithheld("facts_ungrounded_reading", "That reading was not grounded in the question's named entities.")
+                    fns = [step.get("function") for step in prog]
+                    if not prog or (fns[-1] == "Count" and set(fns[:-1]) <= {"Find"}):
+                        raise SemanticWithheld("facts_ungrounded_reading", "That reading was not grounded in a compositional knowledge-base query.")
+                    steps = [s.split(" -> ")[0] for s in (raw_facts.get("show") or {}).get("steps") or []]
+                    read_mode = str((raw_facts.get("show") or {}).get("read", "whole_wording")).replace(" ", "_")
+                    resp = "%s. From the knowledge base, step by step: %s." % (raw_facts["answer"], "; ".join(steps))
+                    self.precision = {}
+                    st.q = resolved; st.result = None; st.solved = {}
+                    self.runtime._conversation_contexts[sid] = deepcopy(st)
+                    self.runtime._last_value.pop(sid, None)
+                    self.runtime._pending_conversion.pop(sid, None)
+                    reply = {"status": "answered", "response": resp, "path": "organ:reader90>" + read_mode,
+                             "provenance": {"organ": "reader90", "program": prog, "adapter": ADAPTER}}
+                    return self._resolved(reply, question, resolved)
             raise SemanticWithheld("route_unsupported", "This conversation profile cannot answer that request.")
         finally:
             reconcile.release(frame)

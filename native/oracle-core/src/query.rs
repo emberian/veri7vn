@@ -576,10 +576,6 @@ pub(crate) enum Demand {
     /// Only whether the output stage holds at least one entity.
     Exists,
     /// Only how many distinct entities the output stage holds.
-    #[cfg_attr(
-        not(test),
-        expect(dead_code, reason = "no production caller asks for a count yet")
-    )]
     Count,
 }
 
@@ -590,10 +586,6 @@ pub(crate) enum Demand {
 pub(crate) enum Delivered {
     Full(Box<QueryResult>, Selection),
     Exists(bool),
-    #[cfg_attr(
-        not(test),
-        expect(dead_code, reason = "no production caller asks for a count yet")
-    )]
     Count(u64),
 }
 impl Delivered {
@@ -686,6 +678,7 @@ impl CheckedPlanView for Plan {
 /// Execute a checked packed root without constructing a flattened Plan. The
 /// existing compiler still visits every original entity-stage obligation in
 /// order and reuses the same request/lease-scoped stage and column workspace.
+#[cfg(test)]
 #[allow(clippy::too_many_arguments)]
 pub(crate) fn evaluate_language_packed(
     db: &Connection,
@@ -799,7 +792,9 @@ pub(crate) struct LanguageWorkspace {
 struct StageMetadata {
     slot: usize,
     nonempty: bool,
+    #[cfg_attr(not(test), allow(dead_code))]
     rows: usize,
+    #[cfg_attr(not(test), allow(dead_code))]
     bytes: usize,
 }
 /// A shared typed source column is indexed independently of any one predicate.
@@ -825,6 +820,7 @@ impl LanguageWorkspace {
             self.column_rows_decoded,
         )
     }
+    #[cfg(test)]
     pub(crate) fn stage_storage(&self) -> (usize, usize) {
         self.stages
             .values()
@@ -871,6 +867,7 @@ impl LanguageWorkspace {
     }
     /// Structural work counts: checked hits, canonical encodings, stage SQL
     /// builds and scratch-alias builds. No elapsed-time inference is made.
+    #[cfg(test)]
     pub(crate) fn stage_costs(&self) -> (usize, usize, usize, usize) {
         (
             self.checked_hits,
@@ -1029,6 +1026,7 @@ impl LanguageWorkspace {
         Ok(())
     }
 }
+#[cfg(test)]
 #[allow(clippy::too_many_arguments)]
 pub(crate) fn evaluate_language_shared(
     db: &Connection,
@@ -1311,6 +1309,7 @@ struct Compiled {
     prefix: String,
     parameters: Vec<String>,
 }
+#[cfg(test)]
 fn compile(
     db: &Connection,
     plan: &dyn CheckedPlanView,

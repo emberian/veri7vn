@@ -1,5 +1,5 @@
 use crate::{Error, Result};
-pub use oracle_execution::{Cancellation, MemoryBudget, MemoryReservation, MemorySnapshot};
+pub use oracle_execution::{Cancellation, MemoryBudget, MemoryReservation};
 pub(crate) use oracle_execution::{CancellationRegistration, CancellationWake};
 use oracle_execution::{ExecutionContext, ExecutionError};
 use serde::{Deserialize, Serialize};

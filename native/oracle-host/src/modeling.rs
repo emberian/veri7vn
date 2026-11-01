@@ -48,6 +48,27 @@ fn counts(v: &Value, n: usize, minimum: u64) -> bool {
             })
     })
 }
+fn thermal_network(n: &Value, max_nodes: usize, max_links: usize) -> bool {
+    fields(
+        n,
+        &[
+            "description",
+            "assumptions",
+            "reference_temperature_k",
+            "nodes",
+            "links",
+        ],
+        &["power_tolerance_w", "tolerances"],
+    ) && label(&n["description"])
+        && assumptions(&n["assumptions"])
+        && positive(&n["reference_temperature_k"])
+        && n["nodes"]
+            .as_array()
+            .is_some_and(|nodes| !nodes.is_empty() && nodes.len() <= max_nodes)
+        && n["links"]
+            .as_array()
+            .is_some_and(|links| links.len() <= max_links)
+}
 
 /// Additional conversational contract, stricter than optional native defaults.
 /// Provider admission still owns covariance, solver, precision and fit semantics.
@@ -219,33 +240,122 @@ fn validate(request: &Value) -> bool {
                         .all(|k| a[k].is_null())
             }
         }
+        Some("science.thermal_network") => thermal_network(a, 128, 1024),
         Some("science.thermal_scenarios") => {
-            if !fields(a, &["network", "scenarios"], &["sensitivities"]) {
-                return false;
-            }
-            let n = &a["network"];
-            fields(
-                n,
-                &[
-                    "description",
-                    "assumptions",
-                    "reference_temperature_k",
-                    "nodes",
-                    "links",
-                ],
-                &["power_tolerance_w", "tolerances"],
-            ) && label(&n["description"])
-                && assumptions(&n["assumptions"])
-                && positive(&n["reference_temperature_k"])
-                && n["nodes"]
-                    .as_array()
-                    .is_some_and(|nodes| !nodes.is_empty() && nodes.len() <= 128)
-                && n["links"]
-                    .as_array()
-                    .is_some_and(|links| links.len() <= 1024)
+            fields(a, &["network", "scenarios"], &["sensitivities"])
+                && thermal_network(&a["network"], 128, 1024)
                 && a["scenarios"]
                     .as_array()
                     .is_some_and(|s| !s.is_empty() && s.len() <= 64)
+        }
+        Some("science.thermal_transient") => {
+            if !fields(
+                a,
+                &[
+                    "network",
+                    "capacities_j_per_k",
+                    "initial_temperature_k",
+                    "duration_s",
+                    "loads",
+                    "integration",
+                ],
+                &["sample_times_s", "events"],
+            ) || !thermal_network(&a["network"], 64, 512)
+                || !positive(&a["duration_s"])
+            {
+                return false;
+            }
+            let node_count = a["network"]["nodes"].as_array().map_or(0, Vec::len);
+            a["capacities_j_per_k"]
+                .as_array()
+                .is_some_and(|c| c.len() == node_count && c.iter().all(positive))
+                && a["initial_temperature_k"].as_array().is_some_and(|t| {
+                    t.len() == node_count
+                        && t.iter()
+                            .all(|x| x.as_f64().is_some_and(|v| v.is_finite() && v >= 0.0))
+                })
+                && a["loads"]
+                    .as_array()
+                    .is_some_and(|l| !l.is_empty() && l.len() <= 64)
+                && fields(
+                    &a["integration"],
+                    &[
+                        "initial_step_s",
+                        "min_step_s",
+                        "max_step_s",
+                        "absolute_tolerance_k",
+                        "relative_tolerance",
+                        "max_steps",
+                    ],
+                    &[],
+                )
+        }
+        Some("science.solve_linear" | "science.least_squares") => {
+            if !fields(a, &["matrix", "rhs", "model"], &["tolerances"]) {
+                return false;
+            }
+            let Some(rows) = a["matrix"]
+                .as_array()
+                .filter(|r| !r.is_empty() && r.len() <= 512)
+            else {
+                return false;
+            };
+            let Some(first) = rows[0]
+                .as_array()
+                .filter(|c| !c.is_empty() && c.len() <= 128)
+            else {
+                return false;
+            };
+            let m = rows.len();
+            let n = first.len();
+            let model = &a["model"];
+            rows.iter().all(|r| {
+                r.as_array()
+                    .is_some_and(|r| r.len() == n && r.iter().all(finite))
+            }) && a["rhs"]
+                .as_array()
+                .is_some_and(|rhs| rhs.len() == m && rhs.iter().all(finite))
+                && fields(
+                    model,
+                    &[
+                        "description",
+                        "variable_units",
+                        "row_units",
+                        "normalization",
+                        "assumptions",
+                    ],
+                    &[],
+                )
+                && label(&model["description"])
+                && label(&model["normalization"])
+                && assumptions(&model["assumptions"])
+                && model["variable_units"]
+                    .as_array()
+                    .is_some_and(|u| u.len() == n && u.iter().all(label))
+                && model["row_units"]
+                    .as_array()
+                    .is_some_and(|u| u.len() == m && u.iter().all(label))
+        }
+        Some("bio.align_pairwise") => {
+            fields(
+                a,
+                &["query", "reference", "mode", "scoring"],
+                &["ambiguity"],
+            ) && a["query"]
+                .as_str()
+                .is_some_and(|s| !s.is_empty() && s.len() <= 4096)
+                && a["reference"]
+                    .as_str()
+                    .is_some_and(|s| !s.is_empty() && s.len() <= 4096)
+                && matches!(
+                    a["mode"].as_str(),
+                    Some("global" | "local" | "query_global")
+                )
+                && fields(
+                    &a["scoring"],
+                    &["match_score", "mismatch_score", "gap_open", "gap_extend"],
+                    &[],
+                )
         }
         _ => false,
     }
@@ -281,6 +391,8 @@ pub fn answer(
         let operation = request["operation"].as_str().expect("validated operation");
         let profile = if operation.starts_with("science.") {
             "science"
+        } else if operation.starts_with("bio.") {
+            "bio"
         } else {
             "statistics"
         };
@@ -381,12 +493,28 @@ pub fn answer(
             "model_refused"
         });
         reply["response"] = json!(if answered {
-            if operation == "statistics.calibration" {
-                "Computed the requested calibration estimates on the supplied rows and declared assumptions."
-            } else if operation == "science.thermal_scenarios" {
-                "Evaluated the supplied steady-state thermal scenarios on the declared network and assumptions."
-            } else {
-                "Fitted the declared events/exposure model to the supplied rows; predictions, diagnostics and conditional evidence are included."
+            match operation {
+                "statistics.calibration" => {
+                    "Computed the requested calibration estimates on the supplied rows and declared assumptions."
+                }
+                "science.thermal_scenarios" => {
+                    "Evaluated the supplied steady-state thermal scenarios on the declared network and assumptions."
+                }
+                "science.thermal_network" => {
+                    "Solved the supplied steady-state thermal network on the declared nodes, links and assumptions."
+                }
+                "science.thermal_transient" => {
+                    "Integrated the supplied transient thermal model on the declared network, capacities and assumptions."
+                }
+                "science.solve_linear" | "science.least_squares" => {
+                    "Computed the requested linear model solution and diagnostics on the supplied matrix, units and assumptions."
+                }
+                "bio.align_pairwise" => {
+                    "Aligned the supplied sequences under the declared scoring model and verified optimal score replay."
+                }
+                _ => {
+                    "Fitted the declared events/exposure model to the supplied rows; predictions, diagnostics and conditional evidence are included."
+                }
             }
         } else {
             "The supplied model did not establish the requested result. The provider reason and diagnostics are included."
@@ -402,29 +530,70 @@ pub fn answer(
 pub fn retained_thermal_quantity(
     reply: &Value,
 ) -> Option<oracle_runtime_core::native_conversation::NativeQuantity> {
-    if reply["status"] != "answered"
-        || reply["supplied"]["operation"] != "science.thermal_scenarios"
-    {
+    if reply["status"] != "answered" {
         return None;
     }
-    let scenarios = reply["result"]["scenarios"].as_array()?;
-    if scenarios.len() != 1 {
-        return None;
-    }
-    let nodes = scenarios[0]["result"]["nodes"].as_array()?;
-    let free_temps: Vec<f64> = nodes
-        .iter()
-        .filter(|n| n["fixed_temperature_k"].is_null())
-        .filter_map(|n| n["temperature_k"].as_f64().filter(|x| x.is_finite()))
-        .collect();
-    let temp_k = if free_temps.len() == 1 {
-        free_temps[0]
-    } else if nodes.len() == 1 {
-        nodes[0]["temperature_k"]
-            .as_f64()
-            .filter(|x| x.is_finite())?
-    } else {
-        return None;
+    let temp_k = match reply["supplied"]["operation"].as_str()? {
+        "science.thermal_scenarios" => {
+            let scenarios = reply["result"]["scenarios"].as_array()?;
+            if scenarios.len() != 1 {
+                return None;
+            }
+            let nodes = scenarios[0]["result"]["nodes"].as_array()?;
+            let free_temps: Vec<f64> = nodes
+                .iter()
+                .filter(|n| n["fixed_temperature_k"].is_null())
+                .filter_map(|n| n["temperature_k"].as_f64().filter(|x| x.is_finite()))
+                .collect();
+            if free_temps.len() == 1 {
+                free_temps[0]
+            } else if nodes.len() == 1 {
+                nodes[0]["temperature_k"]
+                    .as_f64()
+                    .filter(|x| x.is_finite())?
+            } else {
+                return None;
+            }
+        }
+        "science.thermal_network" => {
+            let nodes = reply["result"]["nodes"].as_array()?;
+            let free_temps: Vec<f64> = nodes
+                .iter()
+                .filter(|n| n["fixed_temperature_k"].is_null())
+                .filter_map(|n| n["temperature_k"].as_f64().filter(|x| x.is_finite()))
+                .collect();
+            if free_temps.len() == 1 {
+                free_temps[0]
+            } else if nodes.len() == 1 {
+                nodes[0]["temperature_k"]
+                    .as_f64()
+                    .filter(|x| x.is_finite())?
+            } else {
+                return None;
+            }
+        }
+        "science.thermal_transient" => {
+            let samples = reply["result"]["samples"].as_array()?;
+            let last_temps = samples.last()?["temperature_k"].as_array()?;
+            let supplied_nodes = reply["supplied"]["arguments"]["network"]["nodes"].as_array()?;
+            if last_temps.len() != supplied_nodes.len() {
+                return None;
+            }
+            let free_temps: Vec<f64> = supplied_nodes
+                .iter()
+                .zip(last_temps.iter())
+                .filter(|(n, _)| n["fixed_temperature_k"].is_null())
+                .filter_map(|(_, t)| t.as_f64().filter(|x| x.is_finite()))
+                .collect();
+            if free_temps.len() == 1 {
+                free_temps[0]
+            } else if last_temps.len() == 1 {
+                last_temps[0].as_f64().filter(|x| x.is_finite())?
+            } else {
+                return None;
+            }
+        }
+        _ => return None,
     };
     Some(oracle_runtime_core::native_conversation::NativeQuantity {
         number: temp_k.to_string(),

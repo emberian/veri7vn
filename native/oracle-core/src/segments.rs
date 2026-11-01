@@ -492,6 +492,7 @@ pub(crate) struct Chart<'a> {
     edges: Vec<Vec<Edge>>,
     ends: Vec<usize>,
     level: u8,
+    has_strip_segments: bool,
     policy: &'a ReaderPolicy,
     limits: MatchLimits,
     budget: &'a Budget,
@@ -659,6 +660,13 @@ impl<'a> Chart<'a> {
             offset += word.len() + 1;
         }
         offsets.push(normalized.len().saturating_add(1));
+        let has_strip_segments: bool = db
+            .query_row(
+                "SELECT EXISTS(SELECT 1 FROM reader_template WHERE family='segment' AND level=?1 AND template>='~' AND template<'~\x7f')",
+                [level],
+                |r| r.get(0),
+            )
+            .unwrap_or(false);
         let mut chart = Self {
             db,
             edges: vec![vec![]; words.len()],
@@ -666,6 +674,7 @@ impl<'a> Chart<'a> {
             offsets,
             ends: vec![],
             level,
+            has_strip_segments,
             policy,
             limits,
             budget,
@@ -1397,17 +1406,23 @@ impl<'a> Chart<'a> {
             position: usize,
             next: usize,
             length: usize,
+            strip_length: usize,
+            leading_glue: bool,
             binding: Option<(char, usize)>,
             last_slot: bool,
         }
+        let use_strip = family == "segment" && !first_slot && self.has_strip_segments;
         let mut stack = vec![Frame {
             position: start,
             next: 0,
             length: 0,
+            strip_length: 0,
+            leading_glue: true,
             binding: None,
             last_slot: false,
         }];
         let mut prefix = String::new();
+        let mut strip_prefix = String::new();
         let mut texts = Bindings::new();
         let mut counters = BTreeMap::<char, usize>::new();
         let mut children = BTreeMap::<usize, Region>::new();
@@ -1429,7 +1444,11 @@ impl<'a> Chart<'a> {
                     family,
                     self.level,
                     &prefix,
-                    Fallback::None,
+                    if use_strip {
+                        Fallback::Strip
+                    } else {
+                        Fallback::None
+                    },
                     self.policy,
                     self.limits.matches,
                     self.budget,
@@ -1533,11 +1552,44 @@ impl<'a> Chart<'a> {
                     prefix.push(' ');
                 }
                 prefix.push_str(&token);
+                let strip_length = strip_prefix.len();
+                let mut next_leading_glue = false;
+                if use_strip {
+                    let drop = stack[top].leading_glue
+                        && kind.is_none()
+                        && grammar::is_glue(self.db, &token)?;
+                    if drop {
+                        next_leading_glue = true;
+                    } else {
+                        if strip_prefix.is_empty() {
+                            strip_prefix.push('~');
+                        } else {
+                            strip_prefix.push(' ');
+                        }
+                        strip_prefix.push_str(&token);
+                    }
+                }
                 self.budget.spend(prefix.len() as u64 + 1)?;
-                let exists: bool = query.query_row(
+                let mut exists: bool = query.query_row(
                     params![family, self.level, &prefix, format!("{prefix}! ")],
                     |r| r.get(0),
                 )?;
+                if !exists && use_strip {
+                    if strip_prefix.is_empty() {
+                        exists = true;
+                    } else {
+                        self.budget.spend(strip_prefix.len() as u64 + 1)?;
+                        exists = query.query_row(
+                            params![
+                                family,
+                                self.level,
+                                &strip_prefix,
+                                format!("{strip_prefix}! ")
+                            ],
+                            |r| r.get(0),
+                        )?;
+                    }
+                }
                 if exists {
                     let binding = kind.map(|k| {
                         let n = ordinal.expect("slot");
@@ -1553,16 +1605,20 @@ impl<'a> Chart<'a> {
                         position: next,
                         next: 0,
                         length,
+                        strip_length,
+                        leading_glue: next_leading_glue,
                         binding,
                         last_slot: kind.is_some(),
                     });
                 } else {
                     prefix.truncate(length);
+                    strip_prefix.truncate(strip_length);
                 }
                 continue;
             }
             let frame = stack.pop().expect("nonempty path");
             prefix.truncate(frame.length);
+            strip_prefix.truncate(frame.strip_length);
             if let Some((kind, n)) = frame.binding {
                 counters.insert(kind, n - 1);
                 if kind == 'X' {

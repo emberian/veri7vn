@@ -457,6 +457,59 @@ class Boundary(unittest.TestCase):
             self.assertEqual(t3["response"], "Denmark.")
             self.assertEqual(t3["provenance"]["property"], "wd:P36")
 
+    def test_air_and_facts_organs_answer_and_reject_ungrounded_readings(self):
+        a = self.adapter()
+        a.restore("s", self.initial())
+        a.cc._STATES = {}
+        a.cc.rewrite = lambda *_: None
+        def begin(runtime, _text, sid):
+            a.cc._STATES[sid] = deepcopy(runtime._conversation_contexts.get(sid) or Turn())
+            return {"sid": sid}
+        def release(frame):
+            a.cc._STATES.pop(frame["sid"], None)
+        base = SimpleNamespace(_compute=lambda *_: None, _resolve_followup=lambda _self, text, _sid: (text, False),
+                               _carry=lambda *_: None, _witness_compute=lambda *_: None)
+        w29 = SimpleNamespace(OracleReleaseRuntimeW29=base, _TRAIL=re.compile(r"[\s?.!]+$"), _LEAD=re.compile(r"^what is\s+", re.I))
+        store = SimpleNamespace(props_of=lambda _qid: [], label=lambda _qid: None)
+        rs = SimpleNamespace(_rs=lambda: store, X=SimpleNamespace(norm=lambda x: x, L=SimpleNamespace(candidates=lambda *_: [])))
+        air = SimpleNamespace(
+            WORDS=("co2", "carbon"),
+            v=SimpleNamespace(),
+            ask=lambda q: {"status": "answered", "answer": "422.1 ppm in 2024",
+                           "show": {"cited": [{"file": "co2_annmean_mlo.csv", "line": 66}]}} if "co2" in q.lower() else None,
+        )
+        def facts_ask(q):
+            if "how much is the rent" in q.lower():
+                return {"status": "answered", "answer": "1",
+                        "show": {"read": "whole wording", "program": [{"function": "Find", "inputs": ["Rent"]}, {"function": "Count", "inputs": []}],
+                                 "steps": ["found Rent -> 1", "counted them -> 1"]}}
+            if "how many moons" in q.lower():
+                return {"status": "answered", "answer": "2",
+                        "show": {"read": "whole wording",
+                                 "program": [{"function": "Find", "inputs": ["Mars"]}, {"function": "Relate", "inputs": ["child astronomical body", "forward"]}, {"function": "Count", "inputs": []}],
+                                 "steps": ["found Mars -> 1", "followed 'child astronomical body' -> 2", "counted them -> 2"]}}
+            return None
+        facts = SimpleNamespace(R7=SimpleNamespace(), K=SimpleNamespace(), ask=facts_ask)
+        a.runtime._organs = {"air": air, "facts": facts}
+        a.verify_module = lambda *_: None
+        worker, eng = self.refusal_worker(a)
+        with patch.dict(sys.modules, {"runtime_conversation_state": SimpleNamespace(begin=begin, release=release),
+                                      "oracle_release_runtime_w29": w29, "relation_spec_v1": rs}):
+            air_res = worker.conversation_answer(eng, None, None, "What was atmospheric CO2 in 2024?", "s", False,
+                                                 {"protocol": A.PROTOCOL, "state": self.initial()})
+            self.assertEqual(air_res["status"], "answered")
+            self.assertEqual(air_res["path"], "organ:air>cited")
+            self.assertIn("co2_annmean_mlo.csv", air_res["response"])
+            facts_res = worker.conversation_answer(eng, None, None, "How many moons does Mars have?", "s", False,
+                                                   {"protocol": A.PROTOCOL, "state": self.initial()})
+            self.assertEqual(facts_res["status"], "answered")
+            self.assertEqual(facts_res["path"], "organ:reader90>whole_wording")
+            self.assertIn("2. From the knowledge base", facts_res["response"])
+            ungrounded = worker.conversation_answer(eng, None, None, "How much is the rent?", "s", False,
+                                                    {"protocol": A.PROTOCOL, "state": self.initial()})
+            self.assertEqual(ungrounded["status"], "withheld")
+            self.assertEqual(ungrounded["path"], "adapter:withheld>facts_ungrounded_reading")
+
 
 if __name__ == "__main__":
     unittest.main()

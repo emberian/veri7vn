@@ -142,7 +142,7 @@ impl Default for CandidateOptions {
             level2: false,
             outer: false,
             plural: true,
-            max_words: 8,
+            max_words: 16,
         }
     }
 }

@@ -69,6 +69,7 @@ impl PackedProgramSource for FlatSource {
         Ok(())
     }
 }
+#[cfg(test)]
 pub(crate) fn from_flat(program: grammar::Program) -> OwnedPackedProgram {
     Arc::new(FlatSource {
         program,
@@ -175,6 +176,7 @@ pub(crate) enum CompileOrigin {
     Fragment,
     Whole,
     Composed,
+    #[cfg(test)]
     Complete,
 }
 #[derive(Clone, Copy, Debug, Default)]
@@ -305,7 +307,9 @@ impl CheckedPlanView for CheckedProgram {
 }
 enum RootEntry {
     Checked(Arc<CheckedProgram>),
-    Rejected(crate::budget::MemoryReservation),
+    Rejected {
+        _memory: crate::budget::MemoryReservation,
+    },
 }
 #[derive(Default)]
 struct Storage {
@@ -454,6 +458,7 @@ impl ProgramWorkspace {
                 s.complete_checks += 1;
                 s.composed_checks += 1;
             }
+            #[cfg(test)]
             CompileOrigin::Complete => s.complete_checks += 1,
         });
         if source.step_count() > self.limits.plan_nodes {
@@ -476,7 +481,7 @@ impl ProgramWorkspace {
                     self.update(|s| s.root_cache_hits += 1);
                     Some(Arc::clone(root))
                 }
-                RootEntry::Rejected(_) => {
+                RootEntry::Rejected { .. } => {
                     self.update(|s| s.rejected_cache_hits += 1);
                     None
                 }
@@ -509,10 +514,10 @@ impl ProgramWorkspace {
                 let memory = self
                     .budget
                     .reserve_memory(occurrences.len().saturating_mul(128).saturating_add(128))?;
-                self.storage
-                    .borrow_mut()
-                    .roots
-                    .insert(occurrences.into_boxed_slice(), RootEntry::Rejected(memory));
+                self.storage.borrow_mut().roots.insert(
+                    occurrences.into_boxed_slice(),
+                    RootEntry::Rejected { _memory: memory },
+                );
                 Ok(None)
             }
         }

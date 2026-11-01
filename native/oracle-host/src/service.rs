@@ -1436,13 +1436,17 @@ impl Service {
             let mut body = answer?;
             if self.native_conversation_profile && body["reply"]["status"] == "answered" {
                 if let Some(quantity) = crate::modeling::retained_thermal_quantity(&body["reply"]) {
+                    let operation = body["reply"]["supplied"]["operation"]
+                        .as_str()
+                        .unwrap_or("science.thermal_scenarios");
                     let artifact_sha = body["reply"]["result"]["network_identity"]
                         .as_str()
+                        .or_else(|| body["reply"]["result"]["model_identity"].as_str())
                         .and_then(|s| s.strip_prefix("sha256:"))
                         .unwrap_or(&native.image_sha256);
                     let identity =
                         core::native_conversation::ProviderIdentity::from_host_delivery(
-                            "science.thermal_scenarios",
+                            operation,
                             artifact_sha,
                         )
                         .map_err(crate::native::conversation_failure)?;

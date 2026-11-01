@@ -54,6 +54,7 @@ impl Serialize for CheckedPureReply {
 #[serde(untagged)]
 enum Payload {
     #[serde(skip)]
+    #[allow(dead_code)]
     Unavailable,
     #[cfg(feature = "reasoning")]
     Reasoning(oracle_reasoning::Response),
@@ -94,6 +95,7 @@ enum Payload {
 }
 
 enum Command {
+    #[allow(dead_code)]
     Unavailable,
     #[cfg(feature = "reasoning")]
     Reasoning(oracle_reasoning::Request),

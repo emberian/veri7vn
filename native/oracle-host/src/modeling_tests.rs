@@ -488,3 +488,144 @@ fn modeling_thermal_scenarios_delivers_temperature_point_anchor_for_affine_follo
     assert!((diff_ratio - 50.0).abs() < 1e-9, "unexpected diff {diff_ratio}");
     service.close();
 }
+
+#[cfg(all(feature = "science", feature = "bio"))]
+#[test]
+fn modeling_admits_thermal_network_transient_linear_and_bio_alignment() {
+    let dir = tempfile::tempdir().unwrap();
+    let source = dir.path().join("source.json");
+    let image = dir.path().join("image.sqlite");
+    std::fs::write(
+        &source,
+        json!({"concepts":{},"entities":{"Q1":{"name":"Alice","instanceOf":[],"relations":[]}}})
+            .to_string(),
+    )
+    .unwrap();
+    let receipt = core::build_image(&source, &image, 1_000_000, 100_000).unwrap();
+    let config: Config = serde_json::from_value(json!({
+        "schema": "oracle-host-v1",
+        "journal": dir.path().join("host.sqlite"),
+        "conversation_profile": "native-v1",
+        "native": {
+            "image": image,
+            "image_sha256": receipt.image_sha256,
+            "state": dir.path().join("core.sqlite"),
+            "reader_route": true
+        },
+        "pure": {
+            "profiles": ["science", "bio"]
+        }
+    }))
+    .unwrap();
+    let service = Service::open(&config).unwrap();
+
+    let net = json!({
+        "operation": "science.thermal_network",
+        "arguments": {
+            "description": "Two-node steady conduction",
+            "assumptions": ["Steady passive linear conduction"],
+            "reference_temperature_k": 300.0,
+            "nodes": [
+                {"id": "chip", "applied_heat_w": 20.0, "fixed_temperature_k": null},
+                {"id": "sink", "applied_heat_w": 0.0, "fixed_temperature_k": 300.0}
+            ],
+            "links": [
+                {"from": "chip", "to": "sink", "conductance_w_per_k": 2.0}
+            ]
+        }
+    });
+    let net_res = query(&service, "net-1", &text(&net));
+    assert_eq!(net_res["reply"]["status"], "answered", "{net_res}");
+    assert_eq!(
+        net_res["reply"]["native_context_transition"],
+        "delivered_typed_anchor"
+    );
+    let net_c = query(&service, "net-to-c", "Convert that to C");
+    assert_eq!(net_c["reply"]["status"], "answered", "{net_c}");
+    assert_eq!(
+        net_c["reply"]["provenance"]["native_context"]["anchor"]["value"]["role"],
+        "temperature_point"
+    );
+
+    let transient = json!({
+        "operation": "science.thermal_transient",
+        "arguments": {
+            "network": {
+                "description": "Two-node transient conduction",
+                "assumptions": ["Lumped capacity; constant conductance"],
+                "reference_temperature_k": 300.0,
+                "nodes": [
+                    {"id": "chip", "applied_heat_w": 0.0, "fixed_temperature_k": null},
+                    {"id": "sink", "applied_heat_w": 0.0, "fixed_temperature_k": 300.0}
+                ],
+                "links": [
+                    {"from": "chip", "to": "sink", "conductance_w_per_k": 2.0}
+                ]
+            },
+            "capacities_j_per_k": [10.0, 100.0],
+            "initial_temperature_k": [300.0, 300.0],
+            "duration_s": 1.0,
+            "loads": [
+                {"start_time_s": 0.0, "applied_heat_w": [20.0, 0.0]}
+            ],
+            "integration": {
+                "initial_step_s": 0.25,
+                "min_step_s": 1e-4,
+                "max_step_s": 0.5,
+                "absolute_tolerance_k": 1e-3,
+                "relative_tolerance": 1e-4,
+                "max_steps": 512
+            }
+        }
+    });
+    let trans_res = query(&service, "trans-1", &text(&transient));
+    assert_eq!(trans_res["reply"]["status"], "answered", "{trans_res}");
+    assert_eq!(
+        trans_res["reply"]["native_context_transition"],
+        "delivered_typed_anchor"
+    );
+    let trans_c = query(&service, "trans-to-c", "Convert that to C");
+    assert_eq!(trans_c["reply"]["status"], "answered", "{trans_c}");
+    assert_eq!(
+        trans_c["reply"]["provenance"]["native_context"]["anchor"]["value"]["unit"],
+        "C"
+    );
+
+    let linear = json!({
+        "operation": "science.solve_linear",
+        "arguments": {
+            "matrix": [[2.0, 0.0], [0.0, 4.0]],
+            "rhs": [6.0, 8.0],
+            "model": {
+                "description": "Uncoupled two-variable balance",
+                "variable_units": ["A", "A"],
+                "row_units": ["V", "V"],
+                "normalization": "Direct SI rows",
+                "assumptions": ["Linear ohmic balance"]
+            }
+        }
+    });
+    let lin_res = query(&service, "lin-1", &text(&linear));
+    assert_eq!(lin_res["reply"]["status"], "answered", "{lin_res}");
+    assert_eq!(lin_res["reply"]["result"]["candidate"], json!([3.0, 2.0]));
+
+    let align = json!({
+        "operation": "bio.align_pairwise",
+        "arguments": {
+            "query": "ACGTACGT",
+            "reference": "ACGTTCGT",
+            "mode": "global",
+            "scoring": {
+                "match_score": 2,
+                "mismatch_score": -1,
+                "gap_open": -3,
+                "gap_extend": -1
+            }
+        }
+    });
+    let align_res = query(&service, "align-1", &text(&align));
+    assert_eq!(align_res["reply"]["status"], "answered", "{align_res}");
+    assert_eq!(align_res["reply"]["result"]["candidate"]["score"], 13);
+
+    service.close();
+}

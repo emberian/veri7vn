@@ -433,7 +433,7 @@ fn lookup_rows(
     }
     Ok(rows)
 }
-fn is_glue(db: &Connection, word: &str) -> Result<bool> {
+pub(crate) fn is_glue(db: &Connection, word: &str) -> Result<bool> {
     Ok(db.query_row("SELECT EXISTS(SELECT 1 FROM reader_word WHERE category='glue' AND word=?1) AND NOT EXISTS(SELECT 1 FROM reader_word WHERE category='keep' AND word=?1)", [word], |r| r.get(0))?)
 }
 pub fn fallback_key(

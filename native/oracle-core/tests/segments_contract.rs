@@ -1,7 +1,9 @@
 //! Independent tiny relational truth cases through the public language consumer.
 use oracle_runtime_core::{
     build_image_with_reader,
-    grammar::{FormRow, ReaderExport, ReaderPolicy, TemplateRow, READER_FORMAT, READER_VERSION},
+    grammar::{
+        FormRow, ReaderExport, ReaderPolicy, TemplateRow, WordRow, READER_FORMAT, READER_VERSION,
+    },
     reader::{ReaderLimits, ReaderReason, ReaderResult, ReaderStatus},
     Cancellation, Error, Image, Limits, ReaderBuildOptions,
 };
@@ -39,6 +41,9 @@ struct Fixture {
 }
 impl Fixture {
     fn new(templates: Vec<TemplateRow>, forms: Vec<FormRow>) -> Self {
+        Self::with_words(templates, forms, vec![])
+    }
+    fn with_words(templates: Vec<TemplateRow>, forms: Vec<FormRow>, words: Vec<WordRow>) -> Self {
         let directory = tempfile::tempdir().unwrap();
         let source = directory.path().join("kb.json");
         let output = directory.path().join("reader.sqlite");
@@ -76,7 +81,7 @@ impl Fixture {
             forms,
             shapes: vec![],
             aliases: vec![],
-            words: vec![],
+            words,
         };
         let receipt = build_image_with_reader(
             &source,
@@ -1584,4 +1589,40 @@ fn shared_unit_chains_still_exhaust_a_smaller_byte_envelope() {
         ),
         Err(Error::Limit("composition bytes"))
     ));
+}
+
+#[test]
+fn following_segment_strip_fallback_matches_tilde_key_and_strips_leading_glue() {
+    let rows = vec![
+        concept_unit(),
+        row(
+            "segment",
+            "~born in E1",
+            unit(
+                "source",
+                json!([
+                    step("Find", &[], json!([["@", "E", 1, ""]])),
+                    step("Relate", &[], json!(["born in", "backward"]))
+                ]),
+            ),
+        ),
+        row("outer", "how many X1", outer("Count")),
+    ];
+    let words = vec![
+        WordRow {
+            category: "glue".into(),
+            word: "who".into(),
+        },
+        WordRow {
+            category: "glue".into(),
+            word: "were".into(),
+        },
+    ];
+    let fixture = Fixture::with_words(rows, vec![], words);
+    let direct = fixture.read("How many persons born in York?");
+    assert_eq!(direct.status, ReaderStatus::Answered);
+    assert_eq!(direct.answer.as_deref(), Some("1"));
+    let glued = fixture.read("How many persons who were born in York?");
+    assert_eq!(glued.status, ReaderStatus::Answered);
+    assert_eq!(glued.answer.as_deref(), Some("1"));
 }

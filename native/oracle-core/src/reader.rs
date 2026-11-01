@@ -65,7 +65,7 @@ impl Default for ReaderLimits {
     fn default() -> Self {
         Self {
             lexicon: LexiconLimits::default(),
-            max_name_words: 8,
+            max_name_words: 16,
             combinations_per_level: 400,
             matched_programs: 4000,
             program_steps: 128,

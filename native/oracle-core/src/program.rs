@@ -542,6 +542,7 @@ impl Program {
 
     /// Convert learned syntax without a JSON round trip. This is still untrusted
     /// input: the complete operation contract is checked before compilation.
+    #[cfg(test)]
     pub(crate) fn from_reader(steps: &crate::grammar::Program, limits: &Limits) -> Result<Self> {
         // Preserve the original reader byte admission even for invalid syntax.
         crate::query::encoded_size(steps, limits.request_bytes)?;
