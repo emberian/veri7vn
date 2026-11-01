@@ -30,7 +30,25 @@ exam now completes with a negative composition result; the
 [diagnosis](MODELING-ADMISSION-2026-10-31.md) records both wrong core routing and
 our inappropriate composed-control gold.
 
+The [prepared host/modeling checkpoint](NATIVE-HOST-2026-11-01.md) is committed
+and pushed through `91ecba3`, with runtime implementation in `8021f05` and
+`1444ca3` and qualification-tool corrections in `82bf523`. It connects prepared
+public artifacts to the real Rust host and owns explicitly supplied modeling
+requests before generic routes. The original modeling exam remains negative;
+fresh composition and restart results have their own receipt.
+
 ## What upstream has received
+
+- [Prepared host and explicit modeling ownership](https://huggingface.co/psiloceyeben/oracle7-slim/discussions/5#6ae6afb1b14622bbcc7b3bcc):
+  published `91ecba3`, 39 unique Rust / 20 Python checks, prepared composition
+  53/53 plus 53 exact restart replays, native 51 semantic/control successes plus
+  two separate transport-boundary checks and 51 exact restart replays. The real
+  one-slot tenant eviction/replacement and old-reply journey passes. The comment
+  records costly launch and per-worker Python memory, idle-death detection limits,
+  pinned U8 scope and the unchanged negative original gate. Read back exactly;
+  body SHA256 `0436436ee9a996ffdd4a6e3402f26cc310412e12ba3074deb5a76a64991239a7`.
+  The focused #5/#10/#11 check found no new response; #10 and #11 remain open.
+  This was not a fresh census of all contributions or evidence of adoption.
 
 - [Native conversations and prepared public resources](https://huggingface.co/psiloceyeben/oracle7-slim/discussions/5#6ae69ad7faccf70fc9556cc8):
   published `a5bc00a`, 130 Rust / 46 Python checks, provider 9/9, native journey
@@ -84,7 +102,8 @@ upstream trackers; this checkpoint does not claim a fresh census of every thread
 
 The [live roadmap](../../native/docs/ROADMAP.md) owns remaining implementation
 work; completed reader/state tasks are no longer duplicated in this ledger.
-Full Engine migration, production host adoption of prepared public artifacts,
-structured modeling ownership, resource policy and upstream adoption remain
-explicit there. Publication does
-not establish receiving qualification, a current fleet score or a new theorem.
+Full Engine migration, sustained mixed-tenant resource qualification, broader
+reader/specialist coverage and upstream adoption remain explicit there. Prepared
+public artifacts and explicit modeling ownership are now integrated in the host,
+within the new checkpoint’s stated scope. Publication does not establish receiving
+qualification, a current fleet score or a new theorem.
