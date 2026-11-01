@@ -174,12 +174,27 @@ pub fn thermal_network(
 
 // Shared admission and ORIGINAL-node acceptance for fresh and reused solves.
 // The solver cannot bypass topology, units, finite values or power checks.
-pub(crate) fn thermal_with_solver(
+pub(crate) struct ThermalTopology {
+    pub unknown: Vec<usize>,
+    pub unknown_index: Vec<Option<usize>>,
+    pub endpoints: Vec<(usize, usize)>,
+    pub component_of: Vec<usize>,
+    pub component_members: Vec<Vec<usize>>,
+    pub components: Vec<ComponentEvidence>,
+    pub expected_rank: usize,
+    pub floating_count: usize,
+}
+pub(crate) struct CompiledThermal {
+    pub topology: ThermalTopology,
+    pub matrix: Vec<Vec<f64>>,
+}
+/// Validate and compile invariant structure once. Loads and fixed VALUES are
+/// checked as input values but do not enter the assembled reduced Laplacian.
+pub(crate) fn compile_thermal(
     input: &ThermalInput,
     limits: &Limits,
     cancel: &dyn WorkControl,
-    solve: &mut dyn FnMut(&LinearInput) -> Result<(Vec<f64>, usize, Option<LinearResult>)>,
-) -> Result<ThermalResult> {
+) -> Result<CompiledThermal> {
     checkpoint(cancel)?;
     let count = input.nodes.len();
     if count == 0 {
@@ -268,6 +283,7 @@ pub(crate) fn thermal_with_solver(
     }
     let mut component_of = vec![usize::MAX; count];
     let mut components = Vec::new();
+    let mut component_members = Vec::new();
     let mut floating_count = 0;
     for start in 0..count {
         if component_of[start] != usize::MAX {
@@ -294,91 +310,193 @@ pub(crate) fn thermal_with_solver(
             .filter(|i| input.nodes[*i].fixed_temperature_k.is_some())
             .collect();
         let grounded = !fixed.is_empty();
-        let net_heat = sum(members.iter().map(|i| input.nodes[*i].applied_heat_w))?;
-        let heat_magnitude = sum(members.iter().map(|i| input.nodes[*i].applied_heat_w.abs()))?;
-        let permitted = finite(
-            input.power_tolerance_w + input.tolerances.consistency_relative * heat_magnitude,
-            "thermal tolerance overflow",
-        )?;
         if !grounded {
             floating_count += 1;
         }
+        component_members.push(members.clone());
         components.push(ComponentEvidence {
             node_ids: members.iter().map(|i| input.nodes[*i].id.clone()).collect(),
             fixed_node_ids: fixed.iter().map(|i| input.nodes[*i].id.clone()).collect(),
             grounded,
-            net_applied_heat_w: net_heat,
-            floating_source_balance_within_tolerance: if grounded {
-                None
-            } else {
-                Some(net_heat.abs() <= permitted)
-            },
+            net_applied_heat_w: 0.0,
+            floating_source_balance_within_tolerance: if grounded { None } else { Some(true) },
         });
     }
     let expected_rank = unknown.len() - floating_count;
-    let mut linear_result = None;
-    let mut numerical_rank = 0;
+    let size = unknown.len();
+    let mut matrix = vec![vec![0.0; size]; size];
+    for ((i, j), link) in endpoints.iter().copied().zip(&input.links) {
+        checkpoint(cancel)?;
+        for (node, other) in [(i, j), (j, i)] {
+            if let Some(row) = unknown_index[node] {
+                matrix[row][row] = finite(
+                    matrix[row][row] + link.conductance_w_per_k,
+                    "thermal diagonal overflow",
+                )?;
+                if let Some(column) = unknown_index[other] {
+                    matrix[row][column] = finite(
+                        matrix[row][column] - link.conductance_w_per_k,
+                        "thermal coefficient overflow",
+                    )?;
+                }
+            }
+        }
+    }
+    Ok(CompiledThermal {
+        matrix,
+        topology: ThermalTopology {
+            unknown,
+            unknown_index,
+            endpoints,
+            component_of,
+            component_members,
+            components,
+            expected_rank,
+            floating_count,
+        },
+    })
+}
+pub(crate) fn build_rhs(
+    input: &ThermalInput,
+    topology: &ThermalTopology,
+    loads: &[f64],
+    fixed: &[Option<f64>],
+    cancel: &dyn WorkControl,
+) -> Result<(Vec<f64>, Vec<f64>)> {
+    let count = input.nodes.len();
+    if loads.len() != count || fixed.len() != count {
+        return Err(Error::Invalid(
+            "thermal value vectors must cover every node".into(),
+        ));
+    }
     let mut offsets = vec![0.0; count];
-    for (i, node) in input.nodes.iter().enumerate() {
-        if let Some(t) = node.fixed_temperature_k {
+    for i in 0..count {
+        checkpoint(cancel)?;
+        if !loads[i].is_finite()
+            || fixed[i].is_some_and(|value| !value.is_finite() || value < 0.0)
+            || fixed[i].is_some() != input.nodes[i].fixed_temperature_k.is_some()
+        {
+            return Err(Error::Invalid("finite heat, nonnegative fixed kelvin values and unchanged boundary membership required".into()));
+        }
+        if let Some(value) = fixed[i] {
             offsets[i] = finite(
-                t - input.reference_temperature_k,
+                value - input.reference_temperature_k,
                 "thermal reference subtraction overflow",
             )?;
         }
     }
-    if !unknown.is_empty() {
-        let size = unknown.len();
-        let mut a = vec![vec![0.0; size]; size];
-        let mut b: Vec<f64> = unknown
-            .iter()
-            .map(|i| input.nodes[*i].applied_heat_w)
-            .collect();
-        for ((i, j), link) in endpoints.iter().copied().zip(&input.links) {
-            checkpoint(cancel)?;
-            let g = link.conductance_w_per_k;
-            for (node, other) in [(i, j), (j, i)] {
-                if let Some(row) = unknown_index[node] {
-                    a[row][row] = finite(a[row][row] + g, "thermal diagonal overflow")?;
-                    if let Some(column) = unknown_index[other] {
-                        a[row][column] =
-                            finite(a[row][column] - g, "thermal coefficient overflow")?;
-                    } else {
-                        b[row] = sum([b[row], product(g, offsets[other])?].into_iter())?;
-                    }
+    let mut rhs: Vec<f64> = topology.unknown.iter().map(|i| loads[*i]).collect();
+    for ((i, j), link) in topology.endpoints.iter().copied().zip(&input.links) {
+        checkpoint(cancel)?;
+        for (node, other) in [(i, j), (j, i)] {
+            if let Some(row) = topology.unknown_index[node] {
+                if topology.unknown_index[other].is_none() {
+                    rhs[row] = sum(
+                        [rhs[row], product(link.conductance_w_per_k, offsets[other])?].into_iter(),
+                    )?;
                 }
             }
         }
-        let model = Model {
-            description: input.description.clone(),
-            variable_units: vec!["K interval from declared reference".into(); size],
-            row_units: vec!["W".into(); size],
-            normalization: "unweighted original free-node power balances in watts; no gauge equation or hidden reference boundary".into(),
-            assumptions: input.assumptions.clone(),
-        };
-        let (candidate, rank, diagnostics) = solve(&LinearInput {
-            matrix: a,
-            rhs: b,
-            model,
+    }
+    Ok((offsets, rhs))
+}
+pub(crate) fn linear_model(input: &ThermalInput, size: usize) -> Model {
+    Model { description:input.description.clone(), variable_units:vec!["K interval from declared reference".into();size], row_units:vec!["W".into();size], normalization:"unweighted original free-node power balances in watts; no gauge equation or hidden reference boundary".into(), assumptions:input.assumptions.clone() }
+}
+pub(crate) fn thermal_with_solver(
+    input: &ThermalInput,
+    limits: &Limits,
+    cancel: &dyn WorkControl,
+    solve: &mut dyn FnMut(&LinearInput) -> Result<(Vec<f64>, usize, Option<LinearResult>)>,
+) -> Result<ThermalResult> {
+    let CompiledThermal { matrix, topology } = compile_thermal(input, limits, cancel)?;
+    let loads: Vec<_> = input.nodes.iter().map(|node| node.applied_heat_w).collect();
+    let fixed: Vec<_> = input
+        .nodes
+        .iter()
+        .map(|node| node.fixed_temperature_k)
+        .collect();
+    let (mut offsets, rhs) = build_rhs(input, &topology, &loads, &fixed, cancel)?;
+    let size = topology.unknown.len();
+    let mut numerical_rank = 0;
+    let mut diagnostics = None;
+    if size != 0 {
+        let model = LinearInput {
+            matrix,
+            rhs,
+            model: linear_model(input, size),
             tolerances: input.tolerances.clone(),
-        })?;
+        };
+        let (candidate, rank, evidence) = solve(&model)?;
         if candidate.len() != size || candidate.iter().any(|x| !x.is_finite()) {
             return Err(Error::Numerical("invalid prepared thermal candidate"));
         }
-        for (row, i) in unknown.iter().copied().enumerate() {
+        for (row, i) in topology.unknown.iter().copied().enumerate() {
             offsets[i] = candidate[row];
         }
         numerical_rank = rank;
-        linear_result = diagnostics;
+        diagnostics = evidence;
+    }
+    evaluate_candidate(
+        input,
+        &topology,
+        &loads,
+        &fixed,
+        offsets,
+        numerical_rank,
+        diagnostics,
+        cancel,
+    )
+}
+/// One original-node acceptance path for fresh and retained operators. This
+/// consumes candidates, not factorizations, and never constructs a matrix.
+pub(crate) fn evaluate_candidate(
+    input: &ThermalInput,
+    topology: &ThermalTopology,
+    loads: &[f64],
+    fixed: &[Option<f64>],
+    offsets: Vec<f64>,
+    numerical_rank: usize,
+    linear_result: Option<LinearResult>,
+    cancel: &dyn WorkControl,
+) -> Result<ThermalResult> {
+    let count = input.nodes.len();
+    if loads.len() != count
+        || fixed.len() != count
+        || offsets.len() != count
+        || offsets.iter().any(|value| !value.is_finite())
+    {
+        return Err(Error::Numerical("thermal evidence dimensions or candidate"));
+    }
+    let unknown = &topology.unknown;
+    let endpoints = &topology.endpoints;
+    let component_of = &topology.component_of;
+    let expected_rank = topology.expected_rank;
+    let floating_count = topology.floating_count;
+    let mut components = topology.components.clone();
+    for (component, members) in components.iter_mut().zip(&topology.component_members) {
+        checkpoint(cancel)?;
+        let net = sum(members.iter().map(|i| loads[*i]))?;
+        let magnitude = sum(members.iter().map(|i| loads[*i].abs()))?;
+        let permitted = finite(
+            input.power_tolerance_w + input.tolerances.consistency_relative * magnitude,
+            "thermal tolerance overflow",
+        )?;
+        component.net_applied_heat_w = net;
+        component.floating_source_balance_within_tolerance = if component.grounded {
+            None
+        } else {
+            Some(net.abs() <= permitted)
+        };
     }
     let rank_resolved = numerical_rank == expected_rank;
     let absolute: Vec<Option<f64>> = input
         .nodes
         .iter()
         .enumerate()
-        .map(|(i, node)| {
+        .map(|(i, _node)| {
             if components[component_of[i]].grounded {
-                match node.fixed_temperature_k {
+                match fixed[i] {
                     Some(t) => Ok(Some(t)),
                     None => Ok(Some(finite(
                         input.reference_temperature_k + offsets[i],
@@ -418,27 +536,27 @@ pub(crate) fn thermal_with_solver(
     for (i, node) in input.nodes.iter().enumerate() {
         checkpoint(cancel)?;
         let out = sum(outgoing[i].iter().copied())?;
-        let boundary = if node.fixed_temperature_k.is_some() {
-            Some(sum([out, -node.applied_heat_w].into_iter())?)
+        let boundary = if fixed[i].is_some() {
+            Some(sum([out, -loads[i]].into_iter())?)
         } else {
             None
         };
-        let residual = sum([out, -node.applied_heat_w, -boundary.unwrap_or(0.0)].into_iter())?;
+        let residual = sum([out, -loads[i], -boundary.unwrap_or(0.0)].into_iter())?;
         let magnitude = sum(outgoing[i]
             .iter()
             .map(|q| q.abs())
-            .chain(std::iter::once(node.applied_heat_w.abs())))?;
+            .chain(std::iter::once(loads[i].abs())))?;
         let permitted = finite(
             input.power_tolerance_w + input.tolerances.consistency_relative * magnitude,
             "thermal tolerance overflow",
         )?;
         nodes.push(NodeEvidence {
             id: node.id.clone(),
-            fixed_temperature_k: node.fixed_temperature_k,
+            fixed_temperature_k: fixed[i],
             temperature_k: None,
             candidate_temperature_k: absolute[i],
             candidate_offset_k: offsets[i],
-            applied_heat_w: node.applied_heat_w,
+            applied_heat_w: loads[i],
             outgoing_link_heat_w: out,
             boundary_exchange_w: boundary,
             power_balance_residual_w: residual,

@@ -2,7 +2,10 @@
 //! evaluation; no transient, advection, inverse-design or uncertainty claim.
 //! One serial dense SVD is retained for all right-hand sides. At <=128 nodes
 //! this preserves the established rank policy without a sparse dependency/cache.
-use super::thermal::{thermal_with_solver, ThermalInput, ThermalOutcome, ThermalResult};
+use super::thermal::{
+    build_rhs, compile_thermal, evaluate_candidate, linear_model, CompiledThermal, ThermalInput,
+    ThermalOutcome, ThermalResult,
+};
 use super::{checkpoint, finite, sum, Error, Limits, LinearInput, Result, SCHEMA};
 use faer::diag::Diag;
 use faer::dyn_stack::{MemBuffer, MemStack};
@@ -311,6 +314,49 @@ impl Factors {
     }
 }
 
+/// Context-owned single-solve result. Payload stays private so moving public
+/// fields cannot detach evidence buffers from their reservation. Serialization
+/// borrows this owner; any resulting host JSON allocation needs its own custody.
+#[derive(Serialize)]
+pub struct PreparedThermalSolve {
+    operator_identity: String,
+    template_identity: String,
+    request_identity: String,
+    result: ThermalResult,
+    #[serde(skip_serializing)]
+    _reservation: MemoryReservation,
+}
+impl PreparedThermalSolve {
+    pub fn result(&self) -> &ThermalResult {
+        &self.result
+    }
+    pub fn operator_identity(&self) -> &str {
+        &self.operator_identity
+    }
+    pub fn template_identity(&self) -> &str {
+        &self.template_identity
+    }
+    pub fn request_identity(&self) -> &str {
+        &self.request_identity
+    }
+}
+fn evidence_allowance(network: &ThermalInput) -> usize {
+    let declarations = network.description.len()
+        + network
+            .assumptions
+            .iter()
+            .map(|text| text.len() + std::mem::size_of::<String>())
+            .sum::<usize>()
+        + 1024;
+    let links = network
+        .links
+        .iter()
+        .map(|link| {
+            link.from.len() + link.to.len() + std::mem::size_of::<super::thermal::LinkEvidence>()
+        })
+        .sum::<usize>();
+    network.nodes.len() * 2048 + declarations + links
+}
 /// Immutable structure/value/policy owner; callers may Arc-share it. Changing
 /// links, boundary membership or numerical policy requires preparing a new one.
 /// Optional ledger reservation covers an explicit conservative buffer allowance,
@@ -318,8 +364,11 @@ impl Factors {
 pub struct PreparedThermalNetwork {
     network: ThermalInput,
     factors: Option<Factors>,
-    unknown: Vec<usize>,
+    compiled: CompiledThermal,
     identity: String,
+    operator_identity: String,
+    template_identity: String,
+    evidence_allowance: usize,
     _reservation: Option<MemoryReservation>,
 }
 impl PreparedThermalNetwork {
@@ -357,82 +406,203 @@ impl PreparedThermalNetwork {
         }
         // Count through a capped nonallocating writer, then reserve actual
         // serialization growth before any encoded copy or retained factors.
-        let matrix_allowance = scratch_bytes + 8 * n * n * 8 + 64 * (n + network.links.len());
+        let matrix_allowance = scratch_bytes + 8 * n * n * 8 + 128 * (n + network.links.len());
         let reservation = memory
             .map(|budget| {
                 budget
-                    .reserve(matrix_allowance + 4 * encoded_length)
+                    .reserve(matrix_allowance + 6 * encoded_length)
                     .map_err(|_| Error::Limit("shared thermal memory"))
             })
             .transpose()?;
         let bytes = bounded_json(network, byte_limit)?;
-        let mut factors = None;
-        // Existing domain admission/topology/evidence path constructs the block.
-        let baseline = thermal_with_solver(network, limits, control, &mut |input| {
-            let f = Factors::prepare(input, limits, control)?;
-            let x = f.solve(&input.rhs, control)?;
-            let rank = x.len();
-            factors = Some(f);
-            Ok((x, rank, None))
-        })?;
-        if baseline.components.iter().any(|c| !c.grounded) {
+        let compiled = compile_thermal(network, limits, control)?;
+        if compiled.topology.floating_count != 0 {
             return Err(Error::Invalid(
                 "thermal scenarios require a fixed-temperature boundary in every component".into(),
             ));
         }
+        let factors = if free == 0 {
+            None
+        } else {
+            let input = LinearInput {
+                matrix: compiled.matrix.clone(),
+                rhs: vec![0.0; free],
+                model: linear_model(network, free),
+                tolerances: network.tolerances.clone(),
+            };
+            Some(Factors::prepare(&input, limits, control)?)
+        };
         let identity = format!("sha256:{:x}", Sha256::digest(&bytes));
-        let unknown = network
-            .nodes
-            .iter()
-            .enumerate()
-            .filter_map(|(i, n)| n.fixed_temperature_k.is_none().then_some(i))
-            .collect();
+        // Operator identity excludes RHS values and caller prose; numerical rank
+        // policy remains part of the key. Mask/order/coefficients cannot mutate.
+        #[derive(Serialize)]
+        struct OperatorNode<'a> {
+            id: &'a str,
+            fixed: bool,
+        }
+        #[derive(Serialize)]
+        struct OperatorKey<'a> {
+            schema: &'static str,
+            nodes: Vec<OperatorNode<'a>>,
+            links: &'a [super::thermal::Link],
+            tolerances: &'a super::Tolerances,
+        }
+        let operator = OperatorKey {
+            schema: "thermal-operator-v1",
+            nodes: network
+                .nodes
+                .iter()
+                .map(|node| OperatorNode {
+                    id: &node.id,
+                    fixed: node.fixed_temperature_k.is_some(),
+                })
+                .collect(),
+            links: &network.links,
+            tolerances: &network.tolerances,
+        };
+        let operator_identity = format!(
+            "sha256:{:x}",
+            Sha256::digest(bounded_json(&operator, super::MAX_REQUEST_BYTES)?)
+        );
+        let mut template = network.clone();
+        for node in &mut template.nodes {
+            node.applied_heat_w = 0.0;
+            node.fixed_temperature_k = node.fixed_temperature_k.map(|_| 0.0);
+        }
+        let mut hash = Sha256::new();
+        hash.update(b"thermal-template-v1\0");
+        hash.update(bounded_json(&template, super::MAX_REQUEST_BYTES)?);
+        let template_identity = format!("sha256:{:x}", hash.finalize());
+        let evidence_allowance = evidence_allowance(network);
         Ok(Self {
             network: network.clone(),
+            compiled,
             factors,
-            unknown,
             identity,
+            operator_identity,
+            template_identity,
+            evidence_allowance,
             _reservation: reservation,
         })
     }
+    /// Historical full preparation-input identity, retained for wire compatibility.
     pub fn identity(&self) -> &str {
         &self.identity
     }
+    /// Topology/order, conductances, fixed membership and numerical policy only.
+    pub fn operator_identity(&self) -> &str {
+        &self.operator_identity
+    }
+    /// Immutable declarations/reference/policies plus operator, excluding RHS values.
+    pub fn template_identity(&self) -> &str {
+        &self.template_identity
+    }
+    fn admit_scenario(
+        &self,
+        scenario: &Scenario,
+        limits: &Limits,
+        control: &dyn WorkControl,
+    ) -> Result<usize> {
+        checkpoint(control)?;
+        let n = self.network.nodes.len();
+        let free = self.compiled.topology.unknown.len();
+        if !bounded_text(&scenario.id, 128)
+            || scenario.applied_heat_w.len() != n
+            || scenario.fixed_temperature_k.len() != n
+        {
+            return Err(Error::Invalid(
+                "scenario id or complete value-vector bounds".into(),
+            ));
+        }
+        if free > limits.rows.min(super::MAX_ROWS) || free > limits.columns.min(super::MAX_COLUMNS)
+        {
+            return Err(Error::Limit("prepared solve dimensions"));
+        }
+        // Actual retained solve estimate is quadratic, not the fresh SVD's cubic
+        // work. Semantic dimension and original-node checks are still enforced.
+        let work = 2 * free * free + free + 4 * (n + self.network.links.len());
+        if work > limits.work.min(super::MAX_WORK) {
+            return Err(Error::Limit("prepared solve work"));
+        }
+        for (i, node) in self.network.nodes.iter().enumerate() {
+            if !scenario.applied_heat_w[i].is_finite()
+                || scenario.fixed_temperature_k[i].is_some() != node.fixed_temperature_k.is_some()
+                || scenario.fixed_temperature_k[i]
+                    .is_some_and(|value| !value.is_finite() || value < 0.0)
+            {
+                return Err(Error::Invalid("scenario values must be finite, fixed temperatures nonnegative, boundary membership unchanged".into()));
+            }
+        }
+        bounded_json_len(scenario, limits.request_bytes.min(super::MAX_REQUEST_BYTES))
+    }
+    fn solve_admitted(
+        &self,
+        scenario: &Scenario,
+        control: &dyn WorkControl,
+    ) -> Result<ThermalResult> {
+        let topology = &self.compiled.topology;
+        let (mut offsets, rhs) = build_rhs(
+            &self.network,
+            topology,
+            &scenario.applied_heat_w,
+            &scenario.fixed_temperature_k,
+            control,
+        )?;
+        if let Some(factors) = &self.factors {
+            let candidate = factors.solve(&rhs, control)?;
+            for (row, &i) in topology.unknown.iter().enumerate() {
+                offsets[i] = candidate[row];
+            }
+        }
+        evaluate_candidate(
+            &self.network,
+            topology,
+            &scenario.applied_heat_w,
+            &scenario.fixed_temperature_k,
+            offsets,
+            topology.unknown.len(),
+            None,
+            control,
+        )
+    }
+    /// Compatibility API: locally bounded raw result with caller-owned custody.
+    /// No topology, matrix, declarations or factors are rebuilt here. Use the
+    /// context-aware owner below when a returned result must retain byte custody.
     pub fn solve(
         &self,
         scenario: &Scenario,
         limits: &Limits,
         control: &dyn WorkControl,
     ) -> Result<ThermalResult> {
-        if !bounded_text(&scenario.id, 128) {
-            return Err(Error::Invalid("scenario id length".into()));
-        }
-        let n = self.network.nodes.len();
-        if scenario.applied_heat_w.len() != n || scenario.fixed_temperature_k.len() != n {
-            return Err(Error::Invalid(
-                "scenario vectors must cover every node".into(),
-            ));
-        }
-        let mut network = self.network.clone();
-        for (i, node) in network.nodes.iter_mut().enumerate() {
-            if node.fixed_temperature_k.is_some() != scenario.fixed_temperature_k[i].is_some() {
-                return Err(Error::Invalid(
-                    "scenario changes prepared boundary membership".into(),
-                ));
-            }
-            node.applied_heat_w = scenario.applied_heat_w[i];
-            node.fixed_temperature_k = scenario.fixed_temperature_k[i];
-        }
-        thermal_with_solver(&network, limits, control, &mut |input| {
-            // Reusing factors cannot bypass a caller's stricter local limits.
-            super::validate(input, limits)?;
-            let f = self
-                .factors
-                .as_ref()
-                .ok_or(Error::Numerical("missing prepared factors"))?;
-            let x = f.solve(&input.rhs, control)?;
-            let rank = x.len();
-            Ok((x, rank, None))
+        self.admit_scenario(scenario, limits, control)?;
+        self.solve_admitted(scenario, control)
+    }
+    pub fn solve_with_context(
+        &self,
+        scenario: &Scenario,
+        limits: &Limits,
+        context: &ExecutionContext,
+    ) -> Result<PreparedThermalSolve> {
+        let encoded_length = self.admit_scenario(scenario, limits, context)?;
+        let reservation = context
+            .memory()
+            .reserve(self.evidence_allowance + encoded_length * 4 + 2048)
+            .map_err(|_| Error::Limit("prepared thermal result memory"))?;
+        let result = self.solve_admitted(scenario, context)?;
+        let mut hash = Sha256::new();
+        hash.update(b"thermal-prepared-solve-v1\0");
+        hash.update(self.template_identity.as_bytes());
+        hash.update(b"\0");
+        hash.update(bounded_json(
+            scenario,
+            limits.request_bytes.min(super::MAX_REQUEST_BYTES),
+        )?);
+        Ok(PreparedThermalSolve {
+            operator_identity: self.operator_identity.clone(),
+            template_identity: self.template_identity.clone(),
+            request_identity: format!("sha256:{:x}", hash.finalize()),
+            result,
+            _reservation: reservation,
         })
     }
     fn sensitivity(
@@ -455,30 +625,18 @@ impl PreparedThermalNetwork {
                     .network
                     .nodes
                     .iter()
-                    .position(|n| &n.id == node_id)
+                    .position(|node| &node.id == node_id)
                     .ok_or_else(|| Error::Invalid("unknown load node".into()))?;
-                // A load at an ideal reservoir changes reservoir exchange only.
                 forcing[i] = 1.0;
                 "W"
             }
             Parameter::Conductance { link_index } => {
-                let link = self
-                    .network
-                    .links
+                let &(i, j) = self
+                    .compiled
+                    .topology
+                    .endpoints
                     .get(*link_index)
                     .ok_or_else(|| Error::Invalid("unknown conductance link index".into()))?;
-                let i = self
-                    .network
-                    .nodes
-                    .iter()
-                    .position(|n| n.id == link.from)
-                    .unwrap();
-                let j = self
-                    .network
-                    .nodes
-                    .iter()
-                    .position(|n| n.id == link.to)
-                    .unwrap();
                 let delta = finite(
                     result.result.nodes[i].temperature_k.unwrap()
                         - result.result.nodes[j].temperature_k.unwrap(),
@@ -490,28 +648,36 @@ impl PreparedThermalNetwork {
                 "W/K"
             }
         };
-        let rhs: Vec<f64> = self.unknown.iter().map(|i| forcing[*i]).collect();
+        let rhs: Vec<f64> = self
+            .compiled
+            .topology
+            .unknown
+            .iter()
+            .map(|i| forcing[*i])
+            .collect();
         let mut derivative = vec![0.0; n];
         if let Some(f) = &self.factors {
-            for (i, x) in self.unknown.iter().zip(f.solve(&rhs, control)?) {
+            for (i, x) in self
+                .compiled
+                .topology
+                .unknown
+                .iter()
+                .zip(f.solve(&rhs, control)?)
+            {
                 derivative[*i] = x;
             }
         }
         let mut outgoing = vec![Vec::new(); n];
-        for (k, link) in self.network.links.iter().enumerate() {
+        for (k, ((i, j), link)) in self
+            .compiled
+            .topology
+            .endpoints
+            .iter()
+            .copied()
+            .zip(&self.network.links)
+            .enumerate()
+        {
             checkpoint(control)?;
-            let i = self
-                .network
-                .nodes
-                .iter()
-                .position(|n| n.id == link.from)
-                .unwrap();
-            let j = self
-                .network
-                .nodes
-                .iter()
-                .position(|n| n.id == link.to)
-                .unwrap();
             let heat = finite(
                 link.conductance_w_per_k * (derivative[i] - derivative[j]),
                 "derivative flow overflow",
@@ -527,7 +693,7 @@ impl PreparedThermalNetwork {
         }
         let mut residuals = vec![None; n];
         let mut maximum = 0.0_f64;
-        for &i in &self.unknown {
+        for &i in &self.compiled.topology.unknown {
             let load = match parameter {
                 Parameter::Load { node_id } if self.network.nodes[i].id == *node_id => 1.0,
                 _ => 0.0,
@@ -576,24 +742,8 @@ fn run(
     let encoded_length = bounded_json_len(input, byte_limit)?;
     // Each accepted scenario owns its declarations and link evidence; counting
     // only node vectors misses repeated long assumptions even in a one-node graph.
-    let declaration_bytes = input.network.description.len()
-        + input
-            .network
-            .assumptions
-            .iter()
-            .map(|text| text.len() + std::mem::size_of::<String>())
-            .sum::<usize>()
-        + 1024;
-    let link_evidence_bytes = input
-        .network
-        .links
-        .iter()
-        .map(|link| {
-            link.from.len() + link.to.len() + std::mem::size_of::<super::thermal::LinkEvidence>()
-        })
-        .sum::<usize>();
     let output_allowance = encoded_length * 4
-        + input.scenarios.len() * (n * 2048 + declaration_bytes + link_evidence_bytes)
+        + input.scenarios.len() * evidence_allowance(&input.network)
         + input.sensitivities.len() * (n * 128 + 1024);
     let result_reservation = memory
         .map(|budget| {
