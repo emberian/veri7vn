@@ -14,7 +14,9 @@ use faer::{Mat, Par};
 use oracle_execution::{ExecutionContext, MemoryBudget, MemoryReservation, WorkControl};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
-use std::collections::BTreeSet;
+use std::collections::{BTreeSet, VecDeque};
+use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::{Arc, Mutex};
 
 fn charge(control: &dyn WorkControl, work: usize) -> Result<()> {
     control.checkpoint(work as u64).map_err(|e| match e {
@@ -84,8 +86,12 @@ pub struct ThermalScenariosResult {
     pub operation: String,
     pub assurance: String,
     pub network_identity: String,
+    pub template_identity: String,
+    pub operator_identity: String,
     pub identity_encoding: String,
     pub factorization_count: usize,
+    #[serde(skip_serializing)]
+    pub factor_cache_hit: bool,
     pub scenario_rhs_solves: usize,
     pub sensitivity_rhs_solves: usize,
     pub node_order: Vec<String>,
@@ -724,11 +730,194 @@ impl PreparedThermalNetwork {
         })
     }
 }
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+pub struct PreparedThermalCacheStats {
+    pub entries: usize,
+    pub max_entries: usize,
+    pub live_bytes: usize,
+    pub max_bytes: usize,
+    pub hits: u64,
+    pub misses: u64,
+    pub evictions: u64,
+}
+
+/// Bounded cross-request cache of immutable prepared thermal networks, keyed by
+/// `template_identity` (topology, conductances, boundary mask, declarations and
+/// numerical policy, excluding base RHS values). Retained factor reservations
+/// live in the cache's own `MemoryBudget`, separate from per-request output
+/// reservations.
+pub struct PreparedThermalCache {
+    max_entries: usize,
+    max_bytes: usize,
+    memory: MemoryBudget,
+    entries: Mutex<VecDeque<(String, Arc<PreparedThermalNetwork>)>>,
+    hits: AtomicU64,
+    misses: AtomicU64,
+    evictions: AtomicU64,
+}
+
+impl Default for PreparedThermalCache {
+    fn default() -> Self {
+        Self::new(64, 32 * 1024 * 1024)
+    }
+}
+
+impl PreparedThermalCache {
+    pub fn new(max_entries: usize, max_bytes: usize) -> Self {
+        Self {
+            max_entries: max_entries.max(1),
+            max_bytes: max_bytes.max(1),
+            memory: MemoryBudget::new(max_bytes.max(1)),
+            entries: Mutex::new(VecDeque::new()),
+            hits: AtomicU64::new(0),
+            misses: AtomicU64::new(0),
+            evictions: AtomicU64::new(0),
+        }
+    }
+
+    pub fn stats(&self) -> PreparedThermalCacheStats {
+        let entries = self.entries.lock().unwrap_or_else(|e| e.into_inner()).len();
+        PreparedThermalCacheStats {
+            entries,
+            max_entries: self.max_entries,
+            live_bytes: self.memory.snapshot().live,
+            max_bytes: self.max_bytes,
+            hits: self.hits.load(Ordering::Acquire),
+            misses: self.misses.load(Ordering::Acquire),
+            evictions: self.evictions.load(Ordering::Acquire),
+        }
+    }
+
+    pub fn get_or_prepare(
+        &self,
+        network: &ThermalInput,
+        limits: &Limits,
+        control: &dyn WorkControl,
+        request_memory: Option<&MemoryBudget>,
+    ) -> Result<(Arc<PreparedThermalNetwork>, String, bool)> {
+        checkpoint(control)?;
+        preflight_network(network)?;
+        for node in &network.nodes {
+            if !node.applied_heat_w.is_finite()
+                || node
+                    .fixed_temperature_k
+                    .is_some_and(|t| !t.is_finite() || t < 0.0)
+            {
+                return Err(Error::Invalid(
+                    "node heat must be finite watts; fixed temperatures must be nonnegative finite kelvin".into(),
+                ));
+            }
+        }
+        let byte_limit = limits.request_bytes.min(super::MAX_REQUEST_BYTES);
+        let encoded_length = bounded_json_len(network, byte_limit)?;
+        let n = network.nodes.len();
+        let free = network
+            .nodes
+            .iter()
+            .filter(|node| node.fixed_temperature_k.is_none())
+            .count();
+        let scratch_bytes = if free == 0 {
+            0
+        } else {
+            svd_scratch::<f64>(
+                free,
+                free,
+                ComputeSvdVectors::Thin,
+                ComputeSvdVectors::Thin,
+                Par::Seq,
+                Default::default(),
+            )
+            .size_bytes()
+        };
+        if scratch_bytes > limits.scratch_bytes.min(super::MAX_SCRATCH_BYTES) {
+            return Err(Error::Limit("thermal SVD scratch"));
+        }
+        let matrix_allowance = scratch_bytes + 8 * n * n * 8 + 128 * (n + network.links.len());
+        let _request_prep_guard = request_memory
+            .map(|budget| {
+                budget
+                    .reserve(matrix_allowance + 6 * encoded_length)
+                    .map_err(|_| Error::Limit("shared thermal memory"))
+            })
+            .transpose()?;
+        let bytes = bounded_json(network, byte_limit)?;
+        let identity = format!("sha256:{:x}", Sha256::digest(&bytes));
+        let mut template = network.clone();
+        for node in &mut template.nodes {
+            node.applied_heat_w = 0.0;
+            node.fixed_temperature_k = node.fixed_temperature_k.map(|_| 0.0);
+        }
+        let mut hash = Sha256::new();
+        hash.update(b"thermal-template-v1\0");
+        hash.update(bounded_json(&template, super::MAX_REQUEST_BYTES)?);
+        let template_identity = format!("sha256:{:x}", hash.finalize());
+        {
+            let mut entries = self.entries.lock().unwrap_or_else(|e| e.into_inner());
+            if let Some(pos) = entries
+                .iter()
+                .position(|(key, _)| key == &template_identity)
+            {
+                let (key, prepared) = entries.remove(pos).expect("entry index");
+                entries.push_back((key, prepared.clone()));
+                if free > limits.rows.min(super::MAX_ROWS)
+                    || free > limits.columns.min(super::MAX_COLUMNS)
+                {
+                    return Err(Error::Limit("matrix dimensions"));
+                }
+                let prep_work = free
+                    .checked_mul(free)
+                    .and_then(|v| v.checked_mul(free))
+                    .ok_or(Error::Limit("matrix work"))?;
+                if prep_work > limits.work.min(super::MAX_WORK) {
+                    return Err(Error::Limit("matrix work"));
+                }
+                self.hits.fetch_add(1, Ordering::Relaxed);
+                return Ok((prepared, identity, true));
+            }
+        }
+        self.misses.fetch_add(1, Ordering::Relaxed);
+        let prepared = loop {
+            match PreparedThermalNetwork::prepare(network, limits, control, Some(&self.memory)) {
+                Ok(prepared) => break Arc::new(prepared),
+                Err(Error::Limit("shared thermal memory")) => {
+                    let evicted = {
+                        let mut entries = self.entries.lock().unwrap_or_else(|e| e.into_inner());
+                        entries.pop_front()
+                    };
+                    if evicted.is_some() {
+                        self.evictions.fetch_add(1, Ordering::Relaxed);
+                        continue;
+                    }
+                    // Entry exceeds cache budget: prepare under request memory without caching.
+                    let uncached =
+                        PreparedThermalNetwork::prepare(network, limits, control, None)?;
+                    return Ok((Arc::new(uncached), identity, false));
+                }
+                Err(other) => return Err(other),
+            }
+        };
+        let mut entries = self.entries.lock().unwrap_or_else(|e| e.into_inner());
+        if let Some(pos) = entries
+            .iter()
+            .position(|(key, _)| key == &template_identity)
+        {
+            entries.remove(pos);
+        }
+        while entries.len() >= self.max_entries {
+            entries.pop_front();
+            self.evictions.fetch_add(1, Ordering::Relaxed);
+        }
+        entries.push_back((template_identity, prepared.clone()));
+        Ok((prepared, identity, false))
+    }
+}
+
 fn run(
     input: &ThermalScenariosInput,
     limits: &Limits,
     control: &dyn WorkControl,
     memory: Option<&MemoryBudget>,
+    cache: Option<&PreparedThermalCache>,
 ) -> Result<ThermalScenariosResult> {
     checkpoint(control)?;
     preflight(input)?;
@@ -757,7 +946,13 @@ fn run(
     if input.scenarios.iter().any(|s| !ids.insert(s.id.as_str())) {
         return Err(Error::Invalid("duplicate scenario id".into()));
     }
-    let prepared = PreparedThermalNetwork::prepare(&input.network, limits, control, memory)?;
+    let (prepared, network_identity, factor_cache_hit) = if let Some(cache) = cache {
+        cache.get_or_prepare(&input.network, limits, control, memory)?
+    } else {
+        let prepared = PreparedThermalNetwork::prepare(&input.network, limits, control, memory)?;
+        let identity = prepared.identity.clone();
+        (Arc::new(prepared), identity, false)
+    };
     let mut scenarios = Vec::new();
     for scenario in &input.scenarios {
         scenarios.push(ScenarioResult {
@@ -773,14 +968,36 @@ fn run(
             .ok_or_else(|| Error::Invalid("unknown sensitivity scenario".into()))?;
         sensitivities.push(prepared.sensitivity(scenario, &request.parameter, control)?);
     }
-    Ok(ThermalScenariosResult {_result_reservation:result_reservation,schema:SCHEMA.into(),operation:"science.thermal_scenarios".into(),assurance:"untrusted floating-point passive-network scenarios; not formally verified".into(),network_identity:prepared.identity.clone(),identity_encoding:"SHA-256 of serde_json serialized complete ThermalInput, including ordered nodes/links, base loads, boundaries, declarations and numerical policy; not topology-only".into(),factorization_count:usize::from(prepared.factors.is_some()),scenario_rhs_solves:input.scenarios.len()*usize::from(prepared.factors.is_some()),sensitivity_rhs_solves:input.sensitivities.len()*usize::from(prepared.factors.is_some()),node_order:input.network.nodes.iter().map(|n|n.id.clone()).collect(),scenarios,sensitivities,warnings:vec!["Sampled supplied load/boundary scenarios, not uncertainty bounds, worst-case optimization or inferred physical truth.".into(),"Local analytic derivatives hold boundary temperatures and every other parameter fixed. They do not solve inverse design; positive conductances and grounded rank policy must remain valid.".into(),"Dense serial SVD factors are reused; no cross-request cache. Reused results omit per-scenario SVD diagnostics; original-node power evidence remains authoritative.".into()]})
+    Ok(ThermalScenariosResult {
+        _result_reservation: result_reservation,
+        schema: SCHEMA.into(),
+        operation: "science.thermal_scenarios".into(),
+        assurance: "untrusted floating-point passive-network scenarios; not formally verified"
+            .into(),
+        network_identity,
+        template_identity: prepared.template_identity.clone(),
+        operator_identity: prepared.operator_identity.clone(),
+        identity_encoding: "SHA-256 of serde_json serialized complete ThermalInput, including ordered nodes/links, base loads, boundaries, declarations and numerical policy; not topology-only".into(),
+        factorization_count: usize::from(prepared.factors.is_some()),
+        factor_cache_hit,
+        scenario_rhs_solves: input.scenarios.len() * usize::from(prepared.factors.is_some()),
+        sensitivity_rhs_solves: input.sensitivities.len() * usize::from(prepared.factors.is_some()),
+        node_order: input.network.nodes.iter().map(|n| n.id.clone()).collect(),
+        scenarios,
+        sensitivities,
+        warnings: vec![
+            "Sampled supplied load/boundary scenarios, not uncertainty bounds, worst-case optimization or inferred physical truth.".into(),
+            "Local analytic derivatives hold boundary temperatures and every other parameter fixed. They do not solve inverse design; positive conductances and grounded rank policy must remain valid.".into(),
+            "Dense serial SVD factors are reused across scenarios and across requests matching the same immutable template identity. Reused results omit per-scenario SVD diagnostics; original-node power evidence remains authoritative.".into(),
+        ],
+    })
 }
 pub fn thermal_scenarios(
     input: &ThermalScenariosInput,
     limits: &Limits,
     control: &dyn WorkControl,
 ) -> Result<ThermalScenariosResult> {
-    run(input, limits, control, None)
+    run(input, limits, control, None, None)
 }
 /// Explicit shared ledger entry point; same cooperative budget is passed through
 /// preparation, every scenario, every derivative and every acceptance check.
@@ -789,5 +1006,14 @@ pub fn thermal_scenarios_with_context(
     limits: &Limits,
     context: &ExecutionContext,
 ) -> Result<ThermalScenariosResult> {
-    run(input, limits, context, Some(context.memory()))
+    run(input, limits, context, Some(context.memory()), None)
+}
+/// Execute supplied thermal scenarios using a bounded cross-request prepared-factor cache.
+pub fn thermal_scenarios_with_cache(
+    input: &ThermalScenariosInput,
+    limits: &Limits,
+    context: &ExecutionContext,
+    cache: &PreparedThermalCache,
+) -> Result<ThermalScenariosResult> {
+    run(input, limits, context, Some(context.memory()), Some(cache))
 }

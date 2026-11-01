@@ -359,3 +359,58 @@ fn actual_small_encoding_does_not_require_a_full_request_cap_reservation() {
     drop(result);
     assert_eq!(context.memory().snapshot().live, 0);
 }
+
+#[test]
+fn cross_request_prepared_cache_reuses_factors_and_bounds_entries() {
+    use oracle_execution::{Cancellation, ExecutionContext};
+    use std::time::Duration;
+    let cache = PreparedThermalCache::new(2, 8 * 1024 * 1024);
+    let context =
+        ExecutionContext::new(1_000_000, Duration::from_secs(60), Cancellation::default())
+            .unwrap()
+            .restricted_memory(4 * 1024 * 1024);
+    let first =
+        thermal_scenarios_with_cache(&input(), &Limits::default(), &context, &cache).unwrap();
+    assert!(!first.factor_cache_hit);
+    assert_eq!(cache.stats().misses, 1);
+    assert_eq!(cache.stats().hits, 0);
+    assert_eq!(cache.stats().entries, 1);
+    let first_network_id = first.network_identity.clone();
+    let first_template_id = first.template_identity.clone();
+    drop(first);
+    assert_eq!(context.memory().snapshot().live, 0);
+    assert!(cache.stats().live_bytes > 0);
+
+    // Changing only base loads preserves template_identity and hits the prepared factor cache.
+    let mut second_input = input();
+    second_input.network.nodes[0].applied_heat_w = 500.0;
+    let second =
+        thermal_scenarios_with_cache(&second_input, &Limits::default(), &context, &cache).unwrap();
+    assert!(second.factor_cache_hit);
+    assert_eq!(second.template_identity, first_template_id);
+    assert_ne!(second.network_identity, first_network_id);
+    assert_eq!(cache.stats().hits, 1);
+    assert_eq!(cache.stats().misses, 1);
+    near(
+        second.scenarios[0].result.nodes[0].temperature_k.unwrap(),
+        305.0,
+    );
+    drop(second);
+
+    // Changing conductances alters the operator/template and bounded capacity evicts LRU entries.
+    let mut third_input = input();
+    third_input.network.links[0].conductance_w_per_k = 4.0;
+    let third =
+        thermal_scenarios_with_cache(&third_input, &Limits::default(), &context, &cache).unwrap();
+    assert!(!third.factor_cache_hit);
+    assert_eq!(cache.stats().entries, 2);
+
+    let mut fourth_input = input();
+    fourth_input.network.links[0].conductance_w_per_k = 8.0;
+    let fourth =
+        thermal_scenarios_with_cache(&fourth_input, &Limits::default(), &context, &cache).unwrap();
+    assert!(!fourth.factor_cache_hit);
+    assert_eq!(cache.stats().entries, 2);
+    assert_eq!(cache.stats().evictions, 1);
+    drop((third, fourth));
+}

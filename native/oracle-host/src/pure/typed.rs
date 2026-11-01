@@ -273,8 +273,11 @@ impl Pure {
                     let limits = oracle_science::Limits::default();
                     let reply = match &request {
                         Q::ThermalScenarios(input) => R::ThermalScenarios(
-                            oracle_science::thermal_scenarios::thermal_scenarios_with_context(
-                                input, &limits, context,
+                            oracle_science::thermal_scenarios::thermal_scenarios_with_cache(
+                                input,
+                                &limits,
+                                context,
+                                &self.thermal_cache,
                             )
                             .map_err(|e| detail(&e))?,
                         ),

@@ -9,7 +9,8 @@ use serde::{Deserialize, Serialize};
 
 /// Replay is intentionally bounded while retained history is revalidated.
 pub const MAX_RECORDS: usize = 128;
-pub const OPERATION: &str = domain::OPERATION;
+pub const RETENTION_POLICY: RetentionPolicy = RetentionPolicy::uniform(MAX_RECORDS);
+pub const OPERATION: &'static str = domain::OPERATION;
 pub struct EvidenceOwner;
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -40,6 +41,9 @@ fn error(error: oracle_logic::Error) -> core::Error {
         }
         oracle_logic::Error::Invalid("revision token reused with different content") => {
             core::Error::Conflict("evidence token reused with different content")
+        }
+        oracle_logic::Error::Invalid("revision token reused after retry window eviction") => {
+            core::Error::Conflict("evidence token reused after retry window eviction")
         }
         other => core::Error::Invalid(other.to_string()),
     }

@@ -53,6 +53,8 @@ pub struct Pure {
     loaded: Vec<Profile>,
     identity_prefix: String,
     solver: Option<(tempfile::TempDir, std::path::PathBuf, String)>,
+    #[cfg(feature = "science")]
+    pub(crate) thermal_cache: oracle_science::thermal_scenarios::PreparedThermalCache,
 }
 
 fn replace_strings(value: &mut Value, from: &str, to: &str) {
@@ -154,7 +156,14 @@ impl Pure {
             loaded,
             identity_prefix: host_sha256.to_owned(),
             solver,
+            #[cfg(feature = "science")]
+            thermal_cache: Default::default(),
         })
+    }
+
+    #[cfg(feature = "science")]
+    pub fn thermal_cache_stats(&self) -> oracle_science::thermal_scenarios::PreparedThermalCacheStats {
+        self.thermal_cache.stats()
     }
 
     pub(crate) fn solver_path(&self) -> Option<&std::path::Path> {
@@ -334,11 +343,12 @@ impl Pure {
                 }
                 if id == "science.thermal_scenarios" {
                     return encode_result(
-                        oracle_science::thermal_scenarios::thermal_scenarios_with_context(
+                        oracle_science::thermal_scenarios::thermal_scenarios_with_cache(
                             &decode(arguments)
                                 .map_err(|e| format!("invalid input: request arguments: {e}"))?,
                             &limits,
                             context,
+                            &self.thermal_cache,
                         )
                         .map_err(|e| detail(&e))?,
                     );
@@ -2388,6 +2398,11 @@ mod typed_parity {
             loaded: vec![],
             identity_prefix: "fixture".into(),
             solver: Some((dir, path, "0".repeat(64))),
+            #[cfg(feature = "science")]
+            thermal_cache: oracle_science::thermal_scenarios::PreparedThermalCache::new(
+                16,
+                16 * 1024 * 1024,
+            ),
         }
     }
     fn legacy(pure: &Pure, name: &str, id: &str, args: &Value) -> Result<Value, String> {

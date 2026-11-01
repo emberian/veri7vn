@@ -108,3 +108,72 @@ fn checked_handle_reuses_restoration_for_multiple_query_receipts() {
         revisions_owner::prepare_solve_checked(&checked, 0, vec![], &Limits::default()).is_err()
     );
 }
+#[test]
+fn retention_policy_separates_active_records_historical_ids_revisions_and_retry_window() {
+    let mut workspace = initial();
+    let policy = RetentionPolicy {
+        max_active_records: 1,
+        max_historical_ids: 3,
+        max_revisions: 4,
+        max_retained_retries: 2,
+        max_bytes: 16 * 1024,
+    };
+    let obs = |id: &str| {
+        Insert::Observation(Observation {
+            id: id.into(),
+            source: "sensor".into(),
+            source_revision: "1".into(),
+            atom: "ready".into(),
+        })
+    };
+    let r1 = Revision {
+        token: "t1".into(),
+        expected_revision: 0,
+        insert: vec![obs("a")],
+        withdraw: vec![],
+    };
+    let c1 = workspace.apply_with_policy(r1.clone(), &policy).unwrap();
+    assert_eq!(workspace.apply_with_policy(r1.clone(), &policy).unwrap(), c1);
+
+    // Replacing active record "a" with "b" keeps active_records == 1 while historical_ids == 2.
+    let r2 = Revision {
+        token: "t2".into(),
+        expected_revision: 1,
+        insert: vec![obs("b")],
+        withdraw: vec!["a".into()],
+    };
+    let c2 = workspace.apply_with_policy(r2.clone(), &policy).unwrap();
+    assert_eq!(workspace.retention_metrics().active_records, 1);
+    assert_eq!(workspace.retention_metrics().historical_ids, 2);
+    assert_eq!(workspace.retention_metrics().retained_retries, 2);
+
+    // Forbidden ID reuse of withdrawn record "a" is rejected even when active_records == 0.
+    let reuse_a = Revision {
+        token: "t3-bad".into(),
+        expected_revision: 2,
+        insert: vec![obs("a")],
+        withdraw: vec!["b".into()],
+    };
+    assert_eq!(
+        workspace.apply_with_policy(reuse_a, &policy),
+        Err(Error::Invalid("record identity reused"))
+    );
+
+    // Advancing past max_retained_retries evicts t1's payload but remembers t1 in retired_tokens.
+    let r3 = Revision {
+        token: "t3".into(),
+        expected_revision: 2,
+        insert: vec![obs("c")],
+        withdraw: vec!["b".into()],
+    };
+    workspace.apply_with_policy(r3, &policy).unwrap();
+    assert_eq!(workspace.retention_metrics().retained_retries, 2);
+    assert_eq!(workspace.retention_metrics().retired_tokens, 1);
+    assert_eq!(workspace.apply_with_policy(r2, &policy).unwrap(), c2);
+    assert_eq!(
+        workspace.apply_with_policy(r1, &policy),
+        Err(Error::Invalid(
+            "revision token reused after retry window eviction"
+        ))
+    );
+}

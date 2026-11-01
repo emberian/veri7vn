@@ -4,10 +4,65 @@
 use crate::{hosted, Error, Limits, Operation, Request, Rule, Scope};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::{BTreeMap, BTreeSet, VecDeque};
 
 pub const OWNER: &str = "oracle.logic.revisions";
 pub const VERSION: u32 = 1;
+pub const DEFAULT_MAX_RECORDS: usize = 128;
+pub const DEFAULT_MAX_BYTES: usize = 256 * 1024;
+
+/// Explicit retention dimensions for revisable evidence workspaces.
+/// Separates active records, historical IDs (including withdrawn records),
+/// revision history length, retained retry payloads, and serialized byte size.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct RetentionPolicy {
+    pub max_active_records: usize,
+    pub max_historical_ids: usize,
+    pub max_revisions: usize,
+    pub max_retained_retries: usize,
+    pub max_bytes: usize,
+}
+
+impl Default for RetentionPolicy {
+    fn default() -> Self {
+        Self::uniform(DEFAULT_MAX_RECORDS)
+    }
+}
+
+impl RetentionPolicy {
+    pub const fn uniform(max_records: usize) -> Self {
+        Self {
+            max_active_records: max_records,
+            max_historical_ids: max_records,
+            max_revisions: max_records,
+            max_retained_retries: max_records,
+            max_bytes: DEFAULT_MAX_BYTES,
+        }
+    }
+
+    pub fn validate(&self) -> Result<(), Error> {
+        if self.max_active_records == 0
+            || self.max_historical_ids < self.max_active_records
+            || self.max_revisions == 0
+            || self.max_retained_retries == 0
+            || self.max_bytes == 0
+        {
+            return Err(Error::Invalid("invalid workspace retention policy"));
+        }
+        Ok(())
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+pub struct RetentionMetrics {
+    pub active_records: usize,
+    pub historical_ids: usize,
+    pub revisions: usize,
+    pub retained_retries: usize,
+    pub retired_tokens: usize,
+    pub estimated_bytes: usize,
+}
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ScopeKey {
@@ -280,6 +335,9 @@ pub struct Workspace {
     history: Vec<Revision>,
     current: Snapshot,
     retries: BTreeMap<String, (Revision, Commit)>,
+    retry_order: VecDeque<String>,
+    retired_tokens: BTreeSet<String>,
+    estimated_bytes: usize,
 }
 /// Owner-extension payload. Derived state is reconstructed and validated.
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -297,17 +355,39 @@ impl Workspace {
             history: self.history.clone(),
         }
     }
+    pub fn retention_metrics(&self) -> RetentionMetrics {
+        RetentionMetrics {
+            active_records: self.current.active.len(),
+            historical_ids: self.current.records.len(),
+            revisions: self.history.len(),
+            retained_retries: self.retries.len(),
+            retired_tokens: self.retired_tokens.len(),
+            estimated_bytes: self.estimated_bytes,
+        }
+    }
     pub fn import(
         stored: StoredWorkspace,
         authenticated_scope: &ScopeKey,
         max_records: usize,
     ) -> Result<Self, Error> {
+        Self::import_with_policy(
+            stored,
+            authenticated_scope,
+            &RetentionPolicy::uniform(max_records),
+        )
+    }
+    pub fn import_with_policy(
+        stored: StoredWorkspace,
+        authenticated_scope: &ScopeKey,
+        policy: &RetentionPolicy,
+    ) -> Result<Self, Error> {
+        policy.validate()?;
         if stored.version != VERSION || &stored.scope != authenticated_scope {
             return Err(Error::Invalid(
                 "workspace owner version or authenticated scope",
             ));
         }
-        Self::restore(stored.scope, stored.history, max_records)
+        Self::restore_with_policy(stored.scope, stored.history, policy)
     }
     /// Checked replay with inherited work/deadline/cancellation. The resulting
     /// Workspace is the checked typed handle; callers may project and prepare
@@ -318,12 +398,26 @@ impl Workspace {
         max_records: usize,
         control: &dyn oracle_execution::WorkControl,
     ) -> Result<Self, Error> {
+        Self::import_with_policy_and_control(
+            stored,
+            authenticated_scope,
+            &RetentionPolicy::uniform(max_records),
+            control,
+        )
+    }
+    pub fn import_with_policy_and_control(
+        stored: StoredWorkspace,
+        authenticated_scope: &ScopeKey,
+        policy: &RetentionPolicy,
+        control: &dyn oracle_execution::WorkControl,
+    ) -> Result<Self, Error> {
+        policy.validate()?;
         if stored.version != VERSION || &stored.scope != authenticated_scope {
             return Err(Error::Invalid(
                 "workspace owner version or authenticated scope",
             ));
         }
-        if stored.history.len() > max_records {
+        if stored.history.len() > policy.max_revisions {
             return Err(Error::Limit("workspace history"));
         }
         let mut workspace = Self::new(stored.scope)?;
@@ -332,7 +426,7 @@ impl Workspace {
                 control,
                 1 + revision.insert.len() as u64 + revision.withdraw.len() as u64,
             )?;
-            workspace.apply(revision, max_records)?;
+            workspace.apply_with_policy(revision, policy)?;
             restore_checkpoint(control, 0)?;
         }
         restore_checkpoint(control, 0)?;
@@ -345,6 +439,9 @@ impl Workspace {
         if scope.tenant.is_empty() || scope.workspace.is_empty() {
             return Err(Error::Invalid("workspace scope"));
         }
+        let estimated_bytes = 32usize
+            .saturating_add(scope.tenant.len())
+            .saturating_add(scope.workspace.len());
         Ok(Self {
             initial: scope.clone(),
             history: vec![],
@@ -355,6 +452,9 @@ impl Workspace {
                 active: BTreeSet::new(),
             },
             retries: BTreeMap::new(),
+            retry_order: VecDeque::new(),
+            retired_tokens: BTreeSet::new(),
+            estimated_bytes,
         })
     }
     /// Restore via checked events, never by trusting deserialized derived maps.
@@ -363,9 +463,20 @@ impl Workspace {
         history: Vec<Revision>,
         max_records: usize,
     ) -> Result<Self, Error> {
+        Self::restore_with_policy(scope, history, &RetentionPolicy::uniform(max_records))
+    }
+    pub fn restore_with_policy(
+        scope: ScopeKey,
+        history: Vec<Revision>,
+        policy: &RetentionPolicy,
+    ) -> Result<Self, Error> {
+        policy.validate()?;
+        if history.len() > policy.max_revisions {
+            return Err(Error::Limit("workspace history"));
+        }
         let mut w = Self::new(scope)?;
         for r in history {
-            w.apply(r, max_records)?;
+            w.apply_with_policy(r, policy)?;
         }
         Ok(w)
     }
@@ -380,6 +491,14 @@ impl Workspace {
         self.current.clone()
     }
     pub fn apply(&mut self, r: Revision, max_records: usize) -> Result<Commit, Error> {
+        self.apply_with_policy(r, &RetentionPolicy::uniform(max_records))
+    }
+    pub fn apply_with_policy(
+        &mut self,
+        r: Revision,
+        policy: &RetentionPolicy,
+    ) -> Result<Commit, Error> {
+        policy.validate()?;
         if let Some((old, result)) = self.retries.get(&r.token) {
             return if old == &r {
                 Ok(result.clone())
@@ -389,21 +508,36 @@ impl Workspace {
                 ))
             };
         }
+        if self.retired_tokens.contains(&r.token) {
+            return Err(Error::Invalid(
+                "revision token reused after retry window eviction",
+            ));
+        }
         if r.token.is_empty() {
             return Err(Error::Invalid("empty revision token"));
         }
         if r.expected_revision != self.current.revision {
             return Err(Error::Invalid("stale workspace revision"));
         }
-        if self.history.len() >= max_records
+        if self.history.len() >= policy.max_revisions
             || self
                 .current
                 .records
                 .len()
                 .checked_add(r.insert.len())
-                .is_none_or(|n| n > max_records)
+                .is_none_or(|n| n > policy.max_historical_ids)
         {
             return Err(Error::Limit("workspace history"));
+        }
+        let revision_bytes = serde_json::to_vec(&r)
+            .map(|bytes| bytes.len())
+            .map_err(|_| Error::Limit("workspace bytes"))?;
+        let next_bytes = self
+            .estimated_bytes
+            .checked_add(revision_bytes)
+            .ok_or(Error::Limit("workspace bytes"))?;
+        if next_bytes > policy.max_bytes {
+            return Err(Error::Limit("workspace bytes"));
         }
         let mut next = self.current.clone();
         let mut withdrawn = BTreeSet::new();
@@ -411,6 +545,14 @@ impl Workspace {
             if !withdrawn.insert(id) || !next.active.remove(id) {
                 return Err(Error::Invalid("unknown, inactive or duplicate withdrawal"));
             }
+        }
+        if next
+            .active
+            .len()
+            .checked_add(r.insert.len())
+            .is_none_or(|n| n > policy.max_active_records)
+        {
+            return Err(Error::Limit("workspace active records"));
         }
         for x in &r.insert {
             if x.id().is_empty() || next.records.contains_key(x.id()) {
@@ -464,8 +606,17 @@ impl Workspace {
             snapshot_identity: next.identity(),
         };
         self.current = next;
+        self.estimated_bytes = next_bytes;
         self.history.push(r.clone());
-        self.retries.insert(r.token.clone(), (r, result.clone()));
+        while self.retry_order.len() >= policy.max_retained_retries {
+            if let Some(evicted) = self.retry_order.pop_front() {
+                self.retries.remove(&evicted);
+                self.retired_tokens.insert(evicted);
+            }
+        }
+        let token = r.token.clone();
+        self.retry_order.push_back(token.clone());
+        self.retries.insert(token, (r, result.clone()));
         Ok(result)
     }
 }
