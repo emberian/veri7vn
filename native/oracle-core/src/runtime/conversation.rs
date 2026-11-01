@@ -61,7 +61,7 @@ pub struct ConversationCandidate {
 }
 pub struct ConversationReaderProposal {
     pub language: crate::reader::ReaderResult,
-    selection: Option<SessionSelection>,
+    pub(super) selection: Option<SessionSelection>,
     _memory: Option<crate::budget::MemoryReservation>,
 }
 impl ConversationCandidate {
@@ -415,7 +415,10 @@ impl Runtime {
             _memory: memory,
         })
     }
-    fn check_conversation_candidate(&self, candidate: &ConversationCandidate) -> Result<()> {
+    pub(super) fn check_conversation_candidate(
+        &self,
+        candidate: &ConversationCandidate,
+    ) -> Result<()> {
         if candidate.binding.image != self.identity()
             || candidate.envelope.binding != candidate.binding
             || candidate.envelope.revision != candidate.revision

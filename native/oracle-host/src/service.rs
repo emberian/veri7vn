@@ -56,6 +56,7 @@ pub struct Service {
     boot: String,
     providers: Vec<Value>,
     conversation_profile: bool,
+    native_conversation_profile: bool,
     conversation_wikidata: bool,
 }
 
@@ -116,6 +117,11 @@ impl Service {
         if config.limits.reply_bytes < 1024 {
             return Err(config::err("config: reply_bytes must be at least 1024"));
         }
+        if config.conversation_profile.as_deref() == Some("native-v1") && config.engine.is_some() {
+            return Err(config::err(
+                "native-v1 excludes Engine configuration; use a separate readonly-v1 configuration",
+            ));
+        }
         let host_sha256 =
             crate::host_binary_sha256().map_err(|e| config::err(format!("host binary: {e}")))?;
         let boot = format!(
@@ -127,13 +133,16 @@ impl Service {
         );
         let conversation_profile = match config.conversation_profile.as_deref() {
             None => false,
-            Some("readonly-v1") if config.native.is_some() => true,
-            Some("readonly-v1") => {
+            Some("readonly-v1" | "native-v1") if config.native.is_some() => true,
+            Some("readonly-v1" | "native-v1") => {
                 return Err(config::err("conversation_profile requires native state"))
             }
             Some(_) => return Err(config::err("unsupported conversation_profile")),
         };
+        let native_conversation_profile =
+            config.conversation_profile.as_deref() == Some("native-v1");
         if conversation_profile
+            && !native_conversation_profile
             && config
                 .engine
                 .as_ref()
@@ -145,7 +154,7 @@ impl Service {
         }
         let conversation_wikidata = match config.conversation_entity_namespace.as_deref() {
             None => false,
-            Some("wikidata") if conversation_profile => true,
+            Some("wikidata") if conversation_profile && !native_conversation_profile => true,
             _ => {
                 return Err(config::err(
                     "conversation_entity_namespace requires readonly-v1 and must be wikidata",
@@ -170,7 +179,9 @@ impl Service {
                     &host_sha256,
                     config.pure.as_ref().is_some_and(|p| p.solver.is_some()),
                 )?;
-                let runtime = if conversation_profile {
+                let runtime = if native_conversation_profile {
+                    runtime.enable_native_conversation()?
+                } else if conversation_profile {
                     runtime.enable_conversation(conversation_wikidata)?
                 } else {
                     runtime
@@ -243,6 +254,7 @@ impl Service {
             boot,
             providers,
             conversation_profile,
+            native_conversation_profile,
             conversation_wikidata,
         }))
     }
@@ -279,7 +291,9 @@ impl Service {
         if let Some(kernels) = &self.kernels {
             routes.extend(kernels.organs.iter().map(|o| format!("organ:{}", o.id)));
         }
-        if self.engine.is_some() {
+        if self.native_conversation_profile {
+            routes.push("native:context".to_owned());
+        } else if self.engine.is_some() {
             routes.push("engine".to_owned());
         }
         routes
@@ -302,14 +316,14 @@ impl Service {
             "operation_discovery": {"protocol": "oracle-operations-v1", "list": "/operations",
                 "detail": "/operations/{operation_id}", "invoke": "/invoke", "state": "ready",
                 "counts": {"live_direct": self.registry.items.len(), "text_only": 0, "unavailable": 0}},
-            "query": {"routes": self.routes(), "groups": [["native:reader", "organ:*"], ["engine"]],
+            "query": {"routes": self.routes(), "groups": if self.native_conversation_profile {json!([["native:reader","organ:*"],["native:context"]])}else{json!([["native:reader", "organ:*"], ["engine"]])},
                 "rule": "first depth group whose routes take the question decides; agreement or refusal, never a pick",
                 "agreement": {"text": "trimmed lowercase equality", "number": "within 0.5 percent with an identical explicit unit"}},
             "scope": "operator-admitted native operations, resident organs and a contained Engine; host-assigned tenant admission",
             "durable_conversations": !stateful.is_empty(), "durable_replay": true,
-            "conversation_profile": if self.conversation_profile {json!({"id":"readonly-v1","state_authority":"core session and exact HTTP reply transaction","entity_namespace":if self.conversation_wikidata {"operator-declared Wikidata: KQA Q identifiers map to wd:Q identifiers"}else{"cross-provider entity projection unsupported; no namespace admitted"},"coverage":"adapter-declared read-only entity, quantity, pending conversion and dialogue owners only","native_invocation_owners":"native selection/scalar/evidence; no implicit Python context consumption","refusal_transition":"delivered query refusals advance session revision while retaining native selection","opaque_failure":"uncertain dispatch requires reset; exact retained requests replay"})}else{Value::Null},
-            "query_journal": {"durable_replay": true, "engine_context_persisted": self.conversation_profile,
-                "engine_conversation_recovery": if self.conversation_profile { "restore only admitted covered snapshots; uncovered legacy Engine conversations require reset" } else { "fresh conversation required after worker loss, eviction, uncertainty or host restart; exact retained requests replay" }},
+            "conversation_profile": if self.native_conversation_profile {json!({"id":"native-v1","state_authority":"core session and exact HTTP reply transaction","coverage":"finite native Empty/Entity/Quantity owner; admitted image selection and explicit supplied/provider quantities","engine":"no initialization, dispatch or fallback; Python state is not covered","entity_scope":"the admitted native image snapshot, without U8 or world-completeness claims","unsupported_transition":"unread requests and semantic refusals preserve; delivered answers without an admitted typed anchor clear native anchor and selection","initialization":"only a genuinely absent session; retained history requires this checked native owner"})} else if self.conversation_profile {json!({"id":"readonly-v1","state_authority":"core session and exact HTTP reply transaction","entity_namespace":if self.conversation_wikidata {"operator-declared Wikidata: KQA Q identifiers map to wd:Q identifiers"}else{"cross-provider entity projection unsupported; no namespace admitted"},"coverage":"adapter-declared read-only entity, quantity, pending conversion and dialogue owners only","native_invocation_owners":"native selection/scalar/evidence; no implicit Python context consumption","refusal_transition":"delivered query refusals advance session revision while retaining native selection","opaque_failure":"uncertain dispatch requires reset; exact retained requests replay"})}else{Value::Null},
+            "query_journal": {"durable_replay": true, "engine_context_persisted": self.conversation_profile && !self.native_conversation_profile,
+                "engine_conversation_recovery": if self.native_conversation_profile {"not used; native-v1 never dispatches the Engine"} else if self.conversation_profile { "restore only admitted covered snapshots; uncovered legacy Engine conversations require reset" } else { "fresh conversation required after worker loss, eviction, uncertainty or host restart; exact retained requests replay" }},
             "durable_operations": stateful,
             "request_id_semantics": if self.conversation_profile { "/query and stateful /invoke share endpoint-tagged request IDs and core revisions; exact completed HTTP bytes replay; legacy host replies retained, cross-journal collisions conflict; pure calls correlation only" } else { "/query: exact retry from the host journal; stateful native turns: exact core reply replay; pure calls: correlation only" },
             "tenant_header_authentication": false, "mini_qualified": false, "query_queue": 0,
@@ -851,7 +865,11 @@ impl Service {
                 .expect("validated request"),
             ConversationRequest {
                 endpoint: endpoint.into(),
-                operation: operation.into(),
+                operation: if self.native_conversation_profile {
+                    format!("native-v1.{operation}")
+                } else {
+                    operation.into()
+                },
                 expected_version: if endpoint == "/query" {
                     None
                 } else {
@@ -946,7 +964,10 @@ impl Service {
             ConversationBegin::Replay(reply) => return Ok(retained_core(reply)),
             ConversationBegin::Fresh(candidate) => candidate,
         };
-        if self.engine.is_some() {
+        if self.native_conversation_profile {
+            self.prepare_native_profile(tenant, conversation, &mut candidate, &budget)?;
+        }
+        if self.engine.is_some() && !self.native_conversation_profile {
             if let Some((_, generation)) = self.journal.conversation(tenant, conversation)? {
                 if candidate.envelope.oracle.is_none() || generation == "poisoned" {
                     return Err(reset_required());
@@ -969,6 +990,10 @@ impl Service {
         let started = Instant::now();
         let reply =
             native.propose_invocation(&mut candidate, id, &request["arguments"], &budget)?;
+        if self.native_conversation_profile {
+            native.runtime.conversation_native_reconcile_selection(&mut candidate,&budget)
+                .map_err(crate::native::conversation_failure)?;
+        }
         let body = CompletedInvocation {
             outcome: "completed",
             operation_id: id.into(),
@@ -994,7 +1019,7 @@ impl Service {
         })?;
         // Reject malformed native inputs and oversized final replies before
         // starting any adapter work. Capture changes only Python-owned fields.
-        if self.engine.is_some() && candidate.envelope.oracle.is_none() {
+        if !self.native_conversation_profile && self.engine.is_some() && candidate.envelope.oracle.is_none() {
             self.initialize_invoke_snapshot(tenant,request,&mut candidate,&context,&mut dispatched,&mut binding)?;
         }
         self.commit_covered(
@@ -1068,6 +1093,30 @@ pub enum Discovery {
 mod encoded_reply_tests;
 
 impl Service {
+    fn prepare_native_profile(
+        &self,
+        tenant: &str,
+        conversation: &str,
+        candidate: &mut ConversationCandidate,
+        budget: &core::Budget,
+    ) -> Result<(), Failure> {
+        // A previous opaque binding is never adopted, even if its core row was
+        // lost or absent. Native ownership does not imply Python coverage.
+        if self.journal.conversation(tenant, conversation)?.is_some() {
+            return Err(reset_required());
+        }
+        let runtime = &self.native.as_ref().expect("native profile").runtime;
+        if candidate.starts_new_session() {
+            runtime
+                .conversation_native_initialize(candidate, budget)
+                .map_err(crate::native::conversation_failure)?;
+        }
+        runtime
+            .conversation_native_validate(candidate, budget)
+            .map_err(|_| reset_required())?;
+        Ok(())
+    }
+
     fn covered_ledger_replay(
         &self,
         tenant: &str,
@@ -1185,6 +1234,9 @@ impl Service {
             ConversationBegin::Replay(reply) => return Ok(retained_core(reply)),
             ConversationBegin::Fresh(candidate) => candidate,
         };
+        if self.native_conversation_profile {
+            self.prepare_native_profile(tenant, conversation, &mut candidate, &budget)?;
+        }
         // An uncovered retained Engine binding has no recoverable snapshot.
         if let Some((_, generation)) = self.journal.conversation(tenant, conversation)? {
             if candidate.envelope.oracle.is_none() || generation == "poisoned" {
@@ -1378,6 +1430,10 @@ impl Service {
         let group: Vec<_> = first.iter().collect();
         let decision =
             front::decide(&group).map_err(|_| Failure::plain(502, "arbitration_error"))?;
+        if self.native_conversation_profile {
+            return self
+                .native_delivery(tenant, text, candidate, budget, first, proposal, decision);
+        }
         if !matches!(decision, Decision::NoReading) || self.engine.is_none() {
             let mut projection = json!({"question":text,"acknowledgement":false,"preserve":true});
             let mut projection_supported = false;
@@ -1571,3 +1627,268 @@ impl Service {
 #[cfg(test)]
 #[path = "conversation_host_tests.rs"]
 mod conversation_host_tests;
+
+impl Service {
+    fn native_delivery(
+        &self,
+        tenant: &str,
+        text: &str,
+        candidate: &mut ConversationCandidate,
+        budget: &core::Budget,
+        first: Vec<Candidate>,
+        mut proposal: Option<core::conversation::ConversationReaderProposal>,
+        decision: Decision,
+    ) -> Result<Value, Failure> {
+        use core::native_conversation::{NativeQuantity, ProviderIdentity, ProviderQuantityAnchor};
+        let native = self.native.as_ref().expect("native profile");
+        if matches!(decision, Decision::NoReading) {
+            return self.native_fallback(tenant, text, candidate, budget);
+        }
+        let group: Vec<_> = first.iter().collect();
+        let mut delivered = false;
+        if let Decision::Answered { selected, agreeing } = &decision {
+            if agreeing
+                .iter()
+                .any(|index| group[*index].route == "native:reader")
+            {
+                if let Some(reader) = proposal.take() {
+                    let entity = reader.agreed_entity_id().map(str::to_owned);
+                    let count = reader.agreed_count();
+                    let identity =
+                        ProviderIdentity::from_host_delivery("native_reader", &native.image_sha256)
+                            .map_err(crate::native::conversation_failure)?;
+                    if let Some(id) = entity {
+                        candidate
+                            .apply_reader(reader)
+                            .map_err(crate::native::conversation_failure)?;
+                        native
+                            .runtime
+                            .conversation_deliver_entity(candidate, &id, identity, budget)
+                            .map_err(crate::native::conversation_failure)?;
+                        delivered = true;
+                    } else if let Some(count) = count {
+                        let quantity = NativeQuantity {
+                            number: count.to_string(),
+                            unit: "1".into(),
+                            origin: core::session::NumericOrigin::ExactDecimal,
+                        };
+                        let anchor = ProviderQuantityAnchor::from_host_delivery(identity, quantity)
+                            .map_err(crate::native::conversation_failure)?;
+                        native
+                            .runtime
+                            .conversation_deliver_quantity(candidate, anchor, budget)
+                            .map_err(crate::native::conversation_failure)?;
+                        delivered = true;
+                    }
+                }
+            } else {
+                let selected = group[*selected];
+                // Structured numeric/unit fields from the admitted extracted
+                // protocol, never a number inferred from displayed answer text.
+                if let (Some(number), Some(unit), Some(id)) = (
+                    &selected.number,
+                    &selected.unit,
+                    selected.route.strip_prefix("organ:"),
+                ) {
+                    let admission = self
+                        .kernels
+                        .as_ref()
+                        .and_then(|kernels| {
+                            kernels
+                                .executor
+                                .admissions()
+                                .into_iter()
+                                .find(|row| row.id == id)
+                        })
+                        .ok_or_else(|| Failure::plain(503, "native_provider_identity_missing"))?;
+                    let identity = ProviderIdentity::from_host_delivery(
+                        &format!("organ.{id}"),
+                        &admission.executable_sha256,
+                    )
+                    .map_err(crate::native::conversation_failure)?;
+                    let quantity = NativeQuantity {
+                        number: number.clone(),
+                        unit: unit.clone(),
+                        origin: core::session::NumericOrigin::DisplayedDecimal,
+                    };
+                    let anchor = ProviderQuantityAnchor::from_host_delivery(identity, quantity)
+                        .map_err(crate::native::conversation_failure)?;
+                    native
+                        .runtime
+                        .conversation_deliver_quantity(candidate, anchor, budget)
+                        .map_err(crate::native::conversation_failure)?;
+                    delivered = true;
+                }
+            }
+            if !delivered {
+                // A new delivered answer replaces what “that” denotes. If its
+                // typed result has no admitted anchor representation, clear the
+                // old anchor and selection rather than reusing a stale answer.
+                native
+                    .runtime
+                    .conversation_native_command(
+                        candidate,
+                        core::native_conversation::NativeContextCommand::ResetTopic,
+                        budget,
+                    )
+                    .map_err(crate::native::conversation_failure)?;
+            }
+            native
+                .runtime
+                .conversation_native_reconcile_selection(candidate, budget)
+                .map_err(crate::native::conversation_failure)?;
+        }
+        let mut reply = front::reply(&decision, &group, &first, Some(0));
+        reply["native_context_transition"] = json!(if delivered {
+            "delivered_typed_anchor"
+        } else if matches!(decision, Decision::Answered { .. }) {
+            "cleared_unrepresentable_answer"
+        } else {
+            "preserved_refusal"
+        });
+        Ok(json!({"outcome":"completed","reply":reply}))
+    }
+
+    fn native_command_reply(
+        &self,
+        candidate: &mut ConversationCandidate,
+        command: core::native_conversation::NativeContextCommand,
+        budget: &core::Budget,
+    ) -> Result<Value, Failure> {
+        use core::native_conversation::{NativeAnchor, NativeContextStatus};
+        let reply = self
+            .native
+            .as_ref()
+            .expect("native profile")
+            .runtime
+            .conversation_native_command(candidate, command, budget)
+            .map_err(crate::native::conversation_failure)?;
+        let answered = matches!(reply.status, NativeContextStatus::Answered);
+        let response = if !answered {
+            "This request needs a compatible retained native quantity.".into()
+        } else {
+            match &reply.anchor {
+                NativeAnchor::Quantity { value } => format!(
+                    "{}{}{}",
+                    value.number,
+                    if value.unit.is_empty() { "" } else { " " },
+                    value.unit
+                ),
+                NativeAnchor::Entity { id } => format!("Retained native entity {id}."),
+                NativeAnchor::Empty => "No native entity or quantity is retained.".into(),
+            }
+        };
+        Ok(
+            json!({"outcome":"completed","reply":{"status":if answered{"answered"}else{"withheld"},"response":response,
+            "path":"native:context","provenance":{"scope":"finite native conversation owner","native_context":reply}}}),
+        )
+    }
+
+    fn native_fallback(
+        &self,
+        tenant: &str,
+        text: &str,
+        candidate: &mut ConversationCandidate,
+        budget: &core::Budget,
+    ) -> Result<Value, Failure> {
+        use core::native_conversation::NativeContextCommand as Command;
+        let normalized = text
+            .trim()
+            .trim_end_matches(['.', '?', '!'])
+            .to_ascii_lowercase();
+        let command = match normalized.as_str() {
+            "thanks" | "thank you" | "ok" | "okay" | "got it" => Some(Command::Acknowledge),
+            "new topic" | "reset topic" | "forget that" => Some(Command::ResetTopic),
+            "what was that" | "what is the current quantity" => Some(Command::Inspect),
+            _ => None,
+        };
+        if let Some(command) = command {
+            return self.native_command_reply(candidate, command, budget);
+        }
+        let number = r"([+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?)";
+        for (prefix, divide) in [
+            ("that times ", false),
+            ("multiply that by ", false),
+            ("that divided by ", true),
+            ("divide that by ", true),
+        ] {
+            if let Some(value) = normalized.strip_prefix(prefix) {
+                if regex::Regex::new(&format!("^{number}$"))
+                    .expect("constant native number grammar")
+                    .is_match(value)
+                {
+                    return self.native_command_reply(
+                        candidate,
+                        if divide {
+                            Command::Divide {
+                                divisor: value.into(),
+                            }
+                        } else {
+                            Command::Scale {
+                                factor: value.into(),
+                            }
+                        },
+                        budget,
+                    );
+                }
+            }
+        }
+        let cost = regex::Regex::new(&format!(
+            r"^(?i:what does that cost at) \$?{number} (?i:per) (J|kWh)$"
+        ))
+        .expect("constant native cost grammar");
+        if let Some(capture) = cost.captures(text.trim().trim_end_matches(['.', '?', '!'])) {
+            let unit = &capture[2];
+            return self.native_command_reply(
+                candidate,
+                Command::Cost {
+                    rate: capture[1].into(),
+                    per_unit: unit.into(),
+                },
+                budget,
+            );
+        }
+        let entity_query = if normalized == "what is the birthplace of that entity" {
+            Some(core::NativeEntityQuery::Relation {
+                predicate: "place of birth".into(),
+            })
+        } else {
+            let trimmed = text.trim().trim_end_matches(['.', '?', '!']);
+            if trimmed.to_ascii_lowercase().starts_with("find entity ") {
+                let name = trimmed["find entity ".len()..].trim();
+                (!name.is_empty() && name.len() <= 512)
+                    .then(|| core::NativeEntityQuery::Find { name: name.into() })
+            } else {
+                None
+            }
+        };
+        if let Some(query) = entity_query {
+            let native = self.native.as_ref().expect("native profile");
+            let reply = native
+                .runtime
+                .conversation_native_entity_query(candidate, query, budget)
+                .map_err(crate::native::conversation_failure)?;
+            let answered = matches!(
+                reply.status,
+                core::native_conversation::NativeContextStatus::Answered
+            );
+            let response = reply
+                .entity
+                .as_ref()
+                .map(|entity| entity.label.clone())
+                .unwrap_or_else(|| {
+                    "The admitted native snapshot has no unique entity answer for this request."
+                        .into()
+                });
+            return Ok(
+                json!({"outcome":"completed","reply":{"status":if answered{"answered"}else{"withheld"},"response":response,
+                "path":"native:context>source_entity","provenance":{"scope":"admitted native image snapshot","image_sha256":native.image_sha256,
+                    "source_entity":reply.entity,"native_context":reply.context,"evidence":reply.evidence}}}),
+            );
+        }
+        let _ = tenant;
+        Ok(
+            json!({"outcome":"completed","reply":{"status":"withheld","response":"No admitted native route reads this request; the prior native context is preserved.","path":"native:context>unsupported","provenance":{"scope":"native image and finite native commands"}}}),
+        )
+    }
+}

@@ -21,6 +21,7 @@ pub const OPERATIONS: &[(&str, &str, bool)] = &[
     ("graph.batch", "batch", false),
     ("graph.coverage", "coverage", false),
     ("context.execute", "command", true),
+    ("context.native", "command", true),
     #[cfg(feature = "logic")]
     ("logic.workspace", "command", true),
     #[cfg(feature = "logic")]
@@ -147,6 +148,10 @@ impl NativeRuntime {
                 (runtime, operations, false)
             }
         };
+        let operations = operations
+            .into_iter()
+            .filter(|id| *id != "context.native")
+            .collect::<Vec<_>>();
         if operations.is_empty() {
             return Err(err("native: runtime has no implemented tenant operations"));
         }
@@ -172,7 +177,8 @@ impl NativeRuntime {
     pub(crate) fn enable_conversation(mut self, wikidata: bool) -> Result<Self, ConfigError> {
         if wikidata {
             if let Some(release) = self.runtime.release() {
-                release.require_schema("oracle_wikidata_namespace", 1)
+                release
+                    .require_schema("oracle_wikidata_namespace", 1)
                     .map_err(|e| err(format!("conversation namespace: {e}")))?;
             }
         }
@@ -198,6 +204,29 @@ impl NativeRuntime {
         Ok(self)
     }
 
+    pub(crate) fn enable_native_conversation(mut self) -> Result<Self, ConfigError> {
+        if let Some(release) = self.runtime.release() {
+            release
+                .require_schema("native_conversation_profile", 1)
+                .map_err(|e| err(format!("native profile: {e}")))?;
+            release
+                .require_schema("native_conversation_context", 1)
+                .map_err(|e| err(format!("native owner: {e}")))?;
+            release
+                .require_implemented("context.native")
+                .map_err(|e| err(format!("native operation: {e}")))?;
+        }
+        let runtime = Arc::try_unwrap(self.runtime)
+            .map_err(|_| err("native conversation runtime already shared"))?;
+        self.runtime = Arc::new(
+            runtime
+                .register_native_owner::<core::native_conversation::NativeConversationOwner>()
+                .map_err(|e| err(format!("native context: {e}")))?,
+        );
+        self.operations.push("context.native");
+        Ok(self)
+    }
+
     /// Immutable operations admitted at startup; callers cannot widen a release.
     pub fn operations(&self) -> &[&'static str] {
         &self.operations
@@ -219,6 +248,7 @@ impl NativeRuntime {
                 let mut example = match field {
                     "batch" => json!({"batch":{"items":[{"dialect":"graph","input":{"nodes":[{"op":"find","name":"Alice"}],"output":0,"projection":{"kind":"count"}},"demand":"full"}]}}),
                     "coverage" => json!({"coverage":{"subjects":["Q1"],"predicate":"friend","direction":"forward","traversal_limit":100}}),
+                    "command" if id == "context.native" => json!({"command":{"op":"observe","quantity":{"number":"3600000","unit":"J","origin":"exact_decimal"}}}),
                     "command" if id == "logic.workspace.checkpoint" => json!({"command":{"command":"checkpoint","expected_revision":1}}),
                     "command" if id == "logic.workspace.solve" => json!({"command":{"command":"solve","expected_revision":0,"queries":["accepted"]}}),
                     "command" if id == "logic.workspace" => json!({"command":{"command":"revise","revision":{"expected_revision":0,"token":"revision1","insert":[],"withdraw":[]}}}),
@@ -242,6 +272,7 @@ impl NativeRuntime {
                     "description": match id {
                         "graph.batch" => "Evaluate typed graph or KQA items over one image and empty Previous context; reuse bounded stages without claiming relation completeness.",
                         "graph.coverage" => "Traverse a declared snapshot relation domain to EOF; return count, absence and uniqueness only when traversal is complete.",
+                        "context.native" => "Explicit native conversation commands over a supplied entity/quantity owner; preserve units and replay the exact HTTP reply.",
                         "context.execute" => "Atomically observe, scale, clear or inspect the session delivered dimensionless scalar; retain exact replies for retry.",
                         "logic.workspace" => "Atomically revise identified supplied evidence in this tenant conversation and retain its exact acknowledgement for retry.",
                         "logic.workspace.checkpoint" => "Read a version-checked receipt of this conversation evidence for caller recovery; no ledger import or history compaction.",
@@ -249,8 +280,8 @@ impl NativeRuntime {
                         _ if stateful => "Commit a bounded native data/language turn and retain its exact reply for retry.",
                         _ => "Read the operator fixed native data image without changing session state." },
                     "availability": "live_direct", "input_schema": input,
-                    "output_schema": {"type": "object", "description":
-                        "Authoritative exact core_reply_json and bounded core_metadata, with committed version even when withheld. JSON numeric tokens in core_reply_json are exact; no decoded numerical body is returned."},
+                    "output_schema": {"type": "object", "description": if id=="context.native" {"Typed native context result, committed with the exact final HTTP response; supplied and provider origins remain distinct."}else{
+                        "Authoritative exact core_reply_json and bounded core_metadata, with committed version even when withheld. JSON numeric tokens in core_reply_json are exact; no decoded numerical body is returned."}},
                     "examples": [{"arguments": example, "source": "Manufactured usage example; no panel score."}],
                     "sources": [], "implementation": {"backend": "oracle_native_runtime",
                         "runtime_identity": self.identity(), "resource_identity": self.resource_identity,
@@ -533,15 +564,18 @@ pub fn manifest_template_with_conversation(
     conversation_profile: Option<&str>,
     entity_namespace: Option<&str>,
 ) -> Result<Value, String> {
-    if !matches!(conversation_profile, None | Some("readonly-v1"))
-        || !matches!(entity_namespace, None | Some("wikidata"))
-        || (entity_namespace.is_some() && conversation_profile.is_none())
+    if !matches!(
+        conversation_profile,
+        None | Some("readonly-v1" | "native-v1")
+    ) || !matches!(entity_namespace, None | Some("wikidata"))
+        || (entity_namespace.is_some() && conversation_profile != Some("readonly-v1"))
     {
         return Err("unsupported conversation profile or entity namespace".into());
     }
     let profile = core::release::runtime_profile_sha256(limits).map_err(|e| e.to_string())?;
     let operations: Vec<Value> = OPERATIONS
         .iter()
+        .filter(|(id,_,_)|*id!="context.native" || conversation_profile==Some("native-v1"))
         .map(|(id, field, stateful)| {
             json!({"id": id, "version": 1, "summary": format!("{id} over the admitted image"),
                 "availability": "implemented",
@@ -556,10 +590,18 @@ pub fn manifest_template_with_conversation(
         json!({"id":"graph","version":1}),
         json!({"id":"kqa_program","version":1}),
     ];
-    if conversation_profile.is_some() {
+    if conversation_profile == Some("native-v1") {
+        schemas.push(json!({"id":"native_conversation_profile","version":1}));
+        schemas.push(json!({"id":"native_conversation_context","version":1}));
+    }
+    if conversation_profile == Some("readonly-v1") {
         for owner in [
-            "runtime_dialogue", "runtime_an_transition", "runtime_an_paths",
-            "runtime_v4_disc", "oracle_readonly_adapter", "runtime_an_conversion",
+            "runtime_dialogue",
+            "runtime_an_transition",
+            "runtime_an_paths",
+            "runtime_v4_disc",
+            "oracle_readonly_adapter",
+            "runtime_an_conversion",
         ] {
             schemas.push(json!({"id":owner,"version":1}));
         }
@@ -988,6 +1030,12 @@ impl NativeRuntime {
             operation(id).ok_or_else(|| Failure::plain(404, "unknown_operation"))?;
         let input = arguments[field].as_str().unwrap_or("");
         let raw = match id {
+            "context.native" => {
+                let command=serde_json::from_value(arguments[field].clone()).map_err(core::Error::from).map_err(conversation_failure)?;
+                let reply=self.runtime.conversation_native_command(candidate,command,budget).map_err(conversation_failure)?;
+                return Ok(json!({"status":if matches!(reply.status,core::native_conversation::NativeContextStatus::Answered){"answered"}else{"withheld"},"operation_id":id,"authority":"native_conversation","stateful":true,
+                    "runtime_identity":self.identity(),"resource_identity":self.resource_identity,"version":expected+1,"result":reply}));
+            }
             "context.execute" => serde_json::from_value(arguments[field].clone())
                 .map_err(core::Error::from)
                 .and_then(|command| {

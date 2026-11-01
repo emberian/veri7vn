@@ -51,7 +51,7 @@ pub struct Referent {
     pub surface: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum NumericOrigin {
     ExactDecimal,
@@ -474,6 +474,20 @@ impl SessionEnvelope {
             let mut native_limits = limits.clone();
             native_limits.extension_versions = limits.native_extension_versions.clone();
             extension(value, &native_limits)?;
+        }
+        if let Some(extension) = self
+            .native_extensions
+            .get(crate::native_conversation::OWNER)
+        {
+            if self.oracle.is_some() {
+                return Err(Error::Conflict(
+                    "native context cannot import unknown Oracle owners",
+                ));
+            }
+            let context: crate::native_conversation::NativeContextState =
+                serde_json::from_value(extension.payload.clone())?;
+            context.validate(self.revision)?;
+            context.validate_selection(&self.selection)?;
         }
         crate::query::encode(self, limits.max_bytes)?;
         Ok(())

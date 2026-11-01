@@ -40,6 +40,9 @@ def release_metadata(path, config):
                 raise ValueError('unsupported descriptor snapshot')
             row['catalogs_declared'] = {p: snapshot['profiles'][p]['catalog_sha256'] for p in profiles}
     row['profiles_requested'] = ['runtime'] * bool(config.get('native')) + list(profiles)
+    row['conversation'] = {'profile': config.get('conversation_profile'),
+                           'entity_namespace': config.get('conversation_entity_namespace'),
+                           'release': (config.get('native') or {}).get('release')}
     row['optional'] = {'solver': (config.get('pure') or {}).get('solver'),
                        'engine': config.get('engine'), 'organs': (config.get('kernels') or {}).get('organs', [])}
     row['qualified'] = False

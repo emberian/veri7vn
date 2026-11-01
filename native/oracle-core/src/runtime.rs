@@ -1,11 +1,13 @@
 pub mod conversation;
 mod host_effects;
+mod native_conversation;
 mod native_owners;
 use crate::query::{encode, evaluate, Selection};
 use crate::release::{AdmittedRelease, SchemaVersion};
 use crate::session::{SessionBinding, SessionEnvelope, SessionLimits, SessionSelection};
 use crate::{digest, Budget, Cancellation, Error, Image, Plan, Program, QueryResult, Result};
 pub use host_effects::HostEffects;
+pub use native_conversation::{NativeEntity, NativeEntityQuery, NativeEntityReply};
 use rusqlite::{params, Connection, OptionalExtension, TransactionBehavior};
 use serde::{Deserialize, Serialize};
 use std::ops::{Deref, DerefMut};

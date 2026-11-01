@@ -9,7 +9,9 @@ No fixture input, reference answer, tenant/restart or specialist panel is invent
 """
 from __future__ import annotations
 import argparse
+import base64
 import json
+import os
 from pathlib import Path
 from urllib.request import Request, urlopen
 from urllib.parse import urlsplit
@@ -96,8 +98,8 @@ def qualify(bundle, url, cases, tenant):
             body = {'operation_id': ident, 'arguments': case['arguments']}
             endpoint = '/invoke'
         else:
-            if provider != 'engine' and not provider.startswith('organ:'):
-                raise ValueError('query cases are for Engine/extracted routes')
+            if provider != 'engine' and not provider.startswith('organ:') and not (provider == 'runtime' and config.get('conversation_profile')):
+                raise ValueError('query cases require an enabled query route')
             body = {'text': case['text']}
             endpoint = '/query'
         body.update(request_id='release-case-' + str(index), conversation_id='release-case-' + str(index))
@@ -124,15 +126,133 @@ def qualify(bundle, url, cases, tenant):
             'scope': 'actual discovery and supplied independent assertions; tenant/restart/retry and panel scores require separate central receipts'}
 
 
+
+def native_journey(bundle, url, cases, tenant, phase, checkpoint):
+    """Two-phase actual native-only consumer journey; central owns host restart.
+
+    cases={before:[{endpoint,body,expected}],after:[...]} supplies real resource
+    operations, natural-language turns and independently justified assertions.
+    The last pre-restart request is retried byte-for-byte both before and after
+    restart; subsequent after steps must continue that same conversation.
+    """
+    if phase not in ('before', 'after'):
+        raise ValueError('invalid journey phase')
+    checkpoint = clean_path(checkpoint)
+    if phase == 'before' and checkpoint.exists():
+        raise ValueError('pre-restart checkpoint must be absent')
+    parsed = urlsplit(url)
+    if parsed.scheme != 'http' or parsed.hostname != '127.0.0.1' or parsed.path not in ('', '/') or parsed.query or parsed.fragment or parsed.username:
+        raise ValueError('plain loopback host URL required')
+    bundle = clean_path(bundle)
+    manifest_data = read_regular(bundle / 'MANIFEST.json')
+    manifest = json.loads(manifest_data)
+    for name, row in manifest['files'].items():
+        relative = Path(name)
+        if relative.is_absolute() or '..' in relative.parts or digest(read_regular(bundle / relative)) != row['sha256']:
+            raise ValueError('payload mismatch: ' + name)
+    config = json.loads(read_regular(bundle / 'host.template.json'))
+    if config.get('conversation_profile') != 'native-v1' or config.get('engine'):
+        raise ValueError('journey requires native-v1 with no Engine configured')
+    def exchange(endpoint, body=None, raw=None):
+        data = raw if raw is not None else (encoded(body) if body is not None else None)
+        request = Request(url.rstrip('/') + endpoint, data=data,
+                          headers={'X-Mini-Oracle-Tenant': tenant, 'Content-Type': 'application/json'})
+        with urlopen(request, timeout=120) as response:
+            reply = response.read(4194305)
+            if len(reply) > 4194304:
+                raise ValueError('journey response exceeds 4 MiB')
+            return reply
+    capabilities = json.loads(exchange('/capabilities'))
+    if (capabilities.get('conversation_profile') or {}).get('id') != 'native-v1':
+        raise ValueError('live service has not admitted native-v1 conversation profile')
+    if capabilities['host']['binary_sha256'] != manifest['host_sha256']:
+        raise ValueError('live host differs from packaged binary')
+    health = json.loads(exchange('/health'))
+    if 'engine' not in health or health['engine'] is not None:
+        raise ValueError('live native journey has an Engine or omits its health state')
+    native = config['native']
+    admitted = [p for p in capabilities.get('providers', []) if p.get('provider_id') == 'native']
+    if len(admitted) != 1 or any(p.get('provider_id') == 'engine' for p in capabilities.get('providers', [])):
+        raise ValueError('live native provider admission is missing, duplicate or includes Engine')
+    admission = admitted[0]['admission']
+    if admission.get('image_sha256') != native['image_sha256']:
+        raise ValueError('live image differs from packaged native image')
+    if admission.get('release_admitted') is not True or admission.get('release_identity') != native['release']['identity']:
+        raise ValueError('live release differs from packaged admitted native release')
+    before, after = cases['before'], cases['after']
+    if not before or not after:
+        raise ValueError('journey needs pre-restart and post-restart consumer steps')
+    conversation = before[0]['body']['conversation_id']
+    ids = set()
+    for step in before + after:
+        body, expected = step['body'], step['expected']
+        if step['endpoint'] not in ('/invoke', '/query') or body['conversation_id'] != conversation:
+            raise ValueError('journey must continue one conversation through query/invoke')
+        if body['request_id'] in ids or not expected:
+            raise ValueError('journey requires distinct step request ids and independent assertions')
+        ids.add(body['request_id'])
+        if not any(p.startswith('/reply/') and p != '/reply/status' for p in expected):
+            raise ValueError('journey requires independent result assertions beyond status')
+        if step['endpoint'] == '/invoke':
+            descriptor = json.loads(exchange('/operations/' + body['operation_id']))
+            if descriptor.get('availability') != 'live_direct':
+                raise ValueError('journey operation is not actually registered')
+    replay_step = before[-1]
+    if replay_step['endpoint'] == '/invoke' and replay_step['body']['operation_id'] not in capabilities.get('durable_operations', []):
+        raise ValueError('restart retry must target a discovered durable operation or query')
+    identity = {'manifest_sha256': digest(manifest_data), 'cases_sha256': digest(encoded(cases)), 'tenant': tenant}
+    checkpoint = clean_path(checkpoint)
+    records = []
+    if phase == 'after':
+        saved = json.loads(read_regular(checkpoint))
+        if saved['identity'] != identity:
+            raise ValueError('restart journey identity changed')
+        retained = base64.b64decode(saved['response_base64'], validate=True)
+        retried = exchange(saved['endpoint'], raw=base64.b64decode(saved['request_base64'], validate=True))
+        if retried != retained:
+            raise ValueError('post-restart exact retry differs from retained acknowledgement')
+        records.append({'restart_exact_replay_sha256': digest(retried)})
+    for step in before if phase == 'before' else after:
+        raw_request = encoded(step['body'])
+        raw_reply = exchange(step['endpoint'], raw=raw_request)
+        reply = json.loads(raw_reply)
+        if reply.get('outcome') != 'completed':
+            raise ValueError('journey step did not complete')
+        for path, expected in step['expected'].items():
+            if pointer(reply, path) != expected:
+                raise ValueError('journey independent assertion failed: ' + path)
+        records.append({'step': step, 'response': reply, 'response_sha256': digest(raw_reply)})
+    if phase == 'before':
+        if exchange(step['endpoint'], raw=raw_request) != raw_reply:
+            raise ValueError('same-launch exact retry differs from acknowledgement')
+        saved = {'identity': identity, 'endpoint': step['endpoint'],
+                 'request_base64': base64.b64encode(raw_request).decode(),
+                 'response_base64': base64.b64encode(raw_reply).decode()}
+        descriptor = os.open(checkpoint, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        with os.fdopen(descriptor, 'wb') as stream:
+            stream.write(encoded(saved))
+    return {'schema': 'oracle-native-consumer-journey-v1', 'phase': phase, 'status': 'passed',
+            'identity': identity, 'capabilities': capabilities, 'health': health, 'steps': records,
+            'scope': 'supplied native-only consumer assertions and exact acknowledgement retry; central controls actual restart and records its process evidence'}
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument('--bundle', required=True)
     ap.add_argument('--url', required=True)
-    ap.add_argument('--cases', required=True)
+    ap.add_argument('--cases', required=True, help='provider cases or two-phase native journey JSON')
+    ap.add_argument('--journey-phase', choices=['before', 'after'])
+    ap.add_argument('--checkpoint', help='new external checkpoint before restart, retained checkpoint after')
     ap.add_argument('--tenant', default='a' * 64)
     ap.add_argument('--out', required=True)
     a = ap.parse_args()
-    receipt = qualify(a.bundle, a.url, json.loads(read_regular(a.cases)), a.tenant)
+    cases = json.loads(read_regular(a.cases))
+    if a.journey_phase:
+        if not a.checkpoint:
+            ap.error('--journey-phase requires --checkpoint')
+        receipt = native_journey(a.bundle, a.url, cases, a.tenant, a.journey_phase, a.checkpoint)
+    else:
+        receipt = qualify(a.bundle, a.url, cases, a.tenant)
     with clean_path(a.out).open('xb') as stream:
         stream.write(encoded(receipt))
 

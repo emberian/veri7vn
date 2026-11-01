@@ -47,7 +47,7 @@ def main():
     ap.add_argument("--pure", default="")
     ap.add_argument("--solver")
     ap.add_argument("--no-reader", action="store_true")
-    ap.add_argument("--conversation-profile", choices=["readonly-v1"])
+    ap.add_argument("--conversation-profile", choices=["readonly-v1", "native-v1"])
     ap.add_argument("--conversation-entity-namespace", choices=["wikidata"])
     ap.add_argument("--organ", action="append", default=[])
     ap.add_argument("--engine-python")
@@ -60,6 +60,9 @@ def main():
     ap.add_argument("--engine-tip")
     ap.add_argument("--engine-turn-ms", type=int, default=300000)
     a = ap.parse_args()
+
+    if a.conversation_profile == "native-v1" and a.engine_python:
+        ap.error("--conversation-profile native-v1 does not support --engine-python")
 
     config = {"schema": "oracle-host-v1", "port": a.port, "journal": str(Path(a.journal).resolve()),
               "limits": {"capacity": a.capacity, "invoke_ms": 30000}}
@@ -121,7 +124,7 @@ def main():
                   "answerer": {"path": str(Path(a.engine_answerer).resolve()), "sha256": sha256(a.engine_answerer)},
                   "checkout": str(Path(a.engine_checkout).resolve()), "revision": revision,
                   "state": str(Path(a.engine_state).resolve()), "workers": 1, "turn_ms": a.engine_turn_ms}
-        if a.conversation_profile:
+        if a.conversation_profile == "readonly-v1":
             adapter = Path(a.engine_answerer).resolve().with_name("conversation_adapter.py")
             engine["conversation_adapter"] = {"path": str(adapter), "sha256": sha256(adapter)}
         if materialization:

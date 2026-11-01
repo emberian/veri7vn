@@ -45,3 +45,35 @@ class MakeConfig(unittest.TestCase):
                      '--journal', '/unused', '--conversation-entity-namespace', 'wikidata']):
             with self.assertRaises(SystemExit):
                 M.main()
+
+    def test_native_profile_requires_no_engine_or_adapter(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            output = Path(temporary) / 'native.json'
+            argv = ['make_config', '--host', '/fake/host', '--out', str(output),
+                    '--journal', str(Path(temporary) / 'journal'), '--image', str(Path(temporary) / 'image'),
+                    '--image-sha256', 'a' * 64, '--state', str(Path(temporary) / 'state'),
+                    '--conversation-profile', 'native-v1']
+            with patch.object(sys, 'argv', argv), patch.object(M.subprocess, 'run', return_value=SimpleNamespace(stdout='{}')) as call:
+                M.main()
+            config = json.loads(output.read_text())
+            self.assertEqual(config['conversation_profile'], 'native-v1')
+            self.assertNotIn('engine', config)
+            self.assertNotIn('conversation_entity_namespace', config)
+            args = call.call_args.args[0]
+            self.assertEqual(args[args.index('--conversation-profile') + 1], 'native-v1')
+
+    def test_native_profile_forbids_wikidata_namespace(self):
+        with patch.object(sys, 'argv', ['make_config', '--host', '/fake', '--out', '/unused',
+                     '--journal', '/unused', '--image', '/image', '--conversation-profile', 'native-v1',
+                     '--conversation-entity-namespace', 'wikidata']):
+            with self.assertRaises(SystemExit):
+                M.main()
+
+    def test_native_profile_rejects_engine_before_manifest_or_hashing(self):
+        with patch.object(sys, 'argv', ['make_config', '--host', '/fake', '--out', '/unused',
+                     '--journal', '/unused', '--image', '/image', '--conversation-profile', 'native-v1',
+                     '--engine-python', '/nonexistent']), patch.object(M.subprocess, 'run') as run, patch.object(M, 'sha256') as hashed:
+            with self.assertRaises(SystemExit):
+                M.main()
+            run.assert_not_called()
+            hashed.assert_not_called()

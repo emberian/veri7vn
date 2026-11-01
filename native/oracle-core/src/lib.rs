@@ -14,6 +14,7 @@ pub mod grammar;
 mod image;
 pub mod kernel;
 pub mod lexicon;
+pub mod native_conversation;
 pub(crate) mod packed_program;
 pub mod program;
 mod query;
@@ -40,7 +41,10 @@ pub use query::{
     ValuePredicate,
 };
 pub use runtime::conversation;
-pub use runtime::{Execution, HostEffects, LanguageExecution, RequestDialect, Runtime};
+pub use runtime::{
+    Execution, HostEffects, LanguageExecution, NativeEntity, NativeEntityQuery, NativeEntityReply,
+    RequestDialect, Runtime,
+};
 
 pub type Result<T> = std::result::Result<T, Error>;
 

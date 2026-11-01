@@ -15,7 +15,7 @@ const MAX_CONFIG_BYTES: u64 = 8 * 1024 * 1024;
 #[serde(deny_unknown_fields)]
 pub struct Config {
     pub schema: String,
-    /// Opt-in core-authoritative read-only conversation migration.
+    /// Opt-in core-authoritative readonly-v1 or native-v1 conversation profile.
     #[serde(default)]
     pub conversation_profile: Option<String>,
     /// Explicit source ID contract for cross-provider entity transfer. Included
