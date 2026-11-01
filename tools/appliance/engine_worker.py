@@ -121,11 +121,33 @@ def readonly_sqlite(is_public):
     sqlite3.connect = sqlite3.dbapi2.connect = admitted_connect
 
 
+def check_prepared_runtime(eng, requested_tip=None):
+    """Fail closed for the isolated, explicitly selected prepared U8 profile.
+
+    Production host admission of artifact paths/digests is separate work; an
+    inherited environment is not an authenticated operator configuration.
+    """
+    if os.environ.get("ORACLE7_PREPARED_SERVING") != "1":
+        return
+    supported = "oracle_release_runtime_w574"
+    if requested_tip not in (None, supported) or getattr(eng, "tip", None) != supported:
+        raise ValueError("prepared serving supports only the patched U8 w574 tip")
+    if getattr(getattr(eng, "_rt", None), "_prepared_runtime_ready", False) is not True:
+        raise ValueError("prepared serving requires successful patched runtime preparation before ready")
+
+
 def runtime_readiness(eng):
     """A snapshot, never a claim that every asynchronously loaded organ exists."""
     rt = getattr(eng, "_rt", None)
     organs = getattr(rt, "_organs", None)
     organs = organs.copy() if isinstance(organs, dict) else None
+    if os.environ.get("ORACLE7_PREPARED_SERVING") == "1":
+        check_prepared_runtime(eng)
+        return {"scope": "prepared_u8_required_dependencies", "all_capabilities_ready": False,
+                "required_components": ["standing_family", "air", "physics", "facts"],
+                "background_loading_policy": "synchronous_before_constructor_return",
+                "reader_artifact_manifest_sha256": os.environ.get("ORACLE7_READER_ARTIFACT_SHA256"),
+                "limits": "dependency readiness only; no whole-Engine coverage or recovery claim"}
     return {"scope": "constructor_complete", "all_capabilities_ready": False,
             "background_organs": sorted(k for k in organs if k != "error") if isinstance(organs, dict) else None,
             "background_error": organs.get("error") if isinstance(organs, dict) else None,
@@ -252,7 +274,10 @@ def main():
     o7.setup = provisioned
     eng = None
     if not a.alone:
+        if os.environ.get("ORACLE7_PREPARED_SERVING") == "1" and a.tip not in (None, "oracle_release_runtime_w574"):
+            raise ValueError("prepared serving supports only the patched U8 w574 tip")
         eng = o7.Engine() if not a.tip else TipEngine(o7, a.tip)
+        check_prepared_runtime(eng, a.tip)
         moved = redirect_self_loop(state / "self_loop")
         print("[oracle7 answerer] self_loop writes redirected: %s" % ", ".join(moved), file=sys.stderr, flush=True)
     sp = None

@@ -1,0 +1,13 @@
+{
+  "scope": "Patch authored against immutable local U8 materialization; no application/execution claim.",
+  "base_source_revision": "c473d28914e480425adb29b4f7f42485b8cfb4e3",
+  "base_appliance_sha256": "97286fb824bb102a24ac9e7458fc8d8426212ad0bff2b585bd00d6e0462d00a5",
+  "source_files_sha256": {
+    "oracle7.py": "9d68865540b23122e0020c0b8ee52471a71a3dfa8e3572b23b961ea4b3bf920e",
+    "root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w504.py": "6f5db6f3e5617136b9bc4c7b47782d5c9ad51841b6623a3e33e3fd435145b372",
+    "root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w572.py": "1e7de209add64d90146a1631956ffacf8f106089da43ddaaa9359b1a87935ce9",
+    "workbench/swarm/reader_cache10.py": "ae6d79c44b8e9db087503773ce6b93c01b9d08fa77cda1a9f921961fead9b75c",
+    "workbench/swarm/clause101.py": "57cf1919a14e11f4678c15abdc165d96892ec26b398692a3bf1827198550dc83"
+  },
+  "patch_sha256": "c3f4de2ea8d1a6ff039786668cba8c730943a5649db784364b1745d03d0ef2d8"
+}
