@@ -284,8 +284,11 @@ impl Pure {
                             .map_err(|e| detail(&e))?,
                         ),
                         Q::ThermalTransient(input) => R::ThermalTransient(
-                            oracle_science::thermal_transient::thermal_transient_with_context(
-                                input, &limits, context,
+                            oracle_science::thermal_transient::thermal_transient_with_cache(
+                                input,
+                                &limits,
+                                context,
+                                &self.transient_cache,
                             )
                             .map_err(|e| detail(&e))?,
                         ),

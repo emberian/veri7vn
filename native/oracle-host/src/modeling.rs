@@ -357,6 +357,47 @@ fn validate(request: &Value) -> bool {
                     &[],
                 )
         }
+        Some("reasoning.optimize_linear") => {
+            fields(a, &["variables", "rows", "objective"], &[])
+                && a["variables"]
+                    .as_array()
+                    .is_some_and(|v| !v.is_empty() && v.len() <= 32 && v.iter().all(label))
+                && a["rows"]
+                    .as_array()
+                    .is_some_and(|r| !r.is_empty() && r.len() <= 256)
+                && a["objective"]
+                    .as_array()
+                    .is_some_and(|o| !o.is_empty() && o.len() <= 32 && o.iter().all(label))
+        }
+        Some("reasoning.exact_linear_feasibility") => {
+            fields(a, &["variables", "rows"], &["objective"])
+                && a["variables"]
+                    .as_array()
+                    .is_some_and(|v| !v.is_empty() && v.len() <= 32 && v.iter().all(label))
+                && a["rows"]
+                    .as_array()
+                    .is_some_and(|r| !r.is_empty() && r.len() <= 256)
+        }
+        Some("graph.shortest_path") => {
+            fields(a, &["vertices", "edges", "source", "target"], &[])
+                && a["vertices"]
+                    .as_u64()
+                    .is_some_and(|v| (1..=10_000).contains(&v))
+                && a["edges"].as_array().is_some_and(|e| e.len() <= 100_000)
+                && a["source"].as_u64().is_some()
+                && a["target"].as_u64().is_some()
+        }
+        Some("graph.minimum_spanning_forest") => {
+            fields(a, &["vertices", "edges"], &[])
+                && a["vertices"].as_u64().is_some_and(|v| v <= 10_000)
+                && a["edges"].as_array().is_some_and(|e| e.len() <= 100_000)
+        }
+        Some("chemistry.balance_reaction") => {
+            fields(a, &["species"], &[])
+                && a["species"]
+                    .as_array()
+                    .is_some_and(|s| (2..=32).contains(&s.len()))
+        }
         _ => false,
     }
 }
@@ -393,6 +434,11 @@ pub fn answer(
             "science"
         } else if operation.starts_with("bio.") {
             "bio"
+        } else if operation.starts_with("reasoning.")
+            || operation.starts_with("graph.")
+            || operation.starts_with("chemistry.")
+        {
+            "reasoning"
         } else {
             "statistics"
         };
@@ -415,13 +461,22 @@ pub fn answer(
         if !transition_supported {
             return Ok(refusal("conversation_transition_unsupported","This conversation cannot replace its prior answer context without Engine projection. Use native-v1, or an ordinary conversation with no prior Engine binding."));
         }
-        let checked = pure.invoke_checked(
+        let checked = match pure.invoke_checked(
             profile,
             operation,
             &request["arguments"],
             tenant,
             context,
-        )?;
+        ) {
+            Ok(checked) => checked,
+            Err(failure) if failure.status == 400 => {
+                return Ok(refusal(
+                    "invalid_input",
+                    "Supplied arguments do not meet the declared modeling input contract.",
+                ));
+            }
+            Err(failure) => return Err(failure),
+        };
         // Delivery projection only: never decode this result back into a provider.
         let mut reply = serde_json::to_value(&checked)
             .map_err(|_| Failure::plain(502, "modeling_reply_invalid"))?;
@@ -511,6 +566,21 @@ pub fn answer(
                 }
                 "bio.align_pairwise" => {
                     "Aligned the supplied sequences under the declared scoring model and verified optimal score replay."
+                }
+                "reasoning.optimize_linear" => {
+                    "Solved the supplied exact linear optimization problem and verified the certificate against the original rows."
+                }
+                "reasoning.exact_linear_feasibility" => {
+                    "Checked exact rational feasibility on the supplied linear rows and verified the certificate."
+                }
+                "graph.shortest_path" => {
+                    "Computed the exact directed shortest-path certificate on the supplied graph."
+                }
+                "graph.minimum_spanning_forest" => {
+                    "Computed the exact minimum spanning forest on the supplied undirected graph."
+                }
+                "chemistry.balance_reaction" => {
+                    "Checked exact element, isotope and charge conservation on the supplied reaction species."
                 }
                 _ => {
                     "Fitted the declared events/exposure model to the supplied rows; predictions, diagnostics and conditional evidence are included."
@@ -603,28 +673,102 @@ pub fn retained_thermal_quantity(
     })
 }
 
+pub fn retained_reasoning_quantity(
+    reply: &Value,
+) -> Option<oracle_runtime_core::native_conversation::NativeQuantity> {
+    if reply["status"] != "answered" {
+        return None;
+    }
+    let number = match reply["supplied"]["operation"].as_str()? {
+        "graph.shortest_path" => {
+            if reply["result"]["outcome"] != "finite" {
+                return None;
+            }
+            reply["result"]["distance"].as_str()?.to_owned()
+        }
+        "graph.minimum_spanning_forest" => {
+            reply["result"]["total_weight"].as_str()?.to_owned()
+        }
+        _ => return None,
+    };
+    Some(oracle_runtime_core::native_conversation::NativeQuantity {
+        number,
+        unit: "1".into(),
+        origin: oracle_runtime_core::session::NumericOrigin::ExactDecimal,
+        role: oracle_runtime_core::native_conversation::QuantityRole::Scalar,
+    })
+}
+
 pub fn retained_model(
     reply: &Value,
 ) -> Option<oracle_runtime_core::native_conversation::RetainedFittedModel> {
-    if reply["status"] != "answered" || reply["supplied"]["operation"] != "statistics.calibration" {
+    if reply["status"] != "answered" {
         return None;
     }
-    let coeffs = reply["result"]["fit"]["coefficient_candidate"].as_array()?;
-    if coeffs.len() != 2 {
-        return None;
+    match reply["supplied"]["operation"].as_str()? {
+        "statistics.calibration" => {
+            let coeffs = reply["result"]["fit"]["coefficient_candidate"].as_array()?;
+            if coeffs.len() != 2 {
+                return None;
+            }
+            let intercept = coeffs[0].as_f64().filter(|x| x.is_finite())?;
+            let slope = coeffs[1].as_f64().filter(|x| x.is_finite())?;
+            let args = &reply["supplied"]["arguments"];
+            Some(
+                oracle_runtime_core::native_conversation::RetainedFittedModel::Calibration {
+                    request: "pending".into(),
+                    revision: 1,
+                    intercept: intercept.to_string(),
+                    slope: slope.to_string(),
+                    x_unit: args["x_unit"].as_str()?.to_owned(),
+                    response_unit: args["response_unit"].as_str()?.to_owned(),
+                    direction: args["direction"].as_str()?.to_owned(),
+                },
+            )
+        }
+        "science.solve_linear" | "science.least_squares" => {
+            let candidates: Vec<String> = reply["result"]["candidate"]
+                .as_array()?
+                .iter()
+                .map(|v| v.as_f64().filter(|x| x.is_finite()).map(|x| x.to_string()))
+                .collect::<Option<Vec<String>>>()?;
+            let variable_units: Vec<String> = reply["supplied"]["arguments"]["model"]
+                ["variable_units"]
+                .as_array()?
+                .iter()
+                .map(|v| v.as_str().map(str::to_owned))
+                .collect::<Option<Vec<String>>>()?;
+            if candidates.is_empty() || candidates.len() != variable_units.len() {
+                return None;
+            }
+            Some(
+                oracle_runtime_core::native_conversation::RetainedFittedModel::LinearSystem {
+                    request: "pending".into(),
+                    revision: 1,
+                    candidates,
+                    variable_units,
+                },
+            )
+        }
+        "reasoning.optimize_linear" | "reasoning.exact_linear_feasibility" => {
+            let point = reply["result"]["certificate"]["point"].as_array()?;
+            let candidates: Vec<String> = point
+                .iter()
+                .map(|v| v.as_str().map(str::to_owned))
+                .collect::<Option<Vec<String>>>()?;
+            if candidates.is_empty() {
+                return None;
+            }
+            let variable_units = vec!["1".to_owned(); candidates.len()];
+            Some(
+                oracle_runtime_core::native_conversation::RetainedFittedModel::LinearSystem {
+                    request: "pending".into(),
+                    revision: 1,
+                    candidates,
+                    variable_units,
+                },
+            )
+        }
+        _ => None,
     }
-    let intercept = coeffs[0].as_f64().filter(|x| x.is_finite())?;
-    let slope = coeffs[1].as_f64().filter(|x| x.is_finite())?;
-    let args = &reply["supplied"]["arguments"];
-    Some(
-        oracle_runtime_core::native_conversation::RetainedFittedModel::Calibration {
-            request: "pending".into(),
-            revision: 1,
-            intercept: intercept.to_string(),
-            slope: slope.to_string(),
-            x_unit: args["x_unit"].as_str()?.to_owned(),
-            response_unit: args["response_unit"].as_str()?.to_owned(),
-            direction: args["direction"].as_str()?.to_owned(),
-        },
-    )
 }

@@ -509,6 +509,18 @@ class Boundary(unittest.TestCase):
                                                     {"protocol": A.PROTOCOL, "state": self.initial()})
             self.assertEqual(ungrounded["status"], "withheld")
             self.assertEqual(ungrounded["path"], "adapter:withheld>facts_ungrounded_reading")
+            a.runtime._native_image = SimpleNamespace(
+                read_whole=lambda _tenant, q: A.json.dumps({
+                    "status": "answered",
+                    "response": "Saturn",
+                    "provenance": {"program": ["Find(Saturn)"]},
+                }) if "rings" in q.lower() else A.json.dumps({"status": "withheld"})
+            )
+            native_res = worker.conversation_answer(eng, None, None, "Which planet has prominent rings?", "s", False,
+                                                    {"protocol": A.PROTOCOL, "state": self.initial()})
+            self.assertEqual(native_res["status"], "answered")
+            self.assertEqual(native_res["path"], "native:image>read_whole")
+            self.assertEqual(native_res["response"], "Saturn")
 
 
 if __name__ == "__main__":

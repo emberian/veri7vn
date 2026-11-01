@@ -752,6 +752,21 @@ class Adapter:
                     reply = {"status": "answered", "response": resp, "path": "organ:reader90>" + read_mode,
                              "provenance": {"organ": "reader90", "program": prog, "adapter": ADAPTER}}
                     return self._resolved(reply, question, resolved)
+            native_image = getattr(self.runtime, "_native_image", None)
+            if native_image is not None and callable(getattr(native_image, "read_whole", None)):
+                cancel = getattr(self.runtime, "_native_cancellation", None)
+                raw_native = (native_image.read_whole(ADAPTER, resolved, cancel)
+                              if cancel is not None else native_image.read_whole(ADAPTER, resolved))
+                parsed = json.loads(raw_native) if type(raw_native) is str else raw_native
+                if type(parsed) is dict and parsed.get("status") == "answered" and type(parsed.get("response")) is str:
+                    self.precision = {}
+                    st.q = resolved; st.result = None; st.solved = {}
+                    self.runtime._conversation_contexts[sid] = deepcopy(st)
+                    self.runtime._last_value.pop(sid, None)
+                    self.runtime._pending_conversion.pop(sid, None)
+                    reply = {"status": "answered", "response": parsed["response"], "path": "native:image>read_whole",
+                             "provenance": {"organ": "native_image", "reader": parsed.get("provenance"), "adapter": ADAPTER}}
+                    return self._resolved(reply, question, resolved)
             raise SemanticWithheld("route_unsupported", "This conversation profile cannot answer that request.")
         finally:
             reconcile.release(frame)

@@ -559,3 +559,64 @@ fn demanded_unsupported_or_scalar_fragment_vetoes_a_successful_whole_reading() {
         assert_eq!(fixture.image.active_workers(), 0);
     }
 }
+
+#[test]
+#[ignore]
+fn reader100_retained_control_evaluation() {
+    let image_path = std::env::var("O1_IMAGE")
+        .unwrap_or_else(|_| "../../var/data-20261029/reader-image-v3.sqlite".into());
+    let receipt_path = std::env::var("O1_RECEIPT")
+        .unwrap_or_else(|_| "../../var/data-20261029/reader-image-v3-receipt.json".into());
+    let cases_path = std::env::var("O1_CASES_FILE")
+        .unwrap_or_else(|_| "../../var/reader-stream31-20261029/reader100/cases.json".into());
+    let receipt: Value =
+        serde_json::from_str(&std::fs::read_to_string(&receipt_path).unwrap()).unwrap();
+    let cases: Vec<Value> =
+        serde_json::from_str(&std::fs::read_to_string(&cases_path).unwrap()).unwrap();
+    let mut limits = Limits::default();
+    limits.workers = 2;
+    limits.timeout_ms = 2000;
+    limits.fuel = 10_000_000;
+    let image = Image::open(
+        std::path::Path::new(&image_path),
+        receipt["image_sha256"].as_str().unwrap(),
+        limits,
+    )
+    .unwrap();
+    let mut answered_correct = 0usize;
+    let mut answered_wrong = 0usize;
+    let mut refused = 0usize;
+    let mut unknown = 0usize;
+    let mut newly_answered = Vec::new();
+    for case in &cases {
+        let idx = case["source_index"].as_u64().unwrap();
+        let q = case["question"].as_str().unwrap();
+        let gold = case["gold"].as_str().unwrap();
+        let raw = image
+            .read_whole(&format!("r100_{idx}"), q, Cancellation::default())
+            .unwrap();
+        let res: Value = serde_json::from_str(&raw).unwrap();
+        match res["status"].as_str().unwrap() {
+            "answered" => {
+                if res["answer"].as_str() == Some(gold) {
+                    answered_correct += 1;
+                    newly_answered.push(idx);
+                } else {
+                    answered_wrong += 1;
+                    println!(
+                        "WRONG case {idx}: got {:?} vs gold {:?}",
+                        res["answer"], gold
+                    );
+                }
+            }
+            "refused" | "ambiguous" => refused += 1,
+            "unknown" => unknown += 1,
+            other => panic!("unexpected status {other}"),
+        }
+    }
+    println!(
+        "READER100_SUMMARY answered_correct={answered_correct} answered_wrong={answered_wrong} refused={refused} unknown={unknown}"
+    );
+    println!("ANSWERED_INDICES={newly_answered:?}");
+    assert_eq!(answered_wrong, 0);
+}

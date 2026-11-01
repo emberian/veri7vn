@@ -10,6 +10,8 @@ use oracle_execution::{ExecutionContext, MemoryBudget, MemoryReservation, WorkCo
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
+use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::{Arc, Mutex};
 
 pub const MAX_NODES: usize = 64;
 pub const MAX_LINKS: usize = 512;
@@ -404,7 +406,7 @@ struct Step {
 }
 struct Integrator<'a> {
     input: &'a TransientInput,
-    spatial: Spatial,
+    spatial: Arc<Spatial>,
     cache: VecDeque<Factor>,
     factorizations: usize,
     cache_hits: usize,
@@ -752,11 +754,150 @@ fn canonical_digest(value: &serde_json::Value, digest: &mut Sha256) -> Result<()
     }
     Ok(())
 }
+fn spatial_identity(input: &TransientInput, limits: &Limits) -> Result<String> {
+    let mut digest = Sha256::new();
+    digest.update(b"transient-spatial-v1");
+    digest.update((limits.rows.min(crate::MAX_ROWS) as u64).to_be_bytes());
+    digest.update((limits.columns.min(crate::MAX_COLUMNS) as u64).to_be_bytes());
+    canonical_digest(&serde_json::to_value(&input.network)?, &mut digest)?;
+    canonical_digest(
+        &serde_json::to_value(&input.capacities_j_per_k)?,
+        &mut digest,
+    )?;
+    canonical_digest(
+        &serde_json::to_value(&input.initial_temperature_k)?,
+        &mut digest,
+    )?;
+    Ok(format!("sha256:{:x}", digest.finalize()))
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+pub struct PreparedTransientCacheStats {
+    pub entries: usize,
+    pub max_entries: usize,
+    pub live_bytes: usize,
+    pub max_bytes: usize,
+    pub hits: u64,
+    pub misses: u64,
+    pub evictions: u64,
+}
+
+struct CachedSpatial {
+    spatial: Arc<Spatial>,
+    _reservation: MemoryReservation,
+}
+
+/// Bounded cross-request cache of validated spatial Laplacian topologies for
+/// transient thermal models, keyed by canonical network + capacity + initial
+/// boundary identity.
+pub struct PreparedTransientCache {
+    max_entries: usize,
+    max_bytes: usize,
+    memory: MemoryBudget,
+    entries: Mutex<VecDeque<(String, Arc<CachedSpatial>)>>,
+    hits: AtomicU64,
+    misses: AtomicU64,
+    evictions: AtomicU64,
+}
+
+impl Default for PreparedTransientCache {
+    fn default() -> Self {
+        Self::new(64, 16 * 1024 * 1024)
+    }
+}
+
+impl PreparedTransientCache {
+    pub fn new(max_entries: usize, max_bytes: usize) -> Self {
+        let cap = max_entries.clamp(1, 256);
+        let bytes = max_bytes.clamp(64 * 1024, 64 * 1024 * 1024);
+        Self {
+            max_entries: cap,
+            max_bytes: bytes,
+            memory: MemoryBudget::new(bytes),
+            entries: Mutex::new(VecDeque::with_capacity(cap)),
+            hits: AtomicU64::new(0),
+            misses: AtomicU64::new(0),
+            evictions: AtomicU64::new(0),
+        }
+    }
+
+    pub fn stats(&self) -> PreparedTransientCacheStats {
+        let len = self.entries.lock().map(|g| g.len()).unwrap_or(0);
+        PreparedTransientCacheStats {
+            entries: len,
+            max_entries: self.max_entries,
+            live_bytes: self.memory.snapshot().live,
+            max_bytes: self.max_bytes,
+            hits: self.hits.load(Ordering::Relaxed),
+            misses: self.misses.load(Ordering::Relaxed),
+            evictions: self.evictions.load(Ordering::Relaxed),
+        }
+    }
+
+    fn get_or_prepare(
+        &self,
+        input: &TransientInput,
+        limits: &Limits,
+        control: &dyn WorkControl,
+    ) -> Result<Arc<Spatial>> {
+        let key = spatial_identity(input, limits)?;
+        if let Ok(mut guard) = self.entries.lock() {
+            if let Some(pos) = guard.iter().position(|(k, _)| *k == key) {
+                let (_, entry) = guard.remove(pos).expect("matched cache index");
+                let spatial = entry.spatial.clone();
+                guard.push_front((key, entry));
+                self.hits.fetch_add(1, Ordering::Relaxed);
+                return Ok(spatial);
+            }
+        }
+        self.misses.fetch_add(1, Ordering::Relaxed);
+        let spatial = Arc::new(Spatial::prepare(input, limits, control)?);
+        let n = input.network.nodes.len();
+        let f = spatial.free.len();
+        let entry_bytes = 256 + n * 64 + f * f * 8 + input.network.links.len() * 32;
+        if let Ok(mut guard) = self.entries.lock() {
+            if let Some(pos) = guard.iter().position(|(k, _)| *k == key) {
+                let (_, entry) = guard.remove(pos).expect("matched cache index");
+                let existing = entry.spatial.clone();
+                guard.push_front((key, entry));
+                return Ok(existing);
+            }
+            while guard.len() >= self.max_entries && !guard.is_empty() {
+                guard.pop_back();
+                self.evictions.fetch_add(1, Ordering::Relaxed);
+            }
+            let reservation = loop {
+                match self.memory.reserve(entry_bytes) {
+                    Ok(res) => break Some(res),
+                    Err(_) => {
+                        if guard.pop_back().is_some() {
+                            self.evictions.fetch_add(1, Ordering::Relaxed);
+                        } else {
+                            break None;
+                        }
+                    }
+                }
+            };
+            if let Some(res) = reservation {
+                guard.push_front((
+                    key,
+                    Arc::new(CachedSpatial {
+                        spatial: spatial.clone(),
+                        _reservation: res,
+                    }),
+                ));
+            }
+        }
+        Ok(spatial)
+    }
+}
+
 fn run(
     input: &TransientInput,
     limits: &Limits,
     control: &dyn WorkControl,
     memory: Option<&MemoryBudget>,
+    spatial_cache: Option<&PreparedTransientCache>,
 ) -> Result<TransientResult> {
     checkpoint(control)?;
     preflight(input)?;
@@ -777,7 +918,10 @@ fn run(
         })
         .transpose()?;
     let sample_times = validate_schedule(input)?;
-    let spatial = Spatial::prepare(input, limits, control)?;
+    let spatial = match spatial_cache {
+        Some(cache) => cache.get_or_prepare(input, limits, control)?,
+        None => Arc::new(Spatial::prepare(input, limits, control)?),
+    };
     let mut encoded = BoundedBytes {
         bytes: Vec::new(),
         limit: byte_limit,
@@ -1016,12 +1160,20 @@ pub fn thermal_transient(
     limits: &Limits,
     control: &dyn WorkControl,
 ) -> Result<TransientResult> {
-    run(input, limits, control, None)
+    run(input, limits, control, None, None)
 }
 pub fn thermal_transient_with_context(
     input: &TransientInput,
     limits: &Limits,
     context: &ExecutionContext,
 ) -> Result<TransientResult> {
-    run(input, limits, context, Some(context.memory()))
+    run(input, limits, context, Some(context.memory()), None)
+}
+pub fn thermal_transient_with_cache(
+    input: &TransientInput,
+    limits: &Limits,
+    context: &ExecutionContext,
+    cache: &PreparedTransientCache,
+) -> Result<TransientResult> {
+    run(input, limits, context, Some(context.memory()), Some(cache))
 }

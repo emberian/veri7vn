@@ -162,6 +162,12 @@ pub enum RetainedFittedModel {
         response_unit: String,
         direction: String,
     },
+    LinearSystem {
+        request: String,
+        revision: i64,
+        candidates: Vec<String>,
+        variable_units: Vec<String>,
+    },
 }
 impl RetainedFittedModel {
     fn validate(&self, revision: i64) -> Result<()> {
@@ -191,6 +197,32 @@ impl RetainedFittedModel {
                     "forward_mean" | "forward_observation" | "inverse_point"
                 ) {
                     return Err(Error::Invalid("native fitted model direction".into()));
+                }
+                Ok(())
+            }
+            Self::LinearSystem {
+                request,
+                revision: model_rev,
+                candidates,
+                variable_units,
+            } => {
+                request_id(request)?;
+                if *model_rev < 1 || *model_rev > revision {
+                    return Err(Error::Format("native fitted model revision".into()));
+                }
+                if candidates.is_empty()
+                    || candidates.len() > 128
+                    || candidates.len() != variable_units.len()
+                {
+                    return Err(Error::Invalid("native fitted model dimensions".into()));
+                }
+                for c in candidates {
+                    ExactNumber::parse(c, &number_limits())?;
+                }
+                for u in variable_units {
+                    if u.is_empty() || u.len() > 256 || u.chars().any(char::is_control) {
+                        return Err(Error::Invalid("native fitted model unit".into()));
+                    }
                 }
                 Ok(())
             }
@@ -291,6 +323,9 @@ fn validate_lineage(lineage: &AnchorLineage, revision: i64) -> Result<()> {
                     | "shift_temperature"
                     | "temperature_difference_from"
                     | "evaluate_model"
+                    | "invert_model"
+                    | "model_slope"
+                    | "model_variable"
             )
         {
             return Err(Error::Format("native derivation lineage".into()));
@@ -421,6 +456,16 @@ pub enum NativeContextCommand {
     /// Evaluate the retained fitted model at the supplied scalar value.
     EvaluateModel {
         value: String,
+    },
+    /// Invert a retained calibration model at the supplied response value.
+    InvertModel {
+        value: String,
+    },
+    /// Extract the slope of a retained calibration model with unit `response_unit/x_unit`.
+    ModelSlope,
+    /// Extract the 1-based variable component from a retained linear-system model.
+    ModelVariable {
+        index: usize,
     },
     Acknowledge,
     ResetTopic,
@@ -573,6 +618,11 @@ pub(crate) fn transition(
                     request: mreq,
                     revision: mrev,
                     ..
+                }
+                | RetainedFittedModel::LinearSystem {
+                    request: mreq,
+                    revision: mrev,
+                    ..
                 } => {
                     *mreq = request.into();
                     *mrev = next;
@@ -629,6 +679,132 @@ pub(crate) fn transition(
                             });
                         }
                     }
+                    RetainedFittedModel::LinearSystem { .. } => {
+                        reason = Some(NativeContextRefusal::PriorModelUnavailable);
+                    }
+                }
+            } else {
+                reason = Some(NativeContextRefusal::PriorModelUnavailable);
+            }
+        }
+        NativeContextCommand::InvertModel { value } => {
+            let y = rational(&value)?;
+            if let Some(RetainedFittedModel::Calibration {
+                request: mreq,
+                revision: mrev,
+                intercept,
+                slope,
+                x_unit,
+                ..
+            }) = state.fitted_model.clone()
+            {
+                let b0 = rational(&intercept)?;
+                let b1 = rational(&slope)?;
+                if b1.is_zero() {
+                    reason = Some(NativeContextRefusal::UndefinedDivision);
+                } else {
+                    let result = multiply(y - b0, b1.recip(), budget)?;
+                    let number = ratio_text(&result)?;
+                    state.anchor = NativeAnchor::Quantity {
+                        value: NativeQuantity {
+                            number,
+                            unit: x_unit,
+                            origin: NumericOrigin::PythonFloat,
+                            role: QuantityRole::Scalar,
+                        },
+                    };
+                    state.delivery = Some(AnchorLineage {
+                        request: request.into(),
+                        revision: next,
+                        source: AnchorSource::Supplied,
+                        derivation: Some(Derivation {
+                            previous_request: mreq,
+                            previous_revision: mrev,
+                            operation: "invert_model".into(),
+                            operand: value,
+                            conversion_factor: "1/1".into(),
+                        }),
+                    });
+                }
+            } else {
+                reason = Some(NativeContextRefusal::PriorModelUnavailable);
+            }
+        }
+        NativeContextCommand::ModelSlope => {
+            if let Some(RetainedFittedModel::Calibration {
+                request: mreq,
+                revision: mrev,
+                slope,
+                x_unit,
+                response_unit,
+                ..
+            }) = state.fitted_model.clone()
+            {
+                let b1 = rational(&slope)?;
+                let number = ratio_text(&b1)?;
+                let unit = if x_unit == "1" {
+                    response_unit
+                } else {
+                    format!("{response_unit}/{x_unit}")
+                };
+                state.anchor = NativeAnchor::Quantity {
+                    value: NativeQuantity {
+                        number,
+                        unit,
+                        origin: NumericOrigin::PythonFloat,
+                        role: QuantityRole::Scalar,
+                    },
+                };
+                state.delivery = Some(AnchorLineage {
+                    request: request.into(),
+                    revision: next,
+                    source: AnchorSource::Supplied,
+                    derivation: Some(Derivation {
+                        previous_request: mreq,
+                        previous_revision: mrev,
+                        operation: "model_slope".into(),
+                        operand: "1/1".into(),
+                        conversion_factor: "1/1".into(),
+                    }),
+                });
+            } else {
+                reason = Some(NativeContextRefusal::PriorModelUnavailable);
+            }
+        }
+        NativeContextCommand::ModelVariable { index } => {
+            if let Some(RetainedFittedModel::LinearSystem {
+                request: mreq,
+                revision: mrev,
+                candidates,
+                variable_units,
+            }) = state.fitted_model.clone()
+            {
+                if index == 0 || index > candidates.len() {
+                    reason = Some(NativeContextRefusal::PriorModelUnavailable);
+                } else {
+                    let val = rational(&candidates[index - 1])?;
+                    let number = ratio_text(&val)?;
+                    let unit = variable_units[index - 1].clone();
+                    state.anchor = NativeAnchor::Quantity {
+                        value: NativeQuantity {
+                            number,
+                            unit,
+                            origin: NumericOrigin::PythonFloat,
+                            role: QuantityRole::Scalar,
+                        },
+                    };
+                    state.delivery = Some(AnchorLineage {
+                        request: request.into(),
+                        revision: next,
+                        source: AnchorSource::Supplied,
+                        derivation: Some(Derivation {
+                            previous_request: mreq,
+                            previous_revision: mrev,
+                            operation: "model_variable".into(),
+                            operand: index.to_string(),
+                            conversion_factor: "1/1".into(),
+                        }),
+                    });
                 }
             } else {
                 reason = Some(NativeContextRefusal::PriorModelUnavailable);

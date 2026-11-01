@@ -188,10 +188,13 @@ translation of every operation result.
 
 With an Engine configured, this profile requires the adjacent, separately hashed
 `conversation_adapter.py`. Its source-pinned U8 compatibility routes cover bounded
-arithmetic, supported physical quantities, entity follow-ups, explicit topic
-changes and acknowledgements. It does not call arbitrary `eng.chat` under a
-restoration guarantee. Teaching, tools and general dialogue remain outside this
-profile. Physics routes require their source organ to be ready.
+arithmetic, supported physical quantities, step-by-step physics lessons (`teach me`
+over retained `_last_physics`), `relation_spec_v1` and `relation_spec_v2` forward
+and inverse entity relations, cited atmospheric data (`air`), grounded reader90
+queries (`facts`), optional `oracle_native.Image` (`read_whole`) fallback, explicit
+topic changes, acknowledgements and per-session state eviction (`evict`). It does
+not call arbitrary `eng.chat` under a restoration guarantee. Physics routes require
+their source organ to be ready.
 
 Only delivered answers update supported context. Native entity projection requires
 the operator's explicit `conversation_entity_namespace: "wikidata"`; a Q-prefixed
@@ -278,10 +281,14 @@ is not interpreted as an empty one.
 
 ### Explicit supplied modeling
 
-With the `statistics` profile enabled, `/query` recognizes the exact prefix
+With the corresponding pure profiles enabled, `/query` recognizes the exact prefix
 `Model supplied data: ` followed by an object with `operation` and `arguments`.
-The supported operations are `statistics.calibration` and
-`statistics.events_exposure`; [complete examples and analytic checks](../../tools/usage/specialist/modeling/composed/README.md)
+The supported operations are `statistics.calibration`, `statistics.events_exposure`,
+`science.thermal_network`, `science.thermal_scenarios`, `science.thermal_transient`,
+`science.solve_linear`, `science.least_squares`, `bio.align_pairwise`,
+`reasoning.optimize_linear`, `reasoning.exact_linear_feasibility`,
+`graph.shortest_path`, `graph.minimum_spanning_forest` and `chemistry.balance_reaction`;
+[complete examples and analytic checks](../../tools/usage/specialist/modeling/composed/README.md)
 show their required rows, units, assumptions, sampling declarations and predictions.
 The existing typed provider performs the computation under the query's resource
 budget. The reply includes one structured result, provider metadata and concise
@@ -289,15 +296,24 @@ prose. It does not encode another copy of the result inside the prose.
 
 This prefix owns the request before reader, extracted-organ or Engine routing.
 Malformed or unsupported owned input is refused there; it cannot become a generic
-mean calculation or Python-documentation question. Missing statistics support and
+mean calculation or Python-documentation question. Missing profile support and
 execution failures remain errors. Discovery reports the owner and availability.
 Ordinary unprefixed questions keep their existing routes.
 
-In `native-v1`, an answered model clears the old entity/quantity anchor because a
-complete fitted model is not a scalar antecedent; for `statistics.calibration`,
-it simultaneously installs a typed `RetainedFittedModel` handle supporting
-follow-up evaluation (`Evaluate that model at <y>` or `EvaluateModel`). Semantic
-refusals preserve prior context; operational failures do not commit a turn. Exact
+In `native-v1`:
+- Single-free-node thermal networks, single-scenario `science.thermal_scenarios`
+  and `science.thermal_transient` runs deliver their solved or final kelvin
+  temperature as a `QuantityRole::TemperaturePoint` anchor for affine temperature
+  follow-ups (`Convert that to C`, `Shift that by 10 K`, `Difference from ...`).
+- Finite `graph.shortest_path` and `graph.minimum_spanning_forest` runs deliver
+  their exact distance or total weight as an `ExactDecimal` scalar anchor.
+- `statistics.calibration` clears the scalar/entity anchor and installs
+  `RetainedFittedModel::Calibration`, supporting `Evaluate that model at <x>`,
+  `Invert that model at <y>` and `What is the slope of that model?`.
+- `science.solve_linear`, `science.least_squares`, `reasoning.optimize_linear` and
+  `reasoning.exact_linear_feasibility` clear the scalar/entity anchor and install
+  `RetainedFittedModel::LinearSystem`, supporting `What is variable <k> of that model?`.
+Semantic refusals preserve prior context; operational failures do not commit a turn. Exact
 query retry uses the existing journal. `readonly-v1` and ordinary conversations
 already bound to an Engine explicitly refuse this context transition before
 computation. Fresh ordinary conversations may use modeling, but results do not

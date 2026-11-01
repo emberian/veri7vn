@@ -1435,7 +1435,9 @@ impl Service {
         ) {
             let mut body = answer?;
             if self.native_conversation_profile && body["reply"]["status"] == "answered" {
-                if let Some(quantity) = crate::modeling::retained_thermal_quantity(&body["reply"]) {
+                if let Some(quantity) = crate::modeling::retained_thermal_quantity(&body["reply"])
+                    .or_else(|| crate::modeling::retained_reasoning_quantity(&body["reply"]))
+                {
                     let operation = body["reply"]["supplied"]["operation"]
                         .as_str()
                         .unwrap_or("science.thermal_scenarios");
@@ -1946,6 +1948,39 @@ impl Service {
                         },
                         budget,
                     );
+                }
+            }
+        }
+        if let Some(value) = normalized.strip_prefix("invert that model at ") {
+            if NUMBER
+                .get_or_init(|| {
+                    regex::Regex::new(&format!("^{NUMBER_PATTERN}$"))
+                        .expect("constant native number grammar")
+                })
+                .is_match(value)
+            {
+                return self.native_command_reply(
+                    candidate,
+                    Command::InvertModel {
+                        value: value.into(),
+                    },
+                    budget,
+                );
+            }
+        }
+        if normalized == "what is the slope of that model" {
+            return self.native_command_reply(candidate, Command::ModelSlope, budget);
+        }
+        if let Some(rest) = normalized.strip_prefix("what is variable ") {
+            if let Some(idx_str) = rest.strip_suffix(" of that model") {
+                if let Ok(index) = idx_str.parse::<usize>() {
+                    if index > 0 {
+                        return self.native_command_reply(
+                            candidate,
+                            Command::ModelVariable { index },
+                            budget,
+                        );
+                    }
                 }
             }
         }

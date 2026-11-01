@@ -584,6 +584,16 @@ fn modeling_admits_thermal_network_transient_linear_and_bio_alignment() {
         trans_res["reply"]["native_context_transition"],
         "delivered_typed_anchor"
     );
+    assert_eq!(
+        service.pure.as_ref().unwrap().transient_cache_stats().misses,
+        1
+    );
+    let trans_res2 = query(&service, "trans-2", &text(&transient));
+    assert_eq!(trans_res2["reply"]["status"], "answered", "{trans_res2}");
+    assert_eq!(
+        service.pure.as_ref().unwrap().transient_cache_stats().hits,
+        1
+    );
     let trans_c = query(&service, "trans-to-c", "Convert that to C");
     assert_eq!(trans_c["reply"]["status"], "answered", "{trans_c}");
     assert_eq!(
@@ -608,6 +618,16 @@ fn modeling_admits_thermal_network_transient_linear_and_bio_alignment() {
     let lin_res = query(&service, "lin-1", &text(&linear));
     assert_eq!(lin_res["reply"]["status"], "answered", "{lin_res}");
     assert_eq!(lin_res["reply"]["result"]["candidate"], json!([3.0, 2.0]));
+    let var1 = query(&service, "lin-var1", "What is variable 1 of that model?");
+    assert_eq!(var1["reply"]["status"], "answered", "{var1}");
+    assert_eq!(
+        var1["reply"]["provenance"]["native_context"]["anchor"]["value"]["number"],
+        "3/1"
+    );
+    assert_eq!(
+        var1["reply"]["provenance"]["native_context"]["anchor"]["value"]["unit"],
+        "A"
+    );
 
     let align = json!({
         "operation": "bio.align_pairwise",
@@ -626,6 +646,142 @@ fn modeling_admits_thermal_network_transient_linear_and_bio_alignment() {
     let align_res = query(&service, "align-1", &text(&align));
     assert_eq!(align_res["reply"]["status"], "answered", "{align_res}");
     assert_eq!(align_res["reply"]["result"]["candidate"]["score"], 13);
+
+    service.close();
+}
+
+#[cfg(all(feature = "statistics", feature = "reasoning"))]
+#[test]
+fn modeling_admits_reasoning_and_richer_model_followups() {
+    let dir = tempfile::tempdir().unwrap();
+    let source = dir.path().join("source.json");
+    let image = dir.path().join("image.sqlite");
+    std::fs::write(
+        &source,
+        json!({"concepts":{},"entities":{"Q1":{"name":"Alice","instanceOf":[],"relations":[]}}})
+            .to_string(),
+    )
+    .unwrap();
+    let receipt = core::build_image(&source, &image, 1_000_000, 100_000).unwrap();
+    let config: Config = serde_json::from_value(json!({
+        "schema": "oracle-host-v1",
+        "journal": dir.path().join("host.sqlite"),
+        "conversation_profile": "native-v1",
+        "native": {
+            "image": image,
+            "image_sha256": receipt.image_sha256,
+            "state": dir.path().join("core.sqlite"),
+            "reader_route": true
+        },
+        "pure": {
+            "profiles": ["statistics", "reasoning"]
+        }
+    }))
+    .unwrap();
+    let service = Service::open(&config).unwrap();
+
+    // 1. Calibration model slope & inversion follow-ups (y = 2*x + 1, x_unit="m", response_unit="N")
+    let cal_res = query(&service, "cal-1", &text(&calibration()));
+    assert_eq!(cal_res["reply"]["status"], "answered", "{cal_res}");
+    let slope_res = query(&service, "cal-slope", "What is the slope of that model?");
+    assert_eq!(slope_res["reply"]["status"], "answered", "{slope_res}");
+    let slope_val = &slope_res["reply"]["provenance"]["native_context"]["anchor"]["value"];
+    assert_eq!(slope_val["unit"], "N/m");
+    let (s_num, s_den) = slope_val["number"]
+        .as_str()
+        .unwrap()
+        .split_once('/')
+        .unwrap_or((slope_val["number"].as_str().unwrap(), "1"));
+    let slope_ratio = s_num.parse::<f64>().unwrap() / s_den.parse::<f64>().unwrap();
+    assert!((slope_ratio - 2.0).abs() < 1e-12, "unexpected slope {slope_ratio}");
+
+    let inv_res = query(&service, "cal-inv", "Invert that model at 11");
+    assert_eq!(inv_res["reply"]["status"], "answered", "{inv_res}");
+    let inv_val = &inv_res["reply"]["provenance"]["native_context"]["anchor"]["value"];
+    assert_eq!(inv_val["unit"], "m");
+    let (i_num, i_den) = inv_val["number"]
+        .as_str()
+        .unwrap()
+        .split_once('/')
+        .unwrap_or((inv_val["number"].as_str().unwrap(), "1"));
+    let inv_ratio = i_num.parse::<f64>().unwrap() / i_den.parse::<f64>().unwrap();
+    assert!((inv_ratio - 5.0).abs() < 1e-12, "unexpected inverse {inv_ratio}");
+
+    // 2. Shortest path delivers exact scalar anchor
+    let sp = json!({
+        "operation": "graph.shortest_path",
+        "arguments": {
+            "vertices": 3,
+            "edges": [[0, 1, 4], [1, 2, 7], [0, 2, 15]],
+            "source": 0,
+            "target": 2
+        }
+    });
+    let sp_res = query(&service, "sp-1", &text(&sp));
+    assert_eq!(sp_res["reply"]["status"], "answered", "{sp_res}");
+    assert_eq!(
+        sp_res["reply"]["native_context_transition"],
+        "delivered_typed_anchor"
+    );
+    let sp_scaled = query(&service, "sp-scale", "That times 3");
+    assert_eq!(sp_scaled["reply"]["status"], "answered", "{sp_scaled}");
+    assert_eq!(
+        sp_scaled["reply"]["provenance"]["native_context"]["anchor"]["value"]["number"],
+        "33/1"
+    );
+
+    // 3. Minimum spanning forest delivers exact scalar anchor
+    let msf = json!({
+        "operation": "graph.minimum_spanning_forest",
+        "arguments": {
+            "vertices": 3,
+            "edges": [[0, 1, 4], [1, 2, 7], [0, 2, 15]]
+        }
+    });
+    let msf_res = query(&service, "msf-1", &text(&msf));
+    assert_eq!(msf_res["reply"]["status"], "answered", "{msf_res}");
+    let msf_scaled = query(&service, "msf-scale", "That times 2");
+    assert_eq!(msf_scaled["reply"]["status"], "answered", "{msf_scaled}");
+    assert_eq!(
+        msf_scaled["reply"]["provenance"]["native_context"]["anchor"]["value"]["number"],
+        "22/1"
+    );
+
+    // 4. Exact linear optimization installs LinearSystem model for variable extraction
+    let lp = json!({
+        "operation": "reasoning.optimize_linear",
+        "arguments": {
+            "variables": ["x1", "x2"],
+            "rows": [
+                {"id": "r1", "coefficients": ["-1", "0"], "bound": "-2"},
+                {"id": "r2", "coefficients": ["0", "-1"], "bound": "-5"}
+            ],
+            "objective": ["1", "1"]
+        }
+    });
+    let lp_res = query(&service, "lp-1", &text(&lp));
+    assert_eq!(lp_res["reply"]["status"], "answered", "{lp_res}");
+    let lp_var2 = query(&service, "lp-var2", "What is variable 2 of that model?");
+    assert_eq!(lp_var2["reply"]["status"], "answered", "{lp_var2}");
+    assert_eq!(
+        lp_var2["reply"]["provenance"]["native_context"]["anchor"]["value"]["number"],
+        "5/1"
+    );
+
+    // 5. Reaction stoichiometry balance
+    let rxn = json!({
+        "operation": "chemistry.balance_reaction",
+        "arguments": {
+            "species": [
+                {"name": "H2", "side": "reactant", "composition": {"H": 2}, "charge": 0},
+                {"name": "O2", "side": "reactant", "composition": {"O": 2}, "charge": 0},
+                {"name": "H2O", "side": "product", "composition": {"H": 2, "O": 1}, "charge": 0}
+            ]
+        }
+    });
+    let rxn_res = query(&service, "rxn-1", &text(&rxn));
+    assert_eq!(rxn_res["reply"]["status"], "answered", "{rxn_res}");
+    assert_eq!(rxn_res["reply"]["result"]["coefficients"], json!(["2", "1", "2"]));
 
     service.close();
 }

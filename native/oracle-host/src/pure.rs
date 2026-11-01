@@ -55,6 +55,8 @@ pub struct Pure {
     solver: Option<(tempfile::TempDir, std::path::PathBuf, String)>,
     #[cfg(feature = "science")]
     pub(crate) thermal_cache: oracle_science::thermal_scenarios::PreparedThermalCache,
+    #[cfg(feature = "science")]
+    pub(crate) transient_cache: oracle_science::thermal_transient::PreparedTransientCache,
 }
 
 fn replace_strings(value: &mut Value, from: &str, to: &str) {
@@ -158,12 +160,21 @@ impl Pure {
             solver,
             #[cfg(feature = "science")]
             thermal_cache: Default::default(),
+            #[cfg(feature = "science")]
+            transient_cache: Default::default(),
         })
     }
 
     #[cfg(feature = "science")]
     pub fn thermal_cache_stats(&self) -> oracle_science::thermal_scenarios::PreparedThermalCacheStats {
         self.thermal_cache.stats()
+    }
+
+    #[cfg(feature = "science")]
+    pub fn transient_cache_stats(
+        &self,
+    ) -> oracle_science::thermal_transient::PreparedTransientCacheStats {
+        self.transient_cache.stats()
     }
 
     pub(crate) fn solver_path(&self) -> Option<&std::path::Path> {
@@ -332,11 +343,12 @@ impl Pure {
                 }
                 if id == "science.thermal_transient" {
                     return encode_result(
-                        oracle_science::thermal_transient::thermal_transient_with_context(
+                        oracle_science::thermal_transient::thermal_transient_with_cache(
                             &decode(arguments)
                                 .map_err(|e| format!("invalid input: request arguments: {e}"))?,
                             &limits,
                             context,
+                            &self.transient_cache,
                         )
                         .map_err(|e| detail(&e))?,
                     );
@@ -2400,6 +2412,11 @@ mod typed_parity {
             solver: Some((dir, path, "0".repeat(64))),
             #[cfg(feature = "science")]
             thermal_cache: oracle_science::thermal_scenarios::PreparedThermalCache::new(
+                16,
+                16 * 1024 * 1024,
+            ),
+            #[cfg(feature = "science")]
+            transient_cache: oracle_science::thermal_transient::PreparedTransientCache::new(
                 16,
                 16 * 1024 * 1024,
             ),
