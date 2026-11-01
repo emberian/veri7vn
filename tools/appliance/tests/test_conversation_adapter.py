@@ -303,6 +303,160 @@ class Boundary(unittest.TestCase):
         with self.assertRaises(ValueError):
             A.pack(SimpleNamespace(secret="not data"))
 
+    def test_verify_file_caches_unchanged_file_reads_and_detects_modifications(self):
+        import hashlib
+        import json
+        with TemporaryDirectory() as folder:
+            checkout = Path(folder).resolve()
+            mod_path = checkout / "mod.py"
+            mod_bytes = b"x = 1\n"
+            mod_path.write_bytes(mod_bytes)
+            mod_sha = hashlib.sha256(mod_bytes).hexdigest()
+            a = self.adapter()
+            a.checkout = checkout
+            a.inventory = {"mod.py": {"sha256": mod_sha}}
+            a._verified_files = {}
+            A._FILE_HASH_CACHE.clear()
+            reads = []
+            orig_read_bytes = Path.read_bytes
+            def counting_read_bytes(p):
+                reads.append(Path(p).resolve())
+                return orig_read_bytes(p)
+            with patch.object(Path, "read_bytes", counting_read_bytes):
+                a.verify_file(mod_path)
+                a.verify_file(mod_path)
+                a.verify_file(mod_path)
+            self.assertEqual(reads, [mod_path])
+            mod_path.write_bytes(b"x = 222\n")
+            with self.assertRaisesRegex(ValueError, "conversation_source_pin_mismatch:mod.py"):
+                a.verify_file(mod_path)
+
+    def test_last_physics_survives_restore_and_supports_teach_me_and_evict(self):
+        import json
+        with TemporaryDirectory() as folder:
+            state_dir = Path(folder).resolve()
+            spec_dir = state_dir / "specialists" / "Q1#p1"
+            spec_dir.mkdir(parents=True)
+            (state_dir / "swarm").mkdir(parents=True)
+            (state_dir / "swarm" / "parts.json").write_text("{}")
+            (spec_dir / "program.py").write_text("def solve(m, a): return m * a\n")
+            (spec_dir / "spec.json").write_text(json.dumps({
+                "output": "force (N)",
+                "inputs": ["mass (kg)", "acceleration (m/s^2)"],
+                "expression": "m * a",
+                "system": {"out_symbol": "F"},
+            }))
+            a = self.adapter()
+            a.restore("s", self.initial())
+            a.cc._STATES = {}
+            a.cc.rewrite = lambda *_: None
+            def begin(runtime, _text, sid):
+                a.cc._STATES[sid] = deepcopy(runtime._conversation_contexts.get(sid) or Turn())
+                return {"sid": sid}
+            def release(frame):
+                a.cc._STATES.pop(frame["sid"], None)
+            base = SimpleNamespace(_compute=lambda *_: None, _resolve_followup=lambda _self, text, _sid: (text, False),
+                                   _carry=lambda *_: None, _witness_compute=lambda *_: None)
+            w29 = SimpleNamespace(OracleReleaseRuntimeW29=base, _TRAIL=re.compile(r"[\s?.!]+$"), _LEAD=re.compile(r"^what is\s+", re.I))
+            growth = SimpleNamespace(
+                read=lambda q: (("force", [("mass", 2.0, (1, 0, 0)), ("acceleration", 3.0, (0, 1, -2))]), None) if "force" in q else (None, None),
+                ask=lambda _planner, q: {"status": "answered", "value": 6.0, "plan": ["Q1#p1"], "plans": 1} if "force" in q else {"status": "declined", "kind": "form", "why": "no"},
+                R=SimpleNamespace(),
+                systems=SimpleNamespace(),
+            )
+            planner = SimpleNamespace(
+                by_out={("force", (1, 1, -2)): []},
+                plans=lambda *_: [[{"id": "Q1#p1"}]],
+                parts={"Q1#p1": {"in_keys": [("mass", (1, 0, 0)), ("acceleration", (0, 1, -2))],
+                                 "scale_in": [1.0, 1.0], "scale_out": 1.0, "out_key": ("force", (1, 1, -2)),
+                                 "fn": lambda m, acc: m * acc}},
+            )
+            a.runtime._organs = {"physics": SimpleNamespace(
+                G=growth, state=str(state_dir), planner=planner,
+                raw={"Q1#p1": {"inputs": ["mass (kg)", "acceleration (m/s^2)"], "output": "force (N)"}},
+            )}
+            a.verify_module = lambda *_: None
+            a.verify_file = lambda *_: None
+            worker, eng = self.refusal_worker(a)
+            with patch.dict(sys.modules, {"runtime_conversation_state": SimpleNamespace(begin=begin, release=release),
+                                          "oracle_release_runtime_w29": w29}):
+                ans = worker.conversation_answer(eng, None, None, "What is the force for mass 2 kg and acceleration 3 m/s^2?", "s", False,
+                                                 {"protocol": A.PROTOCOL, "state": self.initial()})
+                self.assertEqual(ans["status"], "answered")
+                self.assertEqual(ans["path"], "organ:physics60>proved")
+                self.assertEqual(ans["conversation"]["state"]["last_physics"],
+                                 {"question": "What is the force for mass 2 kg and acceleration 3 m/s^2?", "answer": None})
+                committed = self.envelope(ans["conversation"])
+                lesson = worker.conversation_answer(eng, None, None, "Teach me how you got that.", "s", False,
+                                                    {"protocol": A.PROTOCOL, "state": committed})
+                self.assertEqual(lesson["status"], "answered")
+                self.assertEqual(lesson["path"], "adapter:physics_lesson")
+                self.assertIn("F = m * a", lesson["response"])
+                self.assertIn("Wikidata Q1", lesson["response"])
+                evicted = worker.conversation_answer(eng, None, None, "", "s", False,
+                                                     {"protocol": A.PROTOCOL, "op": "evict"})
+                self.assertEqual(evicted["status"], "evicted")
+                self.assertNotIn("s", a.runtime._conversation_contexts)
+                self.assertNotIn("s", a.runtime._last_physics)
+
+    def test_relation_spec_v2_forward_and_inverse_followups_resolve(self):
+        a = self.adapter()
+        a.restore("s", self.initial())
+        a.cc._STATES = {}
+        def begin(runtime, _text, sid):
+            a.cc._STATES[sid] = deepcopy(runtime._conversation_contexts.get(sid) or Turn())
+            return {"sid": sid}
+        def release(frame):
+            a.cc._STATES.pop(frame["sid"], None)
+        base = SimpleNamespace(_compute=lambda *_: None, _resolve_followup=lambda _self, text, _sid: (text, False),
+                               _carry=lambda *_: None, _witness_compute=lambda *_: None)
+        w29 = SimpleNamespace(OracleReleaseRuntimeW29=base, _TRAIL=re.compile(r"[\s?.!]+$"), _LEAD=re.compile(r"^what is\s+", re.I))
+        labels = {35: "Denmark", 1748: "Copenhagen", 254: "DKK"}
+        props = {35: [(36, 1748, None), (38, 254, None)], 1748: []}
+        store = SimpleNamespace(props_of=lambda qid: props.get(qid, []), label=lambda qid: labels.get(qid))
+        rs = SimpleNamespace(
+            _rs=lambda: store,
+            _q=lambda _sql, args: [35] if args == (36, 1748) else [],
+            classes_of=lambda _qid: ((6256,), ()),
+            X=SimpleNamespace(norm=lambda x: x.lower(),
+                              L=SimpleNamespace(candidates=lambda norm, _k: [(35, 10)] if norm == "denmark" else ([(1748, 10)] if norm == "copenhagen" else []))),
+        )
+        compiled_map = {
+            "36": {"prop": 36, "fwd": [re.compile(r"^what is the capital of (?P<X>.+?)$")],
+                   "inv": [re.compile(r"^which country has (?P<X>.+?) as its capital$")]},
+            "38": {"prop": 38, "fwd": [re.compile(r"^what is the currency of (?P<X>.+?)$")], "inv": []},
+        }
+        s2 = SimpleNamespace(
+            RD=SimpleNamespace(PROPS={"36": {}, "38": {}}),
+            normalise=lambda q: (q.rstrip("?.! "), q.rstrip("?.! ").lower()),
+            compiled=lambda key: compiled_map[key],
+            _slot=lambda s, _low, m: s[m.start("X"):m.end("X")].strip(),
+        )
+        a.verify_module = lambda *_: None
+        worker, eng = self.refusal_worker(a)
+        with patch.dict(sys.modules, {"runtime_conversation_state": SimpleNamespace(begin=begin, release=release),
+                                      "oracle_release_runtime_w29": w29, "relation_spec_v1": rs, "relation_spec_v2": s2}):
+            a.cc.rewrite = lambda *_: None
+            t1 = worker.conversation_answer(eng, None, None, "What is the capital of Denmark?", "s", False,
+                                            {"protocol": A.PROTOCOL, "state": self.initial()})
+            self.assertEqual(t1["status"], "answered")
+            self.assertEqual(t1["response"], "Copenhagen.")
+            self.assertEqual(t1["provenance"]["property"], "wd:P36")
+            c1 = self.envelope(t1["conversation"])
+            a.cc.rewrite = lambda _sid, _q: "What is the currency of Denmark?"
+            t2 = worker.conversation_answer(eng, None, None, "And its currency?", "s", False,
+                                            {"protocol": A.PROTOCOL, "state": c1})
+            self.assertEqual(t2["status"], "answered")
+            self.assertEqual(t2["response"], "DKK.")
+            self.assertEqual(t2["path"], "chat:resolved>adapter:relation_store")
+            self.assertEqual(t2["provenance"]["property"], "wd:P38")
+            a.cc.rewrite = lambda *_: None
+            t3 = worker.conversation_answer(eng, None, None, "Which country has Copenhagen as its capital?", "s", False,
+                                            {"protocol": A.PROTOCOL, "state": self.initial()})
+            self.assertEqual(t3["status"], "answered")
+            self.assertEqual(t3["response"], "Denmark.")
+            self.assertEqual(t3["provenance"]["property"], "wd:P36")
+
 
 if __name__ == "__main__":
     unittest.main()

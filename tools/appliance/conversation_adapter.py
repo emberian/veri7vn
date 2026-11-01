@@ -24,6 +24,26 @@ OWNERS = {"runtime_dialogue": "dialogue", "runtime_an_transition": "transitions"
 EXTENSIONS = tuple(OWNERS) + ("oracle_readonly_adapter", "runtime_an_conversion")
 UNCOVERED = ["teaching", "documents", "files", "external_tools", "w572_ego_mood", "unknown_runtime_owners"]
 MAX_BYTES = 512 * 1024
+_FILE_HASH_CACHE: dict[tuple[str, int, int, int, int], str] = {}
+_INVENTORY_CACHE: dict[tuple[str, str], dict] = {}
+
+
+def _cached_file_sha256(path: Path, local_cache: dict | None = None) -> str:
+    resolved = Path(path).resolve()
+    st = resolved.stat()
+    stamp = (str(resolved), st.st_dev, st.st_ino, st.st_size, st.st_mtime_ns)
+    if local_cache is not None and stamp in local_cache:
+        return local_cache[stamp]
+    if stamp in _FILE_HASH_CACHE:
+        digest = _FILE_HASH_CACHE[stamp]
+        if local_cache is not None:
+            local_cache[stamp] = digest
+        return digest
+    digest = hashlib.sha256(resolved.read_bytes()).hexdigest()
+    _FILE_HASH_CACHE[stamp] = digest
+    if local_cache is not None:
+        local_cache[stamp] = digest
+    return digest
 
 
 class SemanticWithheld(Exception):
@@ -180,22 +200,39 @@ class Adapter:
         checkout = next((p for p in root.parents if (p / "APPLIANCE.json").is_file()), None)
         if checkout is None:
             raise ValueError("conversation_admitted_materialization_required")
-        receipt = (checkout / "APPLIANCE.json").read_bytes()
-        receipt_hash = hashlib.sha256(receipt).hexdigest()
+        self._verified_files = getattr(runtime, "_adapter_verified_files", None)
+        if type(self._verified_files) is not dict:
+            self._verified_files = {}
+            try:
+                setattr(runtime, "_adapter_verified_files", self._verified_files)
+            except Exception:
+                pass
+        receipt_path = checkout / "APPLIANCE.json"
+        receipt_hash = _cached_file_sha256(receipt_path, self._verified_files)
         if receipt_hash != "97286fb824bb102a24ac9e7458fc8d8426212ad0bff2b585bd00d6e0462d00a5" or tip != "oracle_release_runtime_w574":
             raise ValueError("conversation_source_profile_unsupported")
         sources = {"runtime_conversation_state": "bd59010ba45df5bbbfec39a71cb9dcdbc6a1eed9df2337db0eb0e5e1c3751be8",
                    "runtime_final_outcome": "9851cdcfac26f9ee0901d9c700f0ad6f18b2a52881f415b127ce203d926e8e2b",
                    "chat_context_v2": "271b62bf8e9c7228c30b7ac5bb00a5b2d2e0e7b9ba97a7976dd33bdeb404b514"}
         for name, expected in sources.items():
-            if hashlib.sha256(Path(sys.modules[name].__file__).read_bytes()).hexdigest() != expected:
+            if _cached_file_sha256(Path(sys.modules[name].__file__), self._verified_files) != expected:
                 raise ValueError("conversation_source_pin_mismatch")
         self.checkout = checkout
-        self.inventory = json.loads(receipt)["files"]
+        inv_key = (str(checkout), receipt_hash)
+        if inv_key not in _INVENTORY_CACHE:
+            _INVENTORY_CACHE[inv_key] = json.loads(receipt_path.read_bytes())["files"]
+        self.inventory = _INVENTORY_CACHE[inv_key]
         self.manifest = {"adapter": ADAPTER, "version": VERSION, "tip": tip,
                          "appliance_sha256": receipt_hash, "sources": sources,
-                         "adapter_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest()}
+                         "adapter_sha256": _cached_file_sha256(Path(__file__), self._verified_files)}
         self.source = ADAPTER + ":sha256:" + hashlib.sha256(compact(self.manifest).encode()).hexdigest()
+
+    def _file_sha256(self, path):
+        cache = getattr(self, "_verified_files", None)
+        if type(cache) is not dict:
+            cache = {}
+            self._verified_files = cache
+        return _cached_file_sha256(Path(path), cache)
 
     def verify_file(self, path):
         path = Path(path).resolve()
@@ -204,11 +241,22 @@ class Adapter:
         except ValueError:
             raise ValueError("conversation_source_outside_admitted_release") from None
         expected = self.inventory.get(key, {}).get("sha256")
-        if not expected or hashlib.sha256(path.read_bytes()).hexdigest() != expected:
+        if not expected or self._file_sha256(path) != expected:
             raise ValueError("conversation_source_pin_mismatch:" + key)
 
     def verify_module(self, module):
         self.verify_file(module.__file__)
+
+    def evict(self, sid):
+        """Remove all per-session state for sid from the resident runtime."""
+        for attr in (*OWNERS.values(), "sessions", "_last_value", "_pending_conversion",
+                     "_conversation_contexts", "_last_answer", "_last_physics"):
+            table = getattr(self.runtime, attr, None)
+            if type(table) is dict:
+                table.pop(sid, None)
+        states = getattr(self.cc, "_STATES", None)
+        if type(states) is dict:
+            states.pop(sid, None)
 
 
     def restore(self, sid, envelope):
@@ -230,8 +278,14 @@ class Adapter:
         # Install every covered owner, including observed absence, before reuse.
         values = {} if state is None else state
         unknown = set(values.get("extensions", {})) - set(EXTENSIONS)
-        if unknown or any(values.get(k) is not None for k in ("last_answer", "last_physics", "last_effect")):
+        if unknown or any(values.get(k) is not None for k in ("last_answer", "last_effect")):
             raise ValueError("conversation_uncovered_owner_requires_reset")
+        last_physics = values.get("last_physics")
+        if last_physics is not None:
+            if (type(last_physics) is not dict or not set(last_physics) <= {"question", "answer"}
+                    or last_physics.get("answer") is not None or type(last_physics.get("question")) is not str
+                    or not (0 < len(last_physics["question"].encode()) <= 16384)):
+                raise ValueError("conversation_uncovered_owner_requires_reset")
         self.precision = {"context": deepcopy((values.get("context") or {}).get("result")),
                           "scalar": deepcopy(values.get("last_value"))}
         pending = values.get("pending_interpretation")
@@ -275,14 +329,15 @@ class Adapter:
                 turn.solved = deepcopy(item["solved"]); turn.material = item["material"]
                 item = turn
             table[sid] = deepcopy(item)
-        # These canonical lineage owners were explicitly absent in the supplied
-        # profile state; safe routes never call their consumers (_lesson/_done).
         for attr in ("_last_answer", "_last_physics"):
             table = getattr(self.runtime, attr, None)
-            if table is not None:
-                if type(table) is not dict:
-                    raise ValueError("conversation owner shape: " + attr)
-                table.pop(sid, None)
+            if table is None:
+                table = {}; setattr(self.runtime, attr, table)
+            if type(table) is not dict:
+                raise ValueError("conversation owner shape: " + attr)
+            table.pop(sid, None)
+        if last_physics is not None:
+            self.runtime._last_physics[sid] = last_physics["question"]
         # Base _history otherwise resurrects uncommitted session files: sessions
         # always contains an explicit list (including empty) after restore.
 
@@ -311,14 +366,19 @@ class Adapter:
         pending = None if pending is None else {"from": pending.get("from", ""), "to": pending.get("to", ""),
                    "conversion": extension("runtime_an_conversion", pack(pending))}
         value = getattr(rt, "_last_value", {}).get(sid)
+        last_phys = getattr(rt, "_last_physics", {}).get(sid)
+        if last_phys is not None:
+            if type(last_phys) is not str or not (0 < len(last_phys.encode()) <= 16384):
+                raise ValueError("invalid _last_physics owner")
+            last_phys = {"question": last_phys, "answer": None}
         state = {"history": deepcopy(getattr(rt, "sessions", {}).get(sid, [])),
                  "context": context, "last_value": None if value is None else self.prior_number(value, owner="scalar"),
                  "pending_interpretation": pending, "last_answer": None,
-                 "last_physics": None, "last_effect": None, "extensions": extensions}
+                 "last_physics": last_phys, "last_effect": None, "extensions": extensions}
         if len(compact(state).encode()) > MAX_BYTES:
             raise ValueError("conversation_capture_too_large")
         return {"protocol": PROTOCOL, "source": self.source, "adapter_schema": VERSION,
-                "coverage": {"complete": True, "scope": "supported_adapter_routes", "owners": list(OWNERS) + ["sessions", "_conversation_contexts", "_last_value", "_pending_conversion"], "unsupported": UNCOVERED}, "state": state}
+                "coverage": {"complete": True, "scope": "supported_adapter_routes", "owners": list(OWNERS) + ["sessions", "_conversation_contexts", "_last_value", "_pending_conversion", "_last_physics"], "unsupported": UNCOVERED}, "state": state}
 
     def prior_number(self, value, unit="", *, owner):
         prior = getattr(self, "precision", {}).get(owner)
@@ -456,6 +516,52 @@ class Adapter:
             if physics is not None:
                 for module in (physics.G, physics.G.R, physics.G.systems, sys.modules[type(physics).__module__]):
                     self.verify_module(module)
+            teach = re.fullmatch(
+                r"\s*(?:(?:please|ok(?:ay)?|now|and)[,]?\s+)?(?:teach me(?: that| this| how(?: you got (?:that|it)| to do it)?)?|"
+                r"show me how(?: you got (?:that|it)| to do it)?|"
+                r"explain (?:it |that |this )?step by step|walk me through (?:it|that|this)|how did you (?:work|get) (?:that|it) out)"
+                r"\s*[?.!]*\s*",
+                question,
+                re.I,
+            )
+            if teach:
+                last_phys = getattr(self.runtime, "_last_physics", {}).get(sid)
+                if not last_phys or physics is None or physics.G.read(last_phys)[0] is None:
+                    raise SemanticWithheld("lesson_unavailable", "There is no recent physics calculation in this conversation to explain step by step.")
+                self.verify_file(Path(physics.state) / "swarm" / "parts.json")
+                _want, givens = physics.G.read(last_phys)[0]
+                have = {(name, dims): val for name, val, dims in givens}
+                raw = physics.G.ask(physics.planner, last_phys)
+                if type(raw) is not dict or raw.get("status") != "answered":
+                    raise SemanticWithheld("lesson_unavailable", "The previous physics question has no checked step-by-step plan.")
+                lines = []
+                steps_meta = []
+                for idx, pid in enumerate(raw["plan"], 1):
+                    part = physics.raw[pid]
+                    pnode = physics.planner.parts[pid]
+                    program = Path(physics.state) / "specialists" / pid / "program.py"
+                    spec_path = Path(physics.state) / "specialists" / pid / "spec.json"
+                    self.verify_file(program)
+                    self.verify_file(spec_path)
+                    args = [have[k] / s for k, s in zip(pnode["in_keys"], pnode["scale_in"])]
+                    y = float(pnode["fn"](*args))
+                    have[pnode["out_key"]] = y * pnode["scale_out"]
+                    sj = json.loads(spec_path.read_text(encoding="utf-8"))
+                    sy = sj.get("system") or {}
+                    formula = "%s = %s" % (sy.get("out_symbol", "?"), sj.get("expression", "?"))
+                    source = pid.split("#")[0]
+                    wid = (" (Wikidata %s)" % source) if source.startswith("Q") else ""
+                    lines.append("%d. %s from %s: %s, with %s gives %.6g%s." % (
+                        idx, sj.get("output", part.get("output", "?")),
+                        ", ".join(sj.get("inputs") or part.get("inputs") or []),
+                        formula, ", ".join("%.6g" % v for v in args), y, wid))
+                    steps_meta.append({"part": pid, "formula": formula, "inputs": args, "output": y,
+                                       "program_sha256": self._file_sha256(program)})
+                self.runtime._conversation_contexts[sid] = deepcopy(st)
+                lesson_text = "Here's how it works, step by step:\n%s\nEach step was put back into its own equation and holds." % "\n".join(lines)
+                return {"status": "answered", "response": lesson_text, "path": "adapter:physics_lesson",
+                        "provenance": {"kind": "physics_lesson", "question": last_phys, "steps": steps_meta,
+                                       "adapter": ADAPTER, "context_transition": "preserve"}}
             if physics is not None and physics.G.read(resolved)[0] is not None:
                 self.verify_file(Path(physics.state) / "swarm" / "parts.json")
                 want, givens = physics.G.read(resolved)[0]
@@ -488,7 +594,7 @@ class Adapter:
                     self.verify_file(program)
                     parts.append({"part": pid, "inputs": part.get("inputs"), "output": part.get("output"),
                                   "source": "https://www.wikidata.org/wiki/" + source if source.startswith("Q") else "derived inside Oracle7",
-                                  "program_sha256": hashlib.sha256(program.read_bytes()).hexdigest()})
+                                  "program_sha256": self._file_sha256(program)})
                 unit = re.search(r"\(([^()]*)\)\s*$", parts[-1]["output"])
                 if unit is None:
                     raise ValueError("physics quantity unit missing")
@@ -501,6 +607,9 @@ class Adapter:
                 self.precision = {}
                 st.q = resolved; st.result = (v, u); st.solved = {}
                 self.runtime._conversation_contexts[sid] = deepcopy(st)
+                if getattr(self.runtime, "_last_physics", None) is None:
+                    self.runtime._last_physics = {}
+                self.runtime._last_physics[sid] = resolved
                 self.runtime._last_value.pop(sid, None)
                 self.runtime._pending_conversion.pop(sid, None)
                 return self._resolved(reply, question, resolved)
@@ -511,33 +620,81 @@ class Adapter:
             author = re.fullmatch(r"Who wrote (.+)\?", resolved)
             birthplace = re.fullmatch(r"Where was (.+) born\?", resolved)
             prop = 50 if author else 19 if birthplace else None
-            if prop is not None:
-                label = (author or birthplace)[1]
+            direction = "fwd"
+            label = (author or birthplace)[1] if prop is not None else None
+            if prop is None:
+                s2 = sys.modules.get("relation_spec_v2")
+                if s2 is None:
+                    try:
+                        s2 = import_module("relation_spec_v2")
+                    except ModuleNotFoundError:
+                        s2 = None
+                if s2 is not None:
+                    self.verify_module(s2)
+                    self.verify_module(s2.RD)
+                    norm_s, low = s2.normalise(resolved)
+                    for key in s2.RD.PROPS:
+                        comp = s2.compiled(key)
+                        for dir_candidate in ("fwd", "inv"):
+                            for rx in comp[dir_candidate]:
+                                match = rx.match(low)
+                                if match is not None:
+                                    slot = s2._slot(norm_s, low, match)
+                                    if len(slot) >= 2:
+                                        prop = comp["prop"]
+                                        direction = dir_candidate
+                                        label = slot
+                                        break
+                            if prop is not None:
+                                break
+                        if prop is not None:
+                            break
+            if prop is not None and label is not None:
                 # A rewrite names a retained ID; preserve it, not a fresh link.
-                known = [e for e in (st.ans, st.subj, st.topic) if e and e[1] == label]
+                known = [e for e in (st.ans, st.subj, st.topic)
+                         if e and (e[1] == label or (len(e) > 3 and e[3] == label))]
                 if known:
                     ids = {e[0] for e in known}
                 else:
                     norm = rs.X.norm(label)
-                    ids = {int(c[0]) for c in rs.X.L.candidates(norm, 6)}
-                rows = {qid: {obj for pp, obj, _literal in rs._rs().props_of(qid) if pp == prop and obj} for qid in ids}
-                if not rows or any(len(values) != 1 for values in rows.values()) or len({next(iter(v)) for v in rows.values()}) != 1:
-                    raise SemanticWithheld("entity_not_unique", "The source does not give one unambiguous answer to that question.")
-                raw = next(iter(next(iter(rows.values()))))
-                if type(raw) is int:
-                    qid = raw
-                elif type(raw) is str and re.fullmatch(r"Q?[0-9]+", raw):
-                    qid = int(raw.removeprefix("Q"))
+                    cands = list(rs.X.L.candidates(norm, 6)) if norm else []
+                    if not cands and norm.startswith("the "):
+                        cands = list(rs.X.L.candidates(norm[4:], 6))
+                    ids = {int(c[0]) for c in cands}
+                if direction == "fwd":
+                    rows = {qid: {obj for pp, obj, _literal in rs._rs().props_of(qid) if pp == prop and obj} for qid in ids}
+                    if not rows or any(len(values) != 1 for values in rows.values()) or len({next(iter(v)) for v in rows.values()}) != 1:
+                        raise SemanticWithheld("entity_not_unique", "The source does not give one unambiguous answer to that question.")
+                    raw = next(iter(next(iter(rows.values()))))
+                    if type(raw) is int:
+                        qid = raw
+                    elif type(raw) is str and re.fullmatch(r"Q?[0-9]+", raw):
+                        qid = int(raw.removeprefix("Q"))
+                    else:
+                        raise ValueError("conversation_entity_value_not_identifier")
+                    answer_label = rs._rs().label(qid)
+                    # Multiple subjects with one answer are not one subject identity.
+                    if len(ids) != 1 or not answer_label:
+                        raise SemanticWithheld("subject_not_unique", "That question does not identify one subject in the source.")
+                    subject_id = next(iter(ids))
+                    subject_label = rs._rs().label(subject_id) or label
+                    ans_person = True if prop == 50 else (False if prop == 19 else (5 in rs.classes_of(qid)[0]))
+                    st.q = resolved; st.subj = (subject_id, subject_label, 5 in rs.classes_of(subject_id)[0], label)
+                    st.ans = (qid, answer_label, ans_person); st.topic = st.subj; st.result = None; st.solved = {}
                 else:
-                    raise ValueError("conversation_entity_value_not_identifier")
-                answer_label = rs._rs().label(qid)
-                # Multiple subjects with one answer are not one subject identity.
-                if len(ids) != 1 or not answer_label:
-                    raise SemanticWithheld("subject_not_unique", "That question does not identify one subject in the source.")
-                subject_id = next(iter(ids))
-                subject_label = rs._rs().label(subject_id) or label
-                st.q = resolved; st.subj = (subject_id, subject_label, 5 in rs.classes_of(subject_id)[0], label)
-                st.ans = (qid, answer_label, prop == 50); st.topic = st.subj; st.result = None; st.solved = {}
+                    if len(ids) != 1:
+                        raise SemanticWithheld("subject_not_unique", "That question does not identify one subject in the source.")
+                    object_id = next(iter(ids))
+                    subs = [int(x) for x in rs._q("SELECT s FROM fact INDEXED BY fact_po WHERE p=? AND o=? LIMIT 8", (prop, object_id)) if x] if callable(getattr(rs, "_q", None)) else []
+                    if len(subs) != 1:
+                        raise SemanticWithheld("entity_not_unique", "The source does not give one unambiguous answer to that question.")
+                    qid = subs[0]
+                    answer_label = rs._rs().label(qid)
+                    if not answer_label:
+                        raise SemanticWithheld("entity_not_unique", "The source does not give one unambiguous answer to that question.")
+                    object_label = rs._rs().label(object_id) or label
+                    st.q = resolved; st.subj = (object_id, object_label, 5 in rs.classes_of(object_id)[0], label)
+                    st.ans = (qid, answer_label, 5 in rs.classes_of(qid)[0]); st.topic = st.subj; st.result = None; st.solved = {}
                 self.runtime._conversation_contexts[sid] = deepcopy(st)
                 self.runtime._last_value.pop(sid, None)
                 self.runtime._pending_conversion.pop(sid, None)

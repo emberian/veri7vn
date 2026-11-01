@@ -163,6 +163,28 @@ impl Image {
         py.detach(|| self.0.query(tenant, plan_json, cancel))
             .map_err(error)
     }
+    fn read_whole(
+        &self,
+        py: Python<'_>,
+        tenant: &str,
+        question: &str,
+        cancellation: &Cancellation,
+    ) -> PyResult<String> {
+        let cancel = cancellation.0.clone();
+        py.detach(|| self.0.read_whole(tenant, question, cancel))
+            .map_err(error)
+    }
+    fn query_program(
+        &self,
+        py: Python<'_>,
+        tenant: &str,
+        program_json: &str,
+        cancellation: &Cancellation,
+    ) -> PyResult<String> {
+        let cancel = cancellation.0.clone();
+        py.detach(|| self.0.query_program(tenant, program_json, cancel))
+            .map_err(error)
+    }
     #[getter]
     fn resource_profile_sha256(&self) -> PyResult<String> {
         release::profile_sha256(self)

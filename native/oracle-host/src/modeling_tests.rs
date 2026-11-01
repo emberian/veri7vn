@@ -404,3 +404,87 @@ fn modeling_invalid_optional_fields_are_semantic_refusals_not_execution_failures
     }
     service.close();
 }
+
+#[cfg(feature = "science")]
+#[test]
+fn modeling_thermal_scenarios_delivers_temperature_point_anchor_for_affine_followups() {
+    let dir = tempfile::tempdir().unwrap();
+    let source = dir.path().join("source.json");
+    let image = dir.path().join("image.sqlite");
+    std::fs::write(
+        &source,
+        json!({"concepts":{},"entities":{"Q1":{"name":"Alice","instanceOf":[],"relations":[]}}})
+            .to_string(),
+    )
+    .unwrap();
+    let receipt = core::build_image(&source, &image, 1_000_000, 100_000).unwrap();
+    let config: Config = serde_json::from_value(json!({
+        "schema": "oracle-host-v1",
+        "journal": dir.path().join("host.sqlite"),
+        "conversation_profile": "native-v1",
+        "native": {
+            "image": image,
+            "image_sha256": receipt.image_sha256,
+            "state": dir.path().join("core.sqlite"),
+            "reader_route": true
+        },
+        "pure": {
+            "profiles": ["science"]
+        }
+    }))
+    .unwrap();
+    let service = Service::open(&config).unwrap();
+    let thermal = json!({
+        "operation": "science.thermal_scenarios",
+        "arguments": {
+            "network": {
+                "description": "Two-node steady-state coldplate network",
+                "assumptions": ["Steady passive linear conduction; ideal fixed sink temperature"],
+                "reference_temperature_k": 300.0,
+                "nodes": [
+                    {"id": "chip", "applied_heat_w": 50.0, "fixed_temperature_k": null},
+                    {"id": "sink", "applied_heat_w": 0.0, "fixed_temperature_k": 300.0}
+                ],
+                "links": [
+                    {"from": "chip", "to": "sink", "conductance_w_per_k": 2.0}
+                ]
+            },
+            "scenarios": [
+                {
+                    "id": "nominal",
+                    "applied_heat_w": [50.0, 0.0],
+                    "fixed_temperature_k": [null, 300.0]
+                }
+            ]
+        }
+    });
+    let solved = query(&service, "thermal-1", &text(&thermal));
+    assert_eq!(solved["reply"]["status"], "answered", "{solved}");
+    assert_eq!(
+        solved["reply"]["native_context_transition"],
+        "delivered_typed_anchor"
+    );
+    let converted = query(&service, "thermal-to-c", "Convert that to C");
+    assert_eq!(converted["reply"]["status"], "answered", "{converted}");
+    let val_c = &converted["reply"]["provenance"]["native_context"]["anchor"]["value"];
+    assert_eq!(val_c["unit"], "C");
+    assert_eq!(val_c["role"], "temperature_point");
+    let shifted = query(&service, "thermal-shift", "Shift that by 10 K");
+    assert_eq!(shifted["reply"]["status"], "answered", "{shifted}");
+    let val_shifted = &shifted["reply"]["provenance"]["native_context"]["anchor"]["value"];
+    assert_eq!(val_shifted["unit"], "C");
+    assert_eq!(val_shifted["role"], "temperature_point");
+    let diff = query(&service, "thermal-diff", "Difference from 11.85 C");
+    assert_eq!(diff["reply"]["status"], "answered", "{diff}");
+    let val_diff = &diff["reply"]["provenance"]["native_context"]["anchor"]["value"];
+    assert_eq!(val_diff["unit"], "C");
+    assert_eq!(val_diff["role"], "temperature_difference");
+    let (num, den) = val_diff["number"]
+        .as_str()
+        .unwrap()
+        .split_once('/')
+        .unwrap_or((val_diff["number"].as_str().unwrap(), "1"));
+    let diff_ratio = num.parse::<f64>().unwrap() / den.parse::<f64>().unwrap();
+    assert!((diff_ratio - 50.0).abs() < 1e-9, "unexpected diff {diff_ratio}");
+    service.close();
+}

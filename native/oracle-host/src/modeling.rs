@@ -219,6 +219,34 @@ fn validate(request: &Value) -> bool {
                         .all(|k| a[k].is_null())
             }
         }
+        Some("science.thermal_scenarios") => {
+            if !fields(a, &["network", "scenarios"], &["sensitivities"]) {
+                return false;
+            }
+            let n = &a["network"];
+            fields(
+                n,
+                &[
+                    "description",
+                    "assumptions",
+                    "reference_temperature_k",
+                    "nodes",
+                    "links",
+                ],
+                &["power_tolerance_w", "tolerances"],
+            ) && label(&n["description"])
+                && assumptions(&n["assumptions"])
+                && positive(&n["reference_temperature_k"])
+                && n["nodes"]
+                    .as_array()
+                    .is_some_and(|nodes| !nodes.is_empty() && nodes.len() <= 128)
+                && n["links"]
+                    .as_array()
+                    .is_some_and(|links| links.len() <= 1024)
+                && a["scenarios"]
+                    .as_array()
+                    .is_some_and(|s| !s.is_empty() && s.len() <= 64)
+        }
         _ => false,
     }
 }
@@ -251,8 +279,13 @@ pub fn answer(
             _ => return Ok(refusal("invalid_input","Complete bounded supplied rows, units, sampling declarations and assumptions are required; unsupported or unknown fields are refused.")),
         };
         let operation = request["operation"].as_str().expect("validated operation");
+        let profile = if operation.starts_with("science.") {
+            "science"
+        } else {
+            "statistics"
+        };
         let pure = pure.ok_or_else(|| Failure::plain(503, "modeling_profile_unavailable"))?;
-        let Some(declaration) = pure.operation_declaration("statistics", operation) else {
+        let Some(declaration) = pure.operation_declaration(profile, operation) else {
             return Err(Failure::plain(503, "modeling_profile_unavailable"));
         };
         if crate::schema::validate(
@@ -264,14 +297,14 @@ pub fn answer(
         {
             return Ok(refusal(
                 "invalid_input",
-                "Supplied arguments do not meet the declared statistics input contract.",
+                "Supplied arguments do not meet the declared modeling input contract.",
             ));
         }
         if !transition_supported {
             return Ok(refusal("conversation_transition_unsupported","This conversation cannot replace its prior answer context without Engine projection. Use native-v1, or an ordinary conversation with no prior Engine binding."));
         }
         let checked = pure.invoke_checked(
-            "statistics",
+            profile,
             operation,
             &request["arguments"],
             tenant,
@@ -350,6 +383,8 @@ pub fn answer(
         reply["response"] = json!(if answered {
             if operation == "statistics.calibration" {
                 "Computed the requested calibration estimates on the supplied rows and declared assumptions."
+            } else if operation == "science.thermal_scenarios" {
+                "Evaluated the supplied steady-state thermal scenarios on the declared network and assumptions."
             } else {
                 "Fitted the declared events/exposure model to the supplied rows; predictions, diagnostics and conditional evidence are included."
             }
@@ -362,6 +397,41 @@ pub fn answer(
         body["reply"] = reply;
         Ok(body)
     })())
+}
+
+pub fn retained_thermal_quantity(
+    reply: &Value,
+) -> Option<oracle_runtime_core::native_conversation::NativeQuantity> {
+    if reply["status"] != "answered"
+        || reply["supplied"]["operation"] != "science.thermal_scenarios"
+    {
+        return None;
+    }
+    let scenarios = reply["result"]["scenarios"].as_array()?;
+    if scenarios.len() != 1 {
+        return None;
+    }
+    let nodes = scenarios[0]["result"]["nodes"].as_array()?;
+    let free_temps: Vec<f64> = nodes
+        .iter()
+        .filter(|n| n["fixed_temperature_k"].is_null())
+        .filter_map(|n| n["temperature_k"].as_f64().filter(|x| x.is_finite()))
+        .collect();
+    let temp_k = if free_temps.len() == 1 {
+        free_temps[0]
+    } else if nodes.len() == 1 {
+        nodes[0]["temperature_k"]
+            .as_f64()
+            .filter(|x| x.is_finite())?
+    } else {
+        return None;
+    };
+    Some(oracle_runtime_core::native_conversation::NativeQuantity {
+        number: temp_k.to_string(),
+        unit: "K".into(),
+        origin: oracle_runtime_core::session::NumericOrigin::PythonFloat,
+        role: oracle_runtime_core::native_conversation::QuantityRole::TemperaturePoint,
+    })
 }
 
 pub fn retained_model(

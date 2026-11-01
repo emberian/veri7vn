@@ -448,11 +448,15 @@ def conversation_answer(eng, sp, fillable, q, sess, alone, request):
         raise ValueError("conversation_protocol")
     def turn():
         adapter = Adapter(eng._rt, eng.tip)
+        op = request.get("op", "evaluate")
+        if op == "evict":
+            adapter.evict(sess)
+            return {"status": "evicted", "session": sess, "provenance": {"tip": eng.tip}}
         adapter.restore(sess, request.get("state"))
-        if request.get("op", "evaluate") == "project":
+        if op == "project":
             result = dict(request["delivered"])
             adapter.project(sess, result)
-        elif request.get("op", "evaluate") == "evaluate":
+        elif op == "evaluate":
             try:
                 result = adapter.evaluate(sess, q)
             except _CONVERSATION_ADAPTER.SemanticWithheld as error:

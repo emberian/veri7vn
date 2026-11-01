@@ -1435,22 +1435,49 @@ impl Service {
         ) {
             let mut body = answer?;
             if self.native_conversation_profile && body["reply"]["status"] == "answered" {
-                let command = match crate::modeling::retained_model(&body["reply"]) {
-                    Some(model) => {
-                        core::native_conversation::NativeContextCommand::InstallModel { model }
-                    }
-                    None => core::native_conversation::NativeContextCommand::ResetTopic,
-                };
-                native
-                    .runtime
-                    .conversation_native_command(candidate, command, budget)
-                    .map_err(crate::native::conversation_failure)?;
-                native
-                    .runtime
-                    .conversation_native_reconcile_selection(candidate, budget)
-                    .map_err(crate::native::conversation_failure)?;
-                body["reply"]["native_context_transition"] =
-                    json!("cleared_unrepresentable_answer");
+                if let Some(quantity) = crate::modeling::retained_thermal_quantity(&body["reply"]) {
+                    let artifact_sha = body["reply"]["result"]["network_identity"]
+                        .as_str()
+                        .and_then(|s| s.strip_prefix("sha256:"))
+                        .unwrap_or(&native.image_sha256);
+                    let identity =
+                        core::native_conversation::ProviderIdentity::from_host_delivery(
+                            "science.thermal_scenarios",
+                            artifact_sha,
+                        )
+                        .map_err(crate::native::conversation_failure)?;
+                    let anchor =
+                        core::native_conversation::ProviderQuantityAnchor::from_host_delivery(
+                            identity, quantity,
+                        )
+                        .map_err(crate::native::conversation_failure)?;
+                    native
+                        .runtime
+                        .conversation_deliver_quantity(candidate, anchor, budget)
+                        .map_err(crate::native::conversation_failure)?;
+                    native
+                        .runtime
+                        .conversation_native_reconcile_selection(candidate, budget)
+                        .map_err(crate::native::conversation_failure)?;
+                    body["reply"]["native_context_transition"] = json!("delivered_typed_anchor");
+                } else {
+                    let command = match crate::modeling::retained_model(&body["reply"]) {
+                        Some(model) => {
+                            core::native_conversation::NativeContextCommand::InstallModel { model }
+                        }
+                        None => core::native_conversation::NativeContextCommand::ResetTopic,
+                    };
+                    native
+                        .runtime
+                        .conversation_native_command(candidate, command, budget)
+                        .map_err(crate::native::conversation_failure)?;
+                    native
+                        .runtime
+                        .conversation_native_reconcile_selection(candidate, budget)
+                        .map_err(crate::native::conversation_failure)?;
+                    body["reply"]["native_context_transition"] =
+                        json!("cleared_unrepresentable_answer");
+                }
             } else {
                 body["reply"]["native_context_transition"] = json!("preserved_refusal");
             }
@@ -1919,19 +1946,19 @@ impl Service {
             }
         }
         let trimmed = text.trim().trim_end_matches(['.', '?', '!']);
-        if trimmed
-            .to_ascii_lowercase()
-            .starts_with("convert that temperature to ")
-        {
-            let target_unit = trimmed["convert that temperature to ".len()..].trim();
-            if matches!(target_unit, "K" | "degC" | "C" | "degF" | "F") {
-                return self.native_command_reply(
-                    candidate,
-                    Command::ConvertTemperature {
-                        target_unit: target_unit.into(),
-                    },
-                    budget,
-                );
+        let lower_trimmed = trimmed.to_ascii_lowercase();
+        for prefix in ["convert that temperature to ", "convert that to "] {
+            if lower_trimmed.starts_with(prefix) {
+                let target_unit = trimmed[prefix.len()..].trim();
+                if matches!(target_unit, "K" | "degC" | "C" | "degF" | "F") {
+                    return self.native_command_reply(
+                        candidate,
+                        Command::ConvertTemperature {
+                            target_unit: target_unit.into(),
+                        },
+                        budget,
+                    );
+                }
             }
         }
         static SHIFT_TEMP: std::sync::OnceLock<regex::Regex> = std::sync::OnceLock::new();
@@ -1939,7 +1966,7 @@ impl Service {
         if let Some(capture) = SHIFT_TEMP
             .get_or_init(|| {
                 regex::Regex::new(&format!(
-                    r"^(?i:shift that temperature by) {NUMBER_PATTERN} (K|degC|C|degF|F)$"
+                    r"^(?i:shift that(?: temperature)? by) {NUMBER_PATTERN} (K|degC|C|degF|F)$"
                 ))
                 .expect("constant shift temp grammar")
             })
@@ -1957,7 +1984,7 @@ impl Service {
         if let Some(capture) = DIFF_TEMP
             .get_or_init(|| {
                 regex::Regex::new(&format!(
-                    r"^(?i:temperature difference from) {NUMBER_PATTERN} (K|degC|C|degF|F)$"
+                    r"^(?i:(?:temperature )?difference from) {NUMBER_PATTERN} (K|degC|C|degF|F)$"
                 ))
                 .expect("constant diff temp grammar")
             })
