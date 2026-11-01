@@ -22,7 +22,24 @@ restoration and the modeling/thermal consumers (`5fb1f1f`, `53540d2`, `9b1c921`)
 Its receipt records 165 Rust / 43 Python checks and the real relocated U8 journey.
 Complete modeling admission remains incomplete after its cold core baseline timeout.
 
+The [native conversation/preparation checkpoint](NATIVE-ROUTE-2026-10-31.md)
+is committed and pushed through `a5bc00a`, with implementation through `75831a7`.
+It qualifies Engine-free conversation/restart, actual extracted quantity units,
+prepared thermal reuse and isolated prepared-U8 serving. Modeling's original
+exam now completes with a negative composition result; the
+[diagnosis](MODELING-ADMISSION-2026-10-31.md) records both wrong core routing and
+our inappropriate composed-control gold.
+
 ## What upstream has received
+
+- [Native conversations and prepared public resources](https://huggingface.co/psiloceyeben/oracle7-slim/discussions/5#6ae69ad7faccf70fc9556cc8):
+  published `a5bc00a`, 130 Rust / 46 Python checks, provider 9/9, native journey
+  22/22, thermal 9/9 and affected quantity panels 641/641. The comment preserves
+  source boundaries, isolated prepared-U8 scope, negative modeling admission and
+  its scoring caveat. No current-tip compatibility or upstream adoption is claimed.
+  Read back exactly; body SHA256
+  `33a2716a9c0511bfb57142e38e46f9be746c76eaffe2a8fe472918059e05ee01`.
+  Focused #5 read found no new maintainer reply; this was not a fresh all-issues census.
 
 - [Coherent conversation and standalone release checkpoint](https://huggingface.co/psiloceyeben/oracle7-slim/discussions/5#6ae6629d730eabe558c0fb89):
   published `0bca25c` with the three implementation slices, 165 Rust / 43 Python
@@ -67,6 +84,7 @@ upstream trackers; this checkpoint does not claim a fresh census of every thread
 
 The [live roadmap](../../native/docs/ROADMAP.md) owns remaining implementation
 work; completed reader/state tasks are no longer duplicated in this ledger.
-Full Engine migration, source-bound shared startup artifacts, modeling admission,
-resource policy and upstream adoption remain explicit there. Publication does
+Full Engine migration, production host adoption of prepared public artifacts,
+structured modeling ownership, resource policy and upstream adoption remain
+explicit there. Publication does
 not establish receiving qualification, a current fleet score or a new theorem.
