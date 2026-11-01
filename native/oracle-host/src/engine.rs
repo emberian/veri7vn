@@ -99,15 +99,64 @@ impl Worker {
         if !self.alive.load(Ordering::Acquire) {
             return false;
         }
-        match self.child.try_wait() {
-            Ok(None) => true,
-            Ok(Some(_)) | Err(_) => {
+        match child_exited(self.pid) {
+            Ok(false) => true,
+            Ok(true) | Err(_) => {
                 self.alive.store(false, Ordering::Release);
                 false
             }
         }
     }
 }
+
+// Observe exit without reaping: retire must signal the owned process group
+// while its leader still reserves the PID, then reap it. Child::try_wait would
+// release that reservation before killpg and permit an unrelated reused PID.
+#[cfg(any(
+    target_os = "android",
+    target_os = "freebsd",
+    target_os = "haiku",
+    all(target_os = "linux", not(target_env = "uclibc"))
+))]
+fn child_exited(pid: i32) -> std::io::Result<bool> {
+    use nix::sys::wait::{waitid, Id, WaitPidFlag, WaitStatus};
+    loop {
+        match waitid(
+            Id::Pid(nix::unistd::Pid::from_raw(pid)),
+            WaitPidFlag::WEXITED | WaitPidFlag::WNOHANG | WaitPidFlag::WNOWAIT,
+        ) {
+            Ok(WaitStatus::StillAlive) => return Ok(false),
+            Ok(_) => return Ok(true),
+            Err(nix::errno::Errno::EINTR) => continue,
+            Err(error) => return Err(std::io::Error::from_raw_os_error(error as i32)),
+        }
+    }
+}
+
+#[cfg(not(any(
+    target_os = "android",
+    target_os = "freebsd",
+    target_os = "haiku",
+    all(target_os = "linux", not(target_env = "uclibc"))
+)))]
+fn child_exited(_pid: i32) -> std::io::Result<bool> {
+    // nix does not expose safe waitid on macOS. Stdout EOF still detects normal
+    // exit; a descendant keeping stdout open defers detection to a turn timeout.
+    // Never use Child::try_wait here: group ownership is more important than
+    // observing that exceptional idle exit before the next turn.
+    Ok(false)
+}
+
+const LIVENESS_PROBE: &str = if cfg!(any(
+    target_os = "android",
+    target_os = "freebsd",
+    target_os = "haiku",
+    all(target_os = "linux", not(target_env = "uclibc"))
+)) {
+    "stdout_eof_and_waitid_wnowait"
+} else {
+    "stdout_eof_only_descendant_held_pipe_needs_turn_timeout"
+};
 
 /// A reply with the (worker, generation) that produced it, or why there is none
 /// and which worker was involved.
@@ -358,7 +407,7 @@ impl EngineCore {
             let _guard = self
                 .wake
                 .changed
-                .wait_while(guard, |value| {
+                .wait_timeout_while(guard, Duration::from_millis(100), |value| {
                     *value == epoch && !self.stopping.load(Ordering::Acquire)
                 })
                 .unwrap_or_else(|e| e.into_inner());
@@ -909,7 +958,7 @@ impl EnginePool {
                 Err(_) => busy += 1,
             }
         }
-        json!({"workers": self.slots.len(), "unassigned_ready": unassigned, "exhausted": exhausted, "preparing": self.preparing.iter().filter(|p| p.load(Ordering::Acquire)).count(), "initial_preparation_ms": self.initial_preparation_ms.load(Ordering::Acquire), "slot_last_prepare_ms": last_prepare_ms, "replacement_policy": "bounded_attempts_then_unavailable_until_host_restart", "busy": busy, "ready_idle": ready, "ready_idle_scope": "constructor_handshake_not_liveness_probe", "liveness_probe": "stdout_eof_and_try_wait", "runtime_readiness": readiness, "starts": starts, "retired": deaths, "lazy_start": self.config.prepared.is_none(), "tenant_isolation": "whole_process_generation", "state_export": false, "conversation_survives_eviction": false, "supported_conversation_protocol": "oracle-conversation-v1", "supported_conversation_scope": "explicit_source_pinned_adapter_routes_only", "legacy_engine_state_export": false})
+        json!({"workers": self.slots.len(), "unassigned_ready": unassigned, "exhausted": exhausted, "preparing": self.preparing.iter().filter(|p| p.load(Ordering::Acquire)).count(), "initial_preparation_ms": self.initial_preparation_ms.load(Ordering::Acquire), "slot_last_prepare_ms": last_prepare_ms, "replacement_policy": "bounded_attempts_then_unavailable_until_host_restart", "busy": busy, "ready_idle": ready, "ready_idle_scope": "constructor_handshake_not_liveness_probe", "liveness_probe": LIVENESS_PROBE, "runtime_readiness": readiness, "starts": starts, "retired": deaths, "lazy_start": self.config.prepared.is_none(), "tenant_isolation": "whole_process_generation", "state_export": false, "conversation_survives_eviction": false, "supported_conversation_protocol": "oracle-conversation-v1", "supported_conversation_scope": "explicit_source_pinned_adapter_routes_only", "legacy_engine_state_export": false})
     }
 
     pub fn close(&self) {
@@ -1099,6 +1148,25 @@ fn stage_deadline(context: &ExecutionContext, stage_ms: u64) -> Instant {
 #[cfg(test)]
 mod execution_inheritance_tests {
     use super::*;
+    #[cfg(any(
+        target_os = "android",
+        target_os = "freebsd",
+        target_os = "haiku",
+        all(target_os = "linux", not(target_env = "uclibc"))
+    ))]
+    #[test]
+    fn liveness_probe_preserves_the_child_wait_status() {
+        let mut child = Command::new("sh").args(["-c", "exit 7"]).spawn().unwrap();
+        let until = Instant::now() + Duration::from_secs(2);
+        while !child_exited(child.id() as i32).unwrap() {
+            assert!(Instant::now() < until, "child failed to exit");
+            std::thread::sleep(Duration::from_millis(5));
+        }
+        // Both observations leave the original child available to its owner.
+        assert!(child_exited(child.id() as i32).unwrap());
+        assert_eq!(child.wait().unwrap().code(), Some(7));
+    }
+
     #[test]
     fn stage_limits_cannot_restart_an_expired_enclosing_deadline() {
         let deadline = Instant::now();
@@ -1295,10 +1363,21 @@ for line in sys.stdin:
         )
         .unwrap();
         let until = Instant::now() + Duration::from_secs(2);
-        while pool.health()["retired"].as_u64().unwrap_or(0) < 1 && Instant::now() < until {
+        // Observe without health()/start_all(), which themselves check liveness:
+        // this specifically requires the supervisor to replace the idle worker.
+        loop {
+            let ready = pool.slots[0].try_lock().is_ok_and(|slot| {
+                slot.starts == 2 && slot.worker.as_ref().is_some_and(|worker| worker.is_ready)
+            });
+            if ready {
+                break;
+            }
+            assert!(
+                Instant::now() < until,
+                "supervisor did not replace dead worker"
+            );
             std::thread::sleep(Duration::from_millis(5));
         }
-        pool.start_all().unwrap();
         assert_eq!(pool.health()["retired"], 1);
         assert_eq!(pool.health()["starts"], 2);
         assert_eq!(pool.health()["unassigned_ready"], 1);

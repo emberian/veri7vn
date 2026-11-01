@@ -303,7 +303,7 @@ class Boundary(unittest.TestCase):
         with self.assertRaises(ValueError):
             A.pack(SimpleNamespace(secret="not data"))
 
-    def test_verify_file_caches_unchanged_file_reads_and_detects_modifications(self):
+    def test_verify_file_reads_current_bytes_each_time_and_detects_modifications(self):
         import hashlib
         import json
         with TemporaryDirectory() as folder:
@@ -315,8 +315,6 @@ class Boundary(unittest.TestCase):
             a = self.adapter()
             a.checkout = checkout
             a.inventory = {"mod.py": {"sha256": mod_sha}}
-            a._verified_files = {}
-            A._FILE_HASH_CACHE.clear()
             reads = []
             orig_read_bytes = Path.read_bytes
             def counting_read_bytes(p):
@@ -326,10 +324,95 @@ class Boundary(unittest.TestCase):
                 a.verify_file(mod_path)
                 a.verify_file(mod_path)
                 a.verify_file(mod_path)
-            self.assertEqual(reads, [mod_path])
+            self.assertEqual(reads, [mod_path, mod_path, mod_path])
             mod_path.write_bytes(b"x = 222\n")
             with self.assertRaisesRegex(ValueError, "conversation_source_pin_mismatch:mod.py"):
                 a.verify_file(mod_path)
+
+    def test_source_pin_rejects_same_size_edit_with_restored_mtime(self):
+        import hashlib
+        with TemporaryDirectory() as folder:
+            path = Path(folder).resolve() / "module.py"
+            path.write_bytes(b"old")
+            stamp = path.stat()
+            a = self.adapter(); a.checkout = path.parent
+            a.inventory = {path.name: {"sha256": hashlib.sha256(b"old").hexdigest()}}
+            a.verify_file(path)
+            path.write_bytes(b"new")
+            os.utime(path, ns=(stamp.st_atime_ns, stamp.st_mtime_ns))
+            self.assertEqual(path.stat().st_size, stamp.st_size)
+            self.assertEqual(path.stat().st_mtime_ns, stamp.st_mtime_ns)
+            with self.assertRaisesRegex(ValueError, "conversation_source_pin_mismatch"):
+                a.verify_file(path)
+
+    def test_source_pin_rejects_changed_bytes_even_when_all_stat_fields_match(self):
+        import hashlib
+        with TemporaryDirectory() as folder:
+            path = Path(folder).resolve() / "module.py"
+            path.write_bytes(b"old")
+            original_stat = path.stat()
+            a = self.adapter(); a.checkout = path.parent
+            a.inventory = {path.name: {"sha256": hashlib.sha256(b"old").hexdigest()}}
+            # Model the observed serving filesystem's same-tick metadata,
+            # without requiring that every test host has that granularity.
+            stat = Path.stat
+            def unchanged_stat(candidate, *args, **kwargs):
+                return original_stat if candidate == path else stat(candidate, *args, **kwargs)
+            with patch.object(Path, "stat", unchanged_stat):
+                a.verify_file(path)
+                path.write_bytes(b"new")
+                self.assertEqual(path.stat(), original_stat)
+                with self.assertRaisesRegex(ValueError, "conversation_source_pin_mismatch"):
+                    a.verify_file(path)
+
+    def test_projection_clears_lesson_and_evict_is_session_scoped(self):
+        a = self.adapter(); a.restore("s", self.initial()); a.restore("other", self.initial())
+        a.runtime._last_physics.update(s="force", other="energy")
+        a.project("s", {"conversation_projection": {"acknowledgement": True}})
+        self.assertEqual(a.runtime._last_physics["s"], "force")
+        a.project("s", {"status": "answered", "conversation_projection": {"question": "new answer"}})
+        self.assertNotIn("s", a.runtime._last_physics)
+        before = a.capture("other")
+        a.evict("s")
+        self.assertEqual(a.capture("other"), before)
+
+    def test_relation_reader_admission_keeps_domains_dropped_patterns_and_disagreement(self):
+        a = self.adapter(); a.verify_file = lambda *_: None
+        dropped = frozenset({(38, "fwd", 0)})
+        a._relation_profiles = lambda: [("countries2", [36, 38], dropped)]
+        calls = []
+        def answer(question, domain, keys, exclusions):
+            calls.append((question, domain, keys, exclusions))
+            return {"decline": True}
+        source = SimpleNamespace(DOMAINS_FILE="/fixture/domains", answer=answer)
+        with self.assertRaisesRegex(A.SemanticWithheld, "relation_declined"):
+            a._relation_reading(source, "What is the currency of Denmark?")
+        self.assertEqual(calls, [("What is the currency of Denmark?", "countries2", [36, 38], dropped)])
+        a._relation_profiles = lambda: [("one", [36], frozenset()), ("two", [36], frozenset())]
+        source.answer = lambda _q, domain, *_: {"property": 36, "direction": "inv", "subject_qid": 1 if domain == "one" else 2, "linked_qid": 3}
+        with self.assertRaisesRegex(A.SemanticWithheld, "entity_not_unique"):
+            a._relation_reading(source, "Which country?")
+
+    def test_relation_profiles_load_only_inventoried_declared_reader_metadata(self):
+        import hashlib
+        import json
+        with TemporaryDirectory() as folder:
+            checkout = Path(folder).resolve()
+            root = checkout / "root/specialists/rel-countries-v2"
+            root.mkdir(parents=True)
+            contents = {
+                "manifest.json": {"organ": {"module": "organ_relation_v2", "class": "RelationOrganV2", "init": {"domain": "countries2"}}},
+                "readers.json": {"keys": ["36", "38"], "dropped": [["38", "fwd", 0]]},
+            }
+            a = self.adapter(); a.checkout = checkout; a.inventory = {}
+            for name, value in contents.items():
+                path = root / name
+                path.write_text(json.dumps(value))
+                a.inventory[str(path.relative_to(checkout))] = {"sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
+            self.assertEqual(a._relation_profiles(), [("countries2", [36, 38], frozenset({(38, "fwd", 0)}))])
+            (root / "readers.json").write_text(json.dumps({"keys": ["36", "38"], "dropped": []}))
+            with self.assertRaisesRegex(ValueError, "conversation_source_pin_mismatch"):
+                a._relation_profiles()
 
     def test_last_physics_survives_restore_and_supports_teach_me_and_evict(self):
         import json
@@ -393,6 +476,11 @@ class Boundary(unittest.TestCase):
                 self.assertEqual(lesson["path"], "adapter:physics_lesson")
                 self.assertIn("F = m * a", lesson["response"])
                 self.assertIn("Wikidata Q1", lesson["response"])
+                self.assertNotIn("put back into its own equation", lesson["response"])
+                new_topic = worker.conversation_answer(eng, None, None, "New topic: teach me", "s", False,
+                    {"protocol": A.PROTOCOL, "state": committed})
+                self.assertEqual(new_topic["path"], "adapter:withheld>lesson_unavailable")
+                self.assertEqual(new_topic["conversation"]["state"]["last_physics"], committed["oracle"]["last_physics"])
                 evicted = worker.conversation_answer(eng, None, None, "", "s", False,
                                                      {"protocol": A.PROTOCOL, "op": "evict"})
                 self.assertEqual(evicted["status"], "evicted")
@@ -423,15 +511,29 @@ class Boundary(unittest.TestCase):
         )
         compiled_map = {
             "36": {"prop": 36, "fwd": [re.compile(r"^what is the capital of (?P<X>.+?)$")],
-                   "inv": [re.compile(r"^which country has (?P<X>.+?) as its capital$")]},
-            "38": {"prop": 38, "fwd": [re.compile(r"^what is the currency of (?P<X>.+?)$")], "inv": []},
+                   "inv": [re.compile(r"^(?P<X>.+?) is the capital of which country$")]},
+            "38": {"prop": 38, "fwd": [re.compile(r"^what is (?P<X>.+?)'s currency$")], "inv": []},
         }
         s2 = SimpleNamespace(
             RD=SimpleNamespace(PROPS={"36": {}, "38": {}}),
             normalise=lambda q: (q.rstrip("?.! "), q.rstrip("?.! ").lower()),
-            compiled=lambda key: compiled_map[key],
+            compiled=lambda key: compiled_map[str(key)],
             _slot=lambda s, _low, m: s[m.start("X"):m.end("X")].strip(),
+            DOMAINS_FILE="/fixture/domains",
         )
+        def admitted_answer(question, domain, keys, dropped):
+            for key in keys:
+                for direction in ("fwd", "inv"):
+                    for index, rx in enumerate(compiled_map[key][direction]):
+                        match = rx.fullmatch(question.rstrip("?.! ").lower())
+                        if match:
+                            return {"property": int(key), "direction": direction,
+                                    "subject_qid": 35, "linked_qid": 1748 if direction == "inv" else 35,
+                                    "pattern": "%s|%s|%d" % (key, direction, index)}
+            return None
+        s2.answer = admitted_answer
+        a._relation_profiles = lambda: [("countries2", ["36", "38"], frozenset())]
+        a.verify_file = lambda *_: None
         a.verify_module = lambda *_: None
         worker, eng = self.refusal_worker(a)
         with patch.dict(sys.modules, {"runtime_conversation_state": SimpleNamespace(begin=begin, release=release),
@@ -443,7 +545,7 @@ class Boundary(unittest.TestCase):
             self.assertEqual(t1["response"], "Copenhagen.")
             self.assertEqual(t1["provenance"]["property"], "wd:P36")
             c1 = self.envelope(t1["conversation"])
-            a.cc.rewrite = lambda _sid, _q: "What is the currency of Denmark?"
+            a.cc.rewrite = lambda _sid, _q: "What is Denmark's currency?"
             t2 = worker.conversation_answer(eng, None, None, "And its currency?", "s", False,
                                             {"protocol": A.PROTOCOL, "state": c1})
             self.assertEqual(t2["status"], "answered")
@@ -451,7 +553,7 @@ class Boundary(unittest.TestCase):
             self.assertEqual(t2["path"], "chat:resolved>adapter:relation_store")
             self.assertEqual(t2["provenance"]["property"], "wd:P38")
             a.cc.rewrite = lambda *_: None
-            t3 = worker.conversation_answer(eng, None, None, "Which country has Copenhagen as its capital?", "s", False,
+            t3 = worker.conversation_answer(eng, None, None, "Copenhagen is the capital of which country?", "s", False,
                                             {"protocol": A.PROTOCOL, "state": self.initial()})
             self.assertEqual(t3["status"], "answered")
             self.assertEqual(t3["response"], "Denmark.")
@@ -505,6 +607,14 @@ class Boundary(unittest.TestCase):
             self.assertEqual(facts_res["status"], "answered")
             self.assertEqual(facts_res["path"], "organ:reader90>whole_wording")
             self.assertIn("2. From the knowledge base", facts_res["response"])
+            facts.ask = lambda q: {"status": "answered", "answer": "0", "show": {
+                "program": [{"function": "Find", "inputs": ["Venus"]},
+                            {"function": "Relate", "inputs": ["child astronomical body", "forward"]},
+                            {"function": "Count", "inputs": []}]}}
+            wrong_entity = worker.conversation_answer(eng, None, None, "How many moons does Mars have?", "s", False,
+                {"protocol": A.PROTOCOL, "state": self.initial()})
+            self.assertEqual(wrong_entity["path"], "adapter:withheld>facts_ungrounded_reading")
+            facts.ask = facts_ask
             ungrounded = worker.conversation_answer(eng, None, None, "How much is the rent?", "s", False,
                                                     {"protocol": A.PROTOCOL, "state": self.initial()})
             self.assertEqual(ungrounded["status"], "withheld")

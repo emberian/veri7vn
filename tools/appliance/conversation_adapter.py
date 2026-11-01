@@ -24,26 +24,16 @@ OWNERS = {"runtime_dialogue": "dialogue", "runtime_an_transition": "transitions"
 EXTENSIONS = tuple(OWNERS) + ("oracle_readonly_adapter", "runtime_an_conversion")
 UNCOVERED = ["teaching", "documents", "files", "external_tools", "w572_ego_mood", "unknown_runtime_owners"]
 MAX_BYTES = 512 * 1024
-_FILE_HASH_CACHE: dict[tuple[str, int, int, int, int], str] = {}
 _INVENTORY_CACHE: dict[tuple[str, str], dict] = {}
 
 
-def _cached_file_sha256(path: Path, local_cache: dict | None = None) -> str:
-    resolved = Path(path).resolve()
-    st = resolved.stat()
-    stamp = (str(resolved), st.st_dev, st.st_ino, st.st_size, st.st_mtime_ns)
-    if local_cache is not None and stamp in local_cache:
-        return local_cache[stamp]
-    if stamp in _FILE_HASH_CACHE:
-        digest = _FILE_HASH_CACHE[stamp]
-        if local_cache is not None:
-            local_cache[stamp] = digest
-        return digest
-    digest = hashlib.sha256(resolved.read_bytes()).hexdigest()
-    _FILE_HASH_CACHE[stamp] = digest
-    if local_cache is not None:
-        local_cache[stamp] = digest
-    return digest
+def file_sha256(path: Path) -> str:
+    """Hash current source bytes; filesystem timestamps cannot identify them.
+
+    Same-size edits can retain both mtime and ctime on the serving filesystem.
+    Protected custody is still required between verification and execution.
+    """
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
 class SemanticWithheld(Exception):
@@ -200,39 +190,31 @@ class Adapter:
         checkout = next((p for p in root.parents if (p / "APPLIANCE.json").is_file()), None)
         if checkout is None:
             raise ValueError("conversation_admitted_materialization_required")
-        self._verified_files = getattr(runtime, "_adapter_verified_files", None)
-        if type(self._verified_files) is not dict:
-            self._verified_files = {}
-            try:
-                setattr(runtime, "_adapter_verified_files", self._verified_files)
-            except Exception:
-                pass
         receipt_path = checkout / "APPLIANCE.json"
-        receipt_hash = _cached_file_sha256(receipt_path, self._verified_files)
+        receipt_bytes = receipt_path.read_bytes()
+        receipt_hash = hashlib.sha256(receipt_bytes).hexdigest()
         if receipt_hash != "97286fb824bb102a24ac9e7458fc8d8426212ad0bff2b585bd00d6e0462d00a5" or tip != "oracle_release_runtime_w574":
             raise ValueError("conversation_source_profile_unsupported")
         sources = {"runtime_conversation_state": "bd59010ba45df5bbbfec39a71cb9dcdbc6a1eed9df2337db0eb0e5e1c3751be8",
                    "runtime_final_outcome": "9851cdcfac26f9ee0901d9c700f0ad6f18b2a52881f415b127ce203d926e8e2b",
                    "chat_context_v2": "271b62bf8e9c7228c30b7ac5bb00a5b2d2e0e7b9ba97a7976dd33bdeb404b514"}
         for name, expected in sources.items():
-            if _cached_file_sha256(Path(sys.modules[name].__file__), self._verified_files) != expected:
+            if file_sha256(Path(sys.modules[name].__file__)) != expected:
                 raise ValueError("conversation_source_pin_mismatch")
         self.checkout = checkout
         inv_key = (str(checkout), receipt_hash)
         if inv_key not in _INVENTORY_CACHE:
-            _INVENTORY_CACHE[inv_key] = json.loads(receipt_path.read_bytes())["files"]
+            if len(_INVENTORY_CACHE) >= 8:
+                _INVENTORY_CACHE.pop(next(iter(_INVENTORY_CACHE)))
+            _INVENTORY_CACHE[inv_key] = json.loads(receipt_bytes)["files"]
         self.inventory = _INVENTORY_CACHE[inv_key]
         self.manifest = {"adapter": ADAPTER, "version": VERSION, "tip": tip,
                          "appliance_sha256": receipt_hash, "sources": sources,
-                         "adapter_sha256": _cached_file_sha256(Path(__file__), self._verified_files)}
+                         "adapter_sha256": file_sha256(Path(__file__))}
         self.source = ADAPTER + ":sha256:" + hashlib.sha256(compact(self.manifest).encode()).hexdigest()
 
     def _file_sha256(self, path):
-        cache = getattr(self, "_verified_files", None)
-        if type(cache) is not dict:
-            cache = {}
-            self._verified_files = cache
-        return _cached_file_sha256(Path(path), cache)
+        return file_sha256(Path(path))
 
     def verify_file(self, path):
         path = Path(path).resolve()
@@ -246,6 +228,61 @@ class Adapter:
 
     def verify_module(self, module):
         self.verify_file(module.__file__)
+
+    def _relation_profiles(self):
+        """Read only inventoried v2 specialists' admitted reader configuration."""
+        profiles = []
+        for key in sorted(self.inventory):
+            if not (key.startswith("root/specialists/") and key.endswith("/manifest.json")):
+                continue
+            manifest_path = self.checkout / key
+            self.verify_file(manifest_path)
+            manifest = json.loads(manifest_path.read_bytes())
+            organ = manifest.get("organ", {})
+            if organ.get("class") != "RelationOrganV2" or organ.get("module") != "organ_relation_v2":
+                continue
+            init = organ["init"]
+            readers_path = manifest_path.parent / init.get("readers", "readers.json")
+            self.verify_file(readers_path)
+            readers = json.loads(readers_path.read_bytes())
+            def reader_key(value):
+                return int(value) if str(value).lstrip("-").isdigit() else value
+            profiles.append((init["domain"], [reader_key(k) for k in readers["keys"]],
+                             frozenset((reader_key(k), d, int(i)) for k, d, i in readers.get("dropped", []))))
+        return profiles
+
+    def _relation_reading(self, module, question):
+        # Calling the admitted reader retains domain/kind exclusions, dropped
+        # phrasings, temporal guards and inverse subject checks. Raw PROPS
+        # regexes alone are not an admission policy.
+        self.verify_file(module.DOMAINS_FILE)
+        answers = []
+        for domain, keys, dropped in self._relation_profiles():
+            answer = module.answer(question, domain, keys, dropped)
+            if answer is None:
+                continue
+            if answer.get("decline"):
+                raise SemanticWithheld("relation_declined", "The admitted relation reader cannot verify that question.")
+            answers.append(answer)
+        identities = {(a["property"], a["direction"], a["subject_qid"], a["linked_qid"])
+                      for a in answers}
+        if len(identities) > 1:
+            raise SemanticWithheld("entity_not_unique", "The admitted relation readers disagree on that question.")
+        return answers[0] if answers else None
+
+    def _physics_answer(self, physics, question, want, givens):
+        self.verify_file(Path(physics.state) / "swarm" / "parts.json")
+        given = {(name, dims) for name, _value, dims in givens}
+        plans = []
+        for key in physics.planner.by_out:
+            if key[0] == want:
+                plans.extend(physics.planner.plans(key, given))
+                if len(plans) > 256:
+                    raise ValueError("physics plan limit")
+        for plan in plans:
+            for part in plan:
+                self.verify_file(Path(physics.state) / "specialists" / part["id"] / "program.py")
+        return physics.G.ask(physics.planner, question)
 
     def evict(self, sid):
         """Remove all per-session state for sid from the resident runtime."""
@@ -415,10 +452,23 @@ class Adapter:
                 raise ValueError("dimensioned scalar cache projection")
             self.runtime._last_value[sid] = restore_number(scalar)
         self.runtime._pending_conversion.pop(sid, None)
+        self.runtime._last_physics.pop(sid, None)
         self.runtime._v4_disc.pop(sid, None)
         self.runtime.dialogue[sid] = {"last_result": {k: deepcopy(delivered.get(k)) for k in ("status", "path", "provenance")}}
 
     def evaluate(self, sid, text):
+        reply = self._evaluate(sid, text)
+        # Lessons refer to the delivered physics answer, never an older topic
+        # or an intervening answer. Semantic refusals are restored by the worker.
+        import re
+        path = reply.get("path", "")
+        topic_change = re.match(r"^\s*(?:new topic|switching topics|change of topic)\s*:", text, re.I)
+        if ("organ:physics60>proved" not in path and path != "adapter:physics_lesson"
+                and (path != "act:acknowledge" or topic_change)):
+            self.runtime._last_physics.pop(sid, None)
+        return reply
+
+    def _evaluate(self, sid, text):
         """Preflight a finite source-audited route; never call arbitrary eng.chat.
 
         w29 arithmetic is invoked only after its own total parser succeeds.
@@ -431,6 +481,8 @@ class Adapter:
         frame = reconcile.begin(self.runtime, text, sid)
         try:
             question = re.sub(r"^\s*(?:new topic|switching topics|change of topic)\s*:\s*", "", text, flags=re.I)
+            if question != text:
+                self.runtime._last_physics.pop(sid, None)
             st = self.cc._STATES[sid]
             if re.fullmatch(r"\s*(?:ok|okay|got it|thanks|thank you)[.!]?\s*", question, re.I):
                 self.runtime._conversation_contexts[sid] = deepcopy(st)
@@ -527,18 +579,23 @@ class Adapter:
                         raise SemanticWithheld("air_declined", raw_air["why"])
                     if type(raw_air) is dict and raw_air.get("status") == "answered":
                         cited = (raw_air.get("show") or {}).get("cited") or []
+                        if not cited or type(raw_air.get("answer")) is not str:
+                            raise ValueError("conversation_air_invalid_reply")
                         first_cite = cited[0] if cited else {}
                         resp = "%s (NOAA, %s, row %s.)" % (
                             raw_air["answer"], first_cite.get("file", "?"), first_cite.get("line", "?")
                         )
                         self.precision = {}
                         st.q = resolved; st.result = None; st.solved = {}
+                        st.subj = st.ans = st.topic = st.material = None
                         self.runtime._conversation_contexts[sid] = deepcopy(st)
                         self.runtime._last_value.pop(sid, None)
                         self.runtime._pending_conversion.pop(sid, None)
                         reply = {"status": "answered", "response": resp, "path": "organ:air>cited",
                                  "provenance": {"organ": "air", "cited": cited, "adapter": ADAPTER}}
                         return self._resolved(reply, question, resolved)
+                    if raw_air is not None:
+                        raise ValueError("conversation_air_invalid_reply")
             teach = re.fullmatch(
                 r"\s*(?:(?:please|ok(?:ay)?|now|and)[,]?\s+)?(?:teach me(?: that| this| how(?: you got (?:that|it)| to do it)?)?|"
                 r"show me how(?: you got (?:that|it)| to do it)?|"
@@ -552,11 +609,16 @@ class Adapter:
                 if not last_phys or physics is None or physics.G.read(last_phys)[0] is None:
                     raise SemanticWithheld("lesson_unavailable", "There is no recent physics calculation in this conversation to explain step by step.")
                 self.verify_file(Path(physics.state) / "swarm" / "parts.json")
-                _want, givens = physics.G.read(last_phys)[0]
+                want, givens = physics.G.read(last_phys)[0]
                 have = {(name, dims): val for name, val, dims in givens}
-                raw = physics.G.ask(physics.planner, last_phys)
-                if type(raw) is not dict or raw.get("status") != "answered":
+                raw = self._physics_answer(physics, last_phys, want, givens)
+                if type(raw) is not dict:
+                    raise ValueError("conversation_physics_invalid_reply")
+                if (raw.get("status") == "declined" and raw.get("kind") in ("form", "no_part", "no_value", "disagree")
+                        and type(raw.get("why")) is str):
                     raise SemanticWithheld("lesson_unavailable", "The previous physics question has no checked step-by-step plan.")
+                if raw.get("status") != "answered" or not raw.get("plan"):
+                    raise ValueError("conversation_physics_invalid_lesson")
                 lines = []
                 steps_meta = []
                 for idx, pid in enumerate(raw["plan"], 1):
@@ -568,6 +630,8 @@ class Adapter:
                     self.verify_file(spec_path)
                     args = [have[k] / s for k, s in zip(pnode["in_keys"], pnode["scale_in"])]
                     y = float(pnode["fn"](*args))
+                    if not math.isfinite(y):
+                        raise ValueError("conversation_physics_nonfinite_lesson")
                     have[pnode["out_key"]] = y * pnode["scale_out"]
                     sj = json.loads(spec_path.read_text(encoding="utf-8"))
                     sy = sj.get("system") or {}
@@ -581,26 +645,21 @@ class Adapter:
                     steps_meta.append({"part": pid, "formula": formula, "inputs": args, "output": y,
                                        "program_sha256": self._file_sha256(program)})
                 self.runtime._conversation_contexts[sid] = deepcopy(st)
-                lesson_text = "Here's how it works, step by step:\n%s\nEach step was put back into its own equation and holds." % "\n".join(lines)
+                # grow60 runs the admitted formula functions and checks plan
+                # agreement; it does not substitute values into each equation.
+                final_value = have[pnode["out_key"]]
+                if not math.isclose(final_value, raw["value"], rel_tol=1e-6, abs_tol=0.0):
+                    raise ValueError("conversation_physics_lesson_disagrees")
+                lesson_text = "Here's how it works, step by step:\n%s" % "\n".join(lines)
                 return {"status": "answered", "response": lesson_text, "path": "adapter:physics_lesson",
                         "provenance": {"kind": "physics_lesson", "question": last_phys, "steps": steps_meta,
                                        "adapter": ADAPTER, "context_transition": "preserve"}}
             if physics is not None and physics.G.read(resolved)[0] is not None:
                 self.verify_file(Path(physics.state) / "swarm" / "parts.json")
                 want, givens = physics.G.read(resolved)[0]
-                given = {(name, dims) for name, _value, dims in givens}
-                plans = []
-                for key in physics.planner.by_out:
-                    if key[0] == want:
-                        plans.extend(physics.planner.plans(key, given))
-                if len(plans) > 256:
-                    raise ValueError("physics plan limit")
-                for plan in plans:
-                    for part in plan:
-                        self.verify_file(Path(physics.state) / "specialists" / part["id"] / "program.py")
                 # Use grow60's typed result before voice10's thin wrapper drops
                 # its decline kind. Unknown/malformed results remain failures.
-                raw = physics.G.ask(physics.planner, resolved)
+                raw = self._physics_answer(physics, resolved, want, givens)
                 if type(raw) is not dict:
                     raise ValueError("conversation_physics_invalid_reply")
                 if raw.get("status") == "declined":
@@ -645,6 +704,7 @@ class Adapter:
             prop = 50 if author else 19 if birthplace else None
             direction = "fwd"
             label = (author or birthplace)[1] if prop is not None else None
+            admitted_reading = None
             if prop is None:
                 s2 = sys.modules.get("relation_spec_v2")
                 if s2 is None:
@@ -655,23 +715,17 @@ class Adapter:
                 if s2 is not None:
                     self.verify_module(s2)
                     self.verify_module(s2.RD)
-                    norm_s, low = s2.normalise(resolved)
-                    for key in s2.RD.PROPS:
+                    admitted_reading = self._relation_reading(s2, resolved)
+                    if admitted_reading is not None:
+                        key, direction, index = admitted_reading["pattern"].split("|")
+                        key = int(key) if key.lstrip("-").isdigit() else key
+                        norm_s, low = s2.normalise(resolved)
                         comp = s2.compiled(key)
-                        for dir_candidate in ("fwd", "inv"):
-                            for rx in comp[dir_candidate]:
-                                match = rx.match(low)
-                                if match is not None:
-                                    slot = s2._slot(norm_s, low, match)
-                                    if len(slot) >= 2:
-                                        prop = comp["prop"]
-                                        direction = dir_candidate
-                                        label = slot
-                                        break
-                            if prop is not None:
-                                break
-                        if prop is not None:
-                            break
+                        match = comp[direction][int(index)].fullmatch(low)
+                        if match is None:
+                            raise ValueError("conversation_relation_reading_mismatch")
+                        label = s2._slot(norm_s, low, match)
+                        prop = comp["prop"]
             if prop is not None and label is not None:
                 # A rewrite names a retained ID; preserve it, not a fresh link.
                 known = [e for e in (st.ans, st.subj, st.topic)
@@ -684,8 +738,15 @@ class Adapter:
                     if not cands and norm.startswith("the "):
                         cands = list(rs.X.L.candidates(norm[4:], 6))
                     ids = {int(c[0]) for c in cands}
+                if admitted_reading is not None:
+                    admitted_id = admitted_reading["subject_qid"] if direction == "fwd" else admitted_reading["linked_qid"]
+                    if ids != {admitted_id}:
+                        raise SemanticWithheld("subject_not_unique", "That question does not identify one subject in the source.")
                 if direction == "fwd":
-                    rows = {qid: {obj for pp, obj, _literal in rs._rs().props_of(qid) if pp == prop and obj} for qid in ids}
+                    records = {qid: [(obj, literal) for pp, obj, literal in rs._rs().props_of(qid) if pp == prop] for qid in ids}
+                    if any(not obj or literal for values in records.values() for obj, literal in values):
+                        raise SemanticWithheld("relation_literal_unsupported", "This conversation route supports only entity-valued relations.")
+                    rows = {qid: {obj for obj, _literal in values} for qid, values in records.items()}
                     if not rows or any(len(values) != 1 for values in rows.values()) or len({next(iter(v)) for v in rows.values()}) != 1:
                         raise SemanticWithheld("entity_not_unique", "The source does not give one unambiguous answer to that question.")
                     raw = next(iter(next(iter(rows.values()))))
@@ -708,10 +769,12 @@ class Adapter:
                     if len(ids) != 1:
                         raise SemanticWithheld("subject_not_unique", "That question does not identify one subject in the source.")
                     object_id = next(iter(ids))
-                    subs = [int(x) for x in rs._q("SELECT s FROM fact INDEXED BY fact_po WHERE p=? AND o=? LIMIT 8", (prop, object_id)) if x] if callable(getattr(rs, "_q", None)) else []
+                    subs = [int(x) for x in rs._q("SELECT DISTINCT s FROM fact INDEXED BY fact_po WHERE p=? AND o=? LIMIT 2", (prop, object_id)) if x]
                     if len(subs) != 1:
                         raise SemanticWithheld("entity_not_unique", "The source does not give one unambiguous answer to that question.")
                     qid = subs[0]
+                    if admitted_reading is not None and qid != admitted_reading["subject_qid"]:
+                        raise ValueError("conversation_relation_reading_mismatch")
                     answer_label = rs._rs().label(qid)
                     if not answer_label:
                         raise SemanticWithheld("entity_not_unique", "The source does not give one unambiguous answer to that question.")
@@ -732,11 +795,13 @@ class Adapter:
                 if type(raw_facts) is dict and raw_facts.get("status") == "declined" and type(raw_facts.get("why")) is str:
                     raise SemanticWithheld("facts_disagree", raw_facts["why"])
                 if type(raw_facts) is dict and raw_facts.get("status") == "answered":
+                    if type(raw_facts.get("answer")) is not str:
+                        raise ValueError("conversation_facts_invalid_reply")
                     prog = (raw_facts.get("show") or {}).get("program") or []
                     for step in prog:
                         if step.get("function") == "Find" and step.get("inputs"):
                             name = str(step["inputs"][0])
-                            if name[:1].isupper() and name not in resolved and name.lower() in resolved.lower():
+                            if not name or name not in resolved:
                                 raise SemanticWithheld("facts_ungrounded_reading", "That reading was not grounded in the question's named entities.")
                     fns = [step.get("function") for step in prog]
                     if not prog or (fns[-1] == "Count" and set(fns[:-1]) <= {"Find"}):
@@ -746,27 +811,35 @@ class Adapter:
                     resp = "%s. From the knowledge base, step by step: %s." % (raw_facts["answer"], "; ".join(steps))
                     self.precision = {}
                     st.q = resolved; st.result = None; st.solved = {}
+                    st.subj = st.ans = st.topic = st.material = None
                     self.runtime._conversation_contexts[sid] = deepcopy(st)
                     self.runtime._last_value.pop(sid, None)
                     self.runtime._pending_conversion.pop(sid, None)
                     reply = {"status": "answered", "response": resp, "path": "organ:reader90>" + read_mode,
                              "provenance": {"organ": "reader90", "program": prog, "adapter": ADAPTER}}
                     return self._resolved(reply, question, resolved)
+                if raw_facts is not None:
+                    raise ValueError("conversation_facts_invalid_reply")
             native_image = getattr(self.runtime, "_native_image", None)
             if native_image is not None and callable(getattr(native_image, "read_whole", None)):
                 cancel = getattr(self.runtime, "_native_cancellation", None)
                 raw_native = (native_image.read_whole(ADAPTER, resolved, cancel)
                               if cancel is not None else native_image.read_whole(ADAPTER, resolved))
                 parsed = json.loads(raw_native) if type(raw_native) is str else raw_native
+                if type(parsed) is not dict or parsed.get("status") not in ("answered", "withheld", "declined"):
+                    raise ValueError("conversation_native_invalid_reply")
                 if type(parsed) is dict and parsed.get("status") == "answered" and type(parsed.get("response")) is str:
                     self.precision = {}
                     st.q = resolved; st.result = None; st.solved = {}
+                    st.subj = st.ans = st.topic = st.material = None
                     self.runtime._conversation_contexts[sid] = deepcopy(st)
                     self.runtime._last_value.pop(sid, None)
                     self.runtime._pending_conversion.pop(sid, None)
                     reply = {"status": "answered", "response": parsed["response"], "path": "native:image>read_whole",
                              "provenance": {"organ": "native_image", "reader": parsed.get("provenance"), "adapter": ADAPTER}}
                     return self._resolved(reply, question, resolved)
+                if parsed.get("status") == "answered":
+                    raise ValueError("conversation_native_invalid_reply")
             raise SemanticWithheld("route_unsupported", "This conversation profile cannot answer that request.")
         finally:
             reconcile.release(frame)

@@ -272,19 +272,6 @@ def main():
                 if not store.is_file() or store.stat().st_size != item["size"]:
                     raise ValueError("unprovisioned store: " + str(path))
     o7.setup = provisioned
-    if os.environ.get("ORACLE7_PREPARED_SERVING") == "1":
-        swarm_dir = UPSTREAM / "workbench" / "swarm"
-        if swarm_dir.is_dir() and str(swarm_dir) not in sys.path:
-            sys.path.append(str(swarm_dir))
-        try:
-            import functools
-            import runtime_preparation as _rp
-            _orig_sha = _rp.sha
-            _orig_manifest = _rp.admitted_manifest
-            _rp.sha = functools.lru_cache(maxsize=512)(lambda p: _orig_sha(str(Path(p).resolve())))
-            _rp.admitted_manifest = functools.lru_cache(maxsize=8)(lambda t: _orig_manifest(str(Path(t).resolve())))
-        except Exception:  # noqa: BLE001
-            pass
     eng = None
     if not a.alone:
         if os.environ.get("ORACLE7_PREPARED_SERVING") == "1" and a.tip not in (None, "oracle_release_runtime_w574"):
